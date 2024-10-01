@@ -1,7 +1,7 @@
 ﻿using System.Reflection;
 using System.Security.Cryptography;
 
-namespace TAHITI_ConnectionTool;
+namespace TAHITI_ConnectionTool
 {
     public enum SetupResult
     {
@@ -17,12 +17,10 @@ namespace TAHITI_ConnectionTool;
     {
         private const string ExecutableHash = "6DC9BCDB145F98E5C2D7A1F7E25AEB75507A9D1A";  // Win64 1.52.0.1700
 
-        private static readonly string CalligraphyPath = Path.Combine("Data", "Game", "Calligraphy.sip");
-        private static readonly string ResourcePath = Path.Combine("Data", "Game", "mu_cdata.sip");
-
         /// <summary>
         /// Sets up MHServerEmu using the client in the specified directory.
         /// </summary>
+
         public static SetupResult RunSetup(string clientRootDirectory)
         {
             // Validate directory path
@@ -39,11 +37,11 @@ namespace TAHITI_ConnectionTool;
             if (ExecutableHash != executableHash)
                 return SetupResult.ClientVersionMismatch;
 
-            CreateBatFiles(serverRootDirectory, clientExecutablePath, serverCalligraphyPath);
+            CreateBatFiles(clientExecutablePath);
 
             return SetupResult.Success;
         }
-
+    
         /// <summary>
         /// Returns the text message for the specified <see cref="SetupResult"/>.
         /// </summary>
@@ -56,7 +54,6 @@ namespace TAHITI_ConnectionTool;
                 SetupResult.InvalidFilePath =>          "Invalid file path.",
                 SetupResult.ClientNotFound =>           "Marvel Heroes game client not found.",
                 SetupResult.ClientVersionMismatch =>    "Game client version mismatch. Please make sure you have version 1.52.0.1700.",
-                SetupResult.ClientDataNotFound =>       "Game data files are missing. Please reinstall the game client.",
                 _ =>                                    "Unknown error.",
             };
         }
@@ -85,15 +82,17 @@ namespace TAHITI_ConnectionTool;
             // Not found
             return false;
         }
+
+
         /// <summary>
         /// Creates .bat files required for managing the server and the client.
         /// </summary>
-        private static void CreateBatFiles(string rootDirectory, string clientExecutablePath, string serverExecutablePath)
+        private static void CreateBatFiles(string clientExecutablePath)
         {
-            string relativeServerExecutablePath = Path.GetRelativePath(rootDirectory, serverExecutablePath);
+            string toolDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            string batFilePath = Path.Combine(toolDirectory, "StartTahitiServer.bat");
 
-            // Launching the client normally
-            using (StreamWriter writer = new(Path.Combine(rootDirectory, "StartClient.bat")))
+            using (StreamWriter writer = new(batFilePath))
                 writer.WriteLine($"@start \"\" \"{clientExecutablePath}\" -robocopy -nosteam -siteconfigurl=mhtahiti.com/SiteConfig.xml");
         }
     }

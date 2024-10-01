@@ -1,4 +1,4 @@
-﻿namespace TAHITI_ConnectionTool;
+﻿namespace TAHITI_ConnectionTool
 {
     partial class MainForm
     {

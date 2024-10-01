@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace TAHITI_ConnectionTool;
+namespace TAHITI_ConnectionTool
 {
     public partial class MainForm : Form
     {
@@ -95,7 +95,7 @@ namespace TAHITI_ConnectionTool;
                     headerLabel.Text = "Setup Complete";
                     bodyLabel.Text = "Setup successful.\r\n" +
                                      "\r\n" +
-                                     "Run StartTAHITIServer.bat to launch the game and connect to the TAHITI server.\r\n"
+                                     "Run StartTAHITIServer.bat to launch the game and connect to the TAHITI server.\r\n";
                     nextButton.Text = "Exit";
 
                     folderBrowseTextBox.Visible = false;
