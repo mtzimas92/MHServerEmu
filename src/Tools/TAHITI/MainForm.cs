@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace Setup
+namespace TAHITI_ConnectionTool;
 {
     public partial class MainForm : Form
     {
@@ -75,15 +75,15 @@ namespace Setup
             switch (_state)
             {
                 case SetupState.Start:
-                    headerLabel.Text = "Welcome to the MHServerEmu Setup Sorcerer Supreme";
-                    bodyLabel.Text = "This program will help you set up MHServerEmu.\r\n" +
+                    headerLabel.Text = "Welcome to the TAHITI Connection Tool Setup";
+                    bodyLabel.Text = "This program will help you connect to the MHTahiti.com Server.\r\n" +
                                      "\r\n" +
                                      "To continue, click Next.";
                     break;
 
                 case SetupState.SelectFolder:
                     headerLabel.Text = "Marvel Heroes Files";
-                    bodyLabel.Text = "MHServerEmu requires the original Marvel Heroes game client files to work.\r\n" +
+                    bodyLabel.Text = "MHTahiti.com requires the original Marvel Heroes game client files to work.\r\n" +
                                      "Please choose the game client folder.";
 
                     folderBrowseTextBox.Visible = true;
@@ -95,12 +95,7 @@ namespace Setup
                     headerLabel.Text = "Setup Complete";
                     bodyLabel.Text = "Setup successful.\r\n" +
                                      "\r\n" +
-                                     "Run StartServer.bat first to start the server.\r\n" +
-                                     "\r\n" +
-                                     "Run StartClient.bat to launch the game normally OR StartClientAutoLogin.bat to launch the game and automatically log in with a default account.\r\n" +
-                                     "\r\n" +
-                                     "Make sure to start the server before the client.";
-
+                                     "Run StartTAHITIServer.bat to launch the game and connect to the TAHITI server.\r\n"
                     nextButton.Text = "Exit";
 
                     folderBrowseTextBox.Visible = false;

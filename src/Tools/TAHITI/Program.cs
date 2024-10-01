@@ -1,4 +1,4 @@
-namespace Setup
+namespace TAHITI_ConnectionTool;
 {
     internal static class Program
     {

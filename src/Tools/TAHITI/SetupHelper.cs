@@ -1,7 +1,7 @@
 ﻿using System.Reflection;
 using System.Security.Cryptography;
 
-namespace Setup
+namespace TAHITI_ConnectionTool;
 {
     public enum SetupResult
     {
@@ -39,33 +39,6 @@ namespace Setup
             if (ExecutableHash != executableHash)
                 return SetupResult.ClientVersionMismatch;
 
-            // Verify data files
-            string clientCalligraphyPath = Path.Combine(clientDirectory, CalligraphyPath);
-            string clientResourcePath = Path.Combine(clientDirectory, ResourcePath);
-
-            if (File.Exists(clientCalligraphyPath) == false || File.Exists(clientResourcePath) == false)
-                return SetupResult.ClientDataNotFound;
-
-            // Find the server executable
-            string serverRootDirectory = Path.GetDirectoryName(AppContext.BaseDirectory);
-            if (FindServerExecutablePath(serverRootDirectory, out string serverDirectory, out string serverExecutablePath) == false)
-                return SetupResult.ServerNotFound;
-
-            // Create server data directory if needed
-            string serverDataDir = Path.Combine(serverDirectory, "Data", "Game");
-            if (Directory.Exists(serverDataDir) == false)
-                Directory.CreateDirectory(serverDataDir);
-
-            // Copy data files
-            string serverCalligraphyPath = Path.Combine(serverDirectory, CalligraphyPath);
-            string serverResourcePath = Path.Combine(serverDirectory, ResourcePath);
-
-            if (File.Exists(serverCalligraphyPath) == false)
-                File.Copy(clientCalligraphyPath, serverCalligraphyPath);
-
-            if (File.Exists(serverResourcePath) == false)
-                File.Copy(clientResourcePath, serverResourcePath);
-
             CreateBatFiles(serverRootDirectory, clientExecutablePath, serverCalligraphyPath);
 
             return SetupResult.Success;
@@ -84,7 +57,6 @@ namespace Setup
                 SetupResult.ClientNotFound =>           "Marvel Heroes game client not found.",
                 SetupResult.ClientVersionMismatch =>    "Game client version mismatch. Please make sure you have version 1.52.0.1700.",
                 SetupResult.ClientDataNotFound =>       "Game data files are missing. Please reinstall the game client.",
-                SetupResult.ServerNotFound =>           "MHServerEmu not found.",
                 _ =>                                    "Unknown error.",
             };
         }
@@ -113,27 +85,6 @@ namespace Setup
             // Not found
             return false;
         }
-
-        /// <summary>
-        /// Searches for MHServerEmu in the specified directory.
-        /// </summary>
-        private static bool FindServerExecutablePath(string rootDirectory, out string serverDirectory, out string serverExecutablePath)
-        {
-            serverDirectory = rootDirectory;
-
-            serverExecutablePath = Path.Combine(serverDirectory, "MHServerEmu.exe");
-            if (File.Exists(serverExecutablePath) == false)
-            {
-                // Try looking in the MHServerEmu subdirectory if it's not in the same directory as the setup tool
-                serverDirectory = Path.Combine(serverDirectory, "MHServerEmu");
-                serverExecutablePath = Path.Combine(serverDirectory, "MHServerEmu.exe");
-
-                return File.Exists(serverExecutablePath);
-            }
-
-            return true;
-        }
-
         /// <summary>
         /// Creates .bat files required for managing the server and the client.
         /// </summary>
@@ -143,28 +94,7 @@ namespace Setup
 
             // Launching the client normally
             using (StreamWriter writer = new(Path.Combine(rootDirectory, "StartClient.bat")))
-                writer.WriteLine($"@start \"\" \"{clientExecutablePath}\" -robocopy -nosteam -siteconfigurl=localhost/SiteConfig.xml");
-
-            // Launching the client with auto-login
-            using (StreamWriter writer = new(Path.Combine(rootDirectory, "StartClientAutoLogin.bat")))
-                writer.WriteLine($"@start \"\" \"{clientExecutablePath}\" -robocopy -nosteam -siteconfigurl=localhost/SiteConfig.xml -emailaddress=test1@test.com -password=123");
-
-            // Starting servers
-            using (StreamWriter writer = new(Path.Combine(rootDirectory, "StartServer.bat")))
-            {
-                writer.WriteLine("@echo off");
-                writer.WriteLine($"set APACHE_SERVER_ROOT={Path.Combine("%cd%", "Apache24")}");
-                writer.WriteLine($"start /min \"\" \"{Path.Combine("%APACHE_SERVER_ROOT%", "bin", "httpd.exe")}\"");
-                writer.WriteLine($"start \"\" \"{Path.Combine("%cd%", relativeServerExecutablePath)}\"");
-            }
-
-            // Stopping servers
-            using (StreamWriter writer = new(Path.Combine(rootDirectory, "StopServer.bat")))
-            {
-                writer.WriteLine("@echo off");
-                writer.WriteLine("taskkill /f /im MHServerEmu.exe");
-                writer.WriteLine("taskkill /f /im httpd.exe");
-            }
+                writer.WriteLine($"@start \"\" \"{clientExecutablePath}\" -robocopy -nosteam -siteconfigurl=mhtahiti.com/SiteConfig.xml");
         }
     }
 }

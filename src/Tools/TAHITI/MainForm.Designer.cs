@@ -1,4 +1,4 @@
-﻿namespace Setup
+﻿namespace TAHITI_ConnectionTool;
 {
     partial class MainForm
     {
@@ -118,7 +118,7 @@
             MaximizeBox = false;
             Name = "MainForm";
             StartPosition = FormStartPosition.CenterScreen;
-            Text = "MHServerEmu Setup Sorcerer Supreme";
+            Text = "TAHITI Connection Tool Setup";
             panel1.ResumeLayout(false);
             ResumeLayout(false);
             PerformLayout();

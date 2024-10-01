@@ -10,6 +10,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <ApplicationIcon>icon.ico</ApplicationIcon>
     <AssemblyVersion>1.1.0.0</AssemblyVersion>
+    <AssemblyName>TAHITIConnectionTool</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
