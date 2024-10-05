@@ -10,6 +10,7 @@ using MHServerEmu.Core.Network;
 using MHServerEmu.DatabaseAccess;
 using MHServerEmu.DatabaseAccess.Json;
 using MHServerEmu.DatabaseAccess.MySQL;
+using MHServerEmu.DatabaseAccess.MySqlDB;
 using MHServerEmu.DatabaseAccess.MongoDB;
 using MHServerEmu.DatabaseAccess.SQLite;
 using MHServerEmu.DatabaseAccess.Migration;
@@ -217,7 +218,7 @@ namespace MHServerEmu
                 var mongoConfig = ConfigManager.Instance.GetConfig<MongoDBManagerConfig>();
                 Logger.Info($"Using MongoDB database: {mongoConfig.DatabaseName}");
             }
-			else if (config.UseMySQLDBManager)
+			else if (config.UseMySqlDBManager)
 			{
 				dbManager = MySQLDBManager.Instance;
 				var mysqlConfig = ConfigManager.Instance.GetConfig<MySQLDBManagerConfig>();
