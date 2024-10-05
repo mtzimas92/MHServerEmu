@@ -174,7 +174,7 @@ namespace MHServerEmu.DatabaseAccess.SQLite
         /// <summary>
         /// Creates and opens a new <see cref="SQLiteConnection"/>.
         /// </summary>
-        private SQLiteConnection GetConnection()
+        public SQLiteConnection GetConnection()
         {
             SQLiteConnection connection = new(_connectionString);
             connection.Open();

@@ -9,6 +9,8 @@ using MHServerEmu.Core.Logging.Targets;
 using MHServerEmu.Core.Network;
 using MHServerEmu.DatabaseAccess;
 using MHServerEmu.DatabaseAccess.Json;
+using MHServerEmu.DatabaseAccess.MySQL;
+using MHServerEmu.DatabaseAccess.MongoDB;
 using MHServerEmu.DatabaseAccess.SQLite;
 using MHServerEmu.Frontend;
 using MHServerEmu.Games.GameData;
@@ -16,6 +18,8 @@ using MHServerEmu.Games.GameData.LiveTuning;
 using MHServerEmu.Grouping;
 using MHServerEmu.Leaderboards;
 using MHServerEmu.PlayerManagement;
+using MHServerEmu.DatabaseAccess.MySqlDB;
+using MHServerEmu.DatabaseAccess.Migration;
 
 namespace MHServerEmu
 {
@@ -199,10 +203,37 @@ namespace MHServerEmu
         /// </summary>
         private bool InitSystems()
         {
-            // JsonDBManager saves a single account in a JSON file
             var config = ConfigManager.Instance.GetConfig<PlayerManagerConfig>();
-            IDBManager dbManager = config.UseJsonDBManager ? JsonDBManager.Instance : SQLiteDBManager.Instance;
 
+            if (config.MigrateToMongoDB)
+            {
+                DatabaseMigrationTool.MigrateSQLiteToMongoDB();
+            }
+            IDBManager dbManager;
+
+            if (config.UseMongoDBManager)
+            {
+                dbManager = MongoDBManager.Instance;
+                var mongoConfig = ConfigManager.Instance.GetConfig<MongoDBManagerConfig>();
+                Logger.Info($"Using MongoDB database: {mongoConfig.DatabaseName}");
+            }
+            else if (config.UseMySqlDBManager)
+            {
+                dbManager = MongoDBManager.Instance;
+                var mongoConfig = ConfigManager.Instance.GetConfig<MongoDBManagerConfig>();
+                Logger.Info($"Using MongoDB database: {mongoConfig.DatabaseName}");
+            }
+            else if (config.UseJsonDBManager)
+            {
+                dbManager = JsonDBManager.Instance;
+                Logger.Info("Using JSON database");
+            }
+            else
+            {
+                dbManager = SQLiteDBManager.Instance;
+                var sqliteConfig = ConfigManager.Instance.GetConfig<SQLiteDBManagerConfig>();
+                Logger.Info($"Using SQLite database: {sqliteConfig.FileName}");
+            }
             return PakFileSystem.Instance.Initialize()
                 && ProtocolDispatchTable.Instance.Initialize()
                 && GameDatabase.IsInitialized
@@ -211,3 +242,4 @@ namespace MHServerEmu
         }
     }
 }
+

@@ -7,6 +7,9 @@ namespace MHServerEmu.PlayerManagement
     /// </summary>
     public class PlayerManagerConfig : ConfigContainer
     {
+        public bool UseMySqlDBManager { get; private set; } = false;
+        public bool UseMongoDBManager { get; private set; } = false;
+        public bool MigrateToMongoDB { get; private set; } = false;
         public bool UseJsonDBManager { get; private set; } = false;
         public bool IgnoreSessionToken { get; private set; } = false;
         public bool AllowClientVersionMismatch { get; private set; } = false;
@@ -17,3 +20,4 @@ namespace MHServerEmu.PlayerManagement
         public string NewsUrl { get; private set; } = "http://localhost/";
     }
 }
+
