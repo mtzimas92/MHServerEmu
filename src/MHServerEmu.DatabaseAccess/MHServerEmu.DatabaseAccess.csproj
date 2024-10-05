@@ -13,7 +13,9 @@
     <InformationalVersion>$(AssemblyVersion)</InformationalVersion>
   </PropertyGroup>
   
+
   <ItemGroup>
+    <PackageReference Include="MySql.Data" Version="9.0.0" />
     <PackageReference Include="MongoDB.Driver" Version="2.19.1" />
     <PackageReference Include="Dapper" Version="2.0.123" />
     <PackageReference Include="System.Data.SQLite.Core" Version="1.0.117" />
@@ -40,6 +42,18 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Data\SQLite\Migrations\1.sql">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  
+  <ItemGroup>
+    <None Update="Data\MySql\InitializeDatabase.sql">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Data\MySql\Migrations\0.sql">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Data\MySql\Migrations\1.sql">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
