@@ -9,17 +9,15 @@ using MHServerEmu.Core.Logging.Targets;
 using MHServerEmu.Core.Network;
 using MHServerEmu.DatabaseAccess;
 using MHServerEmu.DatabaseAccess.Json;
-using MHServerEmu.DatabaseAccess.MySQL;
 using MHServerEmu.DatabaseAccess.MongoDB;
 using MHServerEmu.DatabaseAccess.SQLite;
+using MHServerEmu.DatabaseAccess.Migration;
 using MHServerEmu.Frontend;
 using MHServerEmu.Games.GameData;
 using MHServerEmu.Games.GameData.LiveTuning;
 using MHServerEmu.Grouping;
 using MHServerEmu.Leaderboards;
 using MHServerEmu.PlayerManagement;
-using MHServerEmu.DatabaseAccess.MySqlDB;
-using MHServerEmu.DatabaseAccess.Migration;
 
 namespace MHServerEmu
 {
@@ -212,12 +210,6 @@ namespace MHServerEmu
             IDBManager dbManager;
 
             if (config.UseMongoDBManager)
-            {
-                dbManager = MongoDBManager.Instance;
-                var mongoConfig = ConfigManager.Instance.GetConfig<MongoDBManagerConfig>();
-                Logger.Info($"Using MongoDB database: {mongoConfig.DatabaseName}");
-            }
-            else if (config.UseMySqlDBManager)
             {
                 dbManager = MongoDBManager.Instance;
                 var mongoConfig = ConfigManager.Instance.GetConfig<MongoDBManagerConfig>();
