@@ -30,6 +30,7 @@ namespace MHServerEmu.Commands.Implementations
         [Command("resetstory")]
         [CommandDescription("Reset all main story missions.")]
         [CommandUsage("mission resetstory")]
+        [CommandUserLevel(AccountUserLevel.Admin)]
         [CommandInvokerType(CommandInvokerType.Client)]
         public string ResetStory(string[] @params, NetClient client)
         {
