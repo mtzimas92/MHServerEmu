@@ -20,6 +20,7 @@ using MHServerEmu.Grouping;
 using MHServerEmu.Leaderboards;
 using MHServerEmu.PlayerManagement;
 using MHServerEmu.WebFrontend;
+using MHServerEmu.Games.Gifting;
 
 namespace MHServerEmu
 {
@@ -249,7 +250,8 @@ namespace MHServerEmu
                 && GameDatabase.IsInitialized
                 && LiveTuningManager.Instance.Initialize()
                 && CatalogManager.Instance.Initialize()
-                && IDBManager.Instance.Initialize();
+                && IDBManager.Instance.Initialize()
+		&& GiftItemDistributor.Initialize();  //THIS IS NEW
         }
     }
 }

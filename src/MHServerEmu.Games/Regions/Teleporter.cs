@@ -217,9 +217,12 @@ namespace MHServerEmu.Games.Regions
             }
 
             // Clamp target region's difficulty to the available range
-            DifficultyTierRef = Player.GetDifficultyTierForRegion(regionProtoRef, DifficultyTierRef);
-
-            if (IsLocalTeleport(region, destinationRegionProto))
+            if (Context != TeleportContextEnum.TeleportContext_Debug)
+            {
+                DifficultyTierRef = Player.GetDifficultyTierForRegion(regionProtoRef, DifficultyTierRef);
+            }
+            
+	    if (IsLocalTeleport(region, destinationRegionProto))
             {
                 return TeleportToLocalTarget(areaProtoRef, cellProtoRef, entityProtoRef);
             }

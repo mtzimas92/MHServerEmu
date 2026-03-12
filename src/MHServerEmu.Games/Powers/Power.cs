@@ -41,6 +41,7 @@ namespace MHServerEmu.Games.Powers
 
         private PowerActivationPhase _activationPhase = PowerActivationPhase.Inactive;
         private PowerActivationSettings _lastActivationSettings;
+        //private int _lastPowerRandomSeed;
 
         private bool _hasDelayedActivationSettings = false;
         private PowerActivationSettings _delayedActivationSettings;
@@ -645,8 +646,12 @@ namespace MHServerEmu.Games.Powers
             // Assign a random seed to all powers that are activated on the server (if there isn't one already for whatever reason)
             if (settings.PowerRandomSeed == 0)
                 settings.PowerRandomSeed = Game.Random.Next(1, 10000);
+            //else if (settings.PowerRandomSeed == _lastPowerRandomSeed && Owner is Avatar avatar)
+            //    Logger.Warn($"Activate(): Potential HACK - [{avatar}] is trying to activate power [{Prototype}] using a fixed seed {settings.PowerRandomSeed}");
+        
+            //_lastPowerRandomSeed = settings.PowerRandomSeed;
 
-            if (IsOnExtraActivation())
+	    if (IsOnExtraActivation())
                 return RunExtraActivation(ref settings);
 
             WorldEntity target = Game.EntityManager.GetEntity<WorldEntity>(settings.TargetEntityId);

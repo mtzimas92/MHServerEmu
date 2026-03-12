@@ -1,4 +1,6 @@
-﻿using MHServerEmu.Commands.Attributes;
+﻿using Gazillion;
+using MHServerEmu.Commands.Attributes;
+using MHServerEmu.Core.Memory;
 using MHServerEmu.Core.Network;
 using MHServerEmu.Core.VectorMath;
 using MHServerEmu.DatabaseAccess.Models;
@@ -219,5 +221,35 @@ namespace MHServerEmu.Commands.Implementations
                 return $"Syncing mana (server value = {(float)value}).";
             }
         }
+
+        [CommandGroup("Ultron")]
+        [CommandGroupDescription("Teleports to the Ultron Raid.")]
+        [CommandGroupFlags(CommandGroupFlags.SingleCommand)]
+        public class UltronCommand : CommandGroup
+        {
+            [DefaultCommand]
+            [CommandInvokerType(CommandInvokerType.Client)]
+            public string Ultron(string[] @params, NetClient client)
+            {
+                Player player = ((PlayerConnection)client).Player;
+                PrototypeId targetProtoRef = (PrototypeId)6101407482858775734;
+                PrototypeId omegaDifficulty = (PrototypeId)586640101754933627;
+                if (omegaDifficulty == PrototypeId.Invalid)
+                {
+                    return "Error: Could not find 'Difficulty/Tiers/Tier4Cosmic.prototype'.";
+                }
+                using Teleporter teleporter = ObjectPoolManager.Instance.Get<Teleporter>();
+                teleporter.Initialize(player, TeleportContextEnum.TeleportContext_Debug);
+                teleporter.DifficultyTierRef = omegaDifficulty;
+
+                if (teleporter.TeleportToTarget(targetProtoRef) == false)
+                {
+                    return "Teleport failed. Check server logs for details.";
+                }
+                return "Teleporting to Ultron (Cosmic)...";
+            }
+        }
+
     }
 }
+

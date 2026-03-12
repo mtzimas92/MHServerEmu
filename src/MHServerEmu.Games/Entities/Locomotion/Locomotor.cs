@@ -1501,3 +1501,4 @@ namespace MHServerEmu.Games.Entities.Locomotion
         }
     }
 }
+

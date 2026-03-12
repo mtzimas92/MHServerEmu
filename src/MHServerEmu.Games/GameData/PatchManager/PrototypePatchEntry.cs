@@ -145,7 +145,18 @@ namespace MHServerEmu.Games.GameData.PatchManager
                 var fieldInfo = prototype.GetType().GetProperty(property.Name);
                 if (fieldInfo == null) continue;
                 Type fieldType = fieldInfo.PropertyType;
-                var element = ParseJsonElement(property.Value, fieldType);
+                
+                object element;
+                if (fieldType.IsArray && property.Value.ValueKind == JsonValueKind.Array)
+                {
+                    Type elementType = fieldType.GetElementType();
+                    element = ParseJsonArray(property.Value, elementType);
+                }
+                else
+                {
+                    element = ParseJsonElement(property.Value, fieldType);
+                }
+                
                 try
                 {
                     object convertedValue = PrototypePatchManager.ConvertValue(element, fieldType);
@@ -159,6 +170,51 @@ namespace MHServerEmu.Games.GameData.PatchManager
             }
 
             return prototype;
+        }
+
+        private static Array ParseJsonArray(JsonElement jsonElement, Type elementType)
+        {
+            if (jsonElement.ValueKind != JsonValueKind.Array)
+                throw new InvalidOperationException("Json element is not array");
+
+            int arrayLength = jsonElement.GetArrayLength();
+            Array array = Array.CreateInstance(elementType, arrayLength);
+
+            int index = 0;
+            foreach (JsonElement element in jsonElement.EnumerateArray())
+            {
+                object value;
+                
+                if (elementType == typeof(PrototypeId))
+                {
+                    value = (PrototypeId)element.GetUInt64();
+                }
+                else if (elementType == typeof(AssetId))
+                {
+                    value = (AssetId)element.GetUInt64();
+                }
+                else if (elementType == typeof(PrototypeGuid))
+                {
+                    value = (PrototypeGuid)element.GetUInt64();
+                }
+                else if (elementType == typeof(LocaleStringId))
+                {
+                    value = (LocaleStringId)element.GetUInt64();
+                }
+                else if (elementType.IsSubclassOf(typeof(Prototype)) || elementType == typeof(Prototype))
+                {
+                    value = ParseJsonPrototype(element);
+                }
+                else
+                {
+                    value = ParseJsonElement(element, elementType);
+                    value = PrototypePatchManager.ConvertValue(value, elementType);
+                }
+                
+                array.SetValue(value, index++);
+            }
+
+            return array;
         }
 
         public static PropertyCollection ParseJsonProperties(JsonElement jsonElement)
@@ -370,3 +426,4 @@ namespace MHServerEmu.Games.GameData.PatchManager
         }
     }
 }
+
