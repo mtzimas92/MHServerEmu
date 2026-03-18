@@ -6,8 +6,6 @@ using MHServerEmu.Core.Helpers;
 using MHServerEmu.Games.GameData.Prototypes;  // Add this for ItemPrototype
 using MHServerEmu.Games.Common;
 using MHServerEmu.Games.Entities;
-using System.Collections.Concurrent;
-using MHServerEmu.Core.System.Time;
 using MHServerEmu.DatabaseAccess;
 
 
@@ -19,8 +17,8 @@ namespace MHServerEmu.Games.Gifting
         public ulong ItemPrototype { get; set; }  // Store as ulong
         public int Count { get; set; }
         public DateTime AddedDate { get; set; }
-        public DateTime? EndDate { get; set; }  // Optional end date - null means no expiration
-        public bool IsDaily { get; set; } = false;  // If true, can be claimed once per day
+        public DateTime? EndDate { get; set; } = null;  // Optional; omit from JSON if no expiration
+        public bool IsDaily { get; set; } = false;  // Optional; omit from JSON for one-time gifts (default: false)
     }
 
     public class PlayerSpecificGiftEntry
@@ -29,8 +27,8 @@ namespace MHServerEmu.Games.Gifting
         public ulong ItemPrototype { get; set; }
         public int Count { get; set; }
         public DateTime AddedDate { get; set; }
-        public DateTime? EndDate { get; set; }
-        public bool IsDaily { get; set; } = false;  // If true, can be claimed once per day
+        public DateTime? EndDate { get; set; } = null;  // Optional; omit from JSON if no expiration
+        public bool IsDaily { get; set; } = false;  // Optional; omit from JSON for one-time gifts (default: false)
     }
 
     public static class GiftItemDistributor
@@ -40,6 +38,7 @@ namespace MHServerEmu.Games.Gifting
         private static readonly string PlayerSpecificItemsPath = Path.Combine(FileHelper.DataDirectory, "PlayerSpecificItems.json");
         private static List<GiftItemEntry> _cachedItems;
         private static List<PlayerSpecificGiftEntry> _playerSpecificItems;
+        private static Dictionary<ulong, List<PlayerSpecificGiftEntry>> _playerSpecificItemsByDbId;
 
         public static bool Initialize()
         {
@@ -57,7 +56,7 @@ namespace MHServerEmu.Games.Gifting
             {
                 Logger.Info($"Loading gifts from {PendingItemsPath}");
                 string jsonContent = File.ReadAllText(PendingItemsPath);
-                _cachedItems = JsonSerializer.Deserialize<List<GiftItemEntry>>(jsonContent);
+                _cachedItems = JsonSerializer.Deserialize<List<GiftItemEntry>>(jsonContent) ?? new List<GiftItemEntry>();
                 Logger.Info($"Loaded {_cachedItems.Count} gift entries");
             }
             else
@@ -70,18 +69,63 @@ namespace MHServerEmu.Games.Gifting
         private static void LoadPlayerSpecificItems()
         {
             Logger.Info("LoadPlayerSpecificItems called");
+            _playerSpecificItemsByDbId = new Dictionary<ulong, List<PlayerSpecificGiftEntry>>();
+
             if (File.Exists(PlayerSpecificItemsPath))
             {
                 Logger.Info($"Loading player-specific gifts from {PlayerSpecificItemsPath}");
                 string jsonContent = File.ReadAllText(PlayerSpecificItemsPath);
-                _playerSpecificItems = JsonSerializer.Deserialize<List<PlayerSpecificGiftEntry>>(jsonContent);
+                _playerSpecificItems = JsonSerializer.Deserialize<List<PlayerSpecificGiftEntry>>(jsonContent) ?? new List<PlayerSpecificGiftEntry>();
                 Logger.Info($"Loaded {_playerSpecificItems.Count} player-specific gift entries");
+
+                BuildPlayerSpecificGiftIndex();
             }
             else
             {
                 _playerSpecificItems = new List<PlayerSpecificGiftEntry>();
                 Logger.Info("Created new empty player-specific gift list");
             }
+        }
+
+        private static void BuildPlayerSpecificGiftIndex()
+        {
+            var emailToPlayerDbIdCache = new Dictionary<string, ulong>(StringComparer.OrdinalIgnoreCase);
+            int unresolvedEmails = 0;
+
+            foreach (var entry in _playerSpecificItems)
+            {
+                if (string.IsNullOrWhiteSpace(entry.Email))
+                {
+                    unresolvedEmails++;
+                    continue;
+                }
+
+                if (!emailToPlayerDbIdCache.TryGetValue(entry.Email, out ulong playerDbId))
+                {
+                    if (!IDBManager.Instance.TryQueryAccountByEmail(entry.Email, out var account))
+                    {
+                        emailToPlayerDbIdCache[entry.Email] = 0;
+                        unresolvedEmails++;
+                        continue;
+                    }
+
+                    playerDbId = (ulong)account.Id;
+                    emailToPlayerDbIdCache[entry.Email] = playerDbId;
+                }
+
+                if (playerDbId == 0)
+                    continue;
+
+                if (_playerSpecificItemsByDbId.TryGetValue(playerDbId, out var list) == false)
+                {
+                    list = new List<PlayerSpecificGiftEntry>();
+                    _playerSpecificItemsByDbId[playerDbId] = list;
+                }
+
+                list.Add(entry);
+            }
+
+            Logger.Info($"Indexed {_playerSpecificItemsByDbId.Count} players for player-specific gifts (unresolved entries: {unresolvedEmails})");
         }
 
         public static void DistributeGiftItems(Player player)
@@ -128,7 +172,7 @@ namespace MHServerEmu.Games.Gifting
                         {
                             for (int i = 0; i < entry.Count; i++)
                                 player.Game.LootManager.GiveItem(itemProto.DataRef, LootContext.Drop, player);
-                            _ = GiftClaimStorage.SaveClaimAsync(playerDbId, entry.ItemPrototype);
+                            GiftClaimStorage.SaveClaim(playerDbId, entry.ItemPrototype);
                             giftsDistributed++;
                             //Logger.Info($"Successfully distributed {entry.Count}x {itemProto} to player {email}");
                         }
@@ -137,18 +181,12 @@ namespace MHServerEmu.Games.Gifting
             }
 
             // Distribute player-specific gifts
-            if (_playerSpecificItems != null && _playerSpecificItems.Count > 0)
+            if (_playerSpecificItemsByDbId != null
+                && _playerSpecificItemsByDbId.TryGetValue(playerDbId, out var playerSpecificGifts)
+                && playerSpecificGifts.Count > 0)
             {
-                foreach (var entry in _playerSpecificItems)
+                foreach (var entry in playerSpecificGifts)
                 {
-                    // Convert email to playerDbId using IDBManager
-                    if (!IDBManager.Instance.TryQueryAccountByEmail(entry.Email, out var account))
-                        continue; // Email not found in database
-
-                    // Check if this gift is for the current player
-                    if ((ulong)account.Id != playerDbId)
-                        continue;
-
                     if (entry.AddedDate > currentTime)
                     {
                         //Logger.Debug($"Player-specific gift {entry.ItemPrototype} not yet available for {email}");
@@ -182,7 +220,7 @@ namespace MHServerEmu.Games.Gifting
                         {
                             for (int i = 0; i < entry.Count; i++)
                                 player.Game.LootManager.GiveItem(itemProto.DataRef, LootContext.Drop, player);
-                            _ = GiftClaimStorage.SaveClaimAsync(playerDbId, entry.ItemPrototype);
+                            GiftClaimStorage.SaveClaim(playerDbId, entry.ItemPrototype);
                             giftsDistributed++;
                             //Logger.Info($"Successfully distributed player-specific {entry.Count}x {itemProto} to {email}");
                         }
@@ -195,4 +233,3 @@ namespace MHServerEmu.Games.Gifting
         }
     }
 }
-
