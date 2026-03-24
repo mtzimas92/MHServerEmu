@@ -196,7 +196,7 @@ namespace MHServerEmu.PlayerManagement.Auth
         {
             playerDbId = 0;
             
-	    string transformedEmail = Regex.Replace(email.ToLower(), "@[^@]+$", "@mhtahiti.com");
+	    string transformedEmail = Regex.Replace(email.ToLower(), "@[^@]+$", "@mhtahiti2.com");
 
             if (_platformTicketManager.TryGetValue(token, out ulong sessionId) == false)
                 return Logger.WarnReturn(false, $"VerifyPlatformTicket(): Invalid token {token}");
