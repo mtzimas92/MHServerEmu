@@ -34,6 +34,8 @@ namespace MHServerEmu.PlayerManagement.Auth
 
         private CooldownTimer _updateTimer = new(TimeSpan.FromMilliseconds(1000));
 
+        public bool WhitelistEnabled { get; private set; }
+
         public int PendingSessionCount { get => _pendingSessionDict.Count; }
         public int ActiveSessionCount { get => _activeSessionDict.Count; }
 
@@ -43,6 +45,16 @@ namespace MHServerEmu.PlayerManagement.Auth
         public SessionManager(PlayerManagerService playerManager)
         {
             _playerManager = playerManager;
+            WhitelistEnabled = playerManager.Config.UseWhitelist;
+        }
+
+        public void SetWhitelistEnabled(bool enable)
+        {
+            if (WhitelistEnabled == enable)
+                return;
+
+            WhitelistEnabled = enable;
+            Logger.Info($"Whitelist {(enable ? "enabled" : "disabled")}");
         }
 
         public void Update()
@@ -93,7 +105,7 @@ namespace MHServerEmu.PlayerManagement.Auth
             }
 
             // Verify credentials
-            AuthStatusCode statusCode = AccountManager.TryGetAccountByLoginDataPB(loginDataPB, _playerManager.Config.UseWhitelist, out DBAccount account);
+            AuthStatusCode statusCode = AccountManager.TryGetAccountByLoginDataPB(loginDataPB, WhitelistEnabled, out DBAccount account);
 
             if (statusCode != AuthStatusCode.Success)
                 return statusCode;
