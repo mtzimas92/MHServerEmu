@@ -4729,8 +4729,10 @@ namespace MHServerEmu.Games.Entities.Avatars
             multiplier *= tuningProto.PctXPMultiplier;
             multiplier *= playerXPByDifficultyIndex.GetAt(tuningTable.DifficultyIndex);
 
-            if (Game.CustomGameOptions.DisableMissionXPBonuses == false)
-                multiplier *= GetAvatarXPMultiplier();
+            if (Game.CustomGameOptions.DisableMissionXPBonuses)
+                    multiplier *= MathF.Max(0f, 1f + Properties[PropertyEnum.ExperienceBonusAvatarSynergy]);
+            else
+                    multiplier *= GetAvatarXPMultiplier();
 
             multiplier *= GetPartyXPMultiplier(tuningProto);
             multiplier *= GetLiveTuningXPMultiplier();
