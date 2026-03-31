@@ -2873,7 +2873,7 @@ namespace MHServerEmu.Games.Entities
         }
 
         public bool SendRegionRequestQueueCommandToPlayerManager(PrototypeId regionRef, PrototypeId difficultyTierRef,
-            RegionRequestQueueCommandVar command, ulong groupId = 0, ulong targetPlayerDbId = 0)
+            RegionRequestQueueCommandVar command, ulong groupId = 0, ulong targetPlayerDbId = 0, int teamSizeOverride = -1)
         {
             ulong playerDbId = DatabaseUniqueId;
             ulong regionProtoId = (ulong)regionRef;
@@ -2905,7 +2905,7 @@ namespace MHServerEmu.Games.Entities
                     break;
             }
 
-            ServiceMessage.MatchRegionRequestQueueCommand message = new(playerDbId, regionProtoId, difficultyTierProtoId, metaStateProtoId, command, groupId, targetPlayerDbId);
+            ServiceMessage.MatchRegionRequestQueueCommand message = new(playerDbId, regionProtoId, difficultyTierProtoId, metaStateProtoId, command, groupId, targetPlayerDbId, teamSizeOverride);
             ServerManager.Instance.SendMessageToService(GameServiceType.PlayerManager, message);
 
             return true;
