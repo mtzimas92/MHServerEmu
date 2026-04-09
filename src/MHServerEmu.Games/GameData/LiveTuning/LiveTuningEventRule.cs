@@ -10,6 +10,7 @@ namespace MHServerEmu.Games.GameData.LiveTuning
         AlwaysOn,
         WeeklyRotation,
         DayOfWeek,
+        DayOfWeekRotation,
         SpecialDate,
         SpecialDateLunar,
     }
@@ -72,6 +73,11 @@ namespace MHServerEmu.Games.GameData.LiveTuning
                         return Logger.WarnReturn(false, $"Validate(): Rule {Name} is of type DayOfWeek, but it specifies no StartDayOfWeek");
                     break;
 
+                case LiveTuningEventRuleType.DayOfWeekRotation:
+                    if (StartDayOfWeek == null)
+                        return Logger.WarnReturn(false, $"Validate(): Rule {Name} is of type DayOfWeekRotation, but it specifies no StartDayOfWeek");
+                    break;
+
                 case LiveTuningEventRuleType.SpecialDate:
                 case LiveTuningEventRuleType.SpecialDateLunar:
                     if (StartMonth == null)
@@ -104,6 +110,14 @@ namespace MHServerEmu.Games.GameData.LiveTuning
             switch (Type)
             {
                 case LiveTuningEventRuleType.DayOfWeek:
+                    if (now.DayOfWeek != StartDayOfWeek)
+                        return 0;
+
+                    eventInstance = now.DayOfYear;
+
+                    break;
+
+                case LiveTuningEventRuleType.DayOfWeekRotation:
                     if (now.DayOfWeek != StartDayOfWeek)
                         return 0;
 
@@ -156,6 +170,25 @@ namespace MHServerEmu.Games.GameData.LiveTuning
                 {
                     string eventName = Events[weekNumber % Events.Length];
                     added += AddActiveEvent(activeEvents, eventName, weekNumber);
+                }
+            }
+            else if (Type == LiveTuningEventRuleType.DayOfWeekRotation)
+            {
+                // Determine which occurrence of this weekday it is within the current month (1-5).
+                int weekOccurrence = (now.Day - 1) / 7 + 1;
+
+                if (weekOccurrence == 5)
+                {
+                    // 5th occurrence: activate all listed events simultaneously.
+                    foreach (string eventName in Events)
+                        added += AddActiveEvent(activeEvents, eventName, eventInstance);
+                }
+                else
+                {
+                    // 1st-4th occurrence: activate the event at the matching index.
+                    int eventIndex = weekOccurrence - 1;
+                    if (eventIndex < Events.Length)
+                        added += AddActiveEvent(activeEvents, Events[eventIndex], eventInstance);
                 }
             }
             else
