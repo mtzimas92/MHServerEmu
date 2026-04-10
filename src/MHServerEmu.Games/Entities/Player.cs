@@ -4204,10 +4204,10 @@ namespace MHServerEmu.Games.Entities
                 if (GetLoginCount(out int loginCount))
                 {
                     GiveLoginRewards(loginCount);
-                    Properties[PropertyEnum.LoginCount] = loginCount;
-
                     GiveEventDailyGifts();
                 }
+
+                Properties[PropertyEnum.LoginCount] = loginCount;
             }
 
             // Send gifting restrictions update.
