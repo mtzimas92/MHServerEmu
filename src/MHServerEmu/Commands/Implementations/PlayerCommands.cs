@@ -253,7 +253,7 @@ namespace MHServerEmu.Commands.Implementations
         }
 
         [Command("bring")]
-        [CommandDescription("Brings a player to your current location.")]
+        [CommandDescription("Brings a player to your current location safely.")]
         [CommandUsage("player bring [playerName]")]
         [CommandUserLevel(AccountUserLevel.Admin)]
         [CommandInvokerType(CommandInvokerType.Client)]
@@ -267,14 +267,10 @@ namespace MHServerEmu.Commands.Implementations
             string targetPlayerName = @params[0];
 
             if (string.Equals(adminConnection.Player.GetName(), targetPlayerName, StringComparison.OrdinalIgnoreCase))
-            {
                 return "You cannot bring yourself.";
-            }
 
             if (!PlayerNameCache.Instance.TryGetPlayerDbId(targetPlayerName, out ulong targetDbId, out _))
-            {
                 return $"Player '{targetPlayerName}' not found in the database.";
-            }
 
             PlayerHandle adminHandle = GetPlayerHandle(adminDbId);
             if (adminHandle == null) return "System Error: Reflection failed to grab your Admin Handle.";
@@ -283,6 +279,21 @@ namespace MHServerEmu.Commands.Implementations
             PlayerHandle targetHandle = GetPlayerHandle(targetDbId);
             if (targetHandle == null) return "System Error: Reflection failed to grab the Target Handle.";
             if (!targetHandle.IsConnected) return $"Player '{targetPlayerName}' is not currently online.";
+
+            Avatar adminAvatar = adminConnection.Player?.CurrentAvatar;
+            if (adminAvatar != null && adminAvatar.IsInWorld)
+            {
+                Vector3 safePos = GetSafeTeleportPosition(adminAvatar);
+
+                PlayerConnection targetLocalConnection = targetHandle.Client as PlayerConnection;
+                Avatar targetAvatar = targetLocalConnection?.Player?.CurrentAvatar;
+
+                if (targetAvatar != null && adminHandle.ActualRegion == targetHandle.ActualRegion)
+                {
+                    targetAvatar.ChangeRegionPosition(safePos, null, ChangePositionFlags.Teleport);
+                    return $"Bringing {targetPlayerName} safely to your exact location.";
+                }
+            }
 
             ulong requestingGameId = targetHandle.CurrentGame?.Id ?? 0;
             bool success = targetHandle.BeginRegionTransferToPlayer(requestingGameId, adminDbId);
@@ -294,7 +305,7 @@ namespace MHServerEmu.Commands.Implementations
         }
 
         [Command("goto")]
-        [CommandDescription("Goes to a player's current location.")]
+        [CommandDescription("Goes to a player's current location safely.")]
         [CommandUsage("player goto [playerName]")]
         [CommandUserLevel(AccountUserLevel.Admin)]
         [CommandInvokerType(CommandInvokerType.Client)]
@@ -308,14 +319,10 @@ namespace MHServerEmu.Commands.Implementations
             string targetPlayerName = @params[0];
 
             if (string.Equals(adminConnection.Player.GetName(), targetPlayerName, StringComparison.OrdinalIgnoreCase))
-            {
                 return "You cannot go to yourself.";
-            }
 
             if (!PlayerNameCache.Instance.TryGetPlayerDbId(targetPlayerName, out ulong targetDbId, out _))
-            {
                 return $"Player '{targetPlayerName}' not found in the database.";
-            }
 
             PlayerHandle adminHandle = GetPlayerHandle(adminDbId);
             if (adminHandle == null) return "System Error: Reflection failed to grab your Admin Handle.";
@@ -325,6 +332,22 @@ namespace MHServerEmu.Commands.Implementations
             if (!targetHandle.IsConnected) return $"Player '{targetPlayerName}' is not currently online.";
             if (targetHandle.ActualRegion == null) return $"Player '{targetPlayerName}' is currently transitioning or in a lobby.";
 
+            PlayerConnection targetLocalConnection = targetHandle.Client as PlayerConnection;
+            Avatar targetAvatar = targetLocalConnection?.Player?.CurrentAvatar;
+
+            if (targetAvatar != null && targetAvatar.IsInWorld)
+            {
+                Vector3 safePos = GetSafeTeleportPosition(targetAvatar);
+
+                Avatar adminAvatar = adminConnection.Player?.CurrentAvatar;
+                if (adminAvatar != null && adminHandle.ActualRegion == targetHandle.ActualRegion)
+                {
+                    adminAvatar.ChangeRegionPosition(safePos, null, ChangePositionFlags.Teleport);
+                    return $"Teleporting safely to {targetPlayerName}'s location.";
+                }
+
+            }
+
             ulong requestingGameId = adminHandle.CurrentGame?.Id ?? 0;
             bool success = adminHandle.BeginRegionTransferToPlayer(requestingGameId, targetDbId);
 
@@ -332,6 +355,41 @@ namespace MHServerEmu.Commands.Implementations
                 return $"Teleporting to {targetPlayerName}'s location.";
             else
                 return $"Failed to teleport to {targetPlayerName}. The server rejected the transfer.";
+        }
+
+        /// <summary>
+        /// Generates an expanding radial search around a target avatar to find a clear drop zone.
+        /// Fully self-contained so other server owners can utilize the math locally.
+        /// </summary>
+        private Vector3 GetSafeTeleportPosition(Avatar targetAvatar, float maxRadius = 5.0f, float stepSize = 0.5f)
+        {
+            if (targetAvatar == null || !targetAvatar.IsInWorld)
+                return Vector3.Zero;
+
+            Vector3 center = targetAvatar.RegionLocation.Position;
+
+            if (Avatar.AdjustStartPositionIfNeeded(targetAvatar.Region, ref center))
+            {
+                return center;
+            }
+
+            for (float radius = stepSize; radius <= maxRadius; radius += stepSize)
+            {
+                int pointsOnCircle = (int)(radius * 8);
+                float angleStep = (float)(Math.PI * 2 / pointsOnCircle);
+
+                for (int i = 0; i < pointsOnCircle; i++)
+                {
+                    float angle = i * angleStep;
+                    float x = center.X + (float)Math.Cos(angle) * radius;
+                    float z = center.Z + (float)Math.Sin(angle) * radius;
+
+                    Vector3 candidate = new Vector3(x, center.Y, z);
+                }
+            }
+
+            // Fallback to the exact center if absolutely no space was found within the max radius
+            return center;
         }
 
     }
