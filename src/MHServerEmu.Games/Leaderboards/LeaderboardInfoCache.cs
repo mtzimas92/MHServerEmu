@@ -144,7 +144,10 @@ namespace MHServerEmu.Games.Leaderboards
                     var dataRef = GameDatabase.GetDataRefByPrototypeGuid((PrototypeGuid)instanceInfo.LeaderboardId);
                     var proto = GameDatabase.GetPrototype<LeaderboardPrototype>(dataRef);
 
-                    if (proto != null)
+		    // Respect the same Public gate as Initialize() - otherwise a live state-change notification
+                    // from the Leaderboard service (e.g. a weekly reset bringing up a new instance) silently
+                    // re-registers a leaderboard we deliberately excluded, undoing the exclusion entirely.
+                    if (proto != null && proto.Public)
                     {
                         leaderboardInfo = new(proto);
                         leaderboardInfo.SortedInsertInstance(new(instanceInfo));
