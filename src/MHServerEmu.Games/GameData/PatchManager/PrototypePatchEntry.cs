@@ -103,6 +103,7 @@ namespace MHServerEmu.Games.GameData.PatchManager
                 ValueType.Float => new SimpleValue<float>(jsonElement.GetSingle(), valueType),
                 ValueType.Integer => new SimpleValue<int>(jsonElement.GetInt32(), valueType),
                 ValueType.Enum => new SimpleValue<string>(jsonElement.GetString(), valueType),
+                ValueType.Asset => new SimpleValue<AssetId>((AssetId)jsonElement.GetUInt64(), valueType),
                 ValueType.PrototypeGuid => new SimpleValue<PrototypeGuid>((PrototypeGuid)jsonElement.GetUInt64(), valueType),
                 ValueType.PrototypeId or 
                 ValueType.PrototypeDataRef => new SimpleValue<PrototypeId>((PrototypeId)jsonElement.GetUInt64(), valueType),
@@ -373,6 +374,7 @@ namespace MHServerEmu.Games.GameData.PatchManager
         Float,
         Integer,
         Enum,
+        Asset,
         PrototypeGuid,
         PrototypeId,
         PrototypeIdArray,
@@ -426,4 +428,3 @@ namespace MHServerEmu.Games.GameData.PatchManager
         }
     }
 }
-

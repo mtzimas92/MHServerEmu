@@ -154,6 +154,36 @@ namespace MHServerEmu.Games.GameData.PatchManager
             if (targetType.IsInstanceOfType(rawValue))
                 return rawValue;
 
+            // Handle array types - convert to correct element type if needed
+            if (targetType.IsArray && rawValue.GetType().IsArray)
+            {
+                Type targetElementType = targetType.GetElementType();
+                Type sourceElementType = rawValue.GetType().GetElementType();
+
+                // If element types are compatible, create new array with correct type
+                if (targetElementType != sourceElementType &&
+                    (targetElementType.IsAssignableFrom(sourceElementType) || sourceElementType.IsAssignableFrom(targetElementType)))
+                {
+                    Array sourceArray = (Array)rawValue;
+                    Array targetArray = Array.CreateInstance(targetElementType, sourceArray.Length);
+
+                    for (int i = 0; i < sourceArray.Length; i++)
+                    {
+                        object element = sourceArray.GetValue(i);
+                        if (element != null && targetElementType.IsInstanceOfType(element))
+                            targetArray.SetValue(element, i);
+                        else if (element != null)
+                            targetArray.SetValue(ConvertValue(element, targetElementType), i);
+                        else
+                            targetArray.SetValue(null, i);
+                    }
+
+                    return targetArray;
+                }
+
+                return rawValue;
+            }
+
             if (targetType.IsSubclassOf(typeof(Prototype)))
             {
                 switch (rawValue)
@@ -217,7 +247,7 @@ namespace MHServerEmu.Games.GameData.PatchManager
             if (elementType == null || IsTypeCompatible(elementType, entryType, value.ValueType) == false)
                 throw new InvalidOperationException($"Type {value.ValueType} is not assignable to {elementType?.Name}.");
 
-            object converted = ConvertValue(valueEntry, elementType);
+            object converted = GetElementValue(valueEntry, elementType);
             array.SetValue(converted, index);
         }
 
@@ -318,5 +348,3 @@ namespace MHServerEmu.Games.GameData.PatchManager
         }
     }
 }
-
-
