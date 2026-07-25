@@ -29,12 +29,13 @@ namespace MHServerEmu.Games.GameData.PatchManager
         /// <summary>
         /// Loads patches after Globals are loaded.
         /// </summary>
+
         public void Initialize(bool enablePatchManager)
         {
             if (enablePatchManager) _initialized |= LoadPatchDataFromDisk("PatchData");
         }
-
-        private bool LoadPatchDataFromDisk(string prefix)
+        
+	private bool LoadPatchDataFromDisk(string prefix)
         {
             string patchDirectory = Path.Combine(FileHelper.DataDirectory, "Game", "Patches");
             if (Directory.Exists(patchDirectory) == false)
@@ -43,7 +44,7 @@ namespace MHServerEmu.Games.GameData.PatchManager
             int count = 0;
             var options = new JsonSerializerOptions { Converters = { new PatchEntryConverter() } };
 
-            // Read all .json files that start with the specified prefix
+	    // Read all .json files that start with the specified prefix
             foreach (string filePath in FileHelper.GetFilesWithPrefix(patchDirectory, prefix, "json"))
             {
                 string fileName = Path.GetFileName(filePath);
@@ -67,7 +68,7 @@ namespace MHServerEmu.Games.GameData.PatchManager
                 Logger.Trace($"Parsed patch data from {fileName}");
             }
 
-            if (count == 0)
+	    if (count == 0)
                 return false;
 
             Logger.Info($"Loaded {count} {prefix} patches");
