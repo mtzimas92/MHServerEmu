@@ -33,6 +33,7 @@ using MHServerEmu.Games.Properties.Evals;
 using MHServerEmu.Games.Regions;
 using MHServerEmu.Games.Social.Guilds;
 using MHServerEmu.Games.Social.Parties;
+using MHServerEmu.Games.UI;
 
 namespace MHServerEmu.Games.Entities.Avatars
 {
@@ -40,6 +41,18 @@ namespace MHServerEmu.Games.Entities.Avatars
     {
         private const int MaxNumTransientAbilityKeyMappings = 1;
         private const uint TalentGroupIndexInvalid = 0;
+
+        // [Dinos Invade Manhattan] ShannaA.prototype stands in for the EGPVEManhattan portal, whose own UnrealClass
+        // never renders client-side (server patches to UnrealClass/Icons/ObjectiveInfo are never sent to the client -
+        // confirmed via controlled experiments). Interacting with her routes to the same target the real portal uses.
+        private static readonly PrototypeId ShannaPortalGuideRef = (PrototypeId)12454068879284506634;
+        private static readonly PrototypeId UESvsDinosEntryTargetRef = (PrototypeId)11375015409704837543;
+        // Locked to T2 Heroic regardless of the entering player's own sticky DifficultyTierPreference -
+        // T1 never drops Cosmic/Uniques and the event's loot tables are being tuned around T2 specifically.
+        // This also sidesteps party members with different sticky preferences landing in different-tier
+        // (and therefore different) region instances, since everyone entering via Shanna now gets the same
+        // explicit tier no matter what.
+        private static readonly PrototypeId UESvsDinosDifficultyTierRef = (PrototypeId)7540373722300157771;
 
         private static readonly Logger Logger = LogManager.CreateLogger();
         private static readonly TimeSpan StandardContinuousPowerRecheckDelay = TimeSpan.FromMilliseconds(150);
@@ -4206,10 +4219,60 @@ namespace MHServerEmu.Games.Entities.Avatars
 
             if (interactableObject is Transition transition)
                 transition.UseTransition(player);
+            else if (interactableObject.PrototypeDataRef == ShannaPortalGuideRef)
+                UseShannaPortalGuide(player, interactableObject);
 
             interactableObject.OnInteractedWith(this);
 
             return true;
+        }
+
+        // Found via a real client eng.all *.string dump (LootTableDumper --dumpstrings) - an existing Savage Land
+        // flavor line about Sauron's dinosaurs ravaging the land. GameDialogInstance.Message is transmitted live
+        // as a NetStructFormatString every time the dialog opens (unlike ShannaA.prototype's own DialogTextList,
+        // which the client resolves entirely from its own local copy and never asks the server about). Its text is
+        // overridden via AchievementStringMap_99_DinosInvadeManhattan.json (see [[achievement-string-override-global-text-fix]])
+        // to actually mention Manhattan instead of the generic native line.
+	private static readonly LocaleStringId ShannaDinosaurFlavorTextRef = (LocaleStringId)423133379684795656;
+        
+	// Localization/Translations/Dialogs/Yes.prototype and No.prototype - dedicated generic Yes/No button text,
+        // each referenced by nothing else in the game's data, so reusing them here can't collide with any other
+        // dialog's wording. Matches the real "Travel to X? Yes/No" pattern used by native portal NPCs.
+        private static readonly LocaleStringId YesButtonRef = (LocaleStringId)14959079863731815684;
+        private static readonly LocaleStringId NoButtonRef = (LocaleStringId)16244338063872951558;
+
+
+        private static void UseShannaPortalGuide(Player player, WorldEntity shanna)
+        {
+            Game game = player.Game;
+
+            GameDialogInstance dialog = game.GameDialogManager.CreateInstance(player.DatabaseUniqueId);
+            dialog.OnResponse = OnShannaPortalGuideDialogResponse;
+            dialog.Message.LocaleString = ShannaDinosaurFlavorTextRef;
+            // WorldClick matches Transition.ShowDestinationDialog() - lets the player dismiss by clicking elsewhere
+            // in the world instead of being forced to pick a button. There's no legitimate existing "No"/Cancel
+            // LocaleStringId anywhere in the game's data to label a second button with (checked every DialogPrototype
+            // field in the schema - the one populated real example is single-button only).
+            dialog.Options = DialogOptionEnum.ScreenBottom | DialogOptionEnum.WorldClick;
+            dialog.TargetId = shanna.Id;
+            dialog.InteractorId = player.CurrentAvatar?.Id ?? InvalidId;
+            dialog.AddButton(GameDialogResultEnum.eGDR_Option1, YesButtonRef, ButtonStyle.SecondaryPositive);
+            dialog.AddButton(GameDialogResultEnum.eGDR_Option2, NoButtonRef, ButtonStyle.SecondaryNegative);
+
+	    game.GameDialogManager.ShowDialog(dialog);
+
+            void OnShannaPortalGuideDialogResponse(ulong playerGuid, DialogResponse response)
+            {
+                if (response.ButtonIndex != GameDialogResultEnum.eGDR_Option1) return;
+
+                Player responsePlayer = game.EntityManager.GetEntityByDbGuid<Player>(playerGuid);
+                if (responsePlayer == null) return;
+
+                using Teleporter teleporter = ObjectPoolManager.Instance.Get<Teleporter>();
+                teleporter.Initialize(responsePlayer, TeleportContextEnum.TeleportContext_Transition);
+                teleporter.DifficultyTierRef = UESvsDinosDifficultyTierRef;
+                teleporter.TeleportToTarget(UESvsDinosEntryTargetRef);
+            }
         }
 
         private bool CanInteract(Player player, WorldEntity interactableObject)
