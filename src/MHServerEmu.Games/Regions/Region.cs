@@ -445,7 +445,53 @@ namespace MHServerEmu.Games.Regions
 
             IsGenerated = true;
             CreatedTime = Clock.UnixTime;
+
+	    if (regionProto.DataRef == NPEAvengersTowerHUBRegionRef)
+                SpawnShannaPortalGuide();
+
             return true;
+        }
+
+        // [Dinos Invade Manhattan] EGPVEManhattan.prototype (the real portal into UESvsDinosRegion) never renders
+        // client-side no matter what its DesignState/VisibleByDefault/UnrealClass say (server patches to UnrealClass
+        // never reach the client). Left untouched and unspawned here - it still exists purely as marker DATA, so
+        // AvengersToUESTarget.Entity continues to resolve its position correctly for the return trip.
+        // ShannaA.prototype (a confirmed-visible, otherwise-unused NPC) is spawned separately at that same marker
+        // position as a stand-in visual; interacting with her is handled in Avatar.UseInteractableObject().
+        private static readonly PrototypeId NPEAvengersTowerHUBRegionRef = (PrototypeId)9142075282174842340;
+        private static readonly PrototypeId EGPVEManhattanRef = (PrototypeId)6460789910415087113;
+        private static readonly PrototypeId ShannaPortalGuideRef = (PrototypeId)12454068879284506634;
+
+        // Distance to the side of the landing spot Shanna stands at, so returning players don't materialize on top of her.
+        private const float ShannaPortalGuideSideOffset = 200f;
+        // Confirmed in-game (NPEAvengersTowerHUBRegion, AvengersTowerNPE_HUB.cell) - the landing spot's own Y (573.625)
+        // put her slightly into a wall/prop; 570 is the clear spot beside it.
+        private const float ShannaPortalGuideY = 570f;
+
+        private void SpawnShannaPortalGuide()
+        {
+            Vector3 landingPosition = Vector3.Zero;
+            Orientation landingOrientation = Orientation.Zero;
+            if (FindTargetLocation(ref landingPosition, ref landingOrientation, PrototypeId.Invalid, PrototypeId.Invalid, EGPVEManhattanRef) == false)
+            {
+                Logger.Warn("SpawnShannaPortalGuide(): Failed to find the EGPVEManhattan marker position");
+                return;
+            }
+
+            // landingPosition is where returning players materialize (marker position + TransitionPrototype.SpawnOffset,
+            // pushed out along the marker's facing direction) - step to the side of it rather than spawning on top of it.
+            float yaw = landingOrientation.Yaw;
+            Vector3 shannaPosition = new(landingPosition.X + (MathF.Cos(yaw) * ShannaPortalGuideSideOffset), ShannaPortalGuideY, landingPosition.Z);
+            Orientation shannaOrientation = Orientation.FromDeltaVector(landingPosition - shannaPosition);
+
+            using EntitySettings entitySettings = ObjectPoolManager.Instance.Get<EntitySettings>();
+            entitySettings.EntityRef = ShannaPortalGuideRef;
+            entitySettings.Position = shannaPosition;
+            entitySettings.Orientation = shannaOrientation;
+            entitySettings.RegionId = Id;
+
+            if (Game.EntityManager.CreateEntity(entitySettings) == null)
+                Logger.Warn("SpawnShannaPortalGuide(): Failed to create the Shanna portal guide entity");
         }
 
         public bool TestStatus(RegionStatus status)
