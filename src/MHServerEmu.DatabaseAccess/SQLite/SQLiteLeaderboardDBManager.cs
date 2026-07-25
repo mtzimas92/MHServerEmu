@@ -326,8 +326,17 @@ namespace MHServerEmu.DatabaseAccess.SQLite
             using var connection = GetConnection();
             using var transaction = connection.BeginTransaction();
 
-            connection.Execute(@"
-                INSERT INTO Rewards (LeaderboardId, InstanceId, ParticipantId, RewardId, Rank, CreationDate)
+	    // OR IGNORE: a duplicate (LeaderboardId, InstanceId, ParticipantId) reward attempt
+            // must never be allowed to crash the whole server via an unhandled SQLite constraint
+            // exception - confirmed live 2026-07-23 (a MetaLeaderboard granting the same player a
+            // reward twice in one GiveRewards() pass, via two sub-leaderboards that both listed
+            // that player, took down the entire process on this exact PRIMARY KEY). Silently
+            // dropping the second attempt is also the semantically correct behavior here - a
+            // player reaching the same reward slot twice in one pass should still only be
+            // rewarded once, not crash.
+
+	    connection.Execute(@"
+                INSERT OR IGNORE INTO Rewards (LeaderboardId, InstanceId, ParticipantId, RewardId, Rank, CreationDate)
                 VALUES (@LeaderboardId, @InstanceId, @ParticipantId, @RewardId, @Rank, @CreationDate)", dbRewards, transaction);
 
             transaction.Commit();
