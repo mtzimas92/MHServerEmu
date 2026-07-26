@@ -22,5 +22,8 @@ namespace MHServerEmu.Games
         public bool UsePrestigeLootTable { get; private set; } = false;
         public bool EnableUltimatePrestige { get; private set; } = false;
         public bool ApplyHiddenPvPDamageModifiers { get; private set; } = false;
+
+	// Dinos Invade Manhattan / PvEScaleGameMode
+        public bool DinosWaveBattleLoggingEnable { get; private set; } = false;
     }
 }

@@ -21,6 +21,21 @@ namespace MHServerEmu.Games.Loot
     /// </summary>
     public class ItemResolverContext
     {
+        // Dinos Invade Manhattan: the Phase7 boss is a random toss-up between two repurposed entity
+        // prototypes (KingLizardBossEG02 / KingLizardRiderBossEG02, see ScheduledBossSpawn), each
+        // carrying its own independent LootCooldownTimeHours=20. Since the TimeHours cooldown path
+        // always keys the player-side cooldown property off sourceEntity.PrototypeDataRef (see
+        // FindCooldownOrigin below), the two variants track SEPARATE 20-hour timers - a player could
+        // farm loot roughly 2x as often by re-running the instance until the "fresh" variant rolls.
+        // Normalize both onto one shared origin so either boss trips the same single cooldown,
+        // regardless of which one actually spawned.
+        private static readonly PrototypeId DinosSharedBossCooldownOriginRef = (PrototypeId)9671380227843956965;  // KingLizardBossEG02.prototype
+        private static readonly HashSet<PrototypeId> DinosSharedBossCooldownRefs = new()
+        {
+            (PrototypeId)9671380227843956965,   // KingLizardBossEG02.prototype
+            (PrototypeId)12761272367405933307,  // KingLizardRiderBossEG02.prototype
+        };
+	    
         private readonly HashSet<PrototypeId> _allowedCooldownDrops = new();     // Drops that have already passed cooldown checks for this roll
 
         private LootBonusData _lootBonusData = new();
@@ -386,7 +401,13 @@ namespace MHServerEmu.Games.Loot
             }
             else if (cooldownType == LootCooldownType.TimeHours || cooldownType == LootCooldownType.RolloverWallTime)
             {
-                _cooldownData.OriginProtoRef = sourceEntity.PrototypeDataRef;
+                //_cooldownData.OriginProtoRef = sourceEntity.PrototypeDataRef; OG CODE
+		//Dino Code
+                _cooldownData.OriginProtoRef = DinosSharedBossCooldownRefs.Contains(sourceEntity.PrototypeDataRef)
+                    ? DinosSharedBossCooldownOriginRef
+                    : sourceEntity.PrototypeDataRef;  
+		//Dino Code
+
                 _cooldownData.DifficultyProtoRef = sourceEntity.Region.DifficultyTierRef;
                 _cooldownData.PropertyEnum = PropertyEnum.LootCooldownTimeStartEntity;
 

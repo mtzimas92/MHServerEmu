@@ -47,6 +47,15 @@ namespace MHServerEmu.Games.MetaGames.GameModes
 
         // Generic "counter bar" widget shared by all Danger Room region-score tracking - reused here
         // rather than authoring a new one, since GetWidget<T> lazily creates/registers it on first use.
+        // Tried switching to the unused UI/MetaGame/ObjectiveCountRight.prototype (2026-07-25) to get a
+        // Dinos-specific label without touching this shared widget's text (it's referenced by 113 real
+        // native Danger Room mission-activate states) - confirmed via testing that ObjectiveCountRight's
+        // MissionObjectiveCount lineage renders a client-side-baked "$MissionObjectiveName$" placeholder
+        // and a plain counter instead of a bar, REGARDLESS of server-side Descriptor/WidgetMovieClipOverride/
+        // DisplayMissionName patches (same "client resolves from its own local copy" class of dead end as
+        // the AreaName fix). Reverted back to this shared widget until a genuinely safe replacement with
+        // matching native (unpatched) client-side behavior is found - see the disabled patch entries in
+        // PatchDataMod_Event_DinosInvadeManhattan.json for what was tried.
         private static readonly PrototypeId ThreatMeterWidgetRef = (PrototypeId)1488507445230442250;
 
         // No BossMedium marker exists anywhere in this region's actual generated cellset (confirmed via
@@ -105,12 +114,22 @@ namespace MHServerEmu.Games.MetaGames.GameModes
         private bool _isBossPhase;
         private bool _modeEnded;
         private ulong _powerUpEntityId;
+        private int _killCountThisPhase;
+        private int _powerUpCountThisPhase;
 
         public PvEScaleGameMode(MetaGame metaGame, MetaGameModePrototype proto) : base(metaGame, proto)
         {
             _proto = proto as PvEScaleGameModePrototype;
             _entityDeadAction = OnEntityDead;
             _orbPickUpAction = OnOrbPickUp;
+        }
+
+        private bool IsWaveBattleLoggingEnabled => Game?.CustomGameOptions?.DinosWaveBattleLoggingEnable ?? false;
+
+        private void LogWaveBattle(string line)
+        {
+            if (IsWaveBattleLoggingEnabled == false) return;
+            DinosWaveBattleLogCollator.WriteLine(MetaGame.Id, line);
         }
 
         #region Override
@@ -124,6 +143,8 @@ namespace MHServerEmu.Games.MetaGames.GameModes
             _threat = _persistedThreatByMetaGameId.TryGetValue(MetaGame.Id, out float persistedThreat) ? persistedThreat : 0f;
             _modeEnded = false;
             _powerUpEntityId = 0;
+            _killCountThisPhase = 0;
+            _powerUpCountThisPhase = 0;
             _isBossPhase = _proto.BossPopulationObjects.HasValue();
             UpdateThreatMeter();
 
@@ -136,6 +157,18 @@ namespace MHServerEmu.Games.MetaGames.GameModes
 
             if (MetaGame.Debug)
                 Logger.Debug($"OnActivate(): {GameDatabase.GetFormattedPrototypeName(_proto.DataRef)} isBossPhase={_isBossPhase} durationMs={_proto.WaveDurationMS}");
+
+            if (IsWaveBattleLoggingEnabled)
+            {
+                int playerCount = CountInWorldPlayers();
+                Player firstPlayer = GetRandomPlayer();
+                Avatar firstAvatar = firstPlayer?.CurrentAvatar;
+                if (firstAvatar != null)
+                    DinosWaveBattleLogCollator.SetAvatarLabel(MetaGame.Id, $"{firstAvatar.PrototypeName}_L{firstAvatar.CharacterLevel}");
+
+                LogWaveBattle($"PHASE_START phase={GameDatabase.GetFormattedPrototypeName(_proto.DataRef)} boss={_isBossPhase} " +
+                    $"durationS={_proto.WaveDurationMS / 1000} enteringThreat={_threat:F2}/{GetEffectiveFailureThreshold()} players={playerCount}");
+            }
 
             Region.EntityDeadEvent.AddActionBack(_entityDeadAction);
             Region.OrbPickUpEvent.AddActionBack(_orbPickUpAction);
@@ -162,6 +195,31 @@ namespace MHServerEmu.Games.MetaGames.GameModes
 
             if (_proto.PowerUpItem != PrototypeId.Invalid && _proto.PowerUpSpawnMS > 0)
                 ScheduleEvent(_powerUpSpawnEvent, _proto.PowerUpSpawnMS);
+        }
+
+        // Base MetaGameMode.OnAddPlayer() only resends UINotificationOnActivate (the "Defeat Enemies
+        // Wave 1" banner) to every player added to an already-active mode - it never (re)starts the
+        // PvP timer for them. MetaGameModeIdle.OnAddPlayer() has the correct pattern (notification +
+        // a player-targeted SendStartPvPTimer with the REMAINING duration, not the full one) but
+        // PvEScaleGameMode never had its own override, so it fell back to the base's notification-only
+        // behavior. On a shared PublicCombatZone instance (this region, now capped at 10 players) where
+        // players join an already-running wave far more often than a fresh one, every joiner after the
+        // first saw the phase-start banner with no visible timer ever appearing for them - not just
+        // cosmetic, since the client-side countdown never got a start message to react to. Mirrors
+        // MetaGameModeIdle.OnAddPlayer()/GetDurationTime() using this class's own _startTime instead.
+        public override void OnAddPlayer(Player player)
+        {
+            if (player == null) return;
+            base.OnAddPlayer(player);
+
+            if (_modeEnded) return;
+
+            if (_proto.ShowTimer && _proto.WaveDurationMS > 0)
+            {
+                TimeSpan remaining = TimeSpan.FromMilliseconds(_proto.WaveDurationMS) - (Game.CurrentTime - _startTime);
+                if (remaining < TimeSpan.Zero) remaining = TimeSpan.Zero;
+                SendStartPvPTimer(remaining, TimeSpan.Zero, TimeSpan.Zero, TimeSpan.Zero, player);
+            }
         }
 
         public override void OnDeactivate()
@@ -216,7 +274,10 @@ namespace MHServerEmu.Games.MetaGames.GameModes
             SpawnWaveBatch(clustersPerPlayer);
 
             if (MetaGame.Debug)
-                Logger.Debug($"ScheduledWaveTick(): {GameDatabase.GetFormattedPrototypeName(_proto.DataRef)} threat={_threat:F2}/{_proto.WaveDifficultyFailureThreshold} tracked={_waveEntities.Count} clustersPerPlayer={clustersPerPlayer}");
+                Logger.Debug($"ScheduledWaveTick(): {GameDatabase.GetFormattedPrototypeName(_proto.DataRef)} threat={_threat:F2}/{GetEffectiveFailureThreshold()} tracked={_waveEntities.Count} clustersPerPlayer={clustersPerPlayer}");
+
+            if (IsWaveBattleLoggingEnabled)
+                LogWaveBattle($"TICK threat={_threat:F2}/{GetEffectiveFailureThreshold()} clustersPerPlayer={clustersPerPlayer} tracked={_waveEntities.Count} players={inWorldPlayerCount}");
 
             if (CheckThreatFailure()) return;
 
@@ -272,6 +333,19 @@ namespace MHServerEmu.Games.MetaGames.GameModes
                     count++;
             }
             return count;
+        }
+
+        // Threat RISE already scales by player count (ScheduledWaveTick), but the failure ceiling used
+        // to be a flat value regardless of group size - meaning a 10-player instance had 10x the
+        // absolute threat swing per tick against the SAME fixed buffer a solo player used, with far less
+        // margin for kill-lag/coordination overhead. Scaling the ceiling by the same per-player term
+        // makes the rise-vs-ceiling RATIO constant regardless of group size, closing that gap. The
+        // prototype's own WaveDifficultyFailureThreshold field is reused as the PER-PLAYER unit (patched
+        // down from a flat 50 to 18 - the exact per-player passive-rise-per-phase number, WaveDifficultyPerSecond
+        // * 180s - so zero kills/power-ups over a full phase lands exactly at the ceiling, not comfortably under it).
+        private float GetEffectiveFailureThreshold()
+        {
+            return _proto.WaveDifficultyFailureThreshold * Math.Max(1, CountInWorldPlayers());
         }
 
         private void SpawnOneWaveCluster(Vector3 origin)
@@ -575,7 +649,7 @@ namespace MHServerEmu.Games.MetaGames.GameModes
 
         private bool CheckThreatFailure()
         {
-            if (_threat < _proto.WaveDifficultyFailureThreshold) return false;
+            if (_threat < GetEffectiveFailureThreshold()) return false;
 
             FailMode();
             return true;
@@ -612,6 +686,8 @@ namespace MHServerEmu.Games.MetaGames.GameModes
             if (_bossEntities.Remove(defender.Id))
             {
                 MetaGame.UniscoverEntity(defender);
+                if (IsWaveBattleLoggingEnabled)
+                    LogWaveBattle("BOSS_KILLED");
                 SucceedMode();
                 return;
             }
@@ -627,9 +703,14 @@ namespace MHServerEmu.Games.MetaGames.GameModes
                 MetaGame.UniscoverEntity(defender);
                 if (_mobThreatReduction.TryGetValue(defender.Id, out float reduction))
                 {
+                    float threatBefore = _threat;
                     _threat = Math.Max(0f, _threat - reduction);
                     _mobThreatReduction.Remove(defender.Id);
                     UpdateThreatMeter();
+                    _killCountThisPhase++;
+
+                    if (IsWaveBattleLoggingEnabled)
+                        LogWaveBattle($"KILL threat={threatBefore:F2}->{_threat:F2} reduction={reduction:F2} killsThisPhase={_killCountThisPhase}");
                 }
             }
         }
@@ -644,11 +725,19 @@ namespace MHServerEmu.Games.MetaGames.GameModes
         {
             _powerUpEntityId = 0;
             MetaGame.UniscoverEntity(orb);
-            _threat = Math.Max(0f, _threat - _proto.PowerUpDifficultyReduction);
+            float threatBefore = _threat;
+            // PowerUpDifficultyReduction is a 0.0-1.0 fraction of CURRENT threat (not a flat amount),
+            // so a pickup stays meaningful whether it's collected early (low threat) or late (near the ceiling),
+            // and its relative impact no longer shrinks as the player-scaled ceiling (GetEffectiveFailureThreshold) grows.
+            float reduction = _threat * _proto.PowerUpDifficultyReduction;
+            _threat = Math.Max(0f, _threat - reduction);
             UpdateThreatMeter();
             SendUINotification(_proto.PowerUpPickupUINotification);
+            _powerUpCountThisPhase++;
             if (MetaGame.Debug)
                 Logger.Debug($"CollectPowerUp(): {GameDatabase.GetFormattedPrototypeName(_proto.DataRef)} power-up collected, threat={_threat:F2}");
+            if (IsWaveBattleLoggingEnabled)
+                LogWaveBattle($"POWERUP threat={threatBefore:F2}->{_threat:F2} reduction={reduction:F2} powerUpsThisPhase={_powerUpCountThisPhase}");
         }
 
         private void SucceedMode()
@@ -657,6 +746,14 @@ namespace MHServerEmu.Games.MetaGames.GameModes
             _modeEnded = true;
             if (MetaGame.Debug)
                 Logger.Debug($"SucceedMode(): {GameDatabase.GetFormattedPrototypeName(_proto.DataRef)} -> mode index {_proto.NextMode}");
+
+            if (IsWaveBattleLoggingEnabled)
+            {
+                LogWaveBattle($"PHASE_END phase={GameDatabase.GetFormattedPrototypeName(_proto.DataRef)} outcome=SUCCESS " +
+                    $"finalThreat={_threat:F2}/{GetEffectiveFailureThreshold()} kills={_killCountThisPhase} powerUps={_powerUpCountThisPhase}");
+                if (_isBossPhase)
+                    DinosWaveBattleLogCollator.EndRun(MetaGame.Id, "WIN");
+            }
 
             // Only the boss phase succeeding is the actual end of the run - every wave phase's own
             // SucceedMode is just a phase->break transition and must NOT clear the persisted threat.
@@ -673,6 +770,14 @@ namespace MHServerEmu.Games.MetaGames.GameModes
             if (MetaGame.Debug)
                 Logger.Debug($"FailMode(): {GameDatabase.GetFormattedPrototypeName(_proto.DataRef)} threat={_threat:F2} -> mode index {_proto.FailMode}");
             SendUINotification(_proto.FailUINotification);
+
+            if (IsWaveBattleLoggingEnabled)
+            {
+                LogWaveBattle($"PHASE_END phase={GameDatabase.GetFormattedPrototypeName(_proto.DataRef)} outcome=FAIL " +
+                    $"finalThreat={_threat:F2}/{GetEffectiveFailureThreshold()} kills={_killCountThisPhase} powerUps={_powerUpCountThisPhase}");
+                DinosWaveBattleLogCollator.EndRun(MetaGame.Id, "LOSS");
+            }
+
             _persistedThreatByMetaGameId.Remove(MetaGame.Id);
             MetaGame.ScheduleActivateGameMode(_proto.FailMode);
         }
@@ -711,7 +816,7 @@ namespace MHServerEmu.Games.MetaGames.GameModes
             SendPvEInstanceRegionScoreUpdate((int)MathF.Round(_threat), null);
 
             var widget = MetaGame.GetWidget<UIWidgetGenericFraction>(ThreatMeterWidgetRef);
-            widget?.SetCount((int)MathF.Round(_threat), (int)_proto.WaveDifficultyFailureThreshold);
+            widget?.SetCount((int)MathF.Round(_threat), (int)GetEffectiveFailureThreshold());
         }
 
         // Raw player-relative offsets can land inside building geometry - those spawns are then
