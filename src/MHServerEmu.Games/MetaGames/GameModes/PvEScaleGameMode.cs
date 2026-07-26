@@ -90,10 +90,21 @@ namespace MHServerEmu.Games.MetaGames.GameModes
 
         // Each wave phase (Base/Break) is a separate MetaGameMode instance, so _threat can't just live on
         // this object if it's meant to carry across phases instead of resetting every ~3 minutes. Persisted
-        // here keyed by MetaGame.Id (shared by every mode belonging to the same playthrough), written back
-        // on every UpdateThreatMeter() call, and cleared once the run truly ends (win via the boss phase's
-        // SucceedMode, or any FailMode) rather than on every per-phase SucceedMode transition.
-        private static readonly Dictionary<ulong, float> _persistedThreatByMetaGameId = new();
+        // here keyed by (Game.Id, MetaGame.Id) - shared by every mode belonging to the same playthrough -
+        // written back on every UpdateThreatMeter() call, and cleared once the run truly ends (win via the
+        // boss phase's SucceedMode, or any FailMode) rather than on every per-phase SucceedMode transition.
+        //
+        // MUST include Game.Id, not just MetaGame.Id: MetaGame.Id (like every Entity.Id) is only unique
+        // WITHIN a single Game instance. GameThreadManager runs multiple concurrent Game instances in one
+        // process, and WorldManager.GetOrCreatePublicRegion/RegionLoadBalancer can and does spin up more
+        // than one live "Dinos Invade Manhattan" instance (each its own Game) under player load - two
+        // totally unrelated concurrent runs can trivially get the same bare MetaGame.Id and, with only
+        // that as the key, would read/write EACH OTHER'S persisted threat. Confirmed live via
+        // DinosWaveBattleLogCollator sharing this exact same bug (fixed alongside this) - two unrelated
+        // runs' log lines were interleaving in one file, which is what exposed this.
+        private static readonly Dictionary<(ulong GameId, ulong MetaGameId), float> _persistedThreatByMetaGameId = new();
+
+        private (ulong, ulong) PersistedThreatKey => (Game.Id, MetaGame.Id);
 
         private readonly PvEScaleGameModePrototype _proto;
         private readonly HashSet<ulong> _waveEntities = new();
@@ -129,7 +140,7 @@ namespace MHServerEmu.Games.MetaGames.GameModes
         private void LogWaveBattle(string line)
         {
             if (IsWaveBattleLoggingEnabled == false) return;
-            DinosWaveBattleLogCollator.WriteLine(MetaGame.Id, line);
+            DinosWaveBattleLogCollator.WriteLine(Game.Id, MetaGame.Id, line);
         }
 
         #region Override
@@ -140,7 +151,7 @@ namespace MHServerEmu.Games.MetaGames.GameModes
             base.OnActivate();
             SetModeText(_proto.Name);
 
-            _threat = _persistedThreatByMetaGameId.TryGetValue(MetaGame.Id, out float persistedThreat) ? persistedThreat : 0f;
+            _threat = _persistedThreatByMetaGameId.TryGetValue(PersistedThreatKey, out float persistedThreat) ? persistedThreat : 0f;
             _modeEnded = false;
             _powerUpEntityId = 0;
             _killCountThisPhase = 0;
@@ -163,8 +174,8 @@ namespace MHServerEmu.Games.MetaGames.GameModes
                 int playerCount = CountInWorldPlayers();
                 Player firstPlayer = GetRandomPlayer();
                 Avatar firstAvatar = firstPlayer?.CurrentAvatar;
-                if (firstAvatar != null)
-                    DinosWaveBattleLogCollator.SetAvatarLabel(MetaGame.Id, $"{firstAvatar.PrototypeName}_L{firstAvatar.CharacterLevel}");
+                if (firstPlayer != null && firstAvatar != null)
+                    DinosWaveBattleLogCollator.SetPlayerLabel(Game.Id, MetaGame.Id, $"{firstPlayer.GetName()}_L{firstAvatar.CharacterLevel}");
 
                 LogWaveBattle($"PHASE_START phase={GameDatabase.GetFormattedPrototypeName(_proto.DataRef)} boss={_isBossPhase} " +
                     $"durationS={_proto.WaveDurationMS / 1000} enteringThreat={_threat:F2}/{GetEffectiveFailureThreshold()} players={playerCount}");
@@ -752,13 +763,13 @@ namespace MHServerEmu.Games.MetaGames.GameModes
                 LogWaveBattle($"PHASE_END phase={GameDatabase.GetFormattedPrototypeName(_proto.DataRef)} outcome=SUCCESS " +
                     $"finalThreat={_threat:F2}/{GetEffectiveFailureThreshold()} kills={_killCountThisPhase} powerUps={_powerUpCountThisPhase}");
                 if (_isBossPhase)
-                    DinosWaveBattleLogCollator.EndRun(MetaGame.Id, "WIN");
+                    DinosWaveBattleLogCollator.EndRun(Game.Id, MetaGame.Id, "WIN");
             }
 
             // Only the boss phase succeeding is the actual end of the run - every wave phase's own
             // SucceedMode is just a phase->break transition and must NOT clear the persisted threat.
             if (_isBossPhase)
-                _persistedThreatByMetaGameId.Remove(MetaGame.Id);
+                _persistedThreatByMetaGameId.Remove(PersistedThreatKey);
 
             MetaGame.ScheduleActivateGameMode(_proto.NextMode);
         }
@@ -775,10 +786,10 @@ namespace MHServerEmu.Games.MetaGames.GameModes
             {
                 LogWaveBattle($"PHASE_END phase={GameDatabase.GetFormattedPrototypeName(_proto.DataRef)} outcome=FAIL " +
                     $"finalThreat={_threat:F2}/{GetEffectiveFailureThreshold()} kills={_killCountThisPhase} powerUps={_powerUpCountThisPhase}");
-                DinosWaveBattleLogCollator.EndRun(MetaGame.Id, "LOSS");
+                DinosWaveBattleLogCollator.EndRun(Game.Id, MetaGame.Id, "LOSS");
             }
 
-            _persistedThreatByMetaGameId.Remove(MetaGame.Id);
+            _persistedThreatByMetaGameId.Remove(PersistedThreatKey);
             MetaGame.ScheduleActivateGameMode(_proto.FailMode);
         }
 
@@ -811,7 +822,7 @@ namespace MHServerEmu.Games.MetaGames.GameModes
         // no new widget prototype of our own needed.
         private void UpdateThreatMeter()
         {
-            _persistedThreatByMetaGameId[MetaGame.Id] = _threat;
+            _persistedThreatByMetaGameId[PersistedThreatKey] = _threat;
 
             SendPvEInstanceRegionScoreUpdate((int)MathF.Round(_threat), null);
 
