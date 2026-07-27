@@ -40,7 +40,9 @@ namespace MHServerEmu.Games.Entities.Avatars
     public partial class Avatar : Agent
     {
         private const int MaxNumTransientAbilityKeyMappings = 1;
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
         private const uint TalentGroupIndexInvalid = 0;
+#endif
 
         // [Dinos Invade Manhattan] ShannaA.prototype stands in for the EGPVEManhattan portal, whose own UnrealClass
         // never renders client-side (server patches to UnrealClass/Icons/ObjectiveInfo are never sent to the client -
@@ -82,6 +84,11 @@ namespace MHServerEmu.Games.Entities.Avatars
         private List<AbilityKeyMapping> _transientAbilityKeyMappings;   // Non-persistent ability key mappings used for transform modes (init on demand)
         private AbilityKeyMapping _currentAbilityKeyMapping;            // Reference to the currently active ability key mapping
 
+#if GAME_VERSION_1_48
+        private int _currentAbilityKeyMappingIndex = 0;
+        private int _unknownAbilityKeyMappingIndex = 0;
+#endif
+
         private ulong _guildId = GuildManager.InvalidGuildId;
         private string _guildName = string.Empty;
         private GuildMembership _guildMembership = GuildMembership.eGMNone;
@@ -93,7 +100,9 @@ namespace MHServerEmu.Games.Entities.Avatars
 
         private ulong _avatarSynergyConditionId = ConditionCollection.InvalidConditionId;
 
+#if !GAME_VERSION_1_53
         private ulong _ultimatePrestigeLevel = 0;
+#endif
 
         public uint AvatarWorldInstanceId { get; private set; } = 0;
         public string PlayerName { get => _playerName.Get(); }
@@ -106,7 +115,11 @@ namespace MHServerEmu.Games.Entities.Avatars
         public override bool IsAtLevelCap { get => CharacterLevel >= GetAvatarLevelCap(); }
         public override int Throwability { get => GetThrowability(); }
 
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
         public PrototypeId EquippedCostumeRef { get => Properties[PropertyEnum.CostumeCurrent]; }
+#else
+        public PrototypeId EquippedCostumeRef { get => PrototypeId.Invalid; }   // V48_FIXME
+#endif
         public CostumePrototype EquippedCostume { get => EquippedCostumeRef.As<CostumePrototype>(); }
 
         public bool IsUsingGamepadInput { get; set; } = false;
@@ -133,7 +146,9 @@ namespace MHServerEmu.Games.Entities.Avatars
         public Inventory ControlledInventory { get => GetInventory(InventoryConvenienceLabel.Controlled); }
         public Agent ControlledAgent { get => GetControlledAgent(); }
 
+#if !GAME_VERSION_1_53
         public ulong UltimatePrestigeLevel { get => _ultimatePrestigeLevel; }
+#endif
 
         public Avatar(Game game) : base(game) { }
 
@@ -150,6 +165,11 @@ namespace MHServerEmu.Games.Entities.Avatars
             Player player = Game.EntityManager.GetEntity<Player>(settings.InventoryLocation.ContainerId);
             if (player != null)
                 _ownerPlayerDbId = player.DatabaseUniqueId;
+
+#if GAME_VERSION_1_48
+            // V48_FIXME: Grant all powers until we get power points working.
+            Properties[PropertyEnum.PowerGrantRank] = 20;
+#endif
 
             return true;
         }
@@ -222,10 +242,18 @@ namespace MHServerEmu.Games.Entities.Avatars
 
             success &= Serializer.Transfer(archive, ref _abilityKeyMappings);
 
+#if GAME_VERSION_1_48
+            // V48_NOTE: The client clamps these to the 0-2 range.
+            success &= Serializer.Transfer(archive, ref _currentAbilityKeyMappingIndex);
+            success &= Serializer.Transfer(archive, ref _unknownAbilityKeyMappingIndex);
+#endif
+
             // Custom data
             if (archive.IsPersistent)
             {
+#if !GAME_VERSION_1_53
                 success &= Serializer.Transfer(archive, ref _ultimatePrestigeLevel);
+#endif
             }
 
             return success;
@@ -321,21 +349,29 @@ namespace MHServerEmu.Games.Entities.Avatars
                 // Apply PvP upgrade bonuses
                 using var pvpUpgradeListHandle = ListPool<(PrototypeId, int)>.Instance.Get(out List<(PrototypeId, int)> pvpUpgradeList);
 
-                foreach (var kvp in Properties.IteratePropertyRange(PropertyEnum.OmegaRank))
+                foreach (var kvp in Properties.IteratePropertyRange(PropertyEnum.PvPUpgrades))
                 {
-                    Property.FromParam(kvp.Key, 0, out PrototypeId omegaBonusProtoRef);
+                    Property.FromParam(kvp.Key, 0, out PrototypeId pvpUpgradeProtoRef);
                     int rank = kvp.Value;
-                    pvpUpgradeList.Add((omegaBonusProtoRef, rank));
+                    pvpUpgradeList.Add((pvpUpgradeProtoRef, rank));
                 }
 
                 foreach (var pvpUpgrade in pvpUpgradeList)
                     ModChangeModEffects(pvpUpgrade.Item1, pvpUpgrade.Item2);
 
                 // Apply alternate advancement (infinity / omega) bonuses
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
                 if (Game.InfinitySystemEnabled)
+                {
                     ApplyInfinityBonuses();
+                }
                 else
+#endif
+                {
+#if !GAME_VERSION_1_53
                     ApplyOmegaBonuses();
+#endif
+                }
             }
 
             return result;
@@ -756,7 +792,9 @@ namespace MHServerEmu.Games.Entities.Avatars
                     // Set bodyslider properties to be able to return to where we left
                     player.Properties[PropertyEnum.BodySliderRegionId] = region.Id;
                     player.Properties[PropertyEnum.BodySliderRegionRef] = region.PrototypeDataRef;
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
                     player.Properties[PropertyEnum.BodySliderDifficultyRef] = region.DifficultyTierRef;
+#endif
                     player.Properties[PropertyEnum.BodySliderRegionSeed] = region.RandomSeed;
                     player.Properties[PropertyEnum.BodySliderAreaRef] = area.PrototypeDataRef;
                     player.Properties[PropertyEnum.BodySliderRegionPos] = RegionLocation.Position;
@@ -932,9 +970,11 @@ namespace MHServerEmu.Games.Entities.Avatars
             if (_pendingAction.PowerProtoRef == power.PrototypeDataRef)
                 CancelPendingAction();
 
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
             // This fixes PowerChargesMaxBonusForKwd.
             if (GetPowerChargesMax(power.PrototypeDataRef) > 0)
                 Properties.RemoveProperty(new(PropertyEnum.PowerChargesMaxBonus, power.PrototypeDataRef));
+#endif
 
             return true;
         }
@@ -1408,7 +1448,11 @@ namespace MHServerEmu.Games.Entities.Avatars
             if (region == null)
                 return false;
 
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
             TuningPrototype difficultyProto = region.TuningTable?.Prototype;
+#else
+            DifficultyPrototype difficultyProto = region.DifficultyTable?.Prototype;
+#endif
             if (!Verify.IsNotNull(difficultyProto)) return false;
 
             TimeSpan timeSinceInflictedDamage = Game.CurrentTime - Properties[PropertyEnum.LastInflictedDamageTime];
@@ -1433,10 +1477,14 @@ namespace MHServerEmu.Games.Entities.Avatars
             if (power != null)
                 return power.HasKeyword(keywordPrototype);
 
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
             // Check if there are any keyword override in our properties
             int powerKeywordChange = Properties[PropertyEnum.PowerKeywordChange, powerProto.DataRef, keywordProtoRef];
 
             return powerKeywordChange == (int)TriBool.True || (powerProto.HasKeyword(keywordPrototype) && powerKeywordChange != (int)TriBool.False);
+#else
+            return powerProto.HasKeyword(keywordPrototype);
+#endif
         }
 
         public bool IsValidTargetForCurrentPower(WorldEntity target)
@@ -1572,7 +1620,9 @@ namespace MHServerEmu.Games.Entities.Avatars
 
             UpdatePowerProgressionPowers(false);
 
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
             UpdateTravelPower();
+#endif
 
             return true;
         }
@@ -1592,7 +1642,9 @@ namespace MHServerEmu.Games.Entities.Avatars
             AssignPower(avatarPrototype.ResurrectOtherEntityPower, indexProps);
             AssignPower(avatarPrototype.StatsPower, indexProps);
             ScheduleStatsPowerRefresh();
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
             AssignPower(GameDatabase.GlobalsPrototype.AvatarHealPower, indexProps);
+#endif
 
             return true;
         }
@@ -1964,6 +2016,7 @@ namespace MHServerEmu.Games.Entities.Avatars
         protected override int ComputePowerRankBase(ref PowerProgressionInfo powerInfo, int powerSpecIndexActive)
         {
             // Check avatar-specific overrides
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
             if (powerInfo.IsInPowerProgression)
             {
                 // Talents
@@ -1976,6 +2029,7 @@ namespace MHServerEmu.Games.Entities.Avatars
                 }
             }
             else
+#endif
             {
                 // Mapped powers
                 PrototypeId originalPowerProtoRef = GetOriginalPowerFromMappedPower(powerInfo.PowerRef);
@@ -2048,8 +2102,10 @@ namespace MHServerEmu.Games.Entities.Avatars
             if (GameDataTables.Instance.PowerOwnerTable.GetPowerProgressionEntry(PrototypeDataRef, powerRef) != null)
                 return true;
 
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
             if (GameDataTables.Instance.PowerOwnerTable.GetTalentEntry(PrototypeDataRef, powerRef) != null)
                 return true;
+#endif
 
             return false;
         }
@@ -2092,6 +2148,7 @@ namespace MHServerEmu.Games.Entities.Avatars
                 return powerInfo.IsValid;
             }
 
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
             // Case 2 - Talent
             var talentEntryPair = powerOwnerTable.GetTalentEntryPair(avatarProto.DataRef, progressionInfoPower);
             var talentGroupPair = powerOwnerTable.GetTalentGroupPair(avatarProto.DataRef, progressionInfoPower);
@@ -2100,6 +2157,9 @@ namespace MHServerEmu.Games.Entities.Avatars
                 powerInfo.InitForAvatar(talentEntryPair.Item1, talentGroupPair.Item1, talentEntryPair.Item2, talentGroupPair.Item2);
                 return powerInfo.IsValid;
             }
+#else
+            // V48_TODO?: Do we need to do anything for specialization powers here?
+#endif
 
             // Case 3 - Non-Progression Power
             powerInfo.InitNonProgressionPower(powerProtoRef);
@@ -2163,12 +2223,14 @@ namespace MHServerEmu.Games.Entities.Avatars
             if (Properties.HasProperty(PropertyEnum.IsInCombat))
                 return false;
 
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
             // Unassign talents
             using var talentPowerListHandle = ListPool<PrototypeId>.Instance.Get(out List<PrototypeId> talentPowerList);
             GetTalentPowersForSpec(currentSpecIndex, talentPowerList);
 
             foreach (PrototypeId talentPowerRef in talentPowerList)
                 UnassignTalentPower(talentPowerRef, currentSpecIndex, true);
+#endif
 
             // Clear mapped powers
             if (CanStealPowers() == false)
@@ -2184,7 +2246,9 @@ namespace MHServerEmu.Games.Entities.Avatars
             // Refresh powers
             if (IsInWorld)
             {
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
                 UpdateTalentPowers();
+#endif
                 UpdatePowerProgressionPowers(true);
             }
 
@@ -2203,6 +2267,7 @@ namespace MHServerEmu.Games.Entities.Avatars
             Game.GameEventScheduler.CancelEvent(_unassignMappedPowersForRespec);
             ScheduleEntityEvent(_unassignMappedPowersForRespec, TimeSpan.FromMilliseconds(500));
 
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
             // Unassign talents
             using var talentPowerListHandle = ListPool<PrototypeId>.Instance.Get(out List<PrototypeId> talentPowerList);
             GetTalentPowersForSpec(specIndex, talentPowerList);
@@ -2221,6 +2286,7 @@ namespace MHServerEmu.Games.Entities.Avatars
                 // Early return (V48_TODO: this probably shouldn't happen for pre-BUE?)
                 return true;
             }
+#endif
 
             // Fall back to base implementation if no talents were unassigned
             return base.RespecPowerSpec(specIndex, reason, skipValidation, powerProtoRef);
@@ -2230,6 +2296,9 @@ namespace MHServerEmu.Games.Entities.Avatars
 
         #region Talents (Specialization Powers)
 
+// V48_TODO: specialization powers
+
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
         public void GetTalentPowersForSpec(int specIndex, List<PrototypeId> talentPowerList)
         {
             foreach (var kvp in Properties.IteratePropertyRange(PropertyEnum.AvatarSpecializationPower, specIndex))
@@ -2238,12 +2307,16 @@ namespace MHServerEmu.Games.Entities.Avatars
                 talentPowerList.Add(talentPowerRef);
             }
         }
+#endif
 
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
         public bool IsTalentPowerEnabledForSpec(PrototypeId talentPowerRef, int specIndex)
         {
             return Properties[PropertyEnum.AvatarSpecializationPower, specIndex, talentPowerRef];
         }
+#endif
 
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
         public bool EnableTalentPower(PrototypeId talentPowerRef, int specIndex, bool enable)
         {
             if (!Verify.IsTrue(talentPowerRef != PrototypeId.Invalid)) return false;
@@ -2283,7 +2356,9 @@ namespace MHServerEmu.Games.Entities.Avatars
 
             return true;
         }
+#endif
 
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
         public CanToggleTalentResult CanToggleTalentPower(PrototypeId talentPowerRef, int specIndex, bool enteringWorld, bool enable)
         {
             SpecializationPowerPrototype talentPowerProto = talentPowerRef.As<SpecializationPowerPrototype>();
@@ -2323,7 +2398,9 @@ namespace MHServerEmu.Games.Entities.Avatars
 
             return CanToggleTalentResult.Success;
         }
+#endif
 
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
         private bool AssignTalentPower(PrototypeId talentPowerRef, int specIndex)
         {
             if (!Verify.IsTrue(talentPowerRef != PrototypeId.Invalid)) return false;
@@ -2346,7 +2423,9 @@ namespace MHServerEmu.Games.Entities.Avatars
             Properties[PropertyEnum.AvatarSpecializationPower, specIndex, talentPowerRef] = true;
             return true;
         }
+#endif
 
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
         private bool UnassignTalentPower(PrototypeId talentPowerRef, int specIndex, bool isSwitchingSpec = false)
         {
             if (!Verify.IsTrue(talentPowerRef != PrototypeId.Invalid)) return false;
@@ -2371,7 +2450,9 @@ namespace MHServerEmu.Games.Entities.Avatars
 
             return true;
         }
+#endif
 
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
         private void UpdateTalentPowers()
         {
             int specIndex = GetPowerSpecIndexActive();
@@ -2393,6 +2474,7 @@ namespace MHServerEmu.Games.Entities.Avatars
                 }
             }
         }
+#endif
 
         #endregion
 
@@ -2540,12 +2622,15 @@ namespace MHServerEmu.Games.Entities.Avatars
             }
         }
 
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
         public bool IsStolenPowerAvailable(PrototypeId stolenPowerRef)
         {
             if (!Verify.IsTrue(stolenPowerRef != PrototypeId.Invalid)) return false;
             return Properties[PropertyEnum.StolenPowerAvailable, stolenPowerRef];
         }
+#endif
 
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
         public bool CanAssignStolenPower(PrototypeId stolenPowerRefToAssign, PrototypeId currentStolenPowerRef)
         {
             if (!Verify.IsTrue(stolenPowerRefToAssign != PrototypeId.Invalid)) return false;
@@ -2612,6 +2697,7 @@ namespace MHServerEmu.Games.Entities.Avatars
 
             return true;
         }
+#endif
 
         public bool CanStealPowers()
         {
@@ -2642,6 +2728,7 @@ namespace MHServerEmu.Games.Entities.Avatars
 
         #region Travel Powers
 
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
         public PrototypeId GetTravelPowerRef()
         {
             AvatarPrototype avatarProto = AvatarPrototype;
@@ -2652,13 +2739,17 @@ namespace MHServerEmu.Games.Entities.Avatars
 
             return avatarProto.TravelPower;
         }
+#endif
 
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
         public void SetTravelPowerOverride(PrototypeId travelPowerOverrideProtoRef)
         {
             // Called by mapped powers
             _travelPowerOverrideProtoRef = travelPowerOverrideProtoRef;
         }
+#endif
 
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
         /// <summary>
         /// Assigns or unassign the travel power for this <see cref="Avatar"/> based on character level.
         /// </summary>
@@ -2684,6 +2775,7 @@ namespace MHServerEmu.Games.Entities.Avatars
 
             return true;
         }
+#endif
 
         #endregion
 
@@ -3906,6 +3998,7 @@ namespace MHServerEmu.Games.Entities.Avatars
             long awardedAmount = base.AwardXP(amount, minAmount, showXPAwardedText);
 
             // Award alternate advancement XP (omega or infinity)
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
             if (Game.InfinitySystemEnabled)
             {
                 float infinityLiveTuningMult = 1f;
@@ -3915,12 +4008,15 @@ namespace MHServerEmu.Games.Entities.Avatars
                 player.AwardInfinityXP((long)(amount * infinityLiveTuningMult), true);
             }
             else
+#endif
             {
+#if !GAME_VERSION_1_53
                 float omegaLiveTuningMult = 1f;
                 if (LiveTuningManager.GetLiveGlobalTuningVar(GlobalTuningVar.eGTV_RespectLevelForOmegaXP) == 0f || player.CanUseLiveTuneBonuses())
                     omegaLiveTuningMult = Math.Max(LiveTuningManager.GetLiveGlobalTuningVar(GlobalTuningVar.eGTV_OmegaXPPct), 0f);
 
                 player.AwardOmegaXP((long)(amount * omegaLiveTuningMult), true);
+#endif
             }
 
             // Award XP to the equipped legendary item if there is one
@@ -3970,7 +4066,12 @@ namespace MHServerEmu.Games.Entities.Avatars
 
             AdvancementGlobalsPrototype advancementProto = GameDatabase.AdvancementGlobalsPrototype;
 
+#if GAME_VERSION_1_53
+            // V53_TODO: LevelingDataConsole
+            Curve pctXPFromPrestigeLevelCurve = advancementProto.LevelingDataPC.PctXPFromPrestigeLevelCurve.AsCurve();
+#else
             Curve pctXPFromPrestigeLevelCurve = advancementProto.PctXPFromPrestigeLevelCurve.AsCurve();
+#endif
             if (!Verify.IsNotNull(pctXPFromPrestigeLevelCurve)) return 1f;
 
             if (prestigeLevel == advancementProto.MaxPrestigeLevel)
@@ -4002,7 +4103,11 @@ namespace MHServerEmu.Games.Entities.Avatars
             return levelDelta;
         }
 
-        public long ApplyXPModifiers(long xp, bool applyKillBonus, TuningTable tuningTable = null)
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
+        public long ApplyXPModifiers(long xp, bool applyKillBonus, TuningTable difficultyTable = null)
+#else
+        public long ApplyXPModifiers(long xp, bool applyKillBonus, DifficultyTable difficultyTable = null)
+#endif
         {
             if (IsInWorld == false)
                 return 0;
@@ -4028,21 +4133,25 @@ namespace MHServerEmu.Games.Entities.Avatars
                 xpMult *= 1f + region.Properties[PropertyEnum.ExperienceBonusPct];
 
             // Tuning table modifiers
-            if (tuningTable != null)
+            if (difficultyTable != null)
             {
-                TuningPrototype tuningProto = tuningTable.Prototype;
-                if (!Verify.IsNotNull(tuningProto)) return 0;
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
+                TuningPrototype difficultyProto = difficultyTable.Prototype;
+#else
+                DifficultyPrototype difficultyProto = difficultyTable.Prototype;
+#endif
+                if (!Verify.IsNotNull(difficultyProto)) return 0;
 
                 // Apply difficulty index modifier
-                Curve difficultyIndexCurve = tuningProto.PlayerXPByDifficultyIndexCurve.AsCurve();
+                Curve difficultyIndexCurve = difficultyProto.PlayerXPByDifficultyIndexCurve.AsCurve();
                 if (!Verify.IsNotNull(difficultyIndexCurve)) return 0;
-                xpMult *= difficultyIndexCurve.GetAt(tuningTable.DifficultyIndex);
+                xpMult *= difficultyIndexCurve.GetAt(difficultyTable.DifficultyIndex);
 
                 // Apply unconditional tuning table multiplier
-                xpMult *= tuningProto.PctXPMultiplier;
+                xpMult *= difficultyProto.PctXPMultiplier;
 
                 // Party
-                xpMult *= GetPartyXPMultiplier(tuningProto);
+                xpMult *= GetPartyXPMultiplier(difficultyProto);
             }
 
             // Live tuning
@@ -4087,9 +4196,13 @@ namespace MHServerEmu.Games.Entities.Avatars
             // Unlock new powers
             if (IsInWorld)
             {
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
                 UpdateTalentPowers();
+#endif
                 UpdatePowerProgressionPowers(false);
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
                 UpdateTravelPower();
+#endif
             }
 
             // Remove items that are no longer equippable (e.g. if we are leveling down via prestige)
@@ -4134,8 +4247,10 @@ namespace MHServerEmu.Games.Entities.Avatars
 
             base.SetCharacterLevel(characterLevel);
 
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
             if (characterLevel != oldLevel)
                 UpdateAvatarSynergyUnlocks(oldLevel, characterLevel);
+#endif
 
             Player player = GetOwnerOfType<Player>();
             if (player == null) return;
@@ -4307,8 +4422,16 @@ namespace MHServerEmu.Games.Entities.Avatars
 
         public bool InGamepadInteractRange(WorldEntity interactee)
         {
-            var gamepadGlobals = GameDatabase.GamepadGlobalsPrototype;
-            if (gamepadGlobals == null || RegionLocation.Region == null) return false;
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
+            GamepadGlobalsPrototype gamepadGlobals = GameDatabase.GamepadGlobalsPrototype;
+            if (!Verify.IsNotNull(gamepadGlobals)) return false;
+#else
+            ControllerGlobalsPrototype controllerGlobals = GameDatabase.ControllerGlobalsPrototype;
+            if (!Verify.IsNotNull(controllerGlobals)) return false;
+#endif
+
+            if (RegionLocation.Region == null)
+                return false;
 
             Vector3 direction = Forward;
             Vector3 interacteePosition = interactee.RegionLocation.Position;
@@ -4318,6 +4441,7 @@ namespace MHServerEmu.Games.Entities.Avatars
             float minAngle = Math.Abs(MathHelper.ToDegrees(Vector3.Angle2D(direction, velocity)));
             float distance = Vector3.Distance2D(interacteePosition, avatarPosition);
 
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
             if (distance < Bounds.Radius + gamepadGlobals.GamepadInteractBoundsIncrease)
                 return true;
 
@@ -4332,6 +4456,9 @@ namespace MHServerEmu.Games.Entities.Avatars
                 Vector3? resultNormal = null;
                 return capsuleBound.Sweep(ref interactee.Bounds, Vector3.Zero, velocity, ref timeOfIntersection, ref resultNormal);
             }
+#else
+            // V48_FIXME
+#endif
 
             return false;
         }
@@ -4610,7 +4737,9 @@ namespace MHServerEmu.Games.Entities.Avatars
             Player owner = GetOwnerOfType<Player>();
             if (!Verify.IsNotNull(owner)) return false;
 
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
             Properties[PropertyEnum.CostumeCurrent] = costumeProtoRef;
+#endif
 
             // Update avatar library
             // NOTE: Avatar mode is hardcoded to 0 since hardcore and ladder avatars never got implemented
@@ -4683,6 +4812,7 @@ namespace MHServerEmu.Games.Entities.Avatars
 
         // Experience
 
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
         public float GetMissionXPMultiplier(TuningTable tuningTable, int level)
         {
             if (IsInWorld == false)
@@ -4710,6 +4840,33 @@ namespace MHServerEmu.Games.Entities.Avatars
             multiplier *= GetLiveTuningXPMultiplier();
             return multiplier;
         }
+#else
+        public float GetMissionXPMultiplier(DifficultyTable difficultyTable, int level)
+        {
+            if (IsInWorld == false)
+                return 0f;
+
+            DifficultyPrototype difficultyProto = difficultyTable.Prototype;
+            if (!Verify.IsNotNull(difficultyProto)) return 0f;
+
+            Curve pctXPFromLevelDeltaCurve = GameDatabase.AdvancementGlobalsPrototype.PctXPFromLevelDeltaCurve.AsCurve();
+            if (!Verify.IsNotNull(pctXPFromLevelDeltaCurve)) return 0f;
+
+            Curve playerXPByDifficultyIndex = difficultyProto.PlayerXPByDifficultyIndexCurve.AsCurve();
+            if (!Verify.IsNotNull(playerXPByDifficultyIndex)) return 0f;
+
+            float multiplier = pctXPFromLevelDeltaCurve.GetAt(level - CharacterLevel);
+            multiplier *= difficultyProto.PctXPMultiplier;
+            multiplier *= playerXPByDifficultyIndex.GetAt(difficultyTable.DifficultyIndex);
+
+            if (Game.CustomGameOptions.DisableMissionXPBonuses == false)
+                multiplier *= GetAvatarXPMultiplier();
+
+            multiplier *= GetPartyXPMultiplier(difficultyProto);
+            multiplier *= GetLiveTuningXPMultiplier();
+            return multiplier;
+        }
+#endif
 
         public float GetAvatarXPMultiplier()
         {
@@ -4722,13 +4879,17 @@ namespace MHServerEmu.Games.Entities.Avatars
             return MathF.Max(-1f, multiplier);
         }
 
-        public float GetPartyXPMultiplier(TuningPrototype tuningProto)
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
+        public float GetPartyXPMultiplier(TuningPrototype difficultyProto)
+#else
+        public float GetPartyXPMultiplier(DifficultyPrototype difficultyProto)
+#endif
         {
             Party party = Party;
             if (party == null)
                 return 1f;
 
-            CurveId curveRef = party.Type == GroupType.GroupType_Raid ? tuningProto.PctXPFromRaid : tuningProto.PctXPFromParty;
+            CurveId curveRef = party.Type == GroupType.GroupType_Raid ? difficultyProto.PctXPFromRaid : difficultyProto.PctXPFromParty;
             Curve curve = curveRef.AsCurve();
             if (!Verify.IsNotNull(curve)) return 1f;
 
@@ -4945,6 +5106,7 @@ namespace MHServerEmu.Games.Entities.Avatars
 
         // Currency
 
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
         public static float GetStackingCurrencyBonusPct(PropertyCollection properties, CurrencyPrototype currencyProto)
         {
             float stackingCurrencyBonusPct = 0f;
@@ -4994,6 +5156,7 @@ namespace MHServerEmu.Games.Entities.Avatars
 
             return curve.GetIntAt(stackCount);
         }
+#endif
 
         // Orb Aggro Range
 
@@ -5175,7 +5338,9 @@ namespace MHServerEmu.Games.Entities.Avatars
             SetOwnerTeamUpAgent(currentTeamUp);
             currentTeamUp.AssignTeamUpAgentPowers();
             currentTeamUp.ApplyTeamUpAffixesToAvatar(this);
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
             currentTeamUp.SetTeamUpsAtMaxLevel(player);
+#endif
 
             // event PlayerActivatedTeamUpGameEvent not used in missions
         }
@@ -5774,7 +5939,13 @@ namespace MHServerEmu.Games.Entities.Avatars
             Player player = GetOwnerOfType<Player>();
             if (!Verify.IsNotNull(player)) return false;
 
-            if (player.GameplayOptions.GetOptionSetting(Options.GameplayOptionSetting.DisableHeroSynergyBonusXP) == 1)
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
+            bool disableHeroSynergyBonusXP = player.GameplayOptions.GetOptionSetting(Options.GameplayOptionSetting.DisableHeroSynergyBonusXP) == 1;
+#else
+            bool disableHeroSynergyBonusXP = player.GameplayOptions.GetOptionSetting(Options.GameplayOptionSetting.DisableHeroSynergyBonusXP);
+#endif
+
+            if (disableHeroSynergyBonusXP)
             {
                 Properties.RemoveProperty(PropertyEnum.ExperienceBonusAvatarSynergy);
                 return true;
@@ -5782,8 +5953,14 @@ namespace MHServerEmu.Games.Entities.Avatars
 
             // Get requirements from advancement globals
             AdvancementGlobalsPrototype advancementGlobals = GameDatabase.AdvancementGlobalsPrototype;
+#if GAME_VERSION_1_53
+            // V53_TODO: LevelingDataConsole
+            Curve normalBonusCurve = advancementGlobals.LevelingDataPC.ExperienceBonusAvatarSynergy.AsCurve();
+            Curve cappedBonusMaxCurve = advancementGlobals.LevelingDataPC.ExperienceBonusLevel60Synergy.AsCurve();
+#else
             Curve normalBonusCurve = advancementGlobals.ExperienceBonusAvatarSynergy.AsCurve();
             Curve cappedBonusMaxCurve = advancementGlobals.ExperienceBonusLevel60Synergy.AsCurve();
+#endif
             int originalMaxLevel = advancementGlobals.OriginalMaxLevel;
 
             float experienceBonus = 0f;
@@ -5805,13 +5982,19 @@ namespace MHServerEmu.Games.Entities.Avatars
             }
 
             experienceBonus += cappedBonusMaxCurve.GetAt(numLevelCappedAvatars);
+#if GAME_VERSION_1_53
+            // V53_TODO: LevelingDataConsole
+            experienceBonus = Math.Min(experienceBonus, advancementGlobals.LevelingDataPC.ExperienceBonusAvatarSynergyMax);
+#else
             experienceBonus = Math.Min(experienceBonus, advancementGlobals.ExperienceBonusAvatarSynergyMax);
+#endif
 
             Properties[PropertyEnum.ExperienceBonusAvatarSynergy] = experienceBonus;
 
             return true;
         }
 
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
         private bool UpdateAvatarSynergyUnlocks(int oldLevel, int newLevel)
         {
             Player player = GetOwnerOfType<Player>();
@@ -5835,6 +6018,7 @@ namespace MHServerEmu.Games.Entities.Avatars
 
             return true;
         }
+#endif
 
         #endregion
 
@@ -5870,7 +6054,9 @@ namespace MHServerEmu.Games.Entities.Avatars
             player.ResetMapDiscoveryForStoryWarp();
 
             using Teleporter teleporter = ObjectPoolManager.Instance.Get<Teleporter>();
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
             teleporter.DifficultyTierRef = GameDatabase.GlobalsPrototype.DifficultyTierDefault;
+#endif
             teleporter.Initialize(player, TeleportContextEnum.TeleportContext_StoryWarp);
             return teleporter.TeleportToTarget(targetProto.DataRef);
         }
@@ -5907,7 +6093,9 @@ namespace MHServerEmu.Games.Entities.Avatars
             // Adjust properties
             Properties.AdjustProperty(1, PropertyEnum.AvatarPrestigeLevel);
             Properties[PropertyEnum.NumberOfDeaths] = 0;
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
             Properties.RemoveProperty(PropertyEnum.DifficultyTierPreference);
+#endif
 
             // Get rid of controlled agents
             RemoveAndKillControlledAgent();
@@ -6021,6 +6209,7 @@ namespace MHServerEmu.Games.Entities.Avatars
             Player player = GetOwnerOfType<Player>();
             if (!Verify.IsNotNull(player)) return false;
 
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
             if (Game.CustomGameOptions.UsePrestigeLootTable)
             {
                 // Award loot from the prestige loot table (same as BIF boxes by default), it appears this was never fully implemented
@@ -6037,6 +6226,9 @@ namespace MHServerEmu.Games.Entities.Avatars
                 }
             }
             else
+#else
+            if (prestigeLevelProto.GrantStartingCostume)
+#endif
             {
                 // Grant a copy of the starting costume, original behavior
                 GiveStartingCostume();
@@ -6047,6 +6239,7 @@ namespace MHServerEmu.Games.Entities.Avatars
 
         // CUSTOM: Ultimate Prestige (reset cosmic prestige)
 
+#if !GAME_VERSION_1_53
         public bool CanActivateUltimatePrestigeMode()
         {
             if (PartyId != InvalidId)
@@ -6060,7 +6253,9 @@ namespace MHServerEmu.Games.Entities.Avatars
 
             return IsInTown();
         }
+#endif
 
+#if !GAME_VERSION_1_53
         public bool ActivateUltimatePrestigeMode()
         {
             Properties[PropertyEnum.AvatarPrestigeLevel] = 0;
@@ -6068,11 +6263,13 @@ namespace MHServerEmu.Games.Entities.Avatars
             Logger.Trace($"ActivateUltimatePrestigeMode(): [{this}] - {_ultimatePrestigeLevel}");
             return ActivatePrestigeMode();
         }
+#endif
 
-        #endregion
+#endregion
 
         #region Alternate Advancement
 
+#if !GAME_VERSION_1_53
         // Omega
 
         public bool IsOmegaSystemUnlocked()
@@ -6283,7 +6480,9 @@ namespace MHServerEmu.Games.Entities.Avatars
 
             Properties[PropertyEnum.OmegaPointsSpent] = pointsSpent;
         }
+#endif
 
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
         // Infinity
 
         public bool IsInfinitySystemUnlocked()
@@ -6510,6 +6709,7 @@ namespace MHServerEmu.Games.Entities.Avatars
             foreach (var kvp in setDict)
                 Properties[kvp.Key] = kvp.Value;
         }
+#endif
 
         // Shared
 
@@ -6569,6 +6769,7 @@ namespace MHServerEmu.Games.Entities.Avatars
                     PowerPrototype originalPowerProto = originalPowerRef.As<PowerPrototype>();
                     if (!Verify.IsNotNull(originalPowerProto)) return;
 
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
                     if (originalPowerProto.IsTravelPower)
                     {
                         PrototypeId mappedPowerRef = GetMappedPowerFromOriginalPower(originalPowerRef);
@@ -6576,11 +6777,16 @@ namespace MHServerEmu.Games.Entities.Avatars
 
                         _currentAbilityKeyMapping?.SetAbilityInAbilitySlot(GetTravelPowerRef(), AbilitySlot.TravelPower);
                     }
+#endif
 
                     break;
 
+#if !GAME_VERSION_1_53
                 case PropertyEnum.OmegaRank:
+#endif
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
                 case PropertyEnum.InfinityGemBonusRank:
+#endif
                 case PropertyEnum.PvPUpgrades:
                     if (IsSimulated)
                     {
@@ -6684,6 +6890,7 @@ namespace MHServerEmu.Games.Entities.Avatars
                         Properties[PropertyEnum.SecondaryResource] = secondaryResourceMax;
                     break;
 
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
                 case PropertyEnum.SecondaryResourceMaxBase:
                     Properties[PropertyEnum.SecondaryResourceMax] = (float)newValue + Properties[PropertyEnum.SecondaryResourceMaxChange];
                     break;
@@ -6699,6 +6906,7 @@ namespace MHServerEmu.Games.Entities.Avatars
                 case PropertyEnum.SecondaryResourceMaxPipsChg:
                     Properties[PropertyEnum.SecondaryResourceMaxPips] = Properties[PropertyEnum.SecondaryResourceMaxPipsBase] + (int)newValue;
                     break;
+#endif
 
                 case PropertyEnum.SecondaryResourceOverride:
                     if (oldValue != PrototypeId.Invalid)
@@ -6722,25 +6930,27 @@ namespace MHServerEmu.Games.Entities.Avatars
                     InitializeSecondaryManaBehaviors();
                     break;
 
-                case PropertyEnum.StatAllModifier:
                 case PropertyEnum.StatDurability:
-                case PropertyEnum.StatDurabilityDmgPctPerPoint:
-                case PropertyEnum.StatDurabilityModifier:
                 case PropertyEnum.StatStrength:
-                case PropertyEnum.StatStrengthDmgPctPerPoint:
-                case PropertyEnum.StatStrengthModifier:
                 case PropertyEnum.StatFightingSkills:
-                case PropertyEnum.StatFightingSkillsDmgPctPerPoint:
-                case PropertyEnum.StatFightingSkillsModifier:
                 case PropertyEnum.StatSpeed:
-                case PropertyEnum.StatSpeedDmgPctPerPoint:
-                case PropertyEnum.StatSpeedModifier:
                 case PropertyEnum.StatEnergyProjection:
-                case PropertyEnum.StatEnergyDmgPctPerPoint:
-                case PropertyEnum.StatEnergyProjectionModifier:
                 case PropertyEnum.StatIntelligence:
-                case PropertyEnum.StatIntelligenceDmgPctPerPoint:
+                case PropertyEnum.StatAllModifier:
+                case PropertyEnum.StatDurabilityModifier:
+                case PropertyEnum.StatStrengthModifier:
+                case PropertyEnum.StatFightingSkillsModifier:
+                case PropertyEnum.StatSpeedModifier:
+                case PropertyEnum.StatEnergyProjectionModifier:
                 case PropertyEnum.StatIntelligenceModifier:
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
+                case PropertyEnum.StatDurabilityDmgPctPerPoint:
+                case PropertyEnum.StatStrengthDmgPctPerPoint:
+                case PropertyEnum.StatFightingSkillsDmgPctPerPoint:
+                case PropertyEnum.StatSpeedDmgPctPerPoint:
+                case PropertyEnum.StatEnergyDmgPctPerPoint:
+                case PropertyEnum.StatIntelligenceDmgPctPerPoint:
+#endif
                     if (IsInWorld)
                         ScheduleStatsPowerRefresh();
                     break;
@@ -6776,6 +6986,7 @@ namespace MHServerEmu.Games.Entities.Avatars
                     break;
                 }
 
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
                 case PropertyEnum.PowerChargesMaxBonus:
                 {
                     Property.FromParam(id, 0, out PrototypeId powerProtoRef);
@@ -6807,7 +7018,9 @@ namespace MHServerEmu.Games.Entities.Avatars
                     Properties[PropertyEnum.PowerChargesMax, powerProtoRef] = chargesMaxNew;
                     break;
                 }
+#endif
 
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
                 case PropertyEnum.PowerChargesMaxBonusForKwd:
                 {
                     // These will be applied when the power is assigned if currently not in the world
@@ -6852,6 +7065,7 @@ namespace MHServerEmu.Games.Entities.Avatars
 
                     break;
                 }
+#endif
 
                 case PropertyEnum.PowerCooldownDuration:
                     if (IsInWorld)
@@ -6881,6 +7095,7 @@ namespace MHServerEmu.Games.Entities.Avatars
 
                     break;
 
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
                 case PropertyEnum.DifficultyTierPreference:
                     {
                         Player player = GetOwnerOfType<Player>();
@@ -6891,6 +7106,7 @@ namespace MHServerEmu.Games.Entities.Avatars
                         }
                     }
                     break;
+#endif
             }
         }
 
@@ -6984,10 +7200,18 @@ namespace MHServerEmu.Games.Entities.Avatars
             // Assign powers
             InitializePowers();
 
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
             if (Game.InfinitySystemEnabled)
+            {
                 InitializeInfinityBonuses();
+            }
             else
+#endif
+            {
+#if !GAME_VERSION_1_53
                 InitializeOmegaBonuses();
+#endif
+            }
 
             OnEnteredWorldSetTransformMode();
 
@@ -6996,7 +7220,9 @@ namespace MHServerEmu.Games.Entities.Avatars
 
             UpdateAvatarSynergyCondition();
             UpdateAvatarSynergyExperienceBonus();
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
             CurrentTeamUpAgent?.SetTeamUpsAtMaxLevel(player);   // Needed to calculate team-up synergies
+#endif
 
             ApplyLiveTuneServerConditions();
 
@@ -7018,7 +7244,9 @@ namespace MHServerEmu.Games.Entities.Avatars
                         player.UnlockWaypoint(waypointUnlockRef);
             }
 
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
             UpdateTalentPowers();
+#endif
 
             var missionManager = player.MissionManager;
             if (missionManager != null)
@@ -7286,6 +7514,7 @@ namespace MHServerEmu.Games.Entities.Avatars
 
         public bool SyncPartyBoostConditions()
         {
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
             Player player = GetOwnerOfType<Player>();
             if (!Verify.IsNotNull(player)) return false;
 
@@ -7307,7 +7536,8 @@ namespace MHServerEmu.Games.Entities.Avatars
             // Even if there are no party boosts currently, notify anyway to clear the conditions that may have previously been applied.
             ServiceMessage.PartyBoostUpdate message = new(player.DatabaseUniqueId, boosts);
             ServerManager.Instance.SendMessageToService(GameServiceType.PlayerManager, message);
-
+#endif
+            // V48_FIXME
             return true;
         }
 

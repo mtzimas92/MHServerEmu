@@ -63,9 +63,15 @@ namespace MHServerEmu.Games.GameData
         public static PowerVisualsGlobalsPrototype PowerVisualsGlobalsPrototype { get => GlobalsPrototype?.PowerVisualsGlobals; }
         public static KeywordGlobalsPrototype KeywordGlobalsPrototype { get => GlobalsPrototype?.KeywordGlobals; }
         public static CurrencyGlobalsPrototype CurrencyGlobalsPrototype { get => GlobalsPrototype?.CurrencyGlobals; }
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
         public static GamepadGlobalsPrototype GamepadGlobalsPrototype { get => GlobalsPrototype?.GamepadGlobals; }
+#else
+        public static ControllerGlobalsPrototype ControllerGlobalsPrototype { get => GlobalsPrototype?.ControllerGlobals; }
+#endif
         public static DifficultyGlobalsPrototype DifficultyGlobalsPrototype { get => GlobalsPrototype?.DifficultyGlobals; }
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
         public static ConsoleGlobalsPrototype ConsoleGlobalsPrototype { get => GlobalsPrototype?.ConsoleGlobals; }
+#endif
         
         public static InteractionManager InteractionManager { get; private set; }
 
@@ -97,22 +103,21 @@ namespace MHServerEmu.Games.GameData
             PropertyInfoTable = new();
             PropertyInfoTable.Initialize();
 
+#if GAME_VERSION_1_52
+            // Load patches that should apply to globals (limited RefPtr support)
+            PrototypePatchManager.Instance.PreInitialize(config.EnablePatchManager);
+#endif
+
             // Load globals
             PrototypeId globalsProtoRef = GetPrototypeRefByName("Globals/Globals.defaults");
             GlobalsPrototype = GetPrototype<GlobalsPrototype>(globalsProtoRef);
 
             // initializeKeywordPrototypes
 
-            // Initialize PrototypePatchManager
-            // NOTE: Must run after Globals are resolved above - patch entries using ValueType "Prototype"/"PrototypeArray"
-            // (e.g. custom loot table construction) trigger CopyPrototypeDataRefFields(), which can force early
-            // deserialization of LootTablePrototype instances. LootTablePrototype.PostProcess() needs
-            // GameDatabase.LootGlobalsPrototype to compute LootTablePrototypeEnumValue - if patches load first,
-            // that Verify fails (harmless fallback to DefaultTuningVarValue, but permanently caches a bad enum
-            // value on whatever got force-loaded, silently disabling LiveTuning overrides for it for the
-            // lifetime of the process). No existing patch file targets a Globals-family prototype, so moving
-            // this here is safe.
+#if GAME_VERSION_1_52
+            // Load regular patches
             PrototypePatchManager.Instance.Initialize(config.EnablePatchManager);
+#endif
 
             // GlobalsPrototype's own PrototypeRefPtr/VectorPrototypeRefPtr fields (AdvancementGlobals,
             // DifficultyGlobals, plus the VectorPrototypeRefPtr DifficultyTiers[], etc.) get eagerly dereferenced and
