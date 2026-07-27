@@ -105,7 +105,9 @@ namespace MHServerEmu.Games.GameData
 
 #if GAME_VERSION_1_52
             // Load patches that should apply to globals (limited RefPtr support)
-            PrototypePatchManager.Instance.PreInitialize(config.EnablePatchManager);
+	    // this is disabled by MonEll pending a patch check fix for race conditions.
+	    // ReapplyPatchesToEagerlyLoadedGlobals from LordUnborn is used.
+            //PrototypePatchManager.Instance.PreInitialize(config.EnablePatchManager);
 #endif
 
             // Load globals
