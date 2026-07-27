@@ -35,7 +35,7 @@ namespace MHServerEmu.Games.GameData.PatchManager
                     continue;
 
                 Type fieldType = fieldInfo.PropertyType;
-                object fieldValue = PatchEntryConverter.ParseJsonElement(jsonProperty.Value, fieldType);
+                object fieldValue = ParseFieldValue(jsonProperty.Value, fieldType);
 
                 Field field = new(fieldName, fieldValue, fieldType);
                 _fields.Add(field);
@@ -55,6 +55,7 @@ namespace MHServerEmu.Games.GameData.PatchManager
                 if (!Verify.IsNotNull(instance)) return null;
 
                 CalligraphySerializer.CopyPrototypeDataRefFields(instance, _parentRef);
+                instance.ParentDataRef = _parentRef;
 
                 foreach (Field field in _fields)
                 {
@@ -64,7 +65,8 @@ namespace MHServerEmu.Games.GameData.PatchManager
 
                     try
                     {
-                        object convertedValue = PrototypePatchManager.ConvertValue(field.Value, field.Type);
+                        object fieldValue = ResolveFieldValue(field.Value, field.Type);
+                        object convertedValue = PrototypePatchManager.ConvertValue(fieldValue, field.Type);
                         fieldInfo.SetValue(instance, convertedValue);
                     }
                     catch (Exception e)
@@ -77,6 +79,80 @@ namespace MHServerEmu.Games.GameData.PatchManager
             }
 
             return _instance;
+        }
+
+        private static object ParseFieldValue(JsonElement jsonElement, Type fieldType)
+        {
+            if (fieldType.IsArray && jsonElement.ValueKind == JsonValueKind.Array)
+            {
+                Type elementType = fieldType.GetElementType();
+                if (elementType == null)
+                    throw new InvalidOperationException($"Array field {fieldType.Name} has no element type.");
+
+                return ParseArray(jsonElement, elementType);
+            }
+
+            if (jsonElement.ValueKind == JsonValueKind.Object && IsPrototypeType(fieldType))
+                return new JsonPrototype(jsonElement);
+
+            return PatchEntryConverter.ParseJsonElement(jsonElement, fieldType);
+        }
+
+        private static object ParseArray(JsonElement jsonElement, Type elementType)
+        {
+            if (IsPrototypeType(elementType))
+            {
+                JsonPrototype[] prototypes = new JsonPrototype[jsonElement.GetArrayLength()];
+
+                int prototypeIndex = 0;
+                foreach (JsonElement element in jsonElement.EnumerateArray())
+                    prototypes[prototypeIndex++] = new(element);
+
+                return prototypes;
+            }
+
+            Array array = Array.CreateInstance(elementType, jsonElement.GetArrayLength());
+
+            int index = 0;
+            foreach (JsonElement element in jsonElement.EnumerateArray())
+            {
+                object value = PatchEntryConverter.ParseJsonElement(element, elementType);
+                value = PrototypePatchManager.ConvertValue(value, elementType);
+                array.SetValue(value, index++);
+            }
+
+            return array;
+        }
+
+        private static object ResolveFieldValue(object value, Type fieldType)
+        {
+            if (value is JsonPrototype prototype)
+                return prototype.GetValue();
+
+            if (value is JsonPrototype[] prototypes)
+            {
+                Type elementType = fieldType.GetElementType();
+                if (elementType == null)
+                    throw new InvalidOperationException($"Array field {fieldType.Name} has no element type.");
+
+                Array array = Array.CreateInstance(elementType, prototypes.Length);
+
+                for (int i = 0; i < prototypes.Length; i++)
+                {
+                    object elementValue = prototypes[i].GetValue();
+                    elementValue = PrototypePatchManager.ConvertValue(elementValue, elementType);
+                    array.SetValue(elementValue, i);
+                }
+
+                return array;
+            }
+
+            return value;
+        }
+
+        private static bool IsPrototypeType(Type type)
+        {
+            return type == typeof(Prototype) || type.IsSubclassOf(typeof(Prototype));
         }
 
         private readonly struct Field(string name, object value, Type type)

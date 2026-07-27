@@ -63,15 +63,9 @@ namespace MHServerEmu.Games.GameData
         public static PowerVisualsGlobalsPrototype PowerVisualsGlobalsPrototype { get => GlobalsPrototype?.PowerVisualsGlobals; }
         public static KeywordGlobalsPrototype KeywordGlobalsPrototype { get => GlobalsPrototype?.KeywordGlobals; }
         public static CurrencyGlobalsPrototype CurrencyGlobalsPrototype { get => GlobalsPrototype?.CurrencyGlobals; }
-#if GAME_VERSION_1_52 || GAME_VERSION_1_53
         public static GamepadGlobalsPrototype GamepadGlobalsPrototype { get => GlobalsPrototype?.GamepadGlobals; }
-#else
-        public static ControllerGlobalsPrototype ControllerGlobalsPrototype { get => GlobalsPrototype?.ControllerGlobals; }
-#endif
         public static DifficultyGlobalsPrototype DifficultyGlobalsPrototype { get => GlobalsPrototype?.DifficultyGlobals; }
-#if GAME_VERSION_1_52 || GAME_VERSION_1_53
         public static ConsoleGlobalsPrototype ConsoleGlobalsPrototype { get => GlobalsPrototype?.ConsoleGlobals; }
-#endif
         
         public static InteractionManager InteractionManager { get; private set; }
 
@@ -103,10 +97,8 @@ namespace MHServerEmu.Games.GameData
             PropertyInfoTable = new();
             PropertyInfoTable.Initialize();
 
-#if GAME_VERSION_1_52
-            // Load prototype patches
+            // Load prototype patches before globals so Globals can be patched without a separate PrePatchData phase.
             PrototypePatchManager.Instance.Initialize(config.EnablePatchManager);
-#endif
 
             // Load globals
             PrototypeId globalsProtoRef = GetPrototypeRefByName("Globals/Globals.defaults");
@@ -150,52 +142,6 @@ namespace MHServerEmu.Games.GameData
             stopwatch.Stop();
             Logger.Info($"Finished initializing game database in {stopwatch.ElapsedMilliseconds} ms");
             IsInitialized = true;
-        }
-		
-        /// <summary>
-        /// Re-applies any outstanding patches to prototypes that were already fully constructed as a
-        /// side effect of loading <see cref="GlobalsPrototype"/> earlier in the static constructor,
-        /// before <see cref="PrototypePatchManager"/> had any patches registered. Every PrototypeRefPtr
-        /// field directly on GlobalsPrototype (AdvancementGlobals, DifficultyGlobals, etc.), plus the
-        /// VectorPrototypeRefPtr DifficultyTiers[] array (also directly on GlobalsPrototype), all qualify.
-        /// </summary>
-        private static void ReapplyPatchesToEagerlyLoadedGlobals()
-        {
-            ReapplyPatch(GlobalsPrototype);
-            ReapplyPatch(AdvancementGlobalsPrototype);
-            ReapplyPatch(DebugGlobalsPrototype);
-            ReapplyPatch(UIGlobalsPrototype);
-            ReapplyPatch(MissionGlobalsPrototype);
-            ReapplyPatch(PopulationGlobalsPrototype);
-            ReapplyPatch(AIGlobalsPrototype);
-            ReapplyPatch(CombatGlobalsPrototype);
-            ReapplyPatch(TransitionGlobalsPrototype);
-            ReapplyPatch(LootGlobalsPrototype);
-            ReapplyPatch(AudioGlobalsPrototype);
-            ReapplyPatch(PowerVisualsGlobalsPrototype);
-            ReapplyPatch(KeywordGlobalsPrototype);
-            ReapplyPatch(CurrencyGlobalsPrototype);
-            ReapplyPatch(GamepadGlobalsPrototype);
-            ReapplyPatch(DifficultyGlobalsPrototype);
-            ReapplyPatch(ConsoleGlobalsPrototype);
-
-            if (GlobalsPrototype?.DifficultyTiers != null)
-            {
-                foreach (DifficultyTierPrototype tier in GlobalsPrototype.DifficultyTiers)
-                    ReapplyPatch(tier);
-            }
-        }
-
-        /// <summary>
-        /// Mirrors the PreCheck/PostOverride pair PrototypeClassManager runs during normal field
-        /// population, called directly against an already-constructed prototype instance. A no-op if
-        /// the prototype has no outstanding (unpatched) entries in PrototypePatchManager.
-        /// </summary>
-        private static void ReapplyPatch(Prototype prototype)
-        {
-            if (prototype == null) return;
-            if (PrototypePatchManager.Instance.PreCheck(prototype.DataRef))
-                PrototypePatchManager.Instance.PostOverride(prototype);
         }
 
         #region Data Access

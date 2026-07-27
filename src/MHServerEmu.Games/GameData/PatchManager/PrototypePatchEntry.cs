@@ -1,5 +1,7 @@
 ﻿using MHServerEmu.Core.Logging;
 using MHServerEmu.Core.VectorMath;
+using MHServerEmu.Games.GameData.Calligraphy;
+using MHServerEmu.Games.GameData.Prototypes;
 using MHServerEmu.Games.Properties;
 using System.Text.Json;
 using System.Text.Json.Serialization;

@@ -18,14 +18,14 @@ namespace MHServerEmu.Games.GameData.PatchManager
         public static PrototypePatchManager Instance { get; } = new();
 
         /// <summary>
-        /// Loads patches after Globals are loaded.
+        /// Loads prototype patches.
         /// </summary>
         public void Initialize(bool enablePatchManager)
         {
-            if (enablePatchManager) _initialized = LoadPatchDataFromDisk();
+            if (enablePatchManager) _initialized |= LoadPatchDataFromDisk("PatchData");
         }
-
-        private bool LoadPatchDataFromDisk()
+        
+        private bool LoadPatchDataFromDisk(string prefix)
         {
             string patchDirectory = Path.Combine(FileHelper.DataDirectory, "Game", "Patches");
             if (Directory.Exists(patchDirectory) == false)
@@ -34,8 +34,8 @@ namespace MHServerEmu.Games.GameData.PatchManager
             int count = 0;
             var options = new JsonSerializerOptions { Converters = { new PatchEntryConverter() } };
 
-            // Read all .json files that start with PatchData
-            foreach (string filePath in FileHelper.GetFilesWithPrefix(patchDirectory, "PatchData", "json"))
+            // Read all .json files that start with the specified prefix
+            foreach (string filePath in FileHelper.GetFilesWithPrefix(patchDirectory, prefix, "json"))
             {
                 string fileName = Path.GetFileName(filePath);
 
@@ -58,7 +58,11 @@ namespace MHServerEmu.Games.GameData.PatchManager
                 Logger.Trace($"Parsed patch data from {fileName}");
             }
 
-            return Logger.InfoReturn(true, $"Loaded {count} patches");
+            if (count == 0)
+                return false;
+
+            Logger.Info($"Loaded {count} {prefix} patches");
+            return true;
         }
 
         private void AddPatchValue(PrototypeId prototypeId, in PrototypePatchEntry value)
@@ -186,7 +190,7 @@ namespace MHServerEmu.Games.GameData.PatchManager
                 return rawValue;
             }
 
-            if (targetType.IsSubclassOf(typeof(Prototype)))
+            if (targetType == typeof(Prototype) || targetType.IsSubclassOf(typeof(Prototype)))
             {
                 PrototypeId? protoRef = null;
                 switch (rawValue)
@@ -284,7 +288,7 @@ namespace MHServerEmu.Games.GameData.PatchManager
             if (currentArray != null)
                 Array.Copy(currentArray, newArray, currentArray.Length);
 
-            AddElements(newArray, elementType, valueEntry, currentArray.Length);
+            AddElements(newArray, elementType, valueEntry, currentArray?.Length ?? 0);
 
             fieldInfo.SetValue(prototype, newArray);
         }
@@ -294,10 +298,8 @@ namespace MHServerEmu.Games.GameData.PatchManager
             int currentLength = currentArray?.Length ?? 0;
             int valuesCount = 1;
             if (valueEntry is Array array)
-            {
-                int length = array.Length;
-                if (length > 1) valuesCount = length;
-            }
+                valuesCount = array.Length;
+
             return currentLength + valuesCount;
         }
 
@@ -383,3 +385,4 @@ namespace MHServerEmu.Games.GameData.PatchManager
         }
     }
 }
+
