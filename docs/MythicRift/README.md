@@ -1,22 +1,10 @@
 # Mythic Rift Docs
 
-This folder contains the project-specific documentation for the custom **Mythic Rift** prototype being developed on top of `MHServerEmu`.
+This folder is intentionally small. The old pile of handoff, test, audit, and tuning files was consolidated into four living docs:
 
-Recommended reading order:
+- `Overview.md`: mode goals, current scope, player-facing names, progression, scaling, and known constraints.
+- `Code-Architecture.md`: where the implementation lives and which existing server hooks are used.
+- `Rewards.md`: how `CosmicRiftRewards.json` works and how to tune loot.
+- `Admin-Player-Guide.md`: player/admin commands, smoke tests, live-test checklist, and troubleshooting notes.
 
-1. `AI-Agent-Handoff.md`
-2. `High-Level.md`
-3. `Spec-V1.md`
-4. `Architecture.md`
-5. `Implementation-Status.md`
-6. `Player-Progression-Guide.md`
-7. `Admin-Test-Guide.md`
-8. `Player-Feedback-Triage.md`
-9. `TAHITI-Review-Bundle.md`
-
-These documents are meant to help reviewers, collaborators, and server leads quickly understand:
-
-- what the mode is
-- what constraints it follows
-- what already works
-- how it is intended to integrate with TAHITI
+When the docs and code disagree, trust current code first, then update these files.
