@@ -104,10 +104,8 @@ namespace MHServerEmu.Games.GameData
             PropertyInfoTable.Initialize();
 
 #if GAME_VERSION_1_52
-            // Load patches that should apply to globals (limited RefPtr support)
-	    // this is disabled by MonEll pending a patch check fix for race conditions.
-	    // ReapplyPatchesToEagerlyLoadedGlobals from LordUnborn is used.
-            //PrototypePatchManager.Instance.PreInitialize(config.EnablePatchManager);
+            // Load prototype patches
+            PrototypePatchManager.Instance.Initialize(config.EnablePatchManager);
 #endif
 
             // Load globals
@@ -115,23 +113,6 @@ namespace MHServerEmu.Games.GameData
             GlobalsPrototype = GetPrototype<GlobalsPrototype>(globalsProtoRef);
 
             // initializeKeywordPrototypes
-
-#if GAME_VERSION_1_52
-            // Load regular patches
-            PrototypePatchManager.Instance.Initialize(config.EnablePatchManager);
-#endif
-
-            // GlobalsPrototype's own PrototypeRefPtr/VectorPrototypeRefPtr fields (AdvancementGlobals,
-            // DifficultyGlobals, plus the VectorPrototypeRefPtr DifficultyTiers[], etc.) get eagerly dereferenced and
-            // fully constructed as a side effect of loading GlobalsPrototype ABOVE - before the patch
-            // manager's dictionary was even populated. Any patch targeting one of those already-built
-            // prototypes silently never applies (e.g. Difficulty/Tiers/Tier3Superheroic, the only tier
-            // natively occupying the global Cosmic slot in Globals.defaults' DifficultyTiers[] - patches
-            // to it were confirmed missing from the "Patch Prototype:" startup trace entirely, while
-            // Tier4Cosmic/Tier5Omega1, which aren't part of that native array and get constructed later,
-            // applied fine). Re-run the same PreCheck/PostOverride pair PrototypeClassManager normally
-            // calls during construction, directly against these already-built instances, to catch up.
-            ReapplyPatchesToEagerlyLoadedGlobals();
 
             // Preload all prototypes if needed
             if (config.LoadAllPrototypes)
