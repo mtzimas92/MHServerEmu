@@ -174,8 +174,25 @@ namespace MHServerEmu.Games.Entities
             destination.SetEntity(transition);
         }
 
+        public bool ConfigureDirectTarget(PrototypeId targetRef)
+        {
+            TransitionDestination destination = TransitionDestination.FromTargetRef(targetRef);
+            if (!Verify.IsNotNull(destination, $"ConfigureDirectTarget(): Failed to build destination for target {targetRef.GetNameFormatted()}"))
+                return false;
+
+            _destinationList.Clear();
+            _destinationList.Add(destination);
+            return true;
+        }
+
         public bool UseTransition(Player player)
         {
+            if (Game.MythicRiftManager.TryUseReturnPortal(player, this))
+                return true;
+
+            if (Game.MythicRiftManager.TryBlockUnsafeRiftTransition(player, this))
+                return true;
+
             switch (TransitionPrototype.Type)
             {
                 case RegionTransitionType.Transition:

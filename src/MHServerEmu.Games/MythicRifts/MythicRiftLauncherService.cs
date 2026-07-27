@@ -1,0 +1,1444 @@
+using Gazillion;
+using MHServerEmu.Core.Logging;
+using MHServerEmu.Core.Memory;
+using MHServerEmu.Games.Entities;
+using MHServerEmu.Games.Entities.Inventories;
+using MHServerEmu.Games.Entities.Items;
+using MHServerEmu.Games.GameData;
+using MHServerEmu.Games.GameData.Prototypes;
+using MHServerEmu.Games.Loot;
+using MHServerEmu.Games.Regions;
+using MHServerEmu.Games.Social.Parties;
+
+namespace MHServerEmu.Games.MythicRifts
+{
+    /// <summary>
+    /// Resolves future GRIFT launcher items into validated Mythic Rift entry requests.
+    /// This intentionally stops short of wiring itself into every item use path until the final
+    /// launcher item and patcher strategy are locked down.
+    /// </summary>
+    public sealed class MythicRiftLauncherService
+    {
+        private static readonly Logger Logger = LogManager.CreateLogger();
+
+        public const string CosmicRiftBeaconDisplayName = "Mythic Rift Beacon";
+        public const string PreferredCosmicRiftBeaconPrototypeName = "PortalToRandomMaxAffixDungeon";
+        public const string CosmicRiftBeaconPrototypeName = PreferredCosmicRiftBeaconPrototypeName;
+        public const string PresentationCosmicRiftBeaconPrototypeName = MythicRiftItemPresentation.PresentationPrototypeName;
+        public const string PresentationCosmicRiftBeaconPrototypePath = MythicRiftItemPresentation.PresentationPrototypePath;
+        public const string EndlessRiftBeaconPrototypeName = "PortalToDangerRoomRandomThemeNoAffixesPurple";
+        public const string EndlessRiftBeaconPrototypePath = "Entity/Items/Consumables/Prototypes/DangerRoom/PortalToDangerRoomRandomThemeNoAffixesPurple.prototype";
+        public const string PresentationEndlessRiftBeaconPrototypeName = MythicRiftItemPresentation.EndlessPresentationPrototypeName;
+        public const string PresentationEndlessRiftBeaconPrototypePath = MythicRiftItemPresentation.EndlessPresentationPrototypePath;
+        public const string BossGauntletRiftBeaconPrototypeName = "PortalToDangerRoomRandomThemeNoAffixesBlue";
+        public const string BossGauntletRiftBeaconPrototypePath = "Entity/Items/Consumables/Prototypes/DangerRoom/PortalToDangerRoomRandomThemeNoAffixesBlue.prototype";
+        public const string PresentationBossGauntletRiftBeaconPrototypeName = MythicRiftItemPresentation.BossGauntletPresentationPrototypeName;
+        public const string PresentationBossGauntletRiftBeaconPrototypePath = MythicRiftItemPresentation.BossGauntletPresentationPrototypePath;
+        public static readonly TimeSpan DefaultLauncherTimeLimit = TimeSpan.FromMinutes(10);
+        public static readonly TimeSpan BossGauntletLauncherTimeLimit = TimeSpan.FromDays(1);
+        private const int StandardOmegaDifficultyStartLevel = 70;
+        private const int ThirtyWaveOmegaDifficultyStartWave = 20;
+        private const int BossGauntletOmegaDifficultyStartWave = 50;
+        private const string BaseRiftDifficultyTierPrototypeName = "Difficulty/Tiers/Tier3Superheroic.prototype";
+        private const string HighRiftDifficultyTierPrototypeName = "Difficulty/Tiers/Tier4Cosmic.prototype";
+        private static PrototypeId _cachedBaseRiftDifficultyTierRef = PrototypeId.Invalid;
+        private static PrototypeId _cachedHighRiftDifficultyTierRef = PrototypeId.Invalid;
+        private static readonly string[] SupportedCosmicRiftBeaconPrototypeNames =
+        {
+            CosmicRiftBeaconPrototypeName,
+            PresentationCosmicRiftBeaconPrototypeName,
+            PresentationCosmicRiftBeaconPrototypePath,
+            EndlessRiftBeaconPrototypeName,
+            EndlessRiftBeaconPrototypePath,
+            PresentationEndlessRiftBeaconPrototypeName,
+            PresentationEndlessRiftBeaconPrototypePath,
+            BossGauntletRiftBeaconPrototypeName,
+            BossGauntletRiftBeaconPrototypePath,
+            PresentationBossGauntletRiftBeaconPrototypeName,
+            PresentationBossGauntletRiftBeaconPrototypePath
+        };
+        private readonly Dictionary<string, string> _candidateToEntryPointId = new(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<ulong, MythicRiftLauncherIntent> _pendingIntentsByPlayerDbId = new();
+        private readonly Dictionary<ulong, MythicRiftArmedLauncherState> _armedLaunchesByPlayerDbId = new();
+        private readonly Dictionary<ulong, MythicRiftLauncherUseResult> _lastArmedLaunchResultsByPlayerDbId = new();
+        private readonly Dictionary<ulong, Dictionary<ulong, int>> _trackedBeaconChargesByPlayerDbId = new();
+        private bool _chosenBeaconPrototypeResolved;
+        private PrototypeId _chosenBeaconPrototypeRef = PrototypeId.Invalid;
+        private bool _endlessBeaconPrototypeResolved;
+        private PrototypeId _endlessBeaconPrototypeRef = PrototypeId.Invalid;
+        private bool _bossGauntletBeaconPrototypeResolved;
+        private PrototypeId _bossGauntletBeaconPrototypeRef = PrototypeId.Invalid;
+        private bool _chosenBeaconOnUsePowerResolved;
+        private PrototypeId _chosenBeaconOnUsePowerRef = PrototypeId.Invalid;
+        private bool _supportedBeaconOnUsePowersResolved;
+        private readonly HashSet<PrototypeId> _supportedBeaconOnUsePowerRefs = new();
+
+        public Game Game { get; }
+        public MythicRiftEntryService EntryService => Game.MythicRiftEntryService;
+        public IReadOnlyCollection<MythicRiftLauncherIntent> PendingIntents => _pendingIntentsByPlayerDbId.Values;
+        public IReadOnlyCollection<MythicRiftArmedLauncherState> ArmedLaunches => _armedLaunchesByPlayerDbId.Values;
+
+        public MythicRiftLauncherService(Game game)
+        {
+            Game = game;
+            RegisterDefaultMappings();
+        }
+
+        public bool CanHandleItem(Item item)
+        {
+            if (item == null)
+                return false;
+
+            return TryResolveCandidateEntryPointId(item.PrototypeDataRef, out _);
+        }
+
+        public MythicRiftLauncherItemCandidate ResolveCandidate(Item item)
+        {
+            if (item == null)
+                return null;
+
+            return EntryService.LauncherItemCandidates.FirstOrDefault(candidate =>
+                PrototypeNameMatches(item.PrototypeDataRef, candidate.PrototypeName));
+        }
+
+        public MythicRiftLauncherItemCandidate ResolveChosenCandidate()
+        {
+            return EntryService.LauncherItemCandidates.FirstOrDefault(candidate =>
+                string.Equals(candidate.PrototypeName, CosmicRiftBeaconPrototypeName, StringComparison.OrdinalIgnoreCase));
+        }
+
+        public MythicRiftLauncherItemCandidate ResolveEndlessCandidate()
+        {
+            return EntryService.LauncherItemCandidates.FirstOrDefault(candidate =>
+                string.Equals(candidate.PrototypeName, EndlessRiftBeaconPrototypeName, StringComparison.OrdinalIgnoreCase));
+        }
+
+        public MythicRiftLauncherItemCandidate ResolveBossGauntletCandidate()
+        {
+            return EntryService.LauncherItemCandidates.FirstOrDefault(candidate =>
+                string.Equals(candidate.PrototypeName, BossGauntletRiftBeaconPrototypeName, StringComparison.OrdinalIgnoreCase));
+        }
+
+        public PrototypeId ResolveChosenBeaconPrototypeRef()
+        {
+            if (_chosenBeaconPrototypeResolved)
+                return _chosenBeaconPrototypeRef;
+
+            _chosenBeaconPrototypeRef = ResolvePrototypeRefByName(CosmicRiftBeaconPrototypeName);
+            _chosenBeaconPrototypeResolved = true;
+            return _chosenBeaconPrototypeRef;
+        }
+
+        public PrototypeId ResolveEndlessBeaconPrototypeRef()
+        {
+            if (_endlessBeaconPrototypeResolved)
+                return _endlessBeaconPrototypeRef;
+
+            _endlessBeaconPrototypeRef = ResolvePrototypeRefByName(EndlessRiftBeaconPrototypePath);
+            if (_endlessBeaconPrototypeRef == PrototypeId.Invalid)
+                _endlessBeaconPrototypeRef = ResolvePrototypeRefByName(EndlessRiftBeaconPrototypeName);
+
+            _endlessBeaconPrototypeResolved = true;
+            return _endlessBeaconPrototypeRef;
+        }
+
+        public PrototypeId ResolveBossGauntletBeaconPrototypeRef()
+        {
+            if (_bossGauntletBeaconPrototypeResolved)
+                return _bossGauntletBeaconPrototypeRef;
+
+            _bossGauntletBeaconPrototypeRef = ResolvePrototypeRefByName(BossGauntletRiftBeaconPrototypePath);
+            if (_bossGauntletBeaconPrototypeRef == PrototypeId.Invalid)
+                _bossGauntletBeaconPrototypeRef = ResolvePrototypeRefByName(BossGauntletRiftBeaconPrototypeName);
+
+            _bossGauntletBeaconPrototypeResolved = true;
+            return _bossGauntletBeaconPrototypeRef;
+        }
+
+        public PrototypeId ResolveChosenBeaconOnUsePowerRef()
+        {
+            if (_chosenBeaconOnUsePowerResolved)
+                return _chosenBeaconOnUsePowerRef;
+
+            PrototypeId itemProtoRef = ResolveChosenBeaconPrototypeRef();
+            ItemPrototype itemProto = itemProtoRef.As<ItemPrototype>();
+            _chosenBeaconOnUsePowerRef = itemProto?.GetOnUsePower() ?? PrototypeId.Invalid;
+            _chosenBeaconOnUsePowerResolved = true;
+            return _chosenBeaconOnUsePowerRef;
+        }
+
+        public PrototypeId ResolvePrototypeRefByName(string itemPrototypeName)
+        {
+            return ResolveItemPrototypeRef(itemPrototypeName);
+        }
+
+        public bool IsChosenBeaconPrototype(PrototypeId prototypeRef)
+        {
+            foreach (string prototypeName in SupportedCosmicRiftBeaconPrototypeNames)
+            {
+                if (PrototypeNameMatches(prototypeRef, prototypeName))
+                    return true;
+            }
+
+            return false;
+        }
+
+        public bool IsPreferredCosmicRiftBeaconPrototype(PrototypeId prototypeRef)
+        {
+            return PrototypeNameMatches(prototypeRef, CosmicRiftBeaconPrototypeName);
+        }
+
+        public MythicRiftMode ResolveModeForPrototype(PrototypeId prototypeRef)
+        {
+            return TryResolveCandidateEntryPointId(prototypeRef, out string entryPointId)
+                ? EntryService.GetEntryPoint(entryPointId)?.Mode ?? MythicRiftMode.Standard
+                : MythicRiftMode.Standard;
+        }
+
+        public MythicRiftMode ResolveModeForPrototype(string prototypeName)
+        {
+            return TryResolveCandidateMapping(prototypeName, out _, out string entryPointId)
+                ? EntryService.GetEntryPoint(entryPointId)?.Mode ?? MythicRiftMode.Standard
+                : MythicRiftMode.Standard;
+        }
+
+        public bool IsLauncherPrototypeForMode(PrototypeId prototypeRef, MythicRiftMode mode)
+        {
+            return CanHandlePrototype(prototypeRef) && ResolveModeForPrototype(prototypeRef) == mode;
+        }
+
+        private bool CanHandlePrototype(PrototypeId prototypeRef)
+        {
+            return TryResolveCandidateEntryPointId(prototypeRef, out _);
+        }
+
+        public bool IsChosenBeaconOnUsePower(PrototypeId powerProtoRef)
+        {
+            if (powerProtoRef == PrototypeId.Invalid)
+                return false;
+
+            ResolveSupportedBeaconOnUsePowers();
+            return _supportedBeaconOnUsePowerRefs.Contains(powerProtoRef);
+        }
+
+        private void ResolveSupportedBeaconOnUsePowers()
+        {
+            if (_supportedBeaconOnUsePowersResolved)
+                return;
+
+            foreach (string prototypeName in SupportedCosmicRiftBeaconPrototypeNames)
+            {
+                PrototypeId itemProtoRef = ResolvePrototypeRefByName(prototypeName);
+                ItemPrototype itemProto = itemProtoRef.As<ItemPrototype>();
+                PrototypeId onUsePowerProtoRef = itemProto?.GetOnUsePower() ?? PrototypeId.Invalid;
+                if (onUsePowerProtoRef != PrototypeId.Invalid)
+                    _supportedBeaconOnUsePowerRefs.Add(onUsePowerProtoRef);
+            }
+
+            _supportedBeaconOnUsePowersResolved = true;
+        }
+
+        public bool TryFindOwnedChosenBeaconItemGrantingPower(Player player, PrototypeId powerProtoRef, out Item item)
+        {
+            item = null;
+            if (player == null || IsChosenBeaconOnUsePower(powerProtoRef) == false)
+                return false;
+
+            foreach (Inventory inventory in new InventoryIterator(player, InventoryIterationFlags.PlayerGeneral | InventoryIterationFlags.PlayerGeneralExtra))
+            {
+                foreach (var entry in inventory)
+                {
+                    Item candidateItem = Game.EntityManager.GetEntity<Item>(entry.Id);
+                    if (candidateItem == null)
+                        continue;
+
+                    if (IsChosenBeaconPrototype(candidateItem.PrototypeDataRef) == false)
+                        continue;
+
+                    bool grantsRequestedPower = candidateItem.OnUsePower == powerProtoRef ||
+                        (candidateItem.GetPowerGranted(out PrototypeId grantedPowerProtoRef) && grantedPowerProtoRef == powerProtoRef);
+                    if (grantsRequestedPower == false)
+                        continue;
+
+                    item = candidateItem;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public MythicRiftLauncherIntent RegisterLauncherItemUse(Player player, Item item)
+        {
+            if (player == null || item == null)
+                return null;
+
+            string itemPrototypeName = item.PrototypeDataRef.GetNameFormatted();
+            if (string.IsNullOrWhiteSpace(itemPrototypeName) || TryResolveCandidateEntryPointId(item.PrototypeDataRef, out string entryPointId) == false)
+                return null;
+
+            MythicRiftLauncherIntent intent = new()
+            {
+                PlayerDbId = player.DatabaseUniqueId,
+                ItemPrototypeName = itemPrototypeName,
+                EntryPointId = entryPointId,
+                PortalTargetRegionProtoRef = item.ItemPrototype?.GetPortalTarget() ?? PrototypeId.Invalid,
+                CreatedAt = Game.CurrentTime
+            };
+
+            _pendingIntentsByPlayerDbId[player.DatabaseUniqueId] = intent;
+            return intent;
+        }
+
+        public MythicRiftLauncherIntent GetPendingIntent(ulong playerDbId)
+        {
+            if (playerDbId == 0)
+                return null;
+
+            return _pendingIntentsByPlayerDbId.TryGetValue(playerDbId, out MythicRiftLauncherIntent intent)
+                ? intent
+                : null;
+        }
+
+        public MythicRiftArmedLauncherState ArmChosenLauncher(Player player, int requestedRiftLevel, TimeSpan timeLimit, string fixedContentId = null)
+        {
+            if (player == null)
+                return null;
+
+            MythicRiftArmedLauncherState armedState = new()
+            {
+                PlayerDbId = player.DatabaseUniqueId,
+                ArmedAt = Game.CurrentTime,
+                RequestedRiftLevel = requestedRiftLevel,
+                TimeLimit = NormalizeTimeLimit(timeLimit),
+                FixedContentId = string.IsNullOrWhiteSpace(fixedContentId) ? null : fixedContentId
+            };
+
+            _armedLaunchesByPlayerDbId[player.DatabaseUniqueId] = armedState;
+            return armedState;
+        }
+
+        public bool DisarmChosenLauncher(ulong playerDbId)
+        {
+            if (playerDbId == 0)
+                return false;
+
+            return _armedLaunchesByPlayerDbId.Remove(playerDbId);
+        }
+
+        public MythicRiftArmedLauncherState GetArmedLauncherState(ulong playerDbId)
+        {
+            if (playerDbId == 0)
+                return null;
+
+            return _armedLaunchesByPlayerDbId.TryGetValue(playerDbId, out MythicRiftArmedLauncherState armedState)
+                ? armedState
+                : null;
+        }
+
+        public MythicRiftLauncherUseResult GetLastArmedLaunchResult(ulong playerDbId)
+        {
+            if (playerDbId == 0)
+                return null;
+
+            return _lastArmedLaunchResultsByPlayerDbId.TryGetValue(playerDbId, out MythicRiftLauncherUseResult result)
+                ? result
+                : null;
+        }
+
+        public int GetTrackedBeaconChargeCount(Player player, Item item)
+        {
+            if (player == null || item == null)
+                return 0;
+
+            if (_trackedBeaconChargesByPlayerDbId.TryGetValue(player.DatabaseUniqueId, out Dictionary<ulong, int> chargesByItemId) == false)
+                return 0;
+
+            return chargesByItemId.TryGetValue(item.Id, out int chargeCount)
+                ? Math.Max(chargeCount, 0)
+                : 0;
+        }
+
+        public int GetTotalTrackedBeaconCharges(ulong playerDbId)
+        {
+            if (playerDbId == 0)
+                return 0;
+
+            if (_trackedBeaconChargesByPlayerDbId.TryGetValue(playerDbId, out Dictionary<ulong, int> chargesByItemId) == false)
+                return 0;
+
+            return chargesByItemId.Values.Sum(value => Math.Max(value, 0));
+        }
+
+        public bool ForgetTrackedBeaconItem(ulong playerDbId, ulong itemEntityId)
+        {
+            if (playerDbId == 0 || itemEntityId == Entity.InvalidId)
+                return false;
+
+            if (_trackedBeaconChargesByPlayerDbId.TryGetValue(playerDbId, out Dictionary<ulong, int> chargesByItemId) == false)
+                return false;
+
+            bool removed = chargesByItemId.Remove(itemEntityId);
+            if (removed && chargesByItemId.Count == 0)
+                _trackedBeaconChargesByPlayerDbId.Remove(playerDbId);
+
+            return removed;
+        }
+
+        public bool TryRegisterTrackedBeaconItem(Player player, Item item)
+        {
+            if (player == null || item == null)
+                return false;
+
+            if (IsChosenBeaconPrototype(item.PrototypeDataRef) == false)
+                return false;
+
+            AddTrackedBeaconCharges(player.DatabaseUniqueId, item.Id, Math.Max(item.CurrentStackSize, 1));
+            return true;
+        }
+
+        public int TryRegisterOwnedPreferredBeaconItems(Player player)
+        {
+            if (player == null)
+                return 0;
+
+            int newlyTrackedCharges = 0;
+            InventoryIterationFlags flags = InventoryIterationFlags.PlayerGeneral
+                | InventoryIterationFlags.PlayerGeneralExtra
+                | InventoryIterationFlags.DeliveryBoxAndErrorRecovery;
+
+            foreach (Inventory inventory in new InventoryIterator(player, flags))
+            {
+                foreach (var entry in inventory)
+                {
+                    Item item = Game.EntityManager.GetEntity<Item>(entry.Id);
+                    if (item == null || IsChosenBeaconPrototype(item.PrototypeDataRef) == false)
+                        continue;
+
+                    int stackCount = Math.Max(item.CurrentStackSize, 1);
+                    int trackedCharges = GetTrackedBeaconChargeCount(player, item);
+                    int missingCharges = stackCount - trackedCharges;
+                    if (missingCharges <= 0)
+                        continue;
+
+                    AddTrackedBeaconCharges(player.DatabaseUniqueId, item.Id, missingCharges);
+                    newlyTrackedCharges += missingCharges;
+                }
+            }
+
+            return newlyTrackedCharges;
+        }
+
+        public MythicRiftLauncherUseResult ConsumePendingIntent(Player player, int riftLevel, TimeSpan timeLimit)
+        {
+            if (player == null)
+            {
+                return new MythicRiftLauncherUseResult
+                {
+                    ErrorMessage = "Player not found."
+                };
+            }
+
+            MythicRiftLauncherIntent intent = GetPendingIntent(player.DatabaseUniqueId);
+            if (intent == null)
+            {
+                return new MythicRiftLauncherUseResult
+                {
+                    ErrorMessage = "No pending Mythic Rift launcher intent for this player."
+                };
+            }
+
+            MythicRiftMode mode = ResolveModeForPrototype(intent.ItemPrototypeName);
+            riftLevel = NormalizeRiftLevel(player, riftLevel, mode);
+            timeLimit = NormalizeTimeLimit(timeLimit);
+
+            MythicRiftLauncherUseResult result = TryRequestRunFromPrototypeName(player, intent.ItemPrototypeName, riftLevel, timeLimit);
+            if (result.Success)
+                _pendingIntentsByPlayerDbId.Remove(player.DatabaseUniqueId);
+
+            return result;
+        }
+
+        public MythicRiftLauncherUseResult ConsumePendingIntentAuto(Player player, TimeSpan? timeLimit = null)
+        {
+            if (player == null)
+            {
+                return new MythicRiftLauncherUseResult
+                {
+                    ErrorMessage = "Player not found."
+                };
+            }
+
+            MythicRiftLauncherIntent intent = GetPendingIntent(player.DatabaseUniqueId);
+            MythicRiftMode mode = intent != null
+                ? ResolveModeForPrototype(intent.ItemPrototypeName)
+                : MythicRiftMode.Standard;
+            int riftLevel = NormalizeRiftLevel(player, 0, mode);
+            TimeSpan resolvedTimeLimit = NormalizeTimeLimit(timeLimit.GetValueOrDefault());
+            return ConsumePendingIntent(player, riftLevel, resolvedTimeLimit);
+        }
+
+        public MythicRiftLauncherUseResult TryRequestRunFromItem(Player player, Item item, int riftLevel, TimeSpan timeLimit)
+        {
+            if (player == null)
+            {
+                return new MythicRiftLauncherUseResult
+                {
+                    ErrorMessage = "Player not found."
+                };
+            }
+
+            if (item == null)
+            {
+                return new MythicRiftLauncherUseResult
+                {
+                    ErrorMessage = "Launcher item not found."
+                };
+            }
+
+            MythicRiftMode mode = ResolveModeForPrototype(item.PrototypeDataRef);
+            riftLevel = NormalizeRiftLevel(player, riftLevel, mode);
+            timeLimit = NormalizeTimeLimit(timeLimit);
+
+            string itemPrototypeName = item.PrototypeDataRef.GetName();
+            if (string.IsNullOrWhiteSpace(itemPrototypeName) || TryResolveCandidateEntryPointId(item.PrototypeDataRef, out string entryPointId) == false)
+            {
+                return new MythicRiftLauncherUseResult
+                {
+                    ItemPrototypeName = item.PrototypeDataRef.GetNameFormatted(),
+                    ErrorMessage = $"Item is not registered as a Mythic Rift launcher candidate: {item.PrototypeDataRef.GetNameFormatted() ?? "unknown"}"
+                };
+            }
+
+            MythicRiftLauncherItemCandidate candidate = ResolveCandidate(item);
+            itemPrototypeName = candidate?.PrototypeName ?? item.PrototypeDataRef.GetNameFormatted();
+            PrototypeId portalTargetRegionProtoRef = item.ItemPrototype?.GetPortalTarget() ?? PrototypeId.Invalid;
+
+            MythicRiftEntryResult entryResult = EntryService.RequestRun(player, new MythicRiftEntryRequest
+            {
+                EntryPointId = entryPointId,
+                LauncherItemPrototypeName = itemPrototypeName,
+                Mode = mode,
+                RiftLevel = riftLevel,
+                TimeLimit = timeLimit
+            });
+
+            return new MythicRiftLauncherUseResult
+            {
+                EntryResult = entryResult,
+                Candidate = candidate,
+                ItemPrototypeName = itemPrototypeName,
+                ItemEntityId = item.Id,
+                PortalTargetRegionProtoRef = portalTargetRegionProtoRef,
+                ResolvedRiftLevel = riftLevel,
+                ResolvedTimeLimit = timeLimit,
+                ErrorMessage = entryResult.Success ? string.Empty : entryResult.ErrorMessage
+            };
+        }
+
+        public MythicRiftLauncherUseResult TryHandleArmedLauncherUse(Player player, Item item)
+        {
+            if (player == null || item == null)
+                return null;
+
+            MythicRiftArmedLauncherState armedState = GetArmedLauncherState(player.DatabaseUniqueId);
+            if (armedState == null || armedState.IsValid == false)
+                return null;
+
+            if (CanHandleItem(item) == false)
+                return null;
+
+            MythicRiftMode mode = ResolveModeForPrototype(item.PrototypeDataRef);
+            int resolvedRiftLevel = NormalizeRiftLevel(player, armedState.RequestedRiftLevel, mode);
+            TimeSpan resolvedTimeLimit = NormalizeTimeLimit(armedState.TimeLimit);
+
+            MythicRiftLauncherUseResult result = string.IsNullOrWhiteSpace(armedState.FixedContentId)
+                ? TryRequestRunFromItem(player, item, resolvedRiftLevel, resolvedTimeLimit)
+                : TryRequestRunFromArmedFixedContent(player, item, armedState.FixedContentId, resolvedRiftLevel, resolvedTimeLimit);
+            if (result != null)
+            {
+                result.ConsumedArmedLaunchMode = true;
+                TryTeleportToRunEntry(player, result);
+                _lastArmedLaunchResultsByPlayerDbId[player.DatabaseUniqueId] = result;
+                NotifyLauncherUse(player, result);
+            }
+
+            if (IsCommittedLauncherUse(result))
+            {
+                ConsumeLauncherItemStack(item);
+                Game.MythicRiftManager.ConsumePreferredLaunchRiftLevel(player.DatabaseUniqueId, result.EntryResult?.RunState?.Config.Mode ?? mode);
+                _armedLaunchesByPlayerDbId.Remove(player.DatabaseUniqueId);
+            }
+
+            return result;
+        }
+
+        public MythicRiftLauncherUseResult TryHandleItemUse(Player player, Item item, out bool interceptedItemUse)
+        {
+            interceptedItemUse = false;
+
+            if (CanHandleItem(item) && CanUseLauncherFromCurrentRegion(player) == false)
+            {
+                MythicRiftLauncherUseResult rejectedResult = BuildRejectedLauncherUseResult(
+                    player,
+                    item,
+                    "Rift launchers can only be used from the Danger Room hub or from a completed Rift.");
+
+                interceptedItemUse = true;
+                if (player != null)
+                    _lastArmedLaunchResultsByPlayerDbId[player.DatabaseUniqueId] = rejectedResult;
+
+                NotifyLauncherUse(player, rejectedResult);
+                Logger.Info($"[MythicRiftLauncher] Rejected beacon use outside allowed Mythic Rift launch regions playerDbId=0x{player?.DatabaseUniqueId ?? 0UL:X} itemId={item?.Id ?? 0UL} prototype={item?.PrototypeDataRef.GetNameFormatted() ?? "unknown"} currentRegion={player?.GetRegion()?.PrototypeDataRef.GetNameFormatted() ?? "none"}");
+                return rejectedResult;
+            }
+
+            MythicRiftLauncherUseResult trackedBeaconResult = TryHandleTrackedBeaconUse(player, item);
+            if (trackedBeaconResult?.InterceptedItemUse == true)
+            {
+                interceptedItemUse = true;
+                return trackedBeaconResult;
+            }
+
+            MythicRiftLauncherUseResult armedLaunchResult = TryHandleArmedLauncherUse(player, item);
+            if (armedLaunchResult != null)
+            {
+                interceptedItemUse = true;
+                return armedLaunchResult;
+            }
+
+            return null;
+        }
+
+        private bool CanUseLauncherFromCurrentRegion(Player player)
+        {
+            Region region = player?.GetRegion();
+            if (region?.PrototypeDataRef == (PrototypeId)RegionPrototypeId.DangerRoomHubRegion)
+                return true;
+
+            return Game.MythicRiftManager.CanLaunchFromCompletedRiftRegion(player);
+        }
+
+        private MythicRiftLauncherUseResult BuildRejectedLauncherUseResult(Player player, Item item, string errorMessage)
+        {
+            MythicRiftLauncherItemCandidate candidate = item != null ? ResolveCandidate(item) : null;
+            MythicRiftMode mode = item != null
+                ? ResolveModeForPrototype(item.PrototypeDataRef)
+                : MythicRiftMode.Standard;
+            return new MythicRiftLauncherUseResult
+            {
+                Candidate = candidate,
+                ItemPrototypeName = candidate?.PrototypeName ?? item?.PrototypeDataRef.GetNameFormatted(),
+                ItemEntityId = item?.Id ?? 0UL,
+                PortalTargetRegionProtoRef = item?.ItemPrototype?.GetPortalTarget() ?? PrototypeId.Invalid,
+                ResolvedRiftLevel = player != null ? NormalizeRiftLevel(player, 0, mode) : 1,
+                ResolvedTimeLimit = DefaultLauncherTimeLimit,
+                InterceptedItemUse = true,
+                ErrorMessage = errorMessage
+            };
+        }
+
+        public MythicRiftLauncherUseResult TryHandlePowerActivation(Player player, PrototypeId powerProtoRef, out Item item, out bool interceptedItemUse)
+        {
+            item = null;
+            interceptedItemUse = false;
+
+            if (TryFindOwnedChosenBeaconItemGrantingPower(player, powerProtoRef, out item) == false)
+                return null;
+
+            return TryHandleItemUse(player, item, out interceptedItemUse);
+        }
+
+        public MythicRiftLauncherUseResult TryHandleTrackedBeaconUse(Player player, Item item)
+        {
+            if (player == null || item == null)
+                return null;
+
+            if (CanHandleItem(item) == false)
+                return null;
+
+            int availableCharges = GetTrackedBeaconChargeCount(player, item);
+            bool usingGenericTrackedChargeFallback = false;
+            bool usingDirectChosenBeaconFallback = false;
+            if (availableCharges <= 0)
+            {
+                // The direct fallback is scoped to the approved Rift launcher family. This keeps normal Danger Room
+                // scenario items on their native path while allowing patcher-added stock to work without session
+                // tracking state.
+                if (IsChosenBeaconPrototype(item.PrototypeDataRef) == false)
+                    return null;
+
+                availableCharges = GetTotalTrackedBeaconCharges(player.DatabaseUniqueId);
+                if (availableCharges > 0)
+                    usingGenericTrackedChargeFallback = true;
+                else
+                    usingDirectChosenBeaconFallback = true;
+            }
+
+            MythicRiftArmedLauncherState armedState = GetArmedLauncherState(player.DatabaseUniqueId);
+            MythicRiftMode mode = ResolveModeForPrototype(item.PrototypeDataRef);
+            int resolvedRiftLevel = NormalizeRiftLevel(player, armedState?.RequestedRiftLevel ?? 0, mode);
+            TimeSpan resolvedTimeLimit = NormalizeTimeLimit(armedState?.TimeLimit ?? DefaultLauncherTimeLimit);
+
+            MythicRiftLauncherUseResult result = string.IsNullOrWhiteSpace(armedState?.FixedContentId)
+                ? TryRequestRunFromItem(player, item, resolvedRiftLevel, resolvedTimeLimit)
+                : TryRequestRunFromArmedFixedContent(player, item, armedState.FixedContentId, resolvedRiftLevel, resolvedTimeLimit);
+
+            if (result == null)
+                return null;
+
+            result.InterceptedItemUse = true;
+            result.UsedTrackedBeaconInstance = usingDirectChosenBeaconFallback == false;
+            result.ConsumedArmedLaunchMode = armedState != null;
+
+            if (result.Success)
+                TryTeleportToRunEntry(player, result);
+
+            _lastArmedLaunchResultsByPlayerDbId[player.DatabaseUniqueId] = result;
+
+            if (IsCommittedLauncherUse(result))
+            {
+                ConsumeLauncherItemStack(item);
+                Game.MythicRiftManager.ConsumePreferredLaunchRiftLevel(player.DatabaseUniqueId, result.EntryResult?.RunState?.Config.Mode ?? mode);
+
+                if (usingGenericTrackedChargeFallback)
+                    ConsumeAnyTrackedBeaconCharge(player.DatabaseUniqueId);
+                else if (usingDirectChosenBeaconFallback == false)
+                    ConsumeTrackedBeaconCharge(player.DatabaseUniqueId, item.Id);
+
+                if (armedState != null)
+                    _armedLaunchesByPlayerDbId.Remove(player.DatabaseUniqueId);
+            }
+
+            Logger.Info($"[MythicRiftLauncher] Intercepted beacon use playerDbId=0x{player.DatabaseUniqueId:X} itemId={item.Id} prototype={item.PrototypeDataRef.GetNameFormatted()} trackedCharges={availableCharges} directChosenFallback={usingDirectChosenBeaconFallback} success={result.Success} teleportAttempted={result.TeleportAttempted} teleportSucceeded={result.TeleportSucceeded} teleportError={result.TeleportErrorMessage ?? string.Empty}");
+
+            NotifyLauncherUse(player, result);
+
+            return result;
+        }
+
+        private static void ConsumeLauncherItemStack(Item item)
+        {
+            if (item == null || item.CurrentStackSize <= 0)
+                return;
+
+            if (item.CurrentStackSize == 1)
+            {
+                item.Destroy();
+                return;
+            }
+
+            if (item.DecrementStack() == false)
+                Logger.Warn($"[MythicRiftLauncher] Failed to consume launcher item stack itemId={item.Id} prototype={item.PrototypeDataRef.GetNameFormatted()} stack={item.CurrentStackSize}");
+        }
+
+        private MythicRiftLauncherUseResult TryRequestRunFromArmedFixedContent(Player player, Item item, string contentId, int riftLevel, TimeSpan timeLimit)
+        {
+            if (player == null || item == null)
+            {
+                return new MythicRiftLauncherUseResult
+                {
+                    ErrorMessage = "Player or launcher item not found."
+                };
+            }
+
+            MythicRiftLauncherItemCandidate candidate = ResolveCandidate(item);
+            string itemPrototypeName = candidate?.PrototypeName ?? item.PrototypeDataRef.GetNameFormatted();
+            PrototypeId portalTargetRegionProtoRef = item.ItemPrototype?.GetPortalTarget() ?? PrototypeId.Invalid;
+
+            MythicRiftEntryResult entryResult = EntryService.RequestRun(player, new MythicRiftEntryRequest
+            {
+                EntryPointId = MythicRiftEntryService.DefaultEntryPointId,
+                LauncherItemPrototypeName = itemPrototypeName,
+                Mode = ResolveModeForPrototype(item.PrototypeDataRef),
+                RiftLevel = riftLevel,
+                ContentId = contentId,
+                TimeLimit = timeLimit
+            });
+
+            return new MythicRiftLauncherUseResult
+            {
+                EntryResult = entryResult,
+                Candidate = candidate,
+                ItemPrototypeName = itemPrototypeName,
+                ItemEntityId = item.Id,
+                PortalTargetRegionProtoRef = portalTargetRegionProtoRef,
+                ResolvedRiftLevel = riftLevel,
+                ResolvedTimeLimit = timeLimit,
+                ErrorMessage = entryResult.Success ? string.Empty : entryResult.ErrorMessage
+            };
+        }
+
+        private void TryTeleportToRunEntry(Player player, MythicRiftLauncherUseResult result)
+        {
+            if (player == null || result?.Success != true)
+                return;
+
+            MythicRiftRunState runState = result.EntryResult?.RunState;
+            PrototypeId startTargetRef = ResolveRunStartTarget(result.EntryResult.RunState);
+            result.TeleportTargetProtoRef = startTargetRef;
+            result.TeleportAttempted = true;
+
+            if (TryResolveRunTeleportDestination(runState, out PrototypeId regionProtoRef, out PrototypeId areaProtoRef, out PrototypeId cellProtoRef, out PrototypeId entityProtoRef) == false)
+            {
+                result.TeleportErrorMessage = "No valid region start target was found for the selected Rift content.";
+                AbortUnboundLaunchRun(runState, result.TeleportErrorMessage);
+                return;
+            }
+
+            PrototypeId difficultyTierRef = GetRiftDifficultyTierRef(runState);
+            if (TryTeleportPlayerToRunEntry(player, regionProtoRef, areaProtoRef, cellProtoRef, entityProtoRef, difficultyTierRef, usePartyTeleportContext: player.GetParty() != null, out string leaderTeleportError) == false)
+            {
+                result.TeleportSucceeded = false;
+                result.TeleportErrorMessage = string.IsNullOrWhiteSpace(leaderTeleportError)
+                    ? $"Teleport to Rift start target failed: {startTargetRef.GetNameFormatted()}"
+                    : leaderTeleportError;
+                AbortUnboundLaunchRun(runState, result.TeleportErrorMessage);
+                return;
+            }
+
+            result.TeleportSucceeded = true;
+            runState?.MarkParticipantAdmitted(player.DatabaseUniqueId);
+            TeleportPartyMembersToRunEntry(player, runState, regionProtoRef, areaProtoRef, cellProtoRef, entityProtoRef, difficultyTierRef);
+            runState?.FinalizeAdmission();
+        }
+
+        private static PrototypeId ResolveRunStartTarget(MythicRiftRunState runState)
+        {
+            return runState?.Config.StartTargetProtoRef ?? PrototypeId.Invalid;
+        }
+
+        private static bool TryResolveRunTeleportDestination(MythicRiftRunState runState, out PrototypeId regionProtoRef, out PrototypeId areaProtoRef, out PrototypeId cellProtoRef, out PrototypeId entityProtoRef)
+        {
+            regionProtoRef = runState?.Config?.RegionProtoRef ?? PrototypeId.Invalid;
+            areaProtoRef = PrototypeId.Invalid;
+            cellProtoRef = PrototypeId.Invalid;
+            entityProtoRef = PrototypeId.Invalid;
+
+            if (regionProtoRef == PrototypeId.Invalid)
+                return false;
+
+            PrototypeId startTargetRef = ResolveRunStartTarget(runState);
+            RegionConnectionTargetPrototype startTargetProto = startTargetRef.As<RegionConnectionTargetPrototype>();
+            if (startTargetProto == null)
+                return false;
+
+            areaProtoRef = startTargetProto.Area;
+            cellProtoRef = GameDatabase.GetDataRefByAsset(startTargetProto.Cell);
+            entityProtoRef = startTargetProto.Entity;
+            return true;
+        }
+
+        private bool TryTeleportPlayerToRunEntry(Player player, PrototypeId regionProtoRef, PrototypeId areaProtoRef, PrototypeId cellProtoRef, PrototypeId entityProtoRef, PrototypeId difficultyTierRef, bool usePartyTeleportContext, out string errorMessage)
+        {
+            errorMessage = string.Empty;
+
+            if (player == null)
+            {
+                errorMessage = "Player not found for Rift teleport.";
+                return false;
+            }
+
+            using Teleporter teleporter = ObjectPoolManager.Instance.Get<Teleporter>();
+            teleporter.Initialize(
+                player,
+                usePartyTeleportContext ? TeleportContextEnum.TeleportContext_Party : TeleportContextEnum.TeleportContext_Debug);
+            teleporter.BypassQueueRegionForRift = true;
+            teleporter.DifficultyTierRef = difficultyTierRef;
+
+            bool teleportSucceeded = teleporter.TeleportToTarget(regionProtoRef, areaProtoRef, cellProtoRef, entityProtoRef);
+            if (teleportSucceeded)
+                return true;
+
+            errorMessage = $"Teleport to Rift region failed: {regionProtoRef.GetNameFormatted()}";
+            return false;
+        }
+
+        private static PrototypeId GetRiftDifficultyTierRef(MythicRiftRunState runState)
+        {
+            bool useHighTier = runState?.Config?.Mode switch
+            {
+                MythicRiftMode.Endless => runState.Config.WaveNumber >= ThirtyWaveOmegaDifficultyStartWave,
+                MythicRiftMode.BossGauntlet => runState.Config.WaveNumber >= BossGauntletOmegaDifficultyStartWave,
+                _ => (runState?.Config?.RiftLevel ?? 1) >= StandardOmegaDifficultyStartLevel
+            };
+
+            return useHighTier
+                ? ResolveRiftDifficultyTier(ref _cachedHighRiftDifficultyTierRef, HighRiftDifficultyTierPrototypeName, DifficultyTier.Cosmic)
+                : ResolveRiftDifficultyTier(ref _cachedBaseRiftDifficultyTierRef, BaseRiftDifficultyTierPrototypeName, DifficultyTier.Red);
+        }
+
+        private static PrototypeId ResolveRiftDifficultyTier(ref PrototypeId cachedDifficultyTierRef, string difficultyTierPrototypeName, DifficultyTier fallbackTier)
+        {
+            if (cachedDifficultyTierRef != PrototypeId.Invalid)
+                return cachedDifficultyTierRef;
+
+            PrototypeId difficultyTierRef = GameDatabase.GetPrototypeRefByName(difficultyTierPrototypeName);
+            if (difficultyTierRef.As<DifficultyTierPrototype>() != null)
+            {
+                cachedDifficultyTierRef = difficultyTierRef;
+                return cachedDifficultyTierRef;
+            }
+
+            DifficultyTierPrototype fallbackTierProto = GameDatabase.GlobalsPrototype?.GetDifficultyTierByEnum(fallbackTier);
+            cachedDifficultyTierRef = fallbackTierProto?.DataRef ?? GameDatabase.GlobalsPrototype?.DifficultyTierDefault ?? PrototypeId.Invalid;
+            return cachedDifficultyTierRef;
+        }
+
+        private void TeleportPartyMembersToRunEntry(Player leader, MythicRiftRunState runState, PrototypeId regionProtoRef, PrototypeId areaProtoRef, PrototypeId cellProtoRef, PrototypeId entityProtoRef, PrototypeId difficultyTierRef)
+        {
+            if (leader == null || runState?.Config == null)
+                return;
+
+            foreach (ulong memberDbId in runState.ParticipantPlayerDbIds)
+            {
+                if (memberDbId == 0 || memberDbId == leader.DatabaseUniqueId)
+                    continue;
+
+                Player member = Game.EntityManager.GetEntityByDbGuid<Player>(memberDbId);
+                if (member == null)
+                {
+                    runState.RemoveParticipantBeforeAdmission(memberDbId);
+                    continue;
+                }
+
+                if (TryTeleportPlayerToRunEntry(member, regionProtoRef, areaProtoRef, cellProtoRef, entityProtoRef, difficultyTierRef, usePartyTeleportContext: true, out string errorMessage))
+                {
+                    runState.MarkParticipantAdmitted(memberDbId);
+                    continue;
+                }
+
+                runState.RemoveParticipantBeforeAdmission(memberDbId);
+                Game.ChatManager.SendChatFromCustomSystem(
+                    member,
+                    $"[Mythic Rift] You were not admitted to run {runState.Config.RunId} because the Rift teleport failed.",
+                    showSender: false);
+                Logger.Warn($"[MythicRiftLauncher] Failed to teleport party member playerDbId=0x{memberDbId:X} into run {runState.Config.RunId}: {errorMessage}");
+            }
+        }
+
+        private static bool IsCommittedLauncherUse(MythicRiftLauncherUseResult result)
+        {
+            return result?.Success == true && string.IsNullOrWhiteSpace(result.TeleportErrorMessage);
+        }
+
+        private void NotifyLauncherUse(Player player, MythicRiftLauncherUseResult result)
+        {
+            if (player == null || result == null)
+                return;
+
+            if (result.Success == false)
+            {
+                string failureMessage = string.IsNullOrWhiteSpace(result.ErrorMessage)
+                    ? "[Mythic Rift] Beacon use failed."
+                    : $"[Mythic Rift] Beacon use failed: {result.ErrorMessage}";
+                Game.ChatManager.SendChatFromCustomSystem(player, failureMessage, showSender: false);
+                return;
+            }
+
+            MythicRiftRunConfig config = result.EntryResult?.RunState?.Config;
+            if (config == null)
+            {
+                Game.ChatManager.SendChatFromCustomSystem(player, "[Mythic Rift] Beacon accepted, but no run details were resolved.", showSender: false);
+                return;
+            }
+
+            string bossName = ResolveBossDisplayName(config);
+            string launcherName = config.Mode switch
+            {
+                MythicRiftMode.Endless => MythicRiftItemPresentation.EndlessPresentationDisplayName,
+                MythicRiftMode.BossGauntlet => MythicRiftItemPresentation.BossGauntletPresentationDisplayName,
+                _ => MythicRiftItemPresentation.StandardPresentationDisplayName
+            };
+            string waveText = config.Mode switch
+            {
+                MythicRiftMode.Endless => $" Wave {config.WaveNumber}/30 with {config.RequiredBossKillCount} final boss(es).",
+                MythicRiftMode.BossGauntlet => $" Wave {config.WaveNumber} with {config.RequiredBossKillCount} sequential boss(es). Rewards drop when the gauntlet ends.",
+                _ => string.Empty
+            };
+            string timeText = config.Mode == MythicRiftMode.BossGauntlet
+                ? "No timer."
+                : $"Time limit: {FormatDuration(config.TimeLimit)}.";
+            string message = result.TeleportSucceeded
+                ? $"[Mythic Rift] {launcherName} activated. Opening {config.Content.DisplayName}. Rift level {config.RiftLevel}.{waveText} {timeText} Final boss: {bossName}."
+                : $"[Mythic Rift] {launcherName} activated, but the teleport did not complete. Please try again with a new Scenario.";
+            Game.ChatManager.SendChatFromCustomSystem(player, message, showSender: false);
+        }
+
+        private static string ResolveBossDisplayName(MythicRiftRunConfig config)
+        {
+            if (config?.BossContent?.DisplayName == null)
+                return config?.BossProtoRef.GetNameFormatted() ?? "Unknown Boss";
+
+            string bossName = config.BossContent.DisplayName;
+            const string terminalSuffix = " Terminal";
+            if (bossName.EndsWith(terminalSuffix, StringComparison.OrdinalIgnoreCase))
+                return bossName[..^terminalSuffix.Length];
+
+            return bossName;
+        }
+
+        private static string FormatDuration(TimeSpan duration)
+        {
+            if (duration < TimeSpan.Zero)
+                duration = TimeSpan.Zero;
+
+            int totalSeconds = (int)Math.Ceiling(duration.TotalSeconds);
+            int minutes = totalSeconds / 60;
+            int seconds = totalSeconds % 60;
+
+            if (minutes > 0 && seconds > 0)
+                return $"{minutes} min {seconds} sec";
+
+            if (minutes > 0)
+                return $"{minutes} min";
+
+            return $"{seconds} sec";
+        }
+
+        private void AbortUnboundLaunchRun(MythicRiftRunState runState, string reason)
+        {
+            if (runState == null || runState.RegionId != 0)
+                return;
+
+            string abortReason = string.IsNullOrWhiteSpace(reason)
+                ? "Rift launch failed before entering the selected terminal."
+                : $"Rift launch failed before entering the selected terminal: {reason}";
+
+            Game.MythicRiftManager.AbortRunWithReason(runState.Config.RunId, Game.CurrentTime, abortReason);
+        }
+
+        public MythicRiftLauncherUseResult TryRequestRunFromPrototypeName(Player player, string itemPrototypeName, int riftLevel, TimeSpan timeLimit)
+        {
+            if (player == null)
+            {
+                return new MythicRiftLauncherUseResult
+                {
+                    ErrorMessage = "Player not found."
+                };
+            }
+
+            if (string.IsNullOrWhiteSpace(itemPrototypeName))
+            {
+                return new MythicRiftLauncherUseResult
+                {
+                    ErrorMessage = "Launcher item prototype name not found."
+                };
+            }
+
+            if (TryResolveCandidateMapping(itemPrototypeName, out string resolvedCandidatePrototypeName, out string entryPointId) == false)
+            {
+                return new MythicRiftLauncherUseResult
+                {
+                    ItemPrototypeName = itemPrototypeName,
+                    ErrorMessage = $"Item is not registered as a Mythic Rift launcher candidate: {itemPrototypeName}"
+                };
+            }
+
+            MythicRiftMode mode = ResolveModeForPrototype(resolvedCandidatePrototypeName);
+            riftLevel = NormalizeRiftLevel(player, riftLevel, mode);
+            timeLimit = NormalizeTimeLimit(timeLimit);
+
+            PrototypeId itemProtoRef = ResolveItemPrototypeRef(resolvedCandidatePrototypeName);
+            ItemPrototype itemProto = itemProtoRef.As<ItemPrototype>();
+
+            if (itemProto == null)
+            {
+                return new MythicRiftLauncherUseResult
+                {
+                    ItemPrototypeName = resolvedCandidatePrototypeName,
+                    ErrorMessage = $"Item prototype not found in game data: {resolvedCandidatePrototypeName}"
+                };
+            }
+
+            MythicRiftLauncherItemCandidate candidate = EntryService.LauncherItemCandidates.FirstOrDefault(entry =>
+                string.Equals(entry.PrototypeName, resolvedCandidatePrototypeName, StringComparison.OrdinalIgnoreCase));
+
+            MythicRiftEntryResult entryResult = EntryService.RequestRun(player, new MythicRiftEntryRequest
+            {
+                EntryPointId = entryPointId,
+                LauncherItemPrototypeName = resolvedCandidatePrototypeName,
+                Mode = mode,
+                RiftLevel = riftLevel,
+                TimeLimit = timeLimit
+            });
+
+            return new MythicRiftLauncherUseResult
+            {
+                EntryResult = entryResult,
+                Candidate = candidate,
+                ItemPrototypeName = resolvedCandidatePrototypeName,
+                PortalTargetRegionProtoRef = itemProto.GetPortalTarget(),
+                ResolvedRiftLevel = riftLevel,
+                ResolvedTimeLimit = timeLimit,
+                ErrorMessage = entryResult.Success ? string.Empty : entryResult.ErrorMessage
+            };
+        }
+
+        public bool TryGrantChosenLauncher(Player player, int count, out PrototypeId itemProtoRef, out string errorMessage)
+        {
+            return TryGrantLauncher(
+                player,
+                count,
+                ResolveChosenBeaconPrototypeRef(),
+                CosmicRiftBeaconDisplayName,
+                CosmicRiftBeaconPrototypeName,
+                MythicRiftMode.Standard,
+                out itemProtoRef,
+                out errorMessage);
+        }
+
+        public bool TryGrantEndlessLauncher(Player player, int count, out PrototypeId itemProtoRef, out string errorMessage)
+        {
+            return TryGrantLauncher(
+                player,
+                count,
+                ResolveEndlessBeaconPrototypeRef(),
+                MythicRiftItemPresentation.EndlessPresentationDisplayName,
+                EndlessRiftBeaconPrototypeName,
+                MythicRiftMode.Endless,
+                out itemProtoRef,
+                out errorMessage);
+        }
+
+        public bool TryGrantBossGauntletLauncher(Player player, int count, out PrototypeId itemProtoRef, out string errorMessage)
+        {
+            return TryGrantLauncher(
+                player,
+                count,
+                ResolveBossGauntletBeaconPrototypeRef(),
+                MythicRiftItemPresentation.BossGauntletPresentationDisplayName,
+                BossGauntletRiftBeaconPrototypeName,
+                MythicRiftMode.BossGauntlet,
+                out itemProtoRef,
+                out errorMessage);
+        }
+
+        private bool TryGrantLauncher(
+            Player player,
+            int count,
+            PrototypeId resolvedItemProtoRef,
+            string displayName,
+            string prototypeName,
+            MythicRiftMode mode,
+            out PrototypeId itemProtoRef,
+            out string errorMessage)
+        {
+            itemProtoRef = PrototypeId.Invalid;
+            errorMessage = string.Empty;
+
+            if (player == null)
+            {
+                errorMessage = "Player not found.";
+                return false;
+            }
+
+            if (count <= 0)
+            {
+                errorMessage = "Invalid beacon count.";
+                return false;
+            }
+
+            itemProtoRef = resolvedItemProtoRef;
+            if (itemProtoRef == PrototypeId.Invalid)
+            {
+                errorMessage = $"Chosen launcher prototype not found in game data: {prototypeName}";
+                return false;
+            }
+
+            for (int i = 0; i < count; i++)
+            {
+                Dictionary<ulong, int> beforeSnapshot = SnapshotChosenLauncherStacks(player);
+                if (GivePresentedLauncherItem(player, itemProtoRef, mode) == false)
+                {
+                    errorMessage = $"Failed to grant {displayName} to the player.";
+                    return false;
+                }
+
+                Dictionary<ulong, int> afterSnapshot = SnapshotChosenLauncherStacks(player);
+                RegisterTrackedBeaconGrantDelta(player.DatabaseUniqueId, beforeSnapshot, afterSnapshot);
+            }
+
+            return true;
+        }
+
+        private bool GivePresentedLauncherItem(Player player, PrototypeId technicalItemProtoRef, MythicRiftMode mode)
+        {
+            if (player == null || technicalItemProtoRef == PrototypeId.Invalid)
+                return false;
+
+            ItemSpec technicalSpec = Game.LootManager.CreateItemSpec(technicalItemProtoRef, LootContext.CashShop, player);
+            if (technicalSpec == null)
+                return false;
+
+            ItemSpec presentedSpec = MythicRiftItemPresentation.ApplyLauncherPresentation(technicalSpec, mode);
+            if (presentedSpec == null)
+                return false;
+
+            using LootResultSummary lootResultSummary = ObjectPoolManager.Instance.Get<LootResultSummary>();
+            lootResultSummary.Add(new LootResult(presentedSpec));
+
+            if (Game.LootManager.GiveLootFromSummary(lootResultSummary, player, PrototypeId.Invalid) == false)
+                return false;
+
+            Prototype itemProto = presentedSpec.ItemProtoRef.As<ItemPrototype>();
+            Prototype rarityProto = presentedSpec.RarityProtoRef.As<RarityPrototype>();
+            if (itemProto != null && rarityProto != null)
+                player.OnScoringEvent(new(Events.ScoringEventType.ItemCollected, itemProto, rarityProto, 1));
+
+            return true;
+        }
+
+        private int NormalizeRiftLevel(Player player, int requestedRiftLevel, MythicRiftMode mode)
+        {
+            if (requestedRiftLevel > 0)
+                return requestedRiftLevel;
+
+            if (player == null)
+                return 1;
+
+            return Math.Max(Game.MythicRiftManager.GetPreferredLaunchRiftLevel(player.DatabaseUniqueId, mode), 1);
+        }
+
+        private static TimeSpan NormalizeTimeLimit(TimeSpan timeLimit)
+        {
+            return timeLimit <= TimeSpan.Zero
+                ? DefaultLauncherTimeLimit
+                : timeLimit;
+        }
+
+        private static PrototypeId ResolveItemPrototypeRef(string itemPrototypeName)
+        {
+            if (string.IsNullOrWhiteSpace(itemPrototypeName))
+                return PrototypeId.Invalid;
+
+            PrototypeId directProtoRef = GameDatabase.GetPrototypeRefByName(itemPrototypeName);
+            if (directProtoRef.As<ItemPrototype>() != null)
+                return directProtoRef;
+
+            foreach (PrototypeId candidateProtoRef in GameDatabase.DataDirectory.IteratePrototypesInHierarchy<ItemPrototype>())
+            {
+                ItemPrototype candidateProto = candidateProtoRef.As<ItemPrototype>();
+                if (candidateProto == null)
+                    continue;
+
+                if (PrototypeNameMatches(candidateProto.DataRef, itemPrototypeName))
+                    return candidateProto.DataRef;
+            }
+
+            return PrototypeId.Invalid;
+        }
+
+        private bool TryResolveCandidateEntryPointId(PrototypeId prototypeRef, out string entryPointId)
+        {
+            entryPointId = null;
+            if (prototypeRef == PrototypeId.Invalid)
+                return false;
+
+            foreach ((string candidatePrototypeName, string candidateEntryPointId) in _candidateToEntryPointId)
+            {
+                if (PrototypeNameMatches(prototypeRef, candidatePrototypeName) == false)
+                    continue;
+
+                entryPointId = candidateEntryPointId;
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool TryResolveCandidateMapping(string itemPrototypeName, out string resolvedCandidatePrototypeName, out string entryPointId)
+        {
+            resolvedCandidatePrototypeName = null;
+            entryPointId = null;
+
+            if (string.IsNullOrWhiteSpace(itemPrototypeName))
+                return false;
+
+            if (_candidateToEntryPointId.TryGetValue(itemPrototypeName, out entryPointId))
+            {
+                resolvedCandidatePrototypeName = itemPrototypeName;
+                return true;
+            }
+
+            PrototypeId prototypeRef = ResolveItemPrototypeRef(itemPrototypeName);
+            if (prototypeRef == PrototypeId.Invalid)
+                return false;
+
+            foreach ((string candidatePrototypeName, string candidateEntryPointId) in _candidateToEntryPointId)
+            {
+                if (PrototypeNameMatches(prototypeRef, candidatePrototypeName) == false)
+                    continue;
+
+                resolvedCandidatePrototypeName = candidatePrototypeName;
+                entryPointId = candidateEntryPointId;
+                return true;
+            }
+
+            return false;
+        }
+
+        private static bool PrototypeNameMatches(PrototypeId prototypeRef, string expectedName)
+        {
+            if (prototypeRef == PrototypeId.Invalid || string.IsNullOrWhiteSpace(expectedName))
+                return false;
+
+            string rawName = prototypeRef.GetName();
+            if (PrototypeNameMatches(rawName, expectedName))
+                return true;
+
+            string formattedName = prototypeRef.GetNameFormatted();
+            return PrototypeNameMatches(formattedName, expectedName);
+        }
+
+        private static bool PrototypeNameMatches(string actualName, string expectedName)
+        {
+            if (string.IsNullOrWhiteSpace(actualName) || string.IsNullOrWhiteSpace(expectedName))
+                return false;
+
+            if (string.Equals(actualName, expectedName, StringComparison.OrdinalIgnoreCase))
+                return true;
+
+            string actualNormalized = NormalizePrototypeName(actualName);
+            string expectedNormalized = NormalizePrototypeName(expectedName);
+            if (string.Equals(actualNormalized, expectedNormalized, StringComparison.OrdinalIgnoreCase))
+                return true;
+
+            return string.Equals(
+                GetPrototypeShortName(actualNormalized),
+                GetPrototypeShortName(expectedNormalized),
+                StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static string NormalizePrototypeName(string prototypeName)
+        {
+            string normalized = prototypeName.Replace('\\', '/').Trim();
+            const string prototypeSuffix = ".prototype";
+            if (normalized.EndsWith(prototypeSuffix, StringComparison.OrdinalIgnoreCase))
+                normalized = normalized[..^prototypeSuffix.Length];
+
+            return normalized;
+        }
+
+        private static string GetPrototypeShortName(string prototypeName)
+        {
+            int separatorIndex = prototypeName.LastIndexOf('/');
+            return separatorIndex >= 0 && separatorIndex + 1 < prototypeName.Length
+                ? prototypeName[(separatorIndex + 1)..]
+                : prototypeName;
+        }
+
+        private void RegisterDefaultMappings()
+        {
+            RegisterCandidateMapping(CosmicRiftBeaconPrototypeName, MythicRiftEntryService.ConsumablePortalEntryPointId);
+            RegisterCandidateMapping(PresentationCosmicRiftBeaconPrototypeName, MythicRiftEntryService.ConsumablePortalEntryPointId);
+            RegisterCandidateMapping(PresentationCosmicRiftBeaconPrototypePath, MythicRiftEntryService.ConsumablePortalEntryPointId);
+            RegisterCandidateMapping(EndlessRiftBeaconPrototypeName, MythicRiftEntryService.EndlessConsumablePortalEntryPointId);
+            RegisterCandidateMapping(EndlessRiftBeaconPrototypePath, MythicRiftEntryService.EndlessConsumablePortalEntryPointId);
+            RegisterCandidateMapping(PresentationEndlessRiftBeaconPrototypeName, MythicRiftEntryService.EndlessConsumablePortalEntryPointId);
+            RegisterCandidateMapping(PresentationEndlessRiftBeaconPrototypePath, MythicRiftEntryService.EndlessConsumablePortalEntryPointId);
+            RegisterCandidateMapping(BossGauntletRiftBeaconPrototypeName, MythicRiftEntryService.BossGauntletConsumablePortalEntryPointId);
+            RegisterCandidateMapping(BossGauntletRiftBeaconPrototypePath, MythicRiftEntryService.BossGauntletConsumablePortalEntryPointId);
+            RegisterCandidateMapping(PresentationBossGauntletRiftBeaconPrototypeName, MythicRiftEntryService.BossGauntletConsumablePortalEntryPointId);
+            RegisterCandidateMapping(PresentationBossGauntletRiftBeaconPrototypePath, MythicRiftEntryService.BossGauntletConsumablePortalEntryPointId);
+        }
+
+        private void RegisterCandidateMapping(string prototypeName, string entryPointId)
+        {
+            if (string.IsNullOrWhiteSpace(prototypeName) || string.IsNullOrWhiteSpace(entryPointId))
+                return;
+
+            _candidateToEntryPointId[prototypeName] = entryPointId;
+        }
+
+        private void AddTrackedBeaconCharges(ulong playerDbId, ulong itemEntityId, int additionalCharges)
+        {
+            if (playerDbId == 0 || itemEntityId == Entity.InvalidId || additionalCharges <= 0)
+                return;
+
+            if (_trackedBeaconChargesByPlayerDbId.TryGetValue(playerDbId, out Dictionary<ulong, int> chargesByItemId) == false)
+            {
+                chargesByItemId = new();
+                _trackedBeaconChargesByPlayerDbId[playerDbId] = chargesByItemId;
+            }
+
+            chargesByItemId[itemEntityId] = chargesByItemId.GetValueOrDefault(itemEntityId) + additionalCharges;
+        }
+
+        private void ConsumeTrackedBeaconCharge(ulong playerDbId, ulong itemEntityId)
+        {
+            if (playerDbId == 0 || itemEntityId == Entity.InvalidId)
+                return;
+
+            if (_trackedBeaconChargesByPlayerDbId.TryGetValue(playerDbId, out Dictionary<ulong, int> chargesByItemId) == false)
+                return;
+
+            if (chargesByItemId.TryGetValue(itemEntityId, out int chargeCount) == false)
+                return;
+
+            chargeCount--;
+            if (chargeCount > 0)
+            {
+                chargesByItemId[itemEntityId] = chargeCount;
+                return;
+            }
+
+            chargesByItemId.Remove(itemEntityId);
+            if (chargesByItemId.Count == 0)
+                _trackedBeaconChargesByPlayerDbId.Remove(playerDbId);
+        }
+
+        private void ConsumeAnyTrackedBeaconCharge(ulong playerDbId)
+        {
+            if (playerDbId == 0)
+                return;
+
+            if (_trackedBeaconChargesByPlayerDbId.TryGetValue(playerDbId, out Dictionary<ulong, int> chargesByItemId) == false ||
+                chargesByItemId.Count == 0)
+                return;
+
+            ulong itemEntityId = chargesByItemId.Keys.First();
+            ConsumeTrackedBeaconCharge(playerDbId, itemEntityId);
+        }
+
+        private Dictionary<ulong, int> SnapshotChosenLauncherStacks(Player player)
+        {
+            Dictionary<ulong, int> snapshot = new();
+            if (player == null)
+                return snapshot;
+
+            CaptureInventorySnapshot(player.GetInventory(InventoryConvenienceLabel.General), snapshot);
+            CaptureInventorySnapshot(player.GetInventory(InventoryConvenienceLabel.DeliveryBox), snapshot);
+            return snapshot;
+        }
+
+        private void CaptureInventorySnapshot(Inventory inventory, Dictionary<ulong, int> snapshot)
+        {
+            if (inventory == null)
+                return;
+
+            foreach (var entry in inventory)
+            {
+                Item item = Game.EntityManager.GetEntity<Item>(entry.Id);
+                if (item == null || IsChosenBeaconPrototype(item.PrototypeDataRef) == false)
+                    continue;
+
+                snapshot[item.Id] = item.CurrentStackSize;
+            }
+        }
+
+        private void RegisterTrackedBeaconGrantDelta(ulong playerDbId, Dictionary<ulong, int> beforeSnapshot, Dictionary<ulong, int> afterSnapshot)
+        {
+            if (playerDbId == 0 || afterSnapshot == null || afterSnapshot.Count == 0)
+                return;
+
+            foreach ((ulong itemEntityId, int afterCount) in afterSnapshot)
+            {
+                int beforeCount = beforeSnapshot?.GetValueOrDefault(itemEntityId) ?? 0;
+                int delta = afterCount - beforeCount;
+                if (delta > 0)
+                    AddTrackedBeaconCharges(playerDbId, itemEntityId, delta);
+            }
+        }
+    }
+}

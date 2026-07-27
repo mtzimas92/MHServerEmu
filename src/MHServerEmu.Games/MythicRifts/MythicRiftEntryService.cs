@@ -1,0 +1,413 @@
+using MHServerEmu.Games.Entities;
+
+namespace MHServerEmu.Games.MythicRifts
+{
+    /// <summary>
+    /// Headless server-side entry layer for Mythic Rift requests.
+    /// This intentionally does not assume any concrete in-game object or client UI yet.
+    /// </summary>
+    public sealed class MythicRiftEntryService
+    {
+        public const string DefaultEntryPointId = "default";
+        public const string ConsumablePortalEntryPointId = "cosmic-rift-consumable";
+        public const string EndlessConsumablePortalEntryPointId = "endless-rift-consumable";
+        public const string BossGauntletConsumablePortalEntryPointId = "boss-gauntlet-consumable";
+        private readonly Dictionary<string, MythicRiftEntryPointDefinition> _entryPoints = new(StringComparer.OrdinalIgnoreCase);
+        private readonly List<MythicRiftLauncherItemCandidate> _launcherItemCandidates = new();
+
+        public Game Game { get; }
+        public MythicRiftManager Manager => Game.MythicRiftManager;
+        public IReadOnlyCollection<MythicRiftEntryPointDefinition> EntryPoints => _entryPoints.Values;
+        public IReadOnlyList<MythicRiftLauncherItemCandidate> LauncherItemCandidates => _launcherItemCandidates;
+
+        public MythicRiftEntryService(Game game)
+        {
+            Game = game;
+            RegisterDefaultEntryPoints();
+            RegisterDefaultLauncherItemCandidates();
+        }
+
+        public MythicRiftEntryResult RequestRun(Player player, MythicRiftEntryRequest request)
+        {
+            if (player == null)
+            {
+                return new MythicRiftEntryResult
+                {
+                    ErrorMessage = "Player not found."
+                };
+            }
+
+            if (request == null)
+            {
+                return new MythicRiftEntryResult
+                {
+                    ErrorMessage = "Rift entry request not found."
+                };
+            }
+
+            if (request.RiftLevel <= 0)
+            {
+                return new MythicRiftEntryResult
+                {
+                    ErrorMessage = "Invalid Rift level."
+                };
+            }
+
+            string entryPointId = string.IsNullOrWhiteSpace(request.EntryPointId)
+                ? DefaultEntryPointId
+                : request.EntryPointId;
+
+            MythicRiftEntryPointDefinition entryPoint = GetEntryPoint(entryPointId);
+            if (entryPoint == null)
+            {
+                return new MythicRiftEntryResult
+                {
+                    ErrorMessage = $"Unknown Mythic Rift entry point: {entryPointId}"
+                };
+            }
+
+            if (request.HasFixedContent && entryPoint.AllowsFixedContentSelection == false)
+            {
+                return new MythicRiftEntryResult
+                {
+                    ErrorMessage = $"Entry point {entryPoint.DisplayName} does not allow fixed content selection."
+                };
+            }
+
+            if (request.HasFixedContent == false && entryPoint.AllowsRandomContent == false)
+            {
+                return new MythicRiftEntryResult
+                {
+                    ErrorMessage = $"Entry point {entryPoint.DisplayName} does not allow random content selection."
+                };
+            }
+
+            if (request.HasLauncherItemPrototypeName && entryPoint.AcceptsLauncherItemPrototypeName(request.LauncherItemPrototypeName) == false)
+            {
+                return new MythicRiftEntryResult
+                {
+                    ErrorMessage = $"Entry point {entryPoint.DisplayName} expects launcher item {DescribeAcceptedLauncherItems(entryPoint)}."
+                };
+            }
+
+            TimeSpan timeLimit = request.TimeLimit <= TimeSpan.Zero
+                ? TimeSpan.FromMinutes(10)
+                : request.TimeLimit;
+
+            int killQuota = request.KillQuotaOverride.GetValueOrDefault();
+
+            MythicRiftMode mode = entryPoint.Id == DefaultEntryPointId
+                ? request.Mode
+                : entryPoint.Mode;
+            MythicRiftRunState runState = request.HasFixedContent
+                ? Manager.RequestFixedRun(player, request.ContentId, request.RiftLevel, killQuota, timeLimit, mode, out string errorMessage)
+                : Manager.RequestRun(player, request.RiftLevel, killQuota, timeLimit, mode, out errorMessage);
+
+            MythicRiftPortalLaunchPlan launchPlan = BuildLaunchPlan(entryPoint, request);
+
+            return new MythicRiftEntryResult
+            {
+                RunState = runState,
+                LaunchPlan = launchPlan,
+                ErrorMessage = runState == null ? errorMessage : string.Empty
+            };
+        }
+
+        public MythicRiftEntryPointDefinition GetEntryPoint(string entryPointId)
+        {
+            if (string.IsNullOrWhiteSpace(entryPointId))
+                return null;
+
+            return _entryPoints.TryGetValue(entryPointId, out MythicRiftEntryPointDefinition entryPoint)
+                ? entryPoint
+                : null;
+        }
+
+        public bool EntryPointAcceptsLauncherItem(string entryPointId, string launcherItemPrototypeName)
+        {
+            MythicRiftEntryPointDefinition entryPoint = GetEntryPoint(entryPointId);
+            return entryPoint?.AcceptsLauncherItemPrototypeName(launcherItemPrototypeName) == true;
+        }
+
+        public MythicRiftPortalLaunchPlan BuildLaunchPlan(string entryPointId, MythicRiftEntryRequest request = null)
+        {
+            MythicRiftEntryPointDefinition entryPoint = GetEntryPoint(entryPointId);
+            return BuildLaunchPlan(entryPoint, request);
+        }
+
+        private void RegisterEntryPoint(MythicRiftEntryPointDefinition entryPoint)
+        {
+            if (entryPoint == null || entryPoint.IsValid == false)
+                return;
+
+            _entryPoints[entryPoint.Id] = entryPoint;
+        }
+
+        private void RegisterLauncherItemCandidate(MythicRiftLauncherItemCandidate candidate)
+        {
+            if (candidate == null || candidate.IsValid == false)
+                return;
+
+            _launcherItemCandidates.Add(candidate);
+        }
+
+        private void RegisterDefaultEntryPoints()
+        {
+            RegisterEntryPoint(new MythicRiftEntryPointDefinition
+            {
+                Id = DefaultEntryPointId,
+                DisplayName = "Default Mythic Rift Launcher",
+                Mode = MythicRiftMode.Standard,
+                AllowsRandomContent = true,
+                AllowsFixedContentSelection = true,
+                IsPatcherFriendly = false,
+                LaunchModel = "headless-server",
+                Notes = "Headless server-side default entry point used for local development and future launcher integration."
+            });
+
+            RegisterEntryPoint(new MythicRiftEntryPointDefinition
+            {
+                Id = "capital-hub",
+                DisplayName = "Capital Hub Launcher",
+                Mode = MythicRiftMode.Standard,
+                AllowsRandomContent = true,
+                AllowsFixedContentSelection = true,
+                IsPatcherFriendly = true,
+                LaunchModel = "hub-interactable",
+                Notes = "Planned future player-facing launcher for a hub area such as Avengers Tower."
+            });
+
+            RegisterEntryPoint(new MythicRiftEntryPointDefinition
+            {
+                Id = ConsumablePortalEntryPointId,
+                DisplayName = "Mythic Rift Consumable Launcher",
+                Mode = MythicRiftMode.Standard,
+                AllowsRandomContent = true,
+                AllowsFixedContentSelection = false,
+                IsPatcherFriendly = true,
+                LaunchModel = "consumable-portal",
+                CandidateItemPrototypeName = MythicRiftLauncherService.CosmicRiftBeaconPrototypeName,
+                AcceptedCandidateItemPrototypeNames = new[]
+                {
+                    MythicRiftLauncherService.CosmicRiftBeaconPrototypeName,
+                    MythicRiftLauncherService.PresentationCosmicRiftBeaconPrototypeName,
+                    MythicRiftLauncherService.PresentationCosmicRiftBeaconPrototypePath
+                },
+                CandidateTransitionPrototypeName = "ReturnToLastBaseDR",
+                Notes = "Official current direction for the feature: Mythic Rift uses PortalToRandomMaxAffixDungeon as the technical launcher base, can present it as Mythic Rift Scenario, and returns players through the Danger Room base transition."
+            });
+
+            RegisterEntryPoint(new MythicRiftEntryPointDefinition
+            {
+                Id = EndlessConsumablePortalEntryPointId,
+                DisplayName = "Endless Rift Consumable Launcher",
+                Mode = MythicRiftMode.Endless,
+                AllowsRandomContent = true,
+                AllowsFixedContentSelection = false,
+                IsPatcherFriendly = true,
+                LaunchModel = "consumable-portal",
+                CandidateItemPrototypeName = MythicRiftLauncherService.EndlessRiftBeaconPrototypeName,
+                AcceptedCandidateItemPrototypeNames = new[]
+                {
+                    MythicRiftLauncherService.EndlessRiftBeaconPrototypeName,
+                    MythicRiftLauncherService.EndlessRiftBeaconPrototypePath,
+                    MythicRiftLauncherService.PresentationEndlessRiftBeaconPrototypeName,
+                    MythicRiftLauncherService.PresentationEndlessRiftBeaconPrototypePath
+                },
+                CandidateTransitionPrototypeName = "ReturnToLastBaseDR",
+                Notes = "Endless Rift uses the unused purple no-affix Danger Room portal as its technical base, presents as Endless Rift Scenario through TestHearthStone, and uses the repeating 30-wave boss cycle."
+            });
+
+            RegisterEntryPoint(new MythicRiftEntryPointDefinition
+            {
+                Id = BossGauntletConsumablePortalEntryPointId,
+                DisplayName = "Boss Gauntlet Consumable Launcher",
+                Mode = MythicRiftMode.BossGauntlet,
+                AllowsRandomContent = true,
+                AllowsFixedContentSelection = false,
+                IsPatcherFriendly = true,
+                LaunchModel = "consumable-portal",
+                CandidateItemPrototypeName = MythicRiftLauncherService.BossGauntletRiftBeaconPrototypeName,
+                AcceptedCandidateItemPrototypeNames = new[]
+                {
+                    MythicRiftLauncherService.BossGauntletRiftBeaconPrototypeName,
+                    MythicRiftLauncherService.BossGauntletRiftBeaconPrototypePath,
+                    MythicRiftLauncherService.PresentationBossGauntletRiftBeaconPrototypeName,
+                    MythicRiftLauncherService.PresentationBossGauntletRiftBeaconPrototypePath
+                },
+                CandidateTransitionPrototypeName = "ReturnToLastBaseDR",
+                Notes = "Boss Gauntlet uses the unused blue no-affix Danger Room portal as its technical base, presents as Boss Gauntlet Scenario through TestStunKit, and runs endless sequential boss waves with delayed failure loot."
+            });
+        }
+
+        private void RegisterDefaultLauncherItemCandidates()
+        {
+            RegisterLauncherItemCandidate(new MythicRiftLauncherItemCandidate
+            {
+                PrototypeName = MythicRiftLauncherService.CosmicRiftBeaconPrototypeName,
+                DisplayName = "Mythic Rift Beacon Base",
+                SourceFamily = "DangerRoom / RandomDungeon",
+                IsLikelyUnusedOrLowRisk = true,
+                IsShopLinked = false,
+                SupportsRandomThemeIdentity = true,
+                PatcherFriendly = true,
+                Recommendation = "chosen",
+                Notes = "Official chosen launcher base for the project. It matches the random-dungeon identity, appears unreferenced in normal gameplay, and should be the safest long-term item base once TAHITI patches its DesignState to Live."
+            });
+
+            RegisterLauncherItemCandidate(new MythicRiftLauncherItemCandidate
+            {
+                PrototypeName = MythicRiftLauncherService.PresentationCosmicRiftBeaconPrototypeName,
+                DisplayName = MythicRiftItemPresentation.PresentationDisplayName,
+                SourceFamily = "DangerRoom / ScenarioCrate",
+                IsLikelyUnusedOrLowRisk = true,
+                IsShopLinked = false,
+                SupportsRandomThemeIdentity = false,
+                PatcherFriendly = true,
+                Recommendation = "chosen-presentation",
+                Notes = "Player-facing wrapper used for vendor and inventory presentation. The server still resolves this into the Mythic Rift consumable flow."
+            });
+
+            RegisterLauncherItemCandidate(new MythicRiftLauncherItemCandidate
+            {
+                PrototypeName = MythicRiftLauncherService.EndlessRiftBeaconPrototypeName,
+                DisplayName = "Endless Rift Beacon Base",
+                SourceFamily = "DangerRoom / RandomThemeNoAffixesPurple",
+                IsLikelyUnusedOrLowRisk = true,
+                IsShopLinked = false,
+                SupportsRandomThemeIdentity = true,
+                PatcherFriendly = true,
+                Recommendation = "chosen-endless",
+                Notes = "Technical launcher base for Endless Rift. It is a DevelopmentOnly, usable, unreferenced purple Danger Room portal and is patched live only for this feature."
+            });
+
+            RegisterLauncherItemCandidate(new MythicRiftLauncherItemCandidate
+            {
+                PrototypeName = MythicRiftLauncherService.PresentationEndlessRiftBeaconPrototypeName,
+                DisplayName = MythicRiftItemPresentation.EndlessPresentationDisplayName,
+                SourceFamily = "Test / HearthStone",
+                IsLikelyUnusedOrLowRisk = true,
+                IsShopLinked = false,
+                SupportsRandomThemeIdentity = false,
+                PatcherFriendly = true,
+                Recommendation = "chosen-endless-presentation",
+                Notes = "Independent player-facing wrapper for Endless Rift. Its display name, tooltip, and icon are patched without changing the standard Mythic Rift Scenario item."
+            });
+
+            RegisterLauncherItemCandidate(new MythicRiftLauncherItemCandidate
+            {
+                PrototypeName = MythicRiftLauncherService.BossGauntletRiftBeaconPrototypeName,
+                DisplayName = "Boss Gauntlet Beacon Base",
+                SourceFamily = "DangerRoom / RandomThemeNoAffixesBlue",
+                IsLikelyUnusedOrLowRisk = true,
+                IsShopLinked = false,
+                SupportsRandomThemeIdentity = true,
+                PatcherFriendly = true,
+                Recommendation = "chosen-boss-gauntlet",
+                Notes = "Technical launcher base for Boss Gauntlet. It uses the unused blue no-affix Danger Room portal and is patched live only for this feature."
+            });
+
+            RegisterLauncherItemCandidate(new MythicRiftLauncherItemCandidate
+            {
+                PrototypeName = MythicRiftLauncherService.PresentationBossGauntletRiftBeaconPrototypeName,
+                DisplayName = MythicRiftItemPresentation.BossGauntletPresentationDisplayName,
+                SourceFamily = "Test / StunKit",
+                IsLikelyUnusedOrLowRisk = true,
+                IsShopLinked = false,
+                SupportsRandomThemeIdentity = false,
+                PatcherFriendly = true,
+                Recommendation = "chosen-boss-gauntlet-presentation",
+                Notes = "Independent player-facing wrapper for Boss Gauntlet. Its display name, tooltip, and icon are patched without changing the Cosmic Rift or Rift Gauntlet items."
+            });
+
+            RegisterLauncherItemCandidate(new MythicRiftLauncherItemCandidate
+            {
+                PrototypeName = "PortalToCowLevelOneTimeUse",
+                DisplayName = "Portal To Cow Level One Time Use",
+                SourceFamily = "Cow Level / FortuneCard",
+                IsLikelyUnusedOrLowRisk = false,
+                IsShopLinked = false,
+                SupportsRandomThemeIdentity = false,
+                PatcherFriendly = true,
+                Recommendation = "fallback",
+                Notes = "Technically attractive because it is already a one-time-use portal consumable, but the Cow Level theme is less clean for a permanent GRIFT identity."
+            });
+
+            RegisterLauncherItemCandidate(new MythicRiftLauncherItemCandidate
+            {
+                PrototypeName = "PortalToCowLevel",
+                DisplayName = "Portal To Cow Level",
+                SourceFamily = "Cow Level / FortuneCard",
+                IsLikelyUnusedOrLowRisk = false,
+                IsShopLinked = false,
+                SupportsRandomThemeIdentity = false,
+                PatcherFriendly = true,
+                Recommendation = "fallback",
+                Notes = "Usable as a technical template, but thematically too specific unless cloned or repurposed."
+            });
+
+            RegisterLauncherItemCandidate(new MythicRiftLauncherItemCandidate
+            {
+                PrototypeName = "PortalToBovineheim",
+                DisplayName = "Portal To Bovineheim",
+                SourceFamily = "Bovineheim / GShop",
+                IsLikelyUnusedOrLowRisk = false,
+                IsShopLinked = true,
+                SupportsRandomThemeIdentity = false,
+                PatcherFriendly = true,
+                Recommendation = "avoid-direct",
+                Notes = "Good reference for portal behavior, but less attractive as a direct GRIFT launcher because it is already tied to Bovineheim and shop flavor."
+            });
+
+            RegisterLauncherItemCandidate(new MythicRiftLauncherItemCandidate
+            {
+                PrototypeName = "DevOnlyCowKingReward",
+                DisplayName = "Dev Only Cow King Reward",
+                SourceFamily = "Test / DevOnly",
+                IsLikelyUnusedOrLowRisk = true,
+                IsShopLinked = false,
+                SupportsRandomThemeIdentity = false,
+                PatcherFriendly = true,
+                Recommendation = "research-only",
+                Notes = "Interesting because it looks safely non-player-facing today, but it is reward-oriented rather than a clean portal launcher, so it is better as a research lead than as the final item."
+            });
+        }
+
+        private static MythicRiftPortalLaunchPlan BuildLaunchPlan(MythicRiftEntryPointDefinition entryPoint, MythicRiftEntryRequest request)
+        {
+            if (entryPoint == null)
+                return null;
+
+            string launcherItemPrototypeName = request?.HasLauncherItemPrototypeName == true
+                ? request.LauncherItemPrototypeName
+                : entryPoint.CandidateItemPrototypeName;
+
+            return new MythicRiftPortalLaunchPlan
+            {
+                EntryPointId = entryPoint.Id,
+                LaunchModel = entryPoint.LaunchModel,
+                LauncherItemPrototypeName = launcherItemPrototypeName,
+                TransitionPrototypeName = entryPoint.CandidateTransitionPrototypeName,
+                ConsumesLauncherItem = string.Equals(entryPoint.LaunchModel, "consumable-portal", StringComparison.OrdinalIgnoreCase),
+                CreatesPrivatePortal = string.Equals(entryPoint.LaunchModel, "consumable-portal", StringComparison.OrdinalIgnoreCase),
+                RandomContentOnly = entryPoint.AllowsRandomContent && entryPoint.AllowsFixedContentSelection == false,
+                IsPatcherFriendly = entryPoint.IsPatcherFriendly,
+                Notes = entryPoint.Notes
+            };
+        }
+
+        private static string DescribeAcceptedLauncherItems(MythicRiftEntryPointDefinition entryPoint)
+        {
+            if (entryPoint == null)
+                return "n/a";
+
+            IReadOnlyList<string> acceptedCandidateItemPrototypeNames = entryPoint.AcceptedCandidateItemPrototypeNames;
+            if (acceptedCandidateItemPrototypeNames != null && acceptedCandidateItemPrototypeNames.Count > 0)
+                return string.Join(" or ", acceptedCandidateItemPrototypeNames);
+
+            return string.IsNullOrWhiteSpace(entryPoint.CandidateItemPrototypeName)
+                ? "n/a"
+                : entryPoint.CandidateItemPrototypeName;
+        }
+    }
+}

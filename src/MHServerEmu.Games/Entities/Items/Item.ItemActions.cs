@@ -9,6 +9,7 @@ using MHServerEmu.Games.GameData;
 using MHServerEmu.Games.GameData.Prototypes;
 using MHServerEmu.Games.Loot;
 using MHServerEmu.Games.Loot.Specs;
+using MHServerEmu.Games.MythicRifts;
 using MHServerEmu.Games.Powers;
 using MHServerEmu.Games.Properties;
 
@@ -39,85 +40,88 @@ namespace MHServerEmu.Games.Entities.Items
 
     public partial class Item
     {
-        private void TriggerItemActionOnUse(ItemActionPrototype actionProto, Player player, Avatar avatar, ref bool wasUsed, ref bool isConsumable)
+        private bool TriggerItemActionOnUse(ItemActionPrototype actionProto, Player player, Avatar avatar, ref bool wasUsed, ref bool isConsumable)
         {
             if (actionProto.TriggeringEvent != ItemEventType.OnUse)
-                return;
+                return false;
 
             switch (actionProto.ActionType)
             {
                 case ItemActionType.AssignPower:
                     wasUsed |= DoItemActionAssignPower();
-                    break;
+                    return false;
 
                 case ItemActionType.DestroySelf:
                     DoItemActionDestroySelf(ref isConsumable);    // This simply flags the item to be destroyed, so we don't need to update wasUsed here
-                    break;
+                    return false;
 
                 case ItemActionType.GuildUnlock:
                     wasUsed |= DoItemActionGuildUnlock(player);
-                    break;
+                    return false;
 
                 case ItemActionType.PrestigeMode:
                     wasUsed |= DoItemActionPrestigeMode(avatar);
-                    break;
+                    return false;
 
                 case ItemActionType.ReplaceSelfItem:
                     ItemActionReplaceSelfItemPrototype replaceSelfItemProto = actionProto as ItemActionReplaceSelfItemPrototype;
-                    if (!Verify.IsNotNull(replaceSelfItemProto)) return;
+                    if (!Verify.IsNotNull(replaceSelfItemProto)) return false;
 
                     wasUsed |= DoItemActionReplaceSelfItem(replaceSelfItemProto.Item, player, avatar);
-                    break;
+                    return false;
 
                 case ItemActionType.ReplaceSelfLootTable:
                     ItemActionReplaceSelfLootTablePrototype replaceSelfLootTableProto = actionProto as ItemActionReplaceSelfLootTablePrototype;
-                    if (!Verify.IsNotNull(replaceSelfLootTableProto)) return;
+                    if (!Verify.IsNotNull(replaceSelfLootTableProto)) return false;
 
                     wasUsed |= DoItemActionReplaceSelfLootTable(replaceSelfLootTableProto.LootTable, replaceSelfLootTableProto.UseCurrentAvatarLevelForRoll, player, avatar);
-                    break;
+                    return false;
 
                 case ItemActionType.ResetMissions:
                     wasUsed |= DoItemActionResetMissions(avatar);
-                    break;
+                    return false;
 
                 case ItemActionType.Respec:
                     wasUsed |= DoItemActionRespec();
-                    break;
+                    return false;
 
                 case ItemActionType.SaveDangerRoomScenario:
                     wasUsed |= DoItemActionSaveDangerRoomScenario();
-                    break;
+                    return false;
 
 #if GAME_VERSION_1_52 || GAME_VERSION_1_53
                 case ItemActionType.UnlockPermaBuff:
                     ItemActionUnlockPermaBuffPrototype unlockPermaBuffProto = actionProto as ItemActionUnlockPermaBuffPrototype;
-                    if (!Verify.IsNotNull(unlockPermaBuffProto)) return;
+                    if (!Verify.IsNotNull(unlockPermaBuffProto)) return false;
 
                     wasUsed |= DoItemActionUnlockPermaBuff(unlockPermaBuffProto.PermaBuff, player);
-                    break;
+                    return false;
 #endif
 
                 case ItemActionType.UsePower:
                     ItemActionUsePowerPrototype usePowerProto = actionProto as ItemActionUsePowerPrototype;
-                    if (!Verify.IsNotNull(usePowerProto)) return;
+                    if (!Verify.IsNotNull(usePowerProto)) return false;
 
-                    wasUsed |= DoItemActionUsePower(usePowerProto.Power, avatar);
-                    break;
+                    bool stopRemainingActions = false;
+                    wasUsed |= DoItemActionUsePower(usePowerProto.Power, avatar, out stopRemainingActions);
+                    return stopRemainingActions;
 
                 case ItemActionType.AwardTeamUpXP:
                     ItemActionAwardTeamUpXPPrototype awardTeamUpXPProto = actionProto as ItemActionAwardTeamUpXPPrototype;
-                    if (!Verify.IsNotNull(awardTeamUpXPProto)) return;
+                    if (!Verify.IsNotNull(awardTeamUpXPProto)) return false;
 
                     wasUsed |= DoItemActionAwardTeamUpXP(avatar, awardTeamUpXPProto.XP);
-                    break;
+                    return false;
 
                 case ItemActionType.OpenUIPanel:
                     ItemActionOpenUIPanelPrototype openUIPanelProto = actionProto as ItemActionOpenUIPanelPrototype;
-                    if (!Verify.IsNotNull(openUIPanelProto)) return;
+                    if (!Verify.IsNotNull(openUIPanelProto)) return false;
 
                     wasUsed |= DoItemActionOpenUIPanel(player, openUIPanelProto.PanelName);
-                    break;
+                    return false;
             }
+
+            return false;
         }
 
         private bool TriggerItemActionOnUsePowerActivated(ItemActionPrototype itemActionProto)
@@ -250,6 +254,20 @@ namespace MHServerEmu.Games.Entities.Items
             return false;
         }
 
+        private bool TryHandleMythicRiftItemUse(Player player, out bool interceptedItemUse)
+        {
+            interceptedItemUse = false;
+
+            MythicRiftLauncherUseResult launcherUseResult = player != null
+                ? Game.MythicRiftLauncherService.TryHandleItemUse(player, this, out interceptedItemUse)
+                : null;
+
+            if (interceptedItemUse && launcherUseResult != null)
+                return launcherUseResult.Success;
+
+            return false;
+        }
+
         private bool DoItemActionUnlockPermaBuff(PrototypeId permaBuffProtoRef, Player player)
         {
             if (!Verify.IsTrue(permaBuffProtoRef != PrototypeId.Invalid)) return false;
@@ -260,8 +278,19 @@ namespace MHServerEmu.Games.Entities.Items
             return player.UnlockPermaBuff(permaBuffProtoRef);
         }
         
-        private bool DoItemActionUsePower(PrototypeId powerProtoRef, Avatar avatar)
+        private bool DoItemActionUsePower(PrototypeId powerProtoRef, Avatar avatar, out bool stopRemainingItemActions)
         {
+            stopRemainingItemActions = false;
+            Player player = avatar.GetOwnerOfType<Player>();
+
+            bool interceptedItemUse = false;
+            bool mythicRiftUseSuccess = TryHandleMythicRiftItemUse(player, out interceptedItemUse);
+            if (interceptedItemUse)
+            {
+                stopRemainingItemActions = true;
+                return mythicRiftUseSuccess;
+            }
+
             Power power = avatar.GetPower(powerProtoRef);
             if (!Verify.IsNotNull(power)) return false;
 
@@ -275,7 +304,11 @@ namespace MHServerEmu.Games.Entities.Items
             settings.ItemSourceId = Id;
             settings.Flags |= PowerActivationSettingsFlags.NotifyOwner;
 
-            return avatar.ActivatePower(powerProtoRef, ref settings) == PowerUseResult.Success;
+            bool success = avatar.ActivatePower(powerProtoRef, ref settings) == PowerUseResult.Success;
+            if (success && player != null)
+                Game.MythicRiftLauncherService.RegisterLauncherItemUse(player, this);
+
+            return success;
         }
 
         private bool DoItemActionAwardTeamUpXP(Avatar avatar, int amount)

@@ -1,0 +1,40 @@
+using MHServerEmu.Games.GameData;
+
+namespace MHServerEmu.Games.MythicRifts
+{
+    public sealed class MythicRiftRunConfig
+    {
+        public ulong RunId { get; init; }
+        public int RiftLevel { get; init; }
+        public MythicRiftContentEntry Content { get; init; }
+        public MythicRiftContentEntry BossContent { get; init; }
+        public IReadOnlyList<MythicRiftContentEntry> BossWaveContent { get; init; } = Array.Empty<MythicRiftContentEntry>();
+        public int RequestedPlayerCount { get; init; }
+        public int EffectivePlayerCount { get; init; }
+        public int KillQuota { get; init; }
+        public TimeSpan TimeLimit { get; init; }
+        public PrototypeId RegionProtoRef { get; init; }
+        public PrototypeId StartTargetProtoRef { get; init; }
+        public PrototypeId MissionProtoRef { get; init; }
+        public PrototypeId BossProtoRef { get; init; }
+        public PrototypeId BossLootTableProtoRef { get; init; }
+        public MythicRiftDifficultySnapshot Difficulty { get; init; }
+        public MythicRiftMode Mode { get; init; }
+        public int WaveNumber { get; init; } = 1;
+        public int RequiredBossKillCount { get; init; } = 1;
+
+        public bool UseThirtyWaveMode => Mode == MythicRiftMode.Endless;
+        public bool UseBossGauntletMode => Mode == MythicRiftMode.BossGauntlet;
+
+        public bool IsValid =>
+            RunId != 0 &&
+            RiftLevel > 0 &&
+            Content != null &&
+            BossContent != null &&
+            BossWaveContent.Count > 0 &&
+            RegionProtoRef != PrototypeId.Invalid &&
+            StartTargetProtoRef != PrototypeId.Invalid &&
+            BossProtoRef != PrototypeId.Invalid &&
+            TimeLimit > TimeSpan.Zero;
+    }
+}

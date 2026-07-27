@@ -1,0 +1,1555 @@
+{
+  "profileName": "worthwhile-v7-climb-and-gauntlet",
+  "enabled": true,
+  "grantBossLootOnSuccess": true,
+  "grantBossLootOnFailure": false,
+  "grantBossLootInThirtyWaveMode": false,
+  "suppressNativeRiftBossLoot": true,
+  "timedSuccessBonusRarityPct": 0.2,
+  "timedSuccessBonusSpecialPct": 0.25,
+  "checkpointSuccessBonusRarityPct": 0.1,
+  "checkpointSuccessBonusSpecialPct": 0.15,
+  "failureBonusRarityPct": 0,
+  "failureBonusSpecialPct": 0,
+  "defaultDelivery": "ground",
+  "lootTableAliases": {
+    "cosmic-artifacts": "Loot/Tables/Mob/Bosses/CosmicArtifactsTable.prototype",
+    "cosmic-doop-overlord": "Loot/Tables/Mob/NormalMobs/CosmicDoopOverlordTable.prototype",
+    "costume-card-token-chase": "Loot/Tables/ItemType/SpecialsCostumesCardsTokens.prototype",
+    "hero-commendations-25": "Loot/Tables/CSGrant/CSGrantCrateHeroCommendation25BoxTable.prototype",
+    "protector-commendation": "Loot/Tables/Achievements/ProtectorCommendation.prototype",
+    "cube-shards-100": "Loot/Tables/CSGrant/CSGrantCrateCubeShards100Table.prototype",
+    "omega-file-box-100": "Loot/Tables/CSGrant/CSGrantCrateOmegaFileBox100Table.prototype",
+    "danger-room-blue-box": "Loot/Tables/RandomGiftboxes/DailyGift/DangerRoomBlueBoxTable.prototype",
+    "ultimate-upgrade-token": "Loot/Tables/Achievements/ItemPowerLootTable/UltimateUpgradeLT.prototype",
+    "offense-defense-ring": "Loot/Tables/ItemType/RingOffenseOrDefense.prototype",
+    "unique-single": "Loot/Tables/Achievements/RandomChallengeUniqueSingle.prototype",
+    "unique-double": "Loot/Tables/Achievements/RandomChallengex2UniqueSingle.prototype"
+  },
+  "primaryLootTableOverrides": [],
+  "extraLootTables": [],
+  "rewardRecipes": [
+    {
+      "id": "all-modes-rare-chase",
+      "enabled": false,
+      "minRiftLevel": 1,
+      "maxRiftLevel": 0,
+      "successOnly": true,
+      "checkpointOnly": false,
+      "classicOnly": false,
+      "contentIds": [],
+      "bossSourceIds": [],
+      "tables": [
+        {
+          "id": "costume-card-or-token",
+          "lootTable": "costume-card-token-chase",
+          "chancePercent": 1,
+          "rolls": 1,
+          "delivery": "ground"
+        }
+      ]
+    },
+    {
+      "id": "cosmic-doop-sector-jackpot",
+      "enabled": true,
+      "minRiftLevel": 25,
+      "maxRiftLevel": 0,
+      "successOnly": true,
+      "checkpointOnly": false,
+      "classicOnly": false,
+      "contentIds": [
+        "cosmic-doop-sector"
+      ],
+      "bossSourceIds": [
+        "cosmic-doop-sector"
+      ],
+      "tables": [
+        {
+          "id": "overlord-bonus-rolls",
+          "lootTable": "cosmic-doop-overlord",
+          "chancePercent": 100,
+          "rolls": 3,
+          "delivery": "ground"
+        },
+        {
+          "id": "cosmic-artifact-bonus",
+          "lootTable": "cosmic-artifacts",
+          "chancePercent": 100,
+          "rolls": 1,
+          "itemLevel": 69,
+          "delivery": "ground"
+        }
+      ]
+    },
+    {
+      "id": "cosmic-rift-levels-1-9-foundation",
+      "enabled": true,
+      "minRiftLevel": 1,
+      "maxRiftLevel": 9,
+      "successOnly": true,
+      "checkpointOnly": false,
+      "classicOnly": false,
+      "modes": [
+        "standard"
+      ],
+      "contentIds": [],
+      "bossSourceIds": [],
+      "tables": [
+        {
+          "id": "cosmic-artifact-roll",
+          "lootTable": "cosmic-artifacts",
+          "chancePercent": 10,
+          "rolls": 1,
+          "itemLevel": 69,
+          "delivery": "ground"
+        },
+        {
+          "id": "danger-room-blue-box",
+          "lootTable": "danger-room-blue-box",
+          "chancePercent": 20,
+          "rolls": 1,
+          "delivery": "ground"
+        },
+        {
+          "id": "unique-single",
+          "lootTable": "unique-single",
+          "chancePercent": 10,
+          "rolls": 1,
+          "delivery": "ground",
+          "itemLevel": 69
+        }
+      ]
+    },
+    {
+      "id": "cosmic-rift-levels-10-19-foundation",
+      "enabled": true,
+      "minRiftLevel": 10,
+      "maxRiftLevel": 19,
+      "successOnly": true,
+      "checkpointOnly": false,
+      "classicOnly": false,
+      "modes": [
+        "standard"
+      ],
+      "contentIds": [],
+      "bossSourceIds": [],
+      "tables": [
+        {
+          "id": "cosmic-artifact-roll",
+          "lootTable": "cosmic-artifacts",
+          "chancePercent": 20,
+          "rolls": 1,
+          "itemLevel": 69,
+          "delivery": "ground"
+        },
+        {
+          "id": "danger-room-blue-box",
+          "lootTable": "danger-room-blue-box",
+          "chancePercent": 30,
+          "rolls": 1,
+          "delivery": "ground"
+        },
+        {
+          "id": "unique-single",
+          "lootTable": "unique-single",
+          "chancePercent": 15,
+          "rolls": 1,
+          "delivery": "ground",
+          "itemLevel": 69
+        },
+        {
+          "id": "hero-commendations",
+          "lootTable": "hero-commendations-25",
+          "chancePercent": 10,
+          "rolls": 1,
+          "delivery": "ground"
+        }
+      ]
+    },
+    {
+      "id": "cosmic-rift-levels-20-29-mid",
+      "enabled": true,
+      "minRiftLevel": 20,
+      "maxRiftLevel": 29,
+      "successOnly": true,
+      "checkpointOnly": false,
+      "classicOnly": false,
+      "modes": [
+        "standard"
+      ],
+      "contentIds": [],
+      "bossSourceIds": [],
+      "tables": [
+        {
+          "id": "cosmic-artifact-rolls",
+          "lootTable": "cosmic-artifacts",
+          "chancePercent": 35,
+          "rolls": 2,
+          "itemLevel": 69,
+          "delivery": "ground"
+        },
+        {
+          "id": "danger-room-blue-box",
+          "lootTable": "danger-room-blue-box",
+          "chancePercent": 40,
+          "rolls": 1,
+          "delivery": "ground"
+        },
+        {
+          "id": "unique-single",
+          "lootTable": "unique-single",
+          "chancePercent": 25,
+          "rolls": 1,
+          "itemLevel": 69,
+          "delivery": "ground"
+        },
+        {
+          "id": "hero-commendations",
+          "lootTable": "hero-commendations-25",
+          "chancePercent": 20,
+          "rolls": 1,
+          "delivery": "ground"
+        }
+      ]
+    },
+    {
+      "id": "cosmic-rift-levels-30-39-mid-plus",
+      "enabled": true,
+      "minRiftLevel": 30,
+      "maxRiftLevel": 39,
+      "successOnly": true,
+      "checkpointOnly": false,
+      "classicOnly": false,
+      "modes": [
+        "standard"
+      ],
+      "contentIds": [],
+      "bossSourceIds": [],
+      "tables": [
+        {
+          "id": "cosmic-artifact-rolls",
+          "lootTable": "cosmic-artifacts",
+          "chancePercent": 45,
+          "rolls": 2,
+          "itemLevel": 69,
+          "delivery": "ground"
+        },
+        {
+          "id": "danger-room-blue-box",
+          "lootTable": "danger-room-blue-box",
+          "chancePercent": 50,
+          "rolls": 1,
+          "delivery": "ground"
+        },
+        {
+          "id": "omega-file-box",
+          "lootTable": "omega-file-box-100",
+          "chancePercent": 10,
+          "rolls": 1,
+          "delivery": "ground"
+        },
+        {
+          "id": "unique-single",
+          "lootTable": "unique-single",
+          "chancePercent": 30,
+          "rolls": 1,
+          "delivery": "ground",
+          "itemLevel": 69
+        },
+        {
+          "id": "hero-commendations",
+          "lootTable": "hero-commendations-25",
+          "chancePercent": 25,
+          "rolls": 1,
+          "delivery": "ground"
+        }
+      ]
+    },
+    {
+      "id": "cosmic-rift-levels-40-69-high",
+      "enabled": true,
+      "minRiftLevel": 40,
+      "maxRiftLevel": 69,
+      "successOnly": true,
+      "checkpointOnly": false,
+      "classicOnly": false,
+      "modes": [
+        "standard"
+      ],
+      "contentIds": [],
+      "bossSourceIds": [],
+      "tables": [
+        {
+          "id": "cosmic-artifact-rolls",
+          "lootTable": "cosmic-artifacts",
+          "chancePercent": 65,
+          "rolls": 3,
+          "itemLevel": 69,
+          "delivery": "ground"
+        },
+        {
+          "id": "danger-room-blue-box",
+          "lootTable": "danger-room-blue-box",
+          "chancePercent": 60,
+          "rolls": 1,
+          "delivery": "ground"
+        },
+        {
+          "id": "omega-file-box",
+          "lootTable": "omega-file-box-100",
+          "chancePercent": 20,
+          "rolls": 1,
+          "delivery": "ground"
+        },
+        {
+          "id": "offense-defense-ring",
+          "lootTable": "offense-defense-ring",
+          "chancePercent": 15,
+          "rolls": 1,
+          "itemLevel": 69,
+          "delivery": "ground"
+        },
+        {
+          "id": "unique-single",
+          "lootTable": "unique-single",
+          "chancePercent": 40,
+          "rolls": 1,
+          "delivery": "ground",
+          "itemLevel": 69
+        },
+        {
+          "id": "hero-commendations",
+          "lootTable": "hero-commendations-25",
+          "chancePercent": 35,
+          "rolls": 1,
+          "delivery": "ground"
+        }
+      ]
+    },
+    {
+      "id": "cosmic-rift-levels-70-plus-very-high",
+      "enabled": true,
+      "minRiftLevel": 70,
+      "maxRiftLevel": 0,
+      "successOnly": true,
+      "checkpointOnly": false,
+      "classicOnly": false,
+      "modes": [
+        "standard"
+      ],
+      "contentIds": [],
+      "bossSourceIds": [],
+      "tables": [
+        {
+          "id": "cosmic-artifact-rolls",
+          "lootTable": "cosmic-artifacts",
+          "chancePercent": 100,
+          "rolls": 3,
+          "itemLevel": 69,
+          "delivery": "ground"
+        },
+        {
+          "id": "danger-room-blue-box",
+          "lootTable": "danger-room-blue-box",
+          "chancePercent": 75,
+          "rolls": 1,
+          "delivery": "ground"
+        },
+        {
+          "id": "omega-file-box",
+          "lootTable": "omega-file-box-100",
+          "chancePercent": 40,
+          "rolls": 1,
+          "delivery": "ground"
+        },
+        {
+          "id": "offense-defense-ring",
+          "lootTable": "offense-defense-ring",
+          "chancePercent": 30,
+          "rolls": 1,
+          "itemLevel": 69,
+          "delivery": "ground"
+        },
+        {
+          "id": "ultimate-upgrade-token",
+          "lootTable": "ultimate-upgrade-token",
+          "chancePercent": 8,
+          "rolls": 1,
+          "delivery": "ground"
+        },
+        {
+          "id": "unique-double",
+          "lootTable": "unique-double",
+          "chancePercent": 50,
+          "rolls": 1,
+          "delivery": "ground",
+          "itemLevel": 69
+        },
+        {
+          "id": "protector-commendation",
+          "lootTable": "protector-commendation",
+          "chancePercent": 35,
+          "rolls": 1,
+          "delivery": "ground"
+        }
+      ]
+    },
+    {
+      "id": "cosmic-rift-checkpoint-bonus-low",
+      "enabled": true,
+      "minRiftLevel": 1,
+      "maxRiftLevel": 19,
+      "successOnly": true,
+      "checkpointOnly": true,
+      "classicOnly": false,
+      "modes": [
+        "standard"
+      ],
+      "contentIds": [],
+      "bossSourceIds": [],
+      "tables": [
+        {
+          "id": "checkpoint-cosmic-artifact-roll",
+          "lootTable": "cosmic-artifacts",
+          "chancePercent": 30,
+          "rolls": 1,
+          "itemLevel": 69,
+          "delivery": "ground"
+        }
+      ]
+    },
+    {
+      "id": "cosmic-rift-checkpoint-bonus-high",
+      "enabled": true,
+      "minRiftLevel": 20,
+      "maxRiftLevel": 0,
+      "successOnly": true,
+      "checkpointOnly": true,
+      "classicOnly": false,
+      "modes": [
+        "standard"
+      ],
+      "contentIds": [],
+      "bossSourceIds": [],
+      "tables": [
+        {
+          "id": "checkpoint-cosmic-artifact-roll",
+          "lootTable": "cosmic-artifacts",
+          "chancePercent": 75,
+          "rolls": 1,
+          "itemLevel": 69,
+          "delivery": "ground"
+        },
+        {
+          "id": "checkpoint-blue-box",
+          "lootTable": "danger-room-blue-box",
+          "chancePercent": 25,
+          "rolls": 1,
+          "delivery": "ground"
+        }
+      ]
+    },
+    {
+      "id": "cosmic-rift-milestone-level-20",
+      "enabled": true,
+      "minRiftLevel": 20,
+      "maxRiftLevel": 20,
+      "successOnly": true,
+      "checkpointOnly": false,
+      "classicOnly": false,
+      "modes": [
+        "standard"
+      ],
+      "tables": [
+        {
+          "id": "hero-commendations",
+          "lootTable": "hero-commendations-25",
+          "chancePercent": 100,
+          "rolls": 1,
+          "delivery": "ground"
+        }
+      ]
+    },
+    {
+      "id": "cosmic-rift-milestone-level-30",
+      "enabled": true,
+      "minRiftLevel": 30,
+      "maxRiftLevel": 30,
+      "successOnly": true,
+      "checkpointOnly": false,
+      "classicOnly": false,
+      "modes": [
+        "standard"
+      ],
+      "tables": [
+        {
+          "id": "hero-commendations",
+          "lootTable": "hero-commendations-25",
+          "chancePercent": 100,
+          "rolls": 1,
+          "delivery": "ground"
+        },
+        {
+          "id": "guaranteed-cosmic-artifact",
+          "lootTable": "cosmic-artifacts",
+          "chancePercent": 100,
+          "rolls": 1,
+          "itemLevel": 69,
+          "delivery": "ground"
+        }
+      ]
+    },
+    {
+      "id": "cosmic-rift-milestone-level-40",
+      "enabled": true,
+      "minRiftLevel": 40,
+      "maxRiftLevel": 40,
+      "successOnly": true,
+      "checkpointOnly": false,
+      "classicOnly": false,
+      "modes": [
+        "standard"
+      ],
+      "tables": [
+        {
+          "id": "protector-commendation",
+          "lootTable": "protector-commendation",
+          "chancePercent": 100,
+          "rolls": 1,
+          "delivery": "ground"
+        },
+        {
+          "id": "cube-shards-cache",
+          "lootTable": "cube-shards-100",
+          "chancePercent": 100,
+          "rolls": 1,
+          "delivery": "ground"
+        }
+      ]
+    },
+    {
+      "id": "cosmic-rift-milestone-level-50",
+      "enabled": true,
+      "minRiftLevel": 50,
+      "maxRiftLevel": 50,
+      "successOnly": true,
+      "checkpointOnly": false,
+      "classicOnly": false,
+      "modes": [
+        "standard"
+      ],
+      "tables": [
+        {
+          "id": "protector-commendation",
+          "lootTable": "protector-commendation",
+          "chancePercent": 100,
+          "rolls": 1,
+          "delivery": "ground"
+        },
+        {
+          "id": "guaranteed-cosmic-artifact",
+          "lootTable": "cosmic-artifacts",
+          "chancePercent": 100,
+          "rolls": 1,
+          "itemLevel": 69,
+          "delivery": "ground"
+        }
+      ]
+    },
+    {
+      "id": "cosmic-rift-milestone-level-60",
+      "enabled": true,
+      "minRiftLevel": 60,
+      "maxRiftLevel": 60,
+      "successOnly": true,
+      "checkpointOnly": false,
+      "classicOnly": false,
+      "modes": [
+        "standard"
+      ],
+      "tables": [
+        {
+          "id": "protector-commendation",
+          "lootTable": "protector-commendation",
+          "chancePercent": 100,
+          "rolls": 1,
+          "delivery": "ground"
+        },
+        {
+          "id": "omega-file-box",
+          "lootTable": "omega-file-box-100",
+          "chancePercent": 100,
+          "rolls": 1,
+          "delivery": "ground"
+        }
+      ]
+    },
+    {
+      "id": "cosmic-rift-milestone-level-70",
+      "enabled": true,
+      "minRiftLevel": 70,
+      "maxRiftLevel": 70,
+      "successOnly": true,
+      "checkpointOnly": false,
+      "classicOnly": false,
+      "modes": [
+        "standard"
+      ],
+      "tables": [
+        {
+          "id": "protector-commendation",
+          "lootTable": "protector-commendation",
+          "chancePercent": 100,
+          "rolls": 2,
+          "delivery": "ground"
+        },
+        {
+          "id": "guaranteed-cosmic-artifacts",
+          "lootTable": "cosmic-artifacts",
+          "chancePercent": 100,
+          "rolls": 2,
+          "itemLevel": 69,
+          "delivery": "ground"
+        }
+      ]
+    },
+    {
+      "id": "cosmic-rift-milestone-level-80",
+      "enabled": true,
+      "minRiftLevel": 80,
+      "maxRiftLevel": 80,
+      "successOnly": true,
+      "checkpointOnly": false,
+      "classicOnly": false,
+      "modes": [
+        "standard"
+      ],
+      "tables": [
+        {
+          "id": "protector-commendation",
+          "lootTable": "protector-commendation",
+          "chancePercent": 100,
+          "rolls": 2,
+          "delivery": "ground"
+        },
+        {
+          "id": "omega-file-box",
+          "lootTable": "omega-file-box-100",
+          "chancePercent": 100,
+          "rolls": 1,
+          "delivery": "ground"
+        },
+        {
+          "id": "ultimate-upgrade-token",
+          "lootTable": "ultimate-upgrade-token",
+          "chancePercent": 20,
+          "rolls": 1,
+          "delivery": "ground"
+        }
+      ]
+    },
+    {
+      "id": "cosmic-rift-milestone-level-90",
+      "enabled": true,
+      "minRiftLevel": 90,
+      "maxRiftLevel": 90,
+      "successOnly": true,
+      "checkpointOnly": false,
+      "classicOnly": false,
+      "modes": [
+        "standard"
+      ],
+      "tables": [
+        {
+          "id": "protector-commendation",
+          "lootTable": "protector-commendation",
+          "chancePercent": 100,
+          "rolls": 2,
+          "delivery": "ground"
+        },
+        {
+          "id": "guaranteed-cosmic-artifacts",
+          "lootTable": "cosmic-artifacts",
+          "chancePercent": 100,
+          "rolls": 3,
+          "itemLevel": 69,
+          "delivery": "ground"
+        },
+        {
+          "id": "offense-defense-ring",
+          "lootTable": "offense-defense-ring",
+          "chancePercent": 100,
+          "rolls": 1,
+          "itemLevel": 69,
+          "delivery": "ground"
+        }
+      ]
+    },
+    {
+      "id": "cosmic-rift-milestone-level-100",
+      "enabled": true,
+      "minRiftLevel": 100,
+      "maxRiftLevel": 100,
+      "successOnly": true,
+      "checkpointOnly": false,
+      "classicOnly": false,
+      "modes": [
+        "standard"
+      ],
+      "tables": [
+        {
+          "id": "protector-commendation",
+          "lootTable": "protector-commendation",
+          "chancePercent": 100,
+          "rolls": 3,
+          "delivery": "ground"
+        },
+        {
+          "id": "guaranteed-cosmic-artifacts",
+          "lootTable": "cosmic-artifacts",
+          "chancePercent": 100,
+          "rolls": 4,
+          "itemLevel": 69,
+          "delivery": "ground"
+        },
+        {
+          "id": "ultimate-upgrade-token",
+          "lootTable": "ultimate-upgrade-token",
+          "chancePercent": 35,
+          "rolls": 1,
+          "delivery": "ground"
+        }
+      ]
+    },
+    {
+      "id": "rift-gauntlet-waves-1-9-baseline",
+      "enabled": true,
+      "minRiftLevel": 1,
+      "maxRiftLevel": 0,
+      "minWave": 1,
+      "maxWave": 9,
+      "successOnly": true,
+      "checkpointOnly": false,
+      "classicOnly": false,
+      "modes": [
+        "rift-gauntlet"
+      ],
+      "tables": [
+        {
+          "id": "cosmic-artifact-roll",
+          "lootTable": "cosmic-artifacts",
+          "chancePercent": 3,
+          "rolls": 1,
+          "itemLevel": 69,
+          "delivery": "ground"
+        },
+        {
+          "id": "danger-room-blue-box",
+          "lootTable": "danger-room-blue-box",
+          "chancePercent": 15,
+          "rolls": 1,
+          "delivery": "ground"
+        },
+        {
+          "id": "unique-single",
+          "lootTable": "unique-single",
+          "chancePercent": 5,
+          "rolls": 1,
+          "delivery": "ground",
+          "itemLevel": 69
+        }
+      ]
+    },
+    {
+      "id": "rift-gauntlet-waves-10-19-baseline",
+      "enabled": true,
+      "minRiftLevel": 1,
+      "maxRiftLevel": 0,
+      "minWave": 10,
+      "maxWave": 19,
+      "successOnly": true,
+      "checkpointOnly": false,
+      "classicOnly": false,
+      "modes": [
+        "rift-gauntlet"
+      ],
+      "tables": [
+        {
+          "id": "cosmic-artifact-roll",
+          "lootTable": "cosmic-artifacts",
+          "chancePercent": 8,
+          "rolls": 1,
+          "itemLevel": 69,
+          "delivery": "ground"
+        },
+        {
+          "id": "danger-room-blue-box",
+          "lootTable": "danger-room-blue-box",
+          "chancePercent": 25,
+          "rolls": 1,
+          "delivery": "ground"
+        },
+        {
+          "id": "unique-single",
+          "lootTable": "unique-single",
+          "chancePercent": 10,
+          "rolls": 1,
+          "delivery": "ground",
+          "itemLevel": 69
+        }
+      ]
+    },
+    {
+      "id": "rift-gauntlet-waves-20-24-baseline",
+      "enabled": true,
+      "minRiftLevel": 1,
+      "maxRiftLevel": 0,
+      "minWave": 20,
+      "maxWave": 24,
+      "successOnly": true,
+      "checkpointOnly": false,
+      "classicOnly": false,
+      "modes": [
+        "rift-gauntlet"
+      ],
+      "tables": [
+        {
+          "id": "cosmic-artifact-rolls",
+          "lootTable": "cosmic-artifacts",
+          "chancePercent": 20,
+          "rolls": 1,
+          "itemLevel": 69,
+          "delivery": "ground"
+        },
+        {
+          "id": "danger-room-blue-box",
+          "lootTable": "danger-room-blue-box",
+          "chancePercent": 35,
+          "rolls": 1,
+          "delivery": "ground"
+        },
+        {
+          "id": "unique-single",
+          "lootTable": "unique-single",
+          "chancePercent": 18,
+          "rolls": 1,
+          "delivery": "ground",
+          "itemLevel": 69
+        }
+      ]
+    },
+    {
+      "id": "rift-gauntlet-waves-25-29-cosmic-farm",
+      "enabled": true,
+      "minRiftLevel": 1,
+      "maxRiftLevel": 0,
+      "minWave": 25,
+      "maxWave": 29,
+      "successOnly": true,
+      "checkpointOnly": false,
+      "classicOnly": false,
+      "modes": [
+        "rift-gauntlet"
+      ],
+      "tables": [
+        {
+          "id": "cosmic-artifact-rolls",
+          "lootTable": "cosmic-artifacts",
+          "chancePercent": 30,
+          "rolls": 1,
+          "itemLevel": 69,
+          "delivery": "ground"
+        },
+        {
+          "id": "danger-room-blue-box",
+          "lootTable": "danger-room-blue-box",
+          "chancePercent": 50,
+          "rolls": 1,
+          "delivery": "ground"
+        },
+        {
+          "id": "unique-single",
+          "lootTable": "unique-single",
+          "chancePercent": 35,
+          "rolls": 1,
+          "itemLevel": 69,
+          "delivery": "ground"
+        },
+        {
+          "id": "hero-commendations",
+          "lootTable": "hero-commendations-25",
+          "chancePercent": 25,
+          "rolls": 1,
+          "delivery": "ground"
+        }
+      ]
+    },
+    {
+      "id": "rift-gauntlet-wave-5-milestone",
+      "enabled": true,
+      "minRiftLevel": 1,
+      "maxRiftLevel": 0,
+      "minWave": 5,
+      "maxWave": 5,
+      "successOnly": true,
+      "checkpointOnly": false,
+      "classicOnly": false,
+      "modes": [
+        "rift-gauntlet"
+      ],
+      "tables": [
+        {
+          "id": "danger-room-blue-box",
+          "lootTable": "danger-room-blue-box",
+          "chancePercent": 100,
+          "rolls": 1,
+          "delivery": "ground"
+        }
+      ]
+    },
+    {
+      "id": "rift-gauntlet-wave-10-milestone",
+      "enabled": true,
+      "minRiftLevel": 1,
+      "maxRiftLevel": 0,
+      "minWave": 10,
+      "maxWave": 10,
+      "successOnly": true,
+      "checkpointOnly": false,
+      "classicOnly": false,
+      "modes": [
+        "rift-gauntlet"
+      ],
+      "tables": [
+        {
+          "id": "danger-room-blue-box",
+          "lootTable": "danger-room-blue-box",
+          "chancePercent": 100,
+          "rolls": 1,
+          "delivery": "ground"
+        },
+        {
+          "id": "hero-commendations",
+          "lootTable": "hero-commendations-25",
+          "chancePercent": 50,
+          "rolls": 1,
+          "delivery": "ground"
+        }
+      ]
+    },
+    {
+      "id": "rift-gauntlet-wave-15-milestone",
+      "enabled": true,
+      "minRiftLevel": 1,
+      "maxRiftLevel": 0,
+      "minWave": 15,
+      "maxWave": 15,
+      "successOnly": true,
+      "checkpointOnly": false,
+      "classicOnly": false,
+      "modes": [
+        "rift-gauntlet"
+      ],
+      "tables": [
+        {
+          "id": "unique-single",
+          "lootTable": "unique-single",
+          "chancePercent": 100,
+          "rolls": 1,
+          "itemLevel": 69,
+          "delivery": "ground"
+        }
+      ]
+    },
+    {
+      "id": "rift-gauntlet-wave-20-milestone",
+      "enabled": true,
+      "minRiftLevel": 1,
+      "maxRiftLevel": 0,
+      "minWave": 20,
+      "maxWave": 20,
+      "successOnly": true,
+      "checkpointOnly": false,
+      "classicOnly": false,
+      "modes": [
+        "rift-gauntlet"
+      ],
+      "tables": [
+        {
+          "id": "hero-commendations",
+          "lootTable": "hero-commendations-25",
+          "chancePercent": 100,
+          "rolls": 1,
+          "delivery": "ground"
+        },
+        {
+          "id": "cube-shards-cache",
+          "lootTable": "cube-shards-100",
+          "chancePercent": 100,
+          "rolls": 1,
+          "delivery": "ground"
+        }
+      ]
+    },
+    {
+      "id": "rift-gauntlet-wave-25-milestone",
+      "enabled": true,
+      "minRiftLevel": 1,
+      "maxRiftLevel": 0,
+      "minWave": 25,
+      "maxWave": 25,
+      "successOnly": true,
+      "checkpointOnly": false,
+      "classicOnly": false,
+      "modes": [
+        "rift-gauntlet"
+      ],
+      "tables": [
+        {
+          "id": "protector-commendation",
+          "lootTable": "protector-commendation",
+          "chancePercent": 100,
+          "rolls": 1,
+          "delivery": "ground"
+        },
+        {
+          "id": "cosmic-artifact",
+          "lootTable": "cosmic-artifacts",
+          "chancePercent": 50,
+          "rolls": 1,
+          "itemLevel": 69,
+          "delivery": "ground"
+        }
+      ]
+    },
+    {
+      "id": "rift-gauntlet-wave-30-final",
+      "enabled": true,
+      "minRiftLevel": 1,
+      "maxRiftLevel": 0,
+      "minWave": 30,
+      "maxWave": 30,
+      "successOnly": true,
+      "checkpointOnly": false,
+      "classicOnly": false,
+      "modes": [
+        "rift-gauntlet"
+      ],
+      "tables": [
+        {
+          "id": "cosmic-artifact-final-rolls",
+          "lootTable": "cosmic-artifacts",
+          "chancePercent": 100,
+          "rolls": 1,
+          "itemLevel": 69,
+          "delivery": "ground"
+        },
+        {
+          "id": "protector-commendation",
+          "lootTable": "protector-commendation",
+          "chancePercent": 100,
+          "rolls": 2,
+          "delivery": "ground"
+        },
+        {
+          "id": "cube-shards-cache",
+          "lootTable": "cube-shards-100",
+          "chancePercent": 100,
+          "rolls": 2,
+          "delivery": "ground"
+        },
+        {
+          "id": "omega-file-box",
+          "lootTable": "omega-file-box-100",
+          "chancePercent": 100,
+          "rolls": 1,
+          "delivery": "ground"
+        },
+        {
+          "id": "ultimate-upgrade-token",
+          "lootTable": "ultimate-upgrade-token",
+          "chancePercent": 15,
+          "rolls": 1,
+          "delivery": "ground"
+        },
+        {
+          "id": "offense-defense-ring",
+          "lootTable": "offense-defense-ring",
+          "chancePercent": 35,
+          "rolls": 1,
+          "itemLevel": 69,
+          "delivery": "ground"
+        }
+      ]
+    },
+    {
+      "id": "boss-gauntlet-waves-1-4-payout",
+      "enabled": true,
+      "minRiftLevel": 1,
+      "maxRiftLevel": 0,
+      "minWave": 1,
+      "maxWave": 4,
+      "successOnly": false,
+      "checkpointOnly": false,
+      "classicOnly": false,
+      "modes": [
+        "boss-gauntlet"
+      ],
+      "tables": [
+        {
+          "id": "cube-shards-cache",
+          "lootTable": "cube-shards-100",
+          "chancePercent": 100,
+          "rolls": 2,
+          "delivery": "ground"
+        },
+        {
+          "id": "danger-room-blue-box",
+          "lootTable": "danger-room-blue-box",
+          "chancePercent": 35,
+          "rolls": 1,
+          "delivery": "ground"
+        },
+        {
+          "id": "unique-single",
+          "lootTable": "unique-single",
+          "chancePercent": 25,
+          "rolls": 1,
+          "itemLevel": 69,
+          "delivery": "ground"
+        }
+      ]
+    },
+    {
+      "id": "boss-gauntlet-waves-5-9-payout",
+      "enabled": true,
+      "minRiftLevel": 5,
+      "maxRiftLevel": 9,
+      "minWave": 5,
+      "maxWave": 9,
+      "successOnly": false,
+      "checkpointOnly": false,
+      "classicOnly": false,
+      "modes": [
+        "boss-gauntlet"
+      ],
+      "tables": [
+        {
+          "id": "cube-shards-cache",
+          "lootTable": "cube-shards-100",
+          "chancePercent": 100,
+          "rolls": 3,
+          "delivery": "ground"
+        },
+        {
+          "id": "danger-room-blue-box",
+          "lootTable": "danger-room-blue-box",
+          "chancePercent": 100,
+          "rolls": 1,
+          "delivery": "ground"
+        },
+        {
+          "id": "unique-single",
+          "lootTable": "unique-single",
+          "chancePercent": 75,
+          "rolls": 1,
+          "itemLevel": 69,
+          "delivery": "ground"
+        },
+        {
+          "id": "hero-commendations",
+          "lootTable": "hero-commendations-25",
+          "chancePercent": 35,
+          "rolls": 1,
+          "delivery": "ground"
+        }
+      ]
+    },
+    {
+      "id": "boss-gauntlet-waves-10-19-payout",
+      "enabled": true,
+      "minRiftLevel": 10,
+      "maxRiftLevel": 19,
+      "minWave": 10,
+      "maxWave": 19,
+      "successOnly": false,
+      "checkpointOnly": false,
+      "classicOnly": false,
+      "modes": [
+        "boss-gauntlet"
+      ],
+      "tables": [
+        {
+          "id": "cube-shards-cache",
+          "lootTable": "cube-shards-100",
+          "chancePercent": 100,
+          "rolls": 4,
+          "delivery": "ground"
+        },
+        {
+          "id": "danger-room-blue-box",
+          "lootTable": "danger-room-blue-box",
+          "chancePercent": 100,
+          "rolls": 2,
+          "delivery": "ground"
+        },
+        {
+          "id": "unique-double",
+          "lootTable": "unique-double",
+          "chancePercent": 100,
+          "rolls": 1,
+          "itemLevel": 69,
+          "delivery": "ground"
+        },
+        {
+          "id": "cosmic-artifact-roll",
+          "lootTable": "cosmic-artifacts",
+          "chancePercent": 45,
+          "rolls": 1,
+          "itemLevel": 69,
+          "delivery": "ground"
+        },
+        {
+          "id": "omega-file-box",
+          "lootTable": "omega-file-box-100",
+          "chancePercent": 50,
+          "rolls": 1,
+          "delivery": "ground"
+        }
+      ]
+    },
+    {
+      "id": "boss-gauntlet-waves-20-29-payout",
+      "enabled": true,
+      "minRiftLevel": 20,
+      "maxRiftLevel": 29,
+      "minWave": 20,
+      "maxWave": 29,
+      "successOnly": false,
+      "checkpointOnly": false,
+      "classicOnly": false,
+      "modes": [
+        "boss-gauntlet"
+      ],
+      "tables": [
+        {
+          "id": "cube-shards-cache",
+          "lootTable": "cube-shards-100",
+          "chancePercent": 100,
+          "rolls": 6,
+          "delivery": "ground"
+        },
+        {
+          "id": "unique-double",
+          "lootTable": "unique-double",
+          "chancePercent": 100,
+          "rolls": 2,
+          "itemLevel": 69,
+          "delivery": "ground"
+        },
+        {
+          "id": "cosmic-artifact-roll",
+          "lootTable": "cosmic-artifacts",
+          "chancePercent": 100,
+          "rolls": 1,
+          "itemLevel": 69,
+          "delivery": "ground"
+        },
+        {
+          "id": "offense-defense-ring",
+          "lootTable": "offense-defense-ring",
+          "chancePercent": 60,
+          "rolls": 1,
+          "itemLevel": 69,
+          "delivery": "ground"
+        },
+        {
+          "id": "omega-file-box",
+          "lootTable": "omega-file-box-100",
+          "chancePercent": 100,
+          "rolls": 1,
+          "delivery": "ground"
+        },
+        {
+          "id": "hero-commendations",
+          "lootTable": "hero-commendations-25",
+          "chancePercent": 100,
+          "rolls": 1,
+          "delivery": "ground"
+        }
+      ]
+    },
+    {
+      "id": "boss-gauntlet-waves-30-39-payout",
+      "enabled": true,
+      "minRiftLevel": 30,
+      "maxRiftLevel": 39,
+      "minWave": 30,
+      "maxWave": 39,
+      "successOnly": false,
+      "checkpointOnly": false,
+      "classicOnly": false,
+      "modes": [
+        "boss-gauntlet"
+      ],
+      "tables": [
+        {
+          "id": "cube-shards-cache",
+          "lootTable": "cube-shards-100",
+          "chancePercent": 100,
+          "rolls": 8,
+          "delivery": "ground"
+        },
+        {
+          "id": "cosmic-artifact-rolls",
+          "lootTable": "cosmic-artifacts",
+          "chancePercent": 100,
+          "rolls": 2,
+          "itemLevel": 69,
+          "delivery": "ground"
+        },
+        {
+          "id": "omega-file-box",
+          "lootTable": "omega-file-box-100",
+          "chancePercent": 100,
+          "rolls": 2,
+          "delivery": "ground"
+        },
+        {
+          "id": "offense-defense-ring",
+          "lootTable": "offense-defense-ring",
+          "chancePercent": 100,
+          "rolls": 1,
+          "itemLevel": 69,
+          "delivery": "ground"
+        },
+        {
+          "id": "unique-double",
+          "lootTable": "unique-double",
+          "chancePercent": 100,
+          "rolls": 2,
+          "itemLevel": 69,
+          "delivery": "ground"
+        },
+        {
+          "id": "ultimate-upgrade-token",
+          "lootTable": "ultimate-upgrade-token",
+          "chancePercent": 12,
+          "rolls": 1,
+          "delivery": "ground"
+        },
+        {
+          "id": "protector-commendation",
+          "lootTable": "protector-commendation",
+          "chancePercent": 100,
+          "rolls": 2,
+          "delivery": "ground"
+        }
+      ]
+    },
+    {
+      "id": "boss-gauntlet-waves-40-plus-payout",
+      "enabled": true,
+      "minRiftLevel": 40,
+      "maxRiftLevel": 0,
+      "minWave": 40,
+      "maxWave": 0,
+      "successOnly": false,
+      "checkpointOnly": false,
+      "classicOnly": false,
+      "modes": [
+        "boss-gauntlet"
+      ],
+      "tables": [
+        {
+          "id": "cube-shards-cache",
+          "lootTable": "cube-shards-100",
+          "chancePercent": 100,
+          "rolls": 12,
+          "delivery": "ground"
+        },
+        {
+          "id": "cosmic-artifact-rolls",
+          "lootTable": "cosmic-artifacts",
+          "chancePercent": 100,
+          "rolls": 3,
+          "itemLevel": 69,
+          "delivery": "ground"
+        },
+        {
+          "id": "omega-file-box",
+          "lootTable": "omega-file-box-100",
+          "chancePercent": 100,
+          "rolls": 3,
+          "delivery": "ground"
+        },
+        {
+          "id": "offense-defense-ring",
+          "lootTable": "offense-defense-ring",
+          "chancePercent": 100,
+          "rolls": 2,
+          "itemLevel": 69,
+          "delivery": "ground"
+        },
+        {
+          "id": "unique-double",
+          "lootTable": "unique-double",
+          "chancePercent": 100,
+          "rolls": 3,
+          "itemLevel": 69,
+          "delivery": "ground"
+        },
+        {
+          "id": "ultimate-upgrade-token",
+          "lootTable": "ultimate-upgrade-token",
+          "chancePercent": 30,
+          "rolls": 1,
+          "delivery": "ground"
+        },
+        {
+          "id": "protector-commendation",
+          "lootTable": "protector-commendation",
+          "chancePercent": 100,
+          "rolls": 3,
+          "delivery": "ground"
+        }
+      ]
+    }
+  ],
+  "randomItemPools": [],
+  "guaranteedItems": [
+    {
+      "id": "cube-shards-every-floor",
+      "enabled": true,
+      "itemPrototypeRuntimeId": 5912986280991070161,
+      "quantity": 1,
+      "minRiftLevel": 1,
+      "maxRiftLevel": 0,
+      "minWave": 1,
+      "maxWave": 0,
+      "successOnly": true,
+      "checkpointOnly": false,
+      "classicOnly": false,
+      "contentIds": [],
+      "bossSourceIds": [],
+      "delivery": "ground"
+    },
+    {
+      "id": "cosmic-rift-xp-orbs-levels-5-30",
+      "enabled": true,
+      "itemPrototypeRuntimeId": 12632728816580106976,
+      "quantity": 5,
+      "minRiftLevel": 5,
+      "maxRiftLevel": 30,
+      "minWave": 1,
+      "maxWave": 0,
+      "successOnly": true,
+      "checkpointOnly": false,
+      "classicOnly": false,
+      "modes": [
+        "standard"
+      ],
+      "contentIds": [],
+      "bossSourceIds": [],
+      "delivery": "ground"
+    },
+    {
+      "id": "rift-gauntlet-xp-orbs-waves-5-30",
+      "enabled": true,
+      "itemPrototypeRuntimeId": 12632728816580106976,
+      "quantity": 5,
+      "minRiftLevel": 1,
+      "maxRiftLevel": 0,
+      "minWave": 5,
+      "maxWave": 30,
+      "successOnly": true,
+      "checkpointOnly": false,
+      "classicOnly": false,
+      "modes": [
+        "rift-gauntlet"
+      ],
+      "contentIds": [],
+      "bossSourceIds": [],
+      "delivery": "ground"
+    },
+    {
+      "id": "boss-gauntlet-xp-orbs-cumulative-waves-10-plus",
+      "enabled": true,
+      "itemPrototypeRuntimeId": 12632728816580106976,
+      "quantity": 1,
+      "quantityMatchesRewardWave": true,
+      "cumulativeWaveQuantity": true,
+      "quantityCap": 40,
+      "minRiftLevel": 10,
+      "maxRiftLevel": 0,
+      "minWave": 10,
+      "maxWave": 0,
+      "successOnly": false,
+      "checkpointOnly": false,
+      "classicOnly": false,
+      "modes": [
+        "boss-gauntlet"
+      ],
+      "contentIds": [],
+      "bossSourceIds": [],
+      "delivery": "ground"
+    },
+    {
+      "id": "cube-shards-gauntlet-waves-20-29",
+      "enabled": true,
+      "itemPrototypeRuntimeId": 5912986280991070161,
+      "quantity": 1,
+      "minRiftLevel": 1,
+      "maxRiftLevel": 0,
+      "minWave": 20,
+      "maxWave": 29,
+      "successOnly": true,
+      "checkpointOnly": false,
+      "classicOnly": false,
+      "modes": [
+        "rift-gauntlet"
+      ],
+      "contentIds": [],
+      "bossSourceIds": [],
+      "delivery": "ground"
+    },
+    {
+      "id": "cube-shards-gauntlet-wave-30",
+      "enabled": true,
+      "itemPrototypeRuntimeId": 5912986280991070161,
+      "quantity": 2,
+      "minRiftLevel": 1,
+      "maxRiftLevel": 0,
+      "minWave": 30,
+      "maxWave": 30,
+      "successOnly": true,
+      "checkpointOnly": false,
+      "classicOnly": false,
+      "modes": [
+        "rift-gauntlet"
+      ],
+      "contentIds": [],
+      "bossSourceIds": [],
+      "delivery": "ground"
+    },
+    {
+      "id": "cube-shards-cosmic-checkpoint-bonus",
+      "enabled": true,
+      "itemPrototypeRuntimeId": 5912986280991070161,
+      "quantity": 1,
+      "minRiftLevel": 1,
+      "maxRiftLevel": 0,
+      "minWave": 1,
+      "maxWave": 0,
+      "successOnly": true,
+      "checkpointOnly": true,
+      "classicOnly": false,
+      "modes": [
+        "standard"
+      ],
+      "contentIds": [],
+      "bossSourceIds": [],
+      "delivery": "ground"
+    }
+  ]
+}

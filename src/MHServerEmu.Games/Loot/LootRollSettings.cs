@@ -20,6 +20,7 @@ namespace MHServerEmu.Games.Loot
         public int Level { get; set; } = 1;                     // LootRollOffsetLevelPrototype
         public bool UseLevelVerbatim { get; set; }              // LootRollUseLevelVerbatimPrototype
         public int LevelForRequirementCheck { get; set; }       // LootRollRequireLevelPrototype
+        public int ForcedItemLevel { get; set; }
 
         public PrototypeId DifficultyTier { get; set; }
         public PrototypeId RegionScenarioRarity { get; set; }   // LootRollRequireRegionScenarioRarityPrototype
@@ -64,6 +65,7 @@ namespace MHServerEmu.Games.Loot
             Level = other.Level;
             UseLevelVerbatim = other.UseLevelVerbatim;
             LevelForRequirementCheck = other.LevelForRequirementCheck;
+            ForcedItemLevel = other.ForcedItemLevel;
 
             DifficultyTier = other.DifficultyTier;
             RegionScenarioRarity = other.RegionScenarioRarity;
@@ -125,6 +127,7 @@ namespace MHServerEmu.Games.Loot
             Level = 1;
             UseLevelVerbatim = default;
             LevelForRequirementCheck = default;
+            ForcedItemLevel = default;
 
             DifficultyTier = default;
             RegionScenarioRarity = default;

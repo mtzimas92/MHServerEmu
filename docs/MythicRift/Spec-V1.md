@@ -1,0 +1,105 @@
+# Mythic Rift V1 Spec
+
+## Document Goal
+
+- Define a first playable, simple, and integrable version of Mythic Rift.
+- Serve as the basis for local implementation and then a patch proposal for TAHITI.
+
+## V1 Scope
+
+- Instanced mode for 1 to 5 players.
+- An interaction launches the content.
+- The exact entry point will be defined later.
+- A map is randomly selected from an approved pool.
+- A final boss is randomly selected from an approved pool.
+- The run is limited by a timer.
+- Level progression is supported.
+- Every 5th level is a boss-only checkpoint room instead of a classic quota map.
+- End rewards reuse existing systems as much as possible.
+- V1 must not depend on a manually distributed client patch.
+
+## V1 Objective
+
+- Deliver a first mode that is fun, replayable, and stable.
+- Minimize technical debt.
+- Avoid systems that are too ambitious for the first iteration.
+
+## V1 Gameplay Loop
+
+1. The player or group interacts with the Rift entry point.
+2. The system determines the requested Rift level.
+3. The server verifies that the level is unlocked for the player or leader.
+4. The server creates a Rift instance.
+5. The server selects a random map from the V1 pool, or a checkpoint boss room on levels 5/10/15/etc.
+6. The server selects a random boss from the V1 pool.
+7. Players enter the instance.
+8. The timer starts.
+9. In classic Rift levels, players kill the required enemy quota.
+10. In classic Rift levels, the server spawns the randomized Rift boss only after the quota is completed.
+11. In checkpoint Rift levels, the server spawns the empowered randomized boss immediately.
+12. If the final boss dies before the timer ends, the run succeeds.
+13. If the timer expires first, the run fails.
+14. On success, players receive end-of-run loot.
+15. On success, the next level is unlocked.
+
+## V1 Group Rules
+
+- Allowed group size: 1 to 5 players.
+- The mode must work in solo without group prerequisites.
+- In a group, V1 should ideally use the level selected by the leader.
+- All players present in the instance at the start participate in the run.
+
+## Victory Condition
+
+- The run is won when the Rift final boss dies before the timer expires.
+
+## Failure Condition
+
+- The run is lost when the timer expires before the final boss dies.
+- When the timer expires, online players still inside the Rift should be returned to the Danger Room hub automatically.
+
+## Timer
+
+- Exact timer values will be defined later.
+- V1 should support a visible timer through existing mission systems if possible.
+- If the existing client widgets do not render a safe timer, chat warnings are the guaranteed fallback.
+- The timer should ideally start when the run becomes active.
+
+## Level Progression
+
+- Levels start at 1.
+- Progression is potentially open-ended.
+- Success at level N unlocks N+1.
+- Beacon launches default to the player's highest unlocked level.
+- Players may choose a lower unlocked launch level for farming through a server-side command until a cleaner no-client-patch UI is available.
+- Levels divisible by 5 are mandatory checkpoint levels: clearing level 4 unlocks level 5, but clearing the level 5 boss-only checkpoint is required to unlock level 6.
+
+## Loot and Rewards
+
+- On timed success, the run grants an end reward.
+- That reward should primarily reuse:
+  - existing random world drops
+  - the selected final boss's normal drops
+- In addition, V1 applies a significant SIF / RIF bonus.
+- Boss-only checkpoint levels can apply a small extra timed-success bonus to make the mandatory tier gate feel more rewarding than a normal level.
+- The bonus, primary loot table, extra loot tables, level ranges, and inventory-vs-ground delivery should be configurable and easy for TAHITI to tune through a server JSON file.
+
+## V1 UI / UX
+
+- Reuse existing mission / metagame widgets if possible.
+- Avoid heavy custom UI in V1.
+- Suppress misleading native terminal objective text during active Rift runs, because the Rift boss can differ from the terminal's normal boss; current implementation may temporarily suspend the native terminal mission inside the Rift instance to achieve this without a client patch.
+- Suppress native `Region Events` objective tracker entries during active Rift runs; the current approach temporarily suspends those region-event missions only inside the active Rift instance and restores them when the run is cleaned up.
+- Prefer a simple kill-count objective first, then reveal the boss name only when the quota is complete.
+- In boss-only checkpoint rooms, hide the kill-count widget and show only the Rift level, timer, boss spawn message, and completion/failure feedback.
+- Intercept native mission/objective updates for controlled terminal objectives while a Rift is active, otherwise the client may rebuild terminal bounty counters after server-side widget suppression.
+- If the client keeps a native generic fraction tracker visible, the server may reuse it as a best-effort Rift kill quota counter.
+- If native terminal objective tracker text cannot be safely replaced without a client patch, hide it during the Rift instead and rely on chat feedback plus `rift status`.
+- Dynamic per-player item tooltip text for highest/selected Rift level is not expected to be practical without a client patch; use chat/server commands or a future server-driven interaction flow instead.
+- If game file changes are required for entry-point presentation, they should ideally be deployable through the Patcher.
+
+## TAHITI Compatibility
+
+- The patch must be readable and clean.
+- Core logic should stay server-side as much as possible.
+- Any dependency on game files should remain minimal and Patcher-compatible.
