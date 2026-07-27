@@ -122,6 +122,7 @@ namespace MHServerEmu.Games.MetaGames.GameModes
         private readonly EventPointer<PowerUpSpawnEvent> _powerUpSpawnEvent = new();
 
         private float _threat;
+        private int _lastScaledPlayerCount;
         private bool _isBossPhase;
         private bool _modeEnded;
         private ulong _powerUpEntityId;
@@ -152,7 +153,8 @@ namespace MHServerEmu.Games.MetaGames.GameModes
             SetModeText(_proto.Name);
 
             _threat = _persistedThreatByMetaGameId.TryGetValue(PersistedThreatKey, out float persistedThreat) ? persistedThreat : 0f;
-            _modeEnded = false;
+            _lastScaledPlayerCount = Math.Max(1, CountInWorldPlayers());
+	    _modeEnded = false;
             _powerUpEntityId = 0;
             _killCountThisPhase = 0;
             _powerUpCountThisPhase = 0;
@@ -278,7 +280,27 @@ namespace MHServerEmu.Games.MetaGames.GameModes
             // group could hold threat near zero far more easily than a solo player. Scale the rise the
             // same way so per-capita pressure stays roughly constant regardless of group size.
             int inWorldPlayerCount = Math.Max(1, CountInWorldPlayers());
-            _threat += _proto.WaveDifficultyPerSecond * inWorldPlayerCount * (WaveTickIntervalMS / 1000f);
+
+            // GetEffectiveFailureThreshold() scales the fail ceiling live off inWorldPlayerCount, but
+            // _threat itself was accumulated relative to whatever the ceiling was on the ticks that
+            // built it up. If a player leaves mid-phase, the ceiling instantly shrinks while the banked
+            // threat doesn't - confirmed live: a 2-player run sitting comfortably under a 50 ceiling
+            // (34.31) lost a player, the ceiling snapped to 25, and the very next tick auto-failed the
+            // remaining player on progress that had nothing to do with their own performance. Rescale
+            // the banked threat by the same ratio the ceiling just moved by, so threat/ceiling stays
+            // constant across a player count change instead of the ceiling alone lurching underneath it.
+            if (inWorldPlayerCount != _lastScaledPlayerCount)
+            {
+                float oldThreat = _threat;
+                _threat = _threat * inWorldPlayerCount / _lastScaledPlayerCount;
+
+                if (IsWaveBattleLoggingEnabled)
+                    LogWaveBattle($"RESCALE threat={oldThreat:F2}->{_threat:F2} players={_lastScaledPlayerCount}->{inWorldPlayerCount}");
+
+                _lastScaledPlayerCount = inWorldPlayerCount;
+            }
+
+	    _threat += _proto.WaveDifficultyPerSecond * inWorldPlayerCount * (WaveTickIntervalMS / 1000f);
             UpdateThreatMeter();
 
             int clustersPerPlayer = GetClustersPerPlayerThisTick();
