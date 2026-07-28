@@ -34,5 +34,29 @@
   },
   "18388199697347446112": {
     "en_us": "Opens a single-use Boss Gauntlet. Survive endless sequential boss waves; rewards drop on the ground when the gauntlet ends."
+  },
+  "18125085293394986243": {
+    "en_us": "Rift Completion Crafter"
+  },
+  "7125873549576570123": {
+    "en_us": "Place a Unique or Cosmic gear piece here to attempt a one-time Rift upgrade."
+  },
+  "15040965262186579301": {
+    "en_us": "Rift Unique Gear Upgrade"
+  },
+  "443208439140517184": {
+    "en_us": "Requires: Unique armor or weapon (item level 69-74)"
+  },
+  "8901031692473861378": {
+    "en_us": "Attempt to upgrade a Unique gear piece (slots 1-5, item level 69-74) by +1 item level. You have 3 attempts per completed Rift, 30% chance each. A successful upgrade ends your attempts for this run. Maximum item level 75."
+  },
+  "15297019336788215139": {
+    "en_us": "Rift Cosmic Gear Upgrade"
+  },
+  "3296466393336513802": {
+    "en_us": "Requires: Cosmic armor or weapon (item level 63-74)"
+  },
+  "9161134654277420337": {
+    "en_us": "Attempt to upgrade a Cosmic gear piece (slots 1-5, item level 63-74) by +1 item level. You have 3 attempts per completed Rift, 30% chance each. A successful upgrade ends your attempts for this run. Maximum item level 75."
   }
 }

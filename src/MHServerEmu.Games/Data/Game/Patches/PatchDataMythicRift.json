@@ -166,5 +166,13 @@
     "Description": "Use the Danger Room simulation chip icon for vendor/store Boss Gauntlet item surfaces.",
     "ValueType": "AssetId",
     "Value": 12202641426798417230
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Characters/Vendors/VendorTypes/TestVendorCrafter.prototype",
+    "Path": "AllowActionDonate",
+    "Description": "Disable the native 'donate items to increase rank' action on the Rift completion crafter - she has no persistent rank (spawned fresh each run with fixed attempts), so the button only confused players. Isolated re-test: this field previously failed to take effect alongside several LocaleStringId field patches that we now know don't reach the client at all (text-on-VendorType is client-resolved from its own local data) - testing this boolean action-flag on its own since it's a different kind of field (behavior, not display text) and vendor stock/behavior data has separately been confirmed to transmit correctly.",
+    "ValueType": "Boolean",
+    "Value": false
   }
 ]
