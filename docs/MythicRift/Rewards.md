@@ -6,7 +6,7 @@ Rift rewards are controlled by:
 
 The current profile is:
 
-`worthwhile-v7-climb-and-gauntlet`
+`worthwhile-v8-chest-payouts`
 
 The reward system is intentionally server-side and configurable. The desired player experience is deliberate ground loot, clear progression value, and targetable chase rewards rather than random native terminal/event loot.
 
@@ -19,9 +19,19 @@ The reward system is intentionally server-side and configurable. The desired pla
 | `grantBossLootOnFailure` | Disabled by default. |
 | `grantBossLootInThirtyWaveMode` | Disabled so Rift Gauntlet uses managed rewards instead of every boss dumping native loot. |
 | `suppressNativeRiftBossLoot` | Prevents duplicate native drops from Rift bosses. |
-| `defaultDelivery` | `ground`; managed loot should appear on the floor. |
+| `defaultDelivery` | `ground`; managed baseline loot should appear on the floor unless an entry opts into chests. |
 
 Rift bosses should not produce both inventory-delivered and ground-delivered duplicates. Managed reward drops are meant to be visible and deliberate.
+
+## Delivery Modes
+
+Reward table entries and guaranteed items can set:
+
+- `ground`: roll or spawn immediately onto the floor.
+- `inventory`: give directly to the player.
+- `chest`: group the player's chest-delivered rewards into one interactable Rift reward chest. The loot is not rolled until that player opens the chest, then it drops on the ground at the chest position.
+
+The current profile uses `chest` for reward recipe table rolls and keeps guaranteed currency/XP items on `ground`. This makes chase loot feel like a deliberate payout while keeping cube shards and XP orbs reliable.
 
 ## Loot Table Aliases
 

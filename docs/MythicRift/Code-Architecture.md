@@ -77,10 +77,11 @@ Active run:
 Completion/failure:
 
 1. Managed rewards resolve through `MythicRiftRewardTuning`.
-2. Completion crafter attempts are granted on successful eligible runs.
-3. Return portal is spawned on completion.
-4. Failure returns or recovers players where possible, with special Boss Gauntlet death recovery.
-5. Difficulty scaling and temporary state are restored.
+2. Entries using `delivery: "chest"` spawn one player-owned reward chest; table rolls happen when that chest is opened.
+3. Completion crafter attempts are granted on successful eligible runs.
+4. Return portal is spawned on completion.
+5. Failure returns or recovers players where possible, with special Boss Gauntlet death recovery.
+6. Difficulty scaling and temporary state are restored.
 
 ## Vendor And Crafter Notes
 

@@ -34,6 +34,14 @@ namespace MHServerEmu.Games.Tests.MythicRifts
         }
 
         [Fact]
+        public void NormalizeDelivery_AllowsChestRewards()
+        {
+            Assert.Equal("chest", MythicRiftRewardTuning.NormalizeDelivery("chest"));
+            Assert.True(MythicRiftRewardTuning.IsChestDelivery("chest"));
+            Assert.False(MythicRiftRewardTuning.IsGroundDelivery("chest"));
+        }
+
+        [Fact]
         public void RewardRecipe_AppliesToConfiguredBossAndLevel()
         {
             MythicRiftRewardRecipeTuning recipe = new()

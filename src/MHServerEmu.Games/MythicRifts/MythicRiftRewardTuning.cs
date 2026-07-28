@@ -95,14 +95,23 @@ namespace MHServerEmu.Games.MythicRifts
 
         public static string NormalizeDelivery(string delivery)
         {
-            return string.Equals(delivery, "ground", StringComparison.OrdinalIgnoreCase)
-                ? "ground"
-                : "inventory";
+            if (string.Equals(delivery, "ground", StringComparison.OrdinalIgnoreCase))
+                return "ground";
+
+            if (string.Equals(delivery, "chest", StringComparison.OrdinalIgnoreCase))
+                return "chest";
+
+            return "inventory";
         }
 
         public static bool IsGroundDelivery(string delivery)
         {
             return string.Equals(NormalizeDelivery(delivery), "ground", StringComparison.OrdinalIgnoreCase);
+        }
+
+        public static bool IsChestDelivery(string delivery)
+        {
+            return string.Equals(NormalizeDelivery(delivery), "chest", StringComparison.OrdinalIgnoreCase);
         }
 
         public static bool MatchesBossSourceIds(MythicRiftRunState runState, IReadOnlyCollection<string> bossSourceIds)
