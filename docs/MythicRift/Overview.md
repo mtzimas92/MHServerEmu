@@ -76,6 +76,21 @@ Difficulty tiers are selected by launcher/run state:
 - Rift Gauntlet enters high tier at wave 20+.
 - Boss Gauntlet enters high tier at wave 50+.
 
+## Rift Modifiers
+
+Runs now roll native Danger Room enemy affixes from the existing `RegionAffixTable` system.
+
+Cosmic Rift and Rift Gauntlet roll rift-wide region affixes before teleport, so the private region is created with those affixes and native population can inherit them. Rift-spawned bosses, milestone mini-bosses, and custom Rift population also receive the same enemy boosts so they do not feel disconnected from the run modifier.
+
+Boss Gauntlet keeps the arena stable but rolls boss-scoped affixes per wave. The same boss can therefore fight differently across waves or runs without patching shared boss prototypes.
+
+Current first-pass modifier counts:
+
+- Cosmic Rift and Rift Gauntlet: 1 affix by default, 2 at level/wave 30, 3 at level/wave 70.
+- Boss Gauntlet: 1 boss affix by default, 2 at wave 30, 3 at wave 70.
+
+This first pass intentionally uses enemy-boost affixes only. Player lockout affixes, scripted environmental hazards, ready-check widgets, and leaderboards are still future work.
+
 ## Content Rules
 
 The mode selects from registered `MythicRiftContentEntry` map and boss entries. SIP presence is not enough to make a region or boss safe; random eligibility should only include entries that have been tested for teleporting, UI behavior, native event suppression, boss AI, spawn bounds, and reward behavior.

@@ -18,6 +18,8 @@ namespace MHServerEmu.Games.MythicRifts
         public PrototypeId MissionProtoRef { get; init; }
         public PrototypeId BossProtoRef { get; init; }
         public PrototypeId BossLootTableProtoRef { get; init; }
+        public IReadOnlyList<PrototypeId> RegionAffixes { get; init; } = Array.Empty<PrototypeId>();
+        public IReadOnlyList<PrototypeId> BossAffixes { get; init; } = Array.Empty<PrototypeId>();
         public MythicRiftDifficultySnapshot Difficulty { get; init; }
         public MythicRiftMode Mode { get; init; }
         public int WaveNumber { get; init; } = 1;

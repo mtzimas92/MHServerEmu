@@ -787,7 +787,7 @@ namespace MHServerEmu.Games.MythicRifts
             }
 
             PrototypeId difficultyTierRef = GetRiftDifficultyTierRef(runState);
-            if (TryTeleportPlayerToRunEntry(player, regionProtoRef, areaProtoRef, cellProtoRef, entityProtoRef, difficultyTierRef, usePartyTeleportContext: player.GetParty() != null, out string leaderTeleportError) == false)
+            if (TryTeleportPlayerToRunEntry(player, runState, regionProtoRef, areaProtoRef, cellProtoRef, entityProtoRef, difficultyTierRef, usePartyTeleportContext: player.GetParty() != null, out string leaderTeleportError) == false)
             {
                 result.TeleportSucceeded = false;
                 result.TeleportErrorMessage = string.IsNullOrWhiteSpace(leaderTeleportError)
@@ -829,7 +829,7 @@ namespace MHServerEmu.Games.MythicRifts
             return true;
         }
 
-        private bool TryTeleportPlayerToRunEntry(Player player, PrototypeId regionProtoRef, PrototypeId areaProtoRef, PrototypeId cellProtoRef, PrototypeId entityProtoRef, PrototypeId difficultyTierRef, bool usePartyTeleportContext, out string errorMessage)
+        private bool TryTeleportPlayerToRunEntry(Player player, MythicRiftRunState runState, PrototypeId regionProtoRef, PrototypeId areaProtoRef, PrototypeId cellProtoRef, PrototypeId entityProtoRef, PrototypeId difficultyTierRef, bool usePartyTeleportContext, out string errorMessage)
         {
             errorMessage = string.Empty;
 
@@ -845,6 +845,14 @@ namespace MHServerEmu.Games.MythicRifts
                 usePartyTeleportContext ? TeleportContextEnum.TeleportContext_Party : TeleportContextEnum.TeleportContext_Debug);
             teleporter.BypassQueueRegionForRift = true;
             teleporter.DifficultyTierRef = difficultyTierRef;
+            if (runState?.Config?.RegionAffixes != null)
+            {
+                foreach (PrototypeId affix in runState.Config.RegionAffixes)
+                {
+                    if (affix != PrototypeId.Invalid)
+                        teleporter.Affixes.Add(affix);
+                }
+            }
 
             bool teleportSucceeded = teleporter.TeleportToTarget(regionProtoRef, areaProtoRef, cellProtoRef, entityProtoRef);
             if (teleportSucceeded)
@@ -902,7 +910,7 @@ namespace MHServerEmu.Games.MythicRifts
                     continue;
                 }
 
-                if (TryTeleportPlayerToRunEntry(member, regionProtoRef, areaProtoRef, cellProtoRef, entityProtoRef, difficultyTierRef, usePartyTeleportContext: true, out string errorMessage))
+                if (TryTeleportPlayerToRunEntry(member, runState, regionProtoRef, areaProtoRef, cellProtoRef, entityProtoRef, difficultyTierRef, usePartyTeleportContext: true, out string errorMessage))
                 {
                     runState.MarkParticipantAdmitted(memberDbId);
                     continue;

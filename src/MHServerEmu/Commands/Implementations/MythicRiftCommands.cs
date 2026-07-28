@@ -439,7 +439,9 @@ namespace MHServerEmu.Commands.Implementations
                 $"region={config.RegionProtoRef.GetNameFormatted()}",
                 $"mission={config.MissionProtoRef.GetNameFormatted()}",
                 $"bossSource={config.BossContent?.Id ?? "n/a"} | boss={config.BossProtoRef.GetNameFormatted()}",
-                $"bossLoot={config.BossLootTableProtoRef.GetNameFormatted()}"
+                $"bossLoot={config.BossLootTableProtoRef.GetNameFormatted()}",
+                $"regionAffixes={FormatPrototypeRefList(config.RegionAffixes)}",
+                $"bossAffixes={FormatPrototypeRefList(config.BossAffixes)}"
             };
 
             CommandHelper.SendMessages(client, lines);
@@ -492,7 +494,7 @@ namespace MHServerEmu.Commands.Implementations
                 }
 
                 lines.Add(
-                    $"sample={index + 1} | map={config.Content.Id} | bossSource={config.BossContent?.Id ?? "n/a"} | sameEntry={(string.Equals(config.Content.Id, config.BossContent?.Id, StringComparison.OrdinalIgnoreCase))} | quota={config.KillQuota} | timer={config.TimeLimit.TotalMinutes:0} min");
+                    $"sample={index + 1} | map={config.Content.Id} | bossSource={config.BossContent?.Id ?? "n/a"} | sameEntry={(string.Equals(config.Content.Id, config.BossContent?.Id, StringComparison.OrdinalIgnoreCase))} | quota={config.KillQuota} | timer={config.TimeLimit.TotalMinutes:0} min | regionAffixes={FormatPrototypeRefList(config.RegionAffixes)} | bossAffixes={FormatPrototypeRefList(config.BossAffixes)}");
             }
 
             CommandHelper.SendMessages(client, lines);
@@ -645,7 +647,9 @@ namespace MHServerEmu.Commands.Implementations
                 $"region={config.RegionProtoRef.GetNameFormatted()}",
                 $"mission={config.MissionProtoRef.GetNameFormatted()}",
                 $"bossSource={config.BossContent?.Id ?? "n/a"} | boss={config.BossProtoRef.GetNameFormatted()}",
-                $"bossLoot={config.BossLootTableProtoRef.GetNameFormatted()}"
+                $"bossLoot={config.BossLootTableProtoRef.GetNameFormatted()}",
+                $"regionAffixes={FormatPrototypeRefList(config.RegionAffixes)}",
+                $"bossAffixes={FormatPrototypeRefList(config.BossAffixes)}"
             };
 
             CommandHelper.SendMessages(client, lines);
@@ -2367,6 +2371,11 @@ namespace MHServerEmu.Commands.Implementations
             teleporter.DifficultyTierRef = player.GetDifficultyTierForRegion(runState.Config.RegionProtoRef);
             if (teleporter.DifficultyTierRef == PrototypeId.Invalid)
                 teleporter.DifficultyTierRef = GameDatabase.GlobalsPrototype.DifficultyTierDefault;
+            foreach (PrototypeId affix in runState.Config.RegionAffixes)
+            {
+                if (affix != PrototypeId.Invalid)
+                    teleporter.Affixes.Add(affix);
+            }
 
             PrototypeId cellProtoRef = GameDatabase.GetDataRefByAsset(startTargetProto.Cell);
             if (teleporter.TeleportToTarget(runState.Config.RegionProtoRef, startTargetProto.Area, cellProtoRef, startTargetProto.Entity))
@@ -2577,7 +2586,7 @@ namespace MHServerEmu.Commands.Implementations
 
             List<string> lines = new()
             {
-                $"level={runState.Config.RiftLevel} | rewardLevel={rewardLevel} | wave={rewardWave} | mode={FormatModeCommandToken(runState.Config.Mode)} | map={runState.Config.Content.Id} | bossSource={runState.Config.BossContent?.Id ?? "n/a"} | profile={rewardOutcome?.RewardProfileName ?? "none"}",
+                $"level={runState.Config.RiftLevel} | rewardLevel={rewardLevel} | wave={rewardWave} | mode={FormatModeCommandToken(runState.Config.Mode)} | map={runState.Config.Content.Id} | bossSource={runState.Config.BossContent?.Id ?? "n/a"} | regionAffixes={FormatPrototypeRefList(runState.Config.RegionAffixes)} | bossAffixes={FormatPrototypeRefList(runState.Config.BossAffixes)} | profile={rewardOutcome?.RewardProfileName ?? "none"}",
                 $"rewardSummary bossLoot={bossLoot} | bossDelivery={rewardOutcome?.BossLootDelivery ?? "none"} | extraTables={rewardOutcome?.ExtraLootTables.Count ?? 0} [{extraIds}] | guaranteedItems={rewardOutcome?.GuaranteedItems.Count ?? 0} [{guaranteedIds}] | bonusRIF={rewardOutcome?.BonusRarityPct ?? 0f:P0} | bonusSIF={rewardOutcome?.BonusSpecialPct ?? 0f:P0}"
             };
 
@@ -2623,6 +2632,16 @@ namespace MHServerEmu.Commands.Implementations
             return formatted;
         }
 
+        private static string FormatPrototypeRefList(IReadOnlyList<PrototypeId> prototypeRefs)
+        {
+            if (prototypeRefs == null || prototypeRefs.Count == 0)
+                return "none";
+
+            return string.Join(", ", prototypeRefs
+                .Where(prototypeRef => prototypeRef != PrototypeId.Invalid)
+                .Select(prototypeRef => prototypeRef.GetNameFormatted()));
+        }
+
         private static List<string> BuildRunLines(MythicRiftRunState runState, TimeSpan currentTime, bool includeResolvedRefs)
         {
             List<string> lines = new()
@@ -2639,6 +2658,7 @@ namespace MHServerEmu.Commands.Implementations
                 $"participants={runState.ParticipantCount} | earlyExits={runState.EarlyExitPlayerDbIds.Count} | rewardedPlayers={runState.RewardedPlayerCount}",
                 $"competitiveEligibility=bossUnlock:{runState.BossUnlockEligiblePlayerDbIds.Count} | bossKill:{runState.ProgressionEligiblePlayerDbIds.Count}",
                 $"customPopulation={runState.Config.Content.UseCustomPopulation} | customSpawned={runState.CustomPopulationTotalSpawned} | customTracked={runState.CustomPopulationEntityIds.Count} | checkpointBoss={runState.Config.Content.BossOnlyCheckpointEligible}",
+                $"regionAffixes={FormatPrototypeRefList(runState.Config.RegionAffixes)} | bossAffixes={FormatPrototypeRefList(runState.Config.BossAffixes)}",
                 $"nextUnlockOnSuccess={runState.Config.RiftLevel + 1}"
             };
 

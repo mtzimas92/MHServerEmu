@@ -1,4 +1,5 @@
 using Gazillion;
+using MHServerEmu.Core.Collections;
 using MHServerEmu.Core.Helpers;
 using MHServerEmu.Core.Logging;
 using MHServerEmu.Core.Memory;
@@ -62,6 +63,10 @@ namespace MHServerEmu.Games.MythicRifts
         private const int MilestoneMiniBossKillCredit = 10;
         private const int RiftPopulationRespawnDelayMS = 20000;
         private const int RecentRandomMapHistoryLimit = 4;
+        private const int RiftSecondRegionAffixStartLevel = 30;
+        private const int RiftThirdRegionAffixStartLevel = 70;
+        private const int BossGauntletSecondBossAffixStartWave = 30;
+        private const int BossGauntletThirdBossAffixStartWave = 70;
         private const ulong RiftEntryBannerLocaleStringBase = 18000000000000000000UL;
         private const int RiftEntryBannerLocalizedLevelLimit = 10000;
         private const int RiftEntryBannerTimeToLiveMS = 5000;
@@ -78,6 +83,7 @@ namespace MHServerEmu.Games.MythicRifts
         private static readonly PrototypeId RiftDangerRoomTimerWidgetPrototypeRef = (PrototypeId)15369535438503023451UL;
         private const string RiftExitPortalPrototypeName = "Entity/Transitions/ReturnToLastBaseDR.prototype";
         private const string RiftRewardChestPrototypeName = "Entity/Props/Chests/DangerRoomChestTutorialRewardEntity.prototype";
+        private const string DefaultRiftAffixTablePrototypeName = "Regions/Affixes/RegionAffixTable.defaults";
         private const string RiftCompletionVendorPrototypeName = "Entity/Characters/Vendors/Prototypes/Endgame/DangerRoomRewardsVendor.prototype";
         private const string RiftCompletionCrafterTypePrototypeName = "Entity/Characters/Vendors/VendorTypes/TestVendorCrafter.prototype";
         private static readonly PrototypeId RiftCompletionCrafterRecipePrototypeRef = (PrototypeId)9691334961261451315UL;
@@ -4468,6 +4474,13 @@ namespace MHServerEmu.Games.MythicRifts
             if (bossWaveContent.Count == 0)
                 return null;
 
+            IReadOnlyList<PrototypeId> regionAffixes = useBossGauntletMode
+                ? Array.Empty<PrototypeId>()
+                : RollRiftRegionAffixes(content, waveNumber, useBossScopedAffixes: false);
+            IReadOnlyList<PrototypeId> bossAffixes = useBossGauntletMode
+                ? RollRiftRegionAffixes(content, waveNumber, useBossScopedAffixes: true)
+                : Array.Empty<PrototypeId>();
+
             int resolvedKillQuota = useBossGauntletMode
                 ? 1
                 : content.BossOnlyCheckpointEligible
@@ -4492,11 +4505,114 @@ namespace MHServerEmu.Games.MythicRifts
                 MissionProtoRef = content.MissionProtoRef,
                 BossProtoRef = bossContent.BossProtoRef,
                 BossLootTableProtoRef = bossContent.BossLootTableProtoRef,
+                RegionAffixes = regionAffixes,
+                BossAffixes = bossAffixes,
                 Difficulty = difficulty,
                 Mode = mode,
                 WaveNumber = waveNumber,
                 RequiredBossKillCount = bossWaveContent.Count
             };
+        }
+
+        private IReadOnlyList<PrototypeId> RollRiftRegionAffixes(MythicRiftContentEntry content, int levelOrWave, bool useBossScopedAffixes)
+        {
+            int affixCount = GetRiftAffixCount(levelOrWave, useBossScopedAffixes);
+            if (affixCount <= 0)
+                return Array.Empty<PrototypeId>();
+
+            RegionAffixTablePrototype affixTableProto = ResolveRiftAffixTable(content);
+            if (affixTableProto?.RegionAffixes == null || affixTableProto.RegionAffixes.Length == 0)
+                return Array.Empty<PrototypeId>();
+
+            List<PrototypeId> pickedAffixes = new(affixCount);
+            HashSet<PrototypeId> blockedAffixes = new();
+            for (int pick = 0; pick < affixCount; pick++)
+            {
+                Picker<PrototypeId> picker = new(Game.Random);
+                foreach (RegionAffixWeightedEntryPrototype weightedEntryProto in affixTableProto.RegionAffixes)
+                {
+                    if (weightedEntryProto == null ||
+                        weightedEntryProto.Affix == PrototypeId.Invalid ||
+                        weightedEntryProto.Weight <= 0 ||
+                        pickedAffixes.Contains(weightedEntryProto.Affix) ||
+                        blockedAffixes.Contains(weightedEntryProto.Affix))
+                    {
+                        continue;
+                    }
+
+                    RegionAffixPrototype affixProto = weightedEntryProto.Affix.As<RegionAffixPrototype>();
+                    if (IsUsableRiftEnemyAffix(affixProto) == false)
+                        continue;
+
+                    picker.Add(weightedEntryProto.Affix, weightedEntryProto.Weight);
+                }
+
+                if (picker.Pick(out PrototypeId pickedAffix) == false || pickedAffix == PrototypeId.Invalid)
+                    break;
+
+                pickedAffixes.Add(pickedAffix);
+                AddRestrictedRiftAffixes(pickedAffix, blockedAffixes);
+            }
+
+            return pickedAffixes;
+        }
+
+        private static int GetRiftAffixCount(int levelOrWave, bool useBossScopedAffixes)
+        {
+            int secondAffixStart = useBossScopedAffixes
+                ? BossGauntletSecondBossAffixStartWave
+                : RiftSecondRegionAffixStartLevel;
+            int thirdAffixStart = useBossScopedAffixes
+                ? BossGauntletThirdBossAffixStartWave
+                : RiftThirdRegionAffixStartLevel;
+
+            int affixCount = 1;
+            if (levelOrWave >= secondAffixStart)
+                affixCount++;
+            if (levelOrWave >= thirdAffixStart)
+                affixCount++;
+
+            return affixCount;
+        }
+
+        private static RegionAffixTablePrototype ResolveRiftAffixTable(MythicRiftContentEntry content)
+        {
+            RegionPrototype regionProto = content?.RegionProtoRef.As<RegionPrototype>();
+            RegionAffixTablePrototype affixTableProto = regionProto?.AffixTable.As<RegionAffixTablePrototype>();
+            if (affixTableProto?.RegionAffixes != null && affixTableProto.RegionAffixes.Length > 0)
+                return affixTableProto;
+
+            return GameDatabase.GetPrototype<RegionAffixTablePrototype>(
+                GameDatabase.GetPrototypeRefByName(DefaultRiftAffixTablePrototypeName));
+        }
+
+        private static bool IsUsableRiftEnemyAffix(RegionAffixPrototype affixProto)
+        {
+            if (affixProto == null)
+                return false;
+
+            if (affixProto.EnemyBoost != PrototypeId.Invalid)
+                return true;
+
+            return affixProto.EnemyBoostsFiltered != null &&
+                   affixProto.EnemyBoostsFiltered.Any(entry => entry?.EnemyBoost != PrototypeId.Invalid);
+        }
+
+        private static void AddRestrictedRiftAffixes(PrototypeId pickedAffix, HashSet<PrototypeId> blockedAffixes)
+        {
+            if (pickedAffix == PrototypeId.Invalid || blockedAffixes == null)
+                return;
+
+            blockedAffixes.Add(pickedAffix);
+            RegionAffixPrototype pickedAffixProto = pickedAffix.As<RegionAffixPrototype>();
+            if (pickedAffixProto?.RestrictsAffixes == null)
+                return;
+
+            foreach (PrototypeId restrictedAffix in pickedAffixProto.RestrictsAffixes)
+            {
+                if (restrictedAffix != PrototypeId.Invalid)
+                    blockedAffixes.Add(restrictedAffix);
+            }
         }
 
         private bool TryStartBossOnlyCheckpoint(MythicRiftRunState runState, TimeSpan currentTime)
@@ -4555,7 +4671,9 @@ namespace MHServerEmu.Games.MythicRifts
             _nextCheckpointBossSpawnRetryAt.Remove(runState.Config.RunId);
             CaptureBossUnlockEligibility(runState);
             RefreshRiftHudWidgets(runState, currentTime);
-            NotifyRunPlayers(runState, $"[Mythic Rift] Boss Gauntlet wave {runState.Config.WaveNumber} started. Bosses this wave: {runState.Config.RequiredBossKillCount}.");
+            string modifierText = BuildRiftModifierText(runState.Config);
+            string modifierSuffix = string.IsNullOrWhiteSpace(modifierText) ? string.Empty : $" Modifiers: {modifierText}.";
+            NotifyRunPlayers(runState, $"[Mythic Rift] Boss Gauntlet wave {runState.Config.WaveNumber} started. Bosses this wave: {runState.Config.RequiredBossKillCount}.{modifierSuffix}");
             Logger.Info($"Mythic Rift run {runState.Config.RunId} started Boss Gauntlet wave {runState.Config.WaveNumber} with {runState.Config.RequiredBossKillCount} boss(es).");
             return true;
         }
@@ -4610,6 +4728,7 @@ namespace MHServerEmu.Games.MythicRifts
                 wave,
                 runState.Config.RequestedPlayerCount,
                 MythicRiftMode.BossGauntlet);
+            IReadOnlyList<PrototypeId> bossAffixes = RollRiftRegionAffixes(runState.Config.Content, wave, useBossScopedAffixes: true);
 
             return new MythicRiftRunConfig
             {
@@ -4627,6 +4746,8 @@ namespace MHServerEmu.Games.MythicRifts
                 MissionProtoRef = runState.Config.MissionProtoRef,
                 BossProtoRef = bossContent.BossProtoRef,
                 BossLootTableProtoRef = bossContent.BossLootTableProtoRef,
+                RegionAffixes = runState.Config.RegionAffixes,
+                BossAffixes = bossAffixes,
                 Difficulty = difficulty,
                 Mode = MythicRiftMode.BossGauntlet,
                 WaveNumber = wave,
@@ -4799,6 +4920,7 @@ namespace MHServerEmu.Games.MythicRifts
             settingsProperties[PropertyEnum.DifficultyTier] = region.DifficultyTierRef;
             settingsProperties[PropertyEnum.Rank] = mobProto.Rank?.DataRef ?? PrototypeId.Invalid;
             settingsProperties[PropertyEnum.MissionXEncounterHostilityOk] = true;
+            ApplyRunAffixesToSpawnProperties(runState, mobProto.Rank?.DataRef ?? PrototypeId.Invalid, settingsProperties, includeBossScopedAffixes: false);
             settings.Properties = settingsProperties;
 
             Agent spawnedAgent = Game.EntityManager.CreateEntity(settings) as Agent;
@@ -4812,6 +4934,76 @@ namespace MHServerEmu.Games.MythicRifts
             }
 
             runState.RegisterCustomPopulationEntity(spawnedAgent.Id);
+            return true;
+        }
+
+        private void ApplyRunAffixesToSpawnProperties(
+            MythicRiftRunState runState,
+            PrototypeId rankRef,
+            PropertyCollection properties,
+            bool includeBossScopedAffixes)
+        {
+            if (runState?.Config == null || properties == null)
+                return;
+
+            HashSet<PrototypeId> enemyBoosts = new();
+            AddEnemyBoostsForAffixes(runState.Config.RegionAffixes, rankRef, enemyBoosts);
+            if (includeBossScopedAffixes)
+                AddEnemyBoostsForAffixes(runState.Config.BossAffixes, rankRef, enemyBoosts);
+
+            foreach (PrototypeId enemyBoost in enemyBoosts)
+                properties[PropertyEnum.EnemyBoost, enemyBoost] = true;
+        }
+
+        private static void AddEnemyBoostsForAffixes(IReadOnlyList<PrototypeId> affixes, PrototypeId rankRef, HashSet<PrototypeId> enemyBoosts)
+        {
+            if (affixes == null || affixes.Count == 0 || enemyBoosts == null)
+                return;
+
+            foreach (PrototypeId affix in affixes)
+                AddEnemyBoostsForAffix(affix, rankRef, enemyBoosts);
+        }
+
+        private static void AddEnemyBoostsForAffix(PrototypeId affix, PrototypeId rankRef, HashSet<PrototypeId> enemyBoosts)
+        {
+            RegionAffixPrototype affixProto = affix.As<RegionAffixPrototype>();
+            if (affixProto == null)
+                return;
+
+            if (affixProto.EnemyBoost != PrototypeId.Invalid)
+                enemyBoosts.Add(affixProto.EnemyBoost);
+
+            if (affixProto.EnemyBoostsFiltered == null)
+                return;
+
+            foreach (EnemyBoostEntryPrototype entry in affixProto.EnemyBoostsFiltered)
+            {
+                if (entry == null || entry.EnemyBoost == PrototypeId.Invalid)
+                    continue;
+
+                if (CanApplyFilteredEnemyBoost(entry, rankRef))
+                    enemyBoosts.Add(entry.EnemyBoost);
+            }
+        }
+
+        private static bool CanApplyFilteredEnemyBoost(EnemyBoostEntryPrototype entry, PrototypeId rankRef)
+        {
+            if (entry == null)
+                return false;
+
+            if (entry.RanksAllowed != null &&
+                entry.RanksAllowed.Length > 0 &&
+                entry.RanksAllowed.Contains(rankRef) == false)
+            {
+                return false;
+            }
+
+            if (entry.RanksPrevented != null &&
+                entry.RanksPrevented.Contains(rankRef))
+            {
+                return false;
+            }
+
             return true;
         }
 
@@ -4975,6 +5167,7 @@ namespace MHServerEmu.Games.MythicRifts
                 settingsProperties[PropertyEnum.DifficultyTier] = region.DifficultyTierRef;
                 settingsProperties[PropertyEnum.Rank] = bossProto.Rank?.DataRef ?? PrototypeId.Invalid;
                 settingsProperties[PropertyEnum.NoLootDrop] = true;
+                ApplyRunAffixesToSpawnProperties(runState, bossProto.Rank?.DataRef ?? PrototypeId.Invalid, settingsProperties, includeBossScopedAffixes: true);
                 settings.Properties = settingsProperties;
 
                 Agent bossAgent = Game.EntityManager.CreateEntity(settings) as Agent;
@@ -5123,12 +5316,14 @@ namespace MHServerEmu.Games.MythicRifts
 
             using PropertyCollection settingsProperties = ObjectPoolManager.Instance.Get<PropertyCollection>();
             int level = spawnCell.Area.GetCharacterLevel(agentProto);
+            PrototypeId rankRef = rankProto?.DataRef ?? agentProto.Rank?.DataRef ?? PrototypeId.Invalid;
             settingsProperties[PropertyEnum.CharacterLevel] = level;
             settingsProperties[PropertyEnum.CombatLevel] = level;
             settingsProperties[PropertyEnum.DifficultyTier] = region.DifficultyTierRef;
-            settingsProperties[PropertyEnum.Rank] = rankProto?.DataRef ?? agentProto.Rank?.DataRef ?? PrototypeId.Invalid;
+            settingsProperties[PropertyEnum.Rank] = rankRef;
             settingsProperties[PropertyEnum.NoLootDrop] = true;
             settingsProperties[PropertyEnum.MissionXEncounterHostilityOk] = true;
+            ApplyRunAffixesToSpawnProperties(runState, rankRef, settingsProperties, includeBossScopedAffixes: true);
             settings.Properties = settingsProperties;
 
             spawnedAgent = Game.EntityManager.CreateEntity(settings) as Agent;
@@ -5996,6 +6191,9 @@ namespace MHServerEmu.Games.MythicRifts
             string message = runState.Config.Content.BossOnlyCheckpointEligible
                 ? $"[Mythic Rift] Checkpoint Rift started: {runState.Config.Content.DisplayName} | Level {runState.Config.RiftLevel}{waveText} | Timer: {FormatDuration(runState.Config.TimeLimit)}. Defeat the empowered boss wave to unlock the next tier."
                 : $"[Mythic Rift] Rift started: {runState.Config.Content.DisplayName} | Level {runState.Config.RiftLevel}{waveText} | Timer: {FormatDuration(runState.Config.TimeLimit)}. Defeat {runState.Config.KillQuota} enemies to summon the Rift boss wave.";
+            string modifierText = BuildRiftModifierText(runState.Config);
+            if (string.IsNullOrWhiteSpace(modifierText) == false)
+                message += $" Modifiers: {modifierText}.";
             NotifyRunPlayers(runState, message);
         }
 
@@ -6010,6 +6208,46 @@ namespace MHServerEmu.Games.MythicRifts
                 ? $"[Mythic Rift] Checkpoint {bossLabel} summoned: {ResolveBossDisplayName(runState.Config)}. Defeat the full wave before the timer expires."
                 : $"[Mythic Rift] Enemy quota complete. Final {bossLabel} summoned: {ResolveBossDisplayName(runState.Config)}. Defeat the full wave before the timer expires.";
             NotifyRunPlayers(runState, message);
+        }
+
+        private static string BuildRiftModifierText(MythicRiftRunConfig config)
+        {
+            if (config == null)
+                return string.Empty;
+
+            List<string> modifierGroups = new();
+            if (config.RegionAffixes != null && config.RegionAffixes.Count > 0)
+                modifierGroups.Add($"Rift: {FormatPrototypeNameList(config.RegionAffixes)}");
+
+            if (config.BossAffixes != null && config.BossAffixes.Count > 0)
+                modifierGroups.Add($"Boss: {FormatPrototypeNameList(config.BossAffixes)}");
+
+            return string.Join(" | ", modifierGroups);
+        }
+
+        private static string FormatPrototypeNameList(IReadOnlyList<PrototypeId> prototypeRefs)
+        {
+            if (prototypeRefs == null || prototypeRefs.Count == 0)
+                return "none";
+
+            return string.Join(", ", prototypeRefs
+                .Where(prototypeRef => prototypeRef != PrototypeId.Invalid)
+                .Select(FormatPrototypeNameShort));
+        }
+
+        private static string FormatPrototypeNameShort(PrototypeId prototypeRef)
+        {
+            string name = prototypeRef.GetNameFormatted();
+            if (string.IsNullOrWhiteSpace(name))
+                return prototypeRef.ToString();
+
+            int slashIndex = name.LastIndexOf('/');
+            if (slashIndex >= 0 && slashIndex + 1 < name.Length)
+                name = name[(slashIndex + 1)..];
+
+            return name
+                .Replace(".prototype", string.Empty, StringComparison.OrdinalIgnoreCase)
+                .Replace(".defaults", string.Empty, StringComparison.OrdinalIgnoreCase);
         }
 
         private void TryNotifyKillProgress(MythicRiftRunState runState)

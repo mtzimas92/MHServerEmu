@@ -70,6 +70,16 @@ rift validaterandompool [level] [players] [minutes]
 rift scale [level] [players]
 ```
 
+Modifier diagnostics:
+
+```text
+rift previewrandom [count] [level] [players] [minutes]
+rift debug [contentId] [level] [players] [killQuota] [minutes]
+rift run [runId]
+```
+
+These outputs include `regionAffixes` and `bossAffixes`. Cosmic Rift and Rift Gauntlet should show region affixes. Boss Gauntlet should show boss affixes that can reroll between waves.
+
 Launcher diagnostics:
 
 ```text
@@ -149,21 +159,23 @@ Basic solo Cosmic Rift:
 2. Run `rift resetprogress cosmic`.
 3. Use `Cosmic Rift Scenario`.
 4. Confirm Rift UI appears.
-5. Kill quota enemies.
-6. Confirm final boss wave spawns only after quota.
-7. Kill all required Rift bosses.
-8. Confirm managed ground loot and return portal.
-9. Confirm `rift progression cosmic` advanced by one level.
+5. Confirm chat or `rift status`/`rift run [runId]` shows one or more `regionAffixes`.
+6. Kill quota enemies.
+7. Confirm final boss wave spawns only after quota.
+8. Kill all required Rift bosses.
+9. Confirm managed ground loot and return portal.
+10. Confirm `rift progression cosmic` advanced by one level.
 
 Rift Gauntlet wave 30:
 
 1. Run `rift setaccess 30 gauntlet`.
 2. Run `rift level gauntlet 30`.
 3. Use `Rift Gauntlet Scenario`.
-4. Confirm six randomized bosses, not six identical bosses.
-5. Confirm completion occurs only after all bosses die.
-6. Confirm managed ground loot appears once.
-7. Confirm next Gauntlet level resets to wave 1.
+4. Confirm chat or `rift run [runId]` shows `regionAffixes`.
+5. Confirm six randomized bosses, not six identical bosses.
+6. Confirm completion occurs only after all bosses die.
+7. Confirm managed ground loot appears once.
+8. Confirm next Gauntlet level resets to wave 1.
 
 Boss Gauntlet:
 
@@ -171,9 +183,10 @@ Boss Gauntlet:
 2. Confirm all action stays in the boss arena/selected boss-gauntlet map.
 3. Confirm sequential waves and short rest between waves.
 4. Confirm boss count rises slowly and caps at 6.
-5. Die or end the run.
-6. Confirm recovery from death state.
-7. Confirm cumulative rewards drop on the ground after the gauntlet ends.
+5. Confirm each wave start message or `rift run [runId]` shows `bossAffixes`, and later wave configs can reroll.
+6. Die or end the run.
+7. Confirm recovery from death state.
+8. Confirm cumulative rewards drop on the ground after the gauntlet ends.
 
 Two-player launch:
 

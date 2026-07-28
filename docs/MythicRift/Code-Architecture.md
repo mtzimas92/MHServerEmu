@@ -69,10 +69,11 @@ Run creation:
 Active run:
 
 1. Native objectives/UI are suppressed where possible.
-2. Rift UI owns level/wave, timer, and quota/boss status.
-3. Kills advance quota only when they belong to the Rift flow.
-4. Milestone or final bosses spawn around admitted alive players, not pets/turrets/minions.
-5. Rift boss native loot is suppressed.
+2. Rolled region or boss affixes are applied from the run config.
+3. Rift UI owns level/wave, timer, and quota/boss status.
+4. Kills advance quota only when they belong to the Rift flow.
+5. Milestone or final bosses spawn around admitted alive players, not pets/turrets/minions.
+6. Rift boss native loot is suppressed.
 
 Completion/failure:
 
@@ -98,6 +99,16 @@ Completion crafter behavior:
 - Output item level increases by 1, capped at 75.
 
 Do not replace the full stock vendor/crafting files from another branch. They are high-conflict files; port only the Rift-specific hooks that current main needs.
+
+## Modifier Notes
+
+`MythicRiftRunConfig` stores rolled `RegionAffixes` and `BossAffixes`.
+
+- `RegionAffixes` are passed into `Teleporter.Affixes` before region creation for Cosmic Rift and Rift Gauntlet.
+- Rift-spawned custom population, mini-bosses, and bosses also get enemy boosts resolved from those region affixes.
+- `BossAffixes` are used by Boss Gauntlet spawned bosses and can reroll when the wave config advances.
+
+The implementation writes `PropertyEnum.EnemyBoost` only to spawned entity instances or to per-run region creation settings. It does not mutate shared `AgentPrototype` or `RegionPrototype` data.
 
 ## Patch And Localization Files
 
