@@ -3798,6 +3798,11 @@ namespace MHServerEmu.Games.MythicRifts
                 runState.RegisterParticipant(playerDbId);
         }
 
+        public MythicRiftRewardOutcome PreviewRewardOutcome(MythicRiftRunState runState)
+        {
+            return ResolveRewardOutcome(runState);
+        }
+
         private MythicRiftRewardOutcome ResolveRewardOutcome(MythicRiftRunState runState)
         {
             if (runState == null)

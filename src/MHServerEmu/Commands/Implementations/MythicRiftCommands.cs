@@ -2103,6 +2103,94 @@ namespace MHServerEmu.Commands.Implementations
             return string.Empty;
         }
 
+        [Command("rewardsim")]
+        [CommandDescription("Previews the resolved Rift reward config for a mode and level without spawning loot.")]
+        [CommandUsage("rift rewardsim [cosmic|gauntlet|bossgauntlet] [levelOrWave] [players] OR rift rewardsim [cosmic|gauntlet|bossgauntlet] [startLevel] [endLevel] [players]")]
+        [CommandUserLevel(AccountUserLevel.Admin)]
+        [CommandInvokerType(CommandInvokerType.Client)]
+        public string RewardSim(string[] @params, NetClient client)
+        {
+            PlayerConnection playerConnection = (PlayerConnection)client;
+            Game game = playerConnection?.Game;
+            if (game == null)
+                return "Game not found.";
+
+            if (TryParseOptionalModeArguments(@params, out MythicRiftMode mode, out string[] valueArgs, out string modeError) == false)
+                return modeError;
+
+            if (TryParseRewardSimulationArguments(valueArgs, out int startLevel, out int endLevel, out int requestedPlayers, out string errorMessage) == false)
+                return errorMessage;
+
+            int sampleCount = endLevel - startLevel + 1;
+            if (sampleCount > 50)
+                return "Reward simulation is capped at 50 levels per command. Use a smaller range.";
+
+            List<string> lines = new()
+            {
+                $"Rift reward simulation | mode={FormatModeCommandToken(mode)} | levels={startLevel}-{endLevel} | players={requestedPlayers} | dropsSpawned=false"
+            };
+
+            for (int level = startLevel; level <= endLevel; level++)
+            {
+                MythicRiftRunState runState = CreateCompletedRewardSimulationRun(game, mode, level, requestedPlayers, registerRun: false);
+                if (runState == null)
+                {
+                    lines.Add($"level={level} | failed to resolve a random Rift config from the current pool.");
+                    continue;
+                }
+
+                MythicRiftRewardOutcome rewardOutcome = game.MythicRiftManager.PreviewRewardOutcome(runState);
+                lines.AddRange(BuildRewardSimulationLines(runState, rewardOutcome, includeDetails: sampleCount == 1));
+            }
+
+            CommandHelper.SendMessages(client, lines);
+            return string.Empty;
+        }
+
+        [Command("rewarddrop")]
+        [CommandDescription("Completes a temporary Rift reward test run and grants/drops that level's rewards to the invoking player.")]
+        [CommandUsage("rift rewarddrop [cosmic|gauntlet|bossgauntlet] [levelOrWave] [players]")]
+        [CommandUserLevel(AccountUserLevel.Admin)]
+        [CommandInvokerType(CommandInvokerType.Client)]
+        public string RewardDrop(string[] @params, NetClient client)
+        {
+            PlayerConnection playerConnection = (PlayerConnection)client;
+            Game game = playerConnection?.Game;
+            Player player = playerConnection?.Player;
+            if (game == null || player == null)
+                return "Game or player not found.";
+
+            if (TryParseOptionalModeArguments(@params, out MythicRiftMode mode, out string[] valueArgs, out string modeError) == false)
+                return modeError;
+
+            if (valueArgs.Length != 1 && valueArgs.Length != 2)
+                return "Usage: rift rewarddrop [cosmic|gauntlet|bossgauntlet] [levelOrWave] [players]";
+
+            if (TryParsePositiveInt(valueArgs[0], out int level) == false)
+                return "Invalid Rift level or wave.";
+
+            int requestedPlayers = 1;
+            if (valueArgs.Length == 2 && TryParsePositiveInt(valueArgs[1], out requestedPlayers) == false)
+                return "Invalid player count.";
+
+            MythicRiftRunState runState = CreateCompletedRewardSimulationRun(game, mode, level, requestedPlayers, registerRun: true);
+            if (runState == null)
+                return "Failed to create a temporary Rift reward run.";
+
+            runState.RegisterParticipant(player.DatabaseUniqueId);
+            runState.SnapshotRewardEligiblePlayers(new[] { player.DatabaseUniqueId });
+            MythicRiftRewardOutcome rewardOutcome = game.MythicRiftManager.PreviewRewardOutcome(runState);
+
+            if (game.MythicRiftManager.GrantRewardsToPlayer(runState.Config.RunId, player) == false)
+                return $"Failed to grant/drop rewards for temporary run {runState.Config.RunId}.";
+
+            List<string> lines = BuildRewardSimulationLines(runState, rewardOutcome, includeDetails: true);
+            lines.Insert(0, $"Rift reward drop complete | temporaryRunId={runState.Config.RunId} | mode={FormatModeCommandToken(mode)} | level={level} | players={requestedPlayers}");
+            lines.Add("Temporary completed run is retained briefly so reward chests can be opened if this reward set spawned one.");
+            CommandHelper.SendMessages(client, lines);
+            return string.Empty;
+        }
+
         [Command("reward")]
         [CommandDescription("Grants the resolved Mythic Rift reward for a finished run to the invoking player.")]
         [CommandUsage("rift reward [runId]")]
@@ -2349,6 +2437,190 @@ namespace MHServerEmu.Commands.Implementations
                         $"{label}.objective[{objective.PrototypeIndex}] state={objective.State} | widget={objectiveProto.MetaGameWidget.GetNameFormatted()} | failWidget={objectiveProto.MetaGameWidgetFail.GetNameFormatted()} | name={objectiveProto.Name}");
                 }
             }
+        }
+
+        private static bool TryParseRewardSimulationArguments(
+            string[] args,
+            out int startLevel,
+            out int endLevel,
+            out int requestedPlayers,
+            out string errorMessage)
+        {
+            startLevel = 1;
+            endLevel = 1;
+            requestedPlayers = 1;
+            errorMessage = string.Empty;
+
+            if (args == null || args.Length < 1 || args.Length > 3)
+            {
+                errorMessage = "Usage: rift rewardsim [cosmic|gauntlet|bossgauntlet] [levelOrWave] [players] OR rift rewardsim [cosmic|gauntlet|bossgauntlet] [startLevel] [endLevel] [players]";
+                return false;
+            }
+
+            if (TryParsePositiveInt(args[0], out startLevel) == false)
+            {
+                errorMessage = "Invalid Rift level or wave.";
+                return false;
+            }
+
+            endLevel = startLevel;
+            if (args.Length == 1)
+                return true;
+
+            if (TryParsePositiveInt(args[1], out int secondValue) == false)
+            {
+                errorMessage = "Invalid player count or end level.";
+                return false;
+            }
+
+            if (args.Length == 2)
+            {
+                if (secondValue <= 5)
+                {
+                    requestedPlayers = secondValue;
+                    return true;
+                }
+
+                endLevel = secondValue;
+                return ValidateRewardSimulationRange(startLevel, endLevel, out errorMessage);
+            }
+
+            endLevel = secondValue;
+            if (TryParsePositiveInt(args[2], out requestedPlayers) == false)
+            {
+                errorMessage = "Invalid player count.";
+                return false;
+            }
+
+            return ValidateRewardSimulationRange(startLevel, endLevel, out errorMessage);
+        }
+
+        private static bool ValidateRewardSimulationRange(int startLevel, int endLevel, out string errorMessage)
+        {
+            errorMessage = string.Empty;
+            if (endLevel >= startLevel)
+                return true;
+
+            errorMessage = "End level must be greater than or equal to start level.";
+            return false;
+        }
+
+        private static MythicRiftRunState CreateCompletedRewardSimulationRun(
+            Game game,
+            MythicRiftMode mode,
+            int level,
+            int requestedPlayers,
+            bool registerRun)
+        {
+            if (game == null)
+                return null;
+
+            TimeSpan timeLimit = mode == MythicRiftMode.BossGauntlet
+                ? TimeSpan.FromDays(1)
+                : TimeSpan.FromMinutes(10);
+
+            MythicRiftRunState runState;
+            if (registerRun)
+            {
+                runState = game.MythicRiftManager.CreateRandomDebugRun(
+                    level,
+                    requestedPlayers,
+                    0,
+                    timeLimit,
+                    mode: mode);
+            }
+            else
+            {
+                MythicRiftRunConfig config = game.MythicRiftManager.CreateRandomDebugRunConfig(
+                    level,
+                    requestedPlayers,
+                    0,
+                    timeLimit,
+                    mode: mode);
+
+                runState = game.MythicRiftManager.CreateRunState(config);
+            }
+
+            if (runState == null)
+                return null;
+
+            runState.Start(game.CurrentTime);
+            if (mode == MythicRiftMode.BossGauntlet)
+            {
+                runState.MarkBossGauntletWaveCompleted();
+                runState.MarkFailed(game.CurrentTime);
+            }
+            else
+            {
+                runState.MarkSuccess(game.CurrentTime);
+            }
+
+            return runState;
+        }
+
+        private static List<string> BuildRewardSimulationLines(MythicRiftRunState runState, MythicRiftRewardOutcome rewardOutcome, bool includeDetails)
+        {
+            if (runState?.Config == null)
+                return new() { "rewardSim failed: run config not found." };
+
+            int rewardLevel = MythicRiftRewardTuning.GetRewardRiftLevel(runState);
+            int rewardWave = MythicRiftRewardTuning.GetRewardWaveNumber(runState);
+            string bossLoot = rewardOutcome?.HasBossLootTable == true
+                ? rewardOutcome.BossLootTableProtoRef.GetNameFormatted()
+                : "none";
+            string extraIds = rewardOutcome?.ExtraLootTables != null
+                ? FormatRewardIdList(rewardOutcome.ExtraLootTables.Select(table => table.Id))
+                : "none";
+            string guaranteedIds = rewardOutcome?.GuaranteedItems != null
+                ? FormatRewardIdList(rewardOutcome.GuaranteedItems.Select(item => item.Id))
+                : "none";
+
+            List<string> lines = new()
+            {
+                $"level={runState.Config.RiftLevel} | rewardLevel={rewardLevel} | wave={rewardWave} | mode={FormatModeCommandToken(runState.Config.Mode)} | map={runState.Config.Content.Id} | bossSource={runState.Config.BossContent?.Id ?? "n/a"} | profile={rewardOutcome?.RewardProfileName ?? "none"}",
+                $"rewardSummary bossLoot={bossLoot} | bossDelivery={rewardOutcome?.BossLootDelivery ?? "none"} | extraTables={rewardOutcome?.ExtraLootTables.Count ?? 0} [{extraIds}] | guaranteedItems={rewardOutcome?.GuaranteedItems.Count ?? 0} [{guaranteedIds}] | bonusRIF={rewardOutcome?.BonusRarityPct ?? 0f:P0} | bonusSIF={rewardOutcome?.BonusSpecialPct ?? 0f:P0}"
+            };
+
+            if (rewardOutcome == null || includeDetails == false)
+                return lines;
+
+            if (rewardOutcome.HasBossLootTable)
+            {
+                lines.Add($"rewardBossLoot source={rewardOutcome.BossLootTableSourceId ?? "native-boss"} | delivery={rewardOutcome.BossLootDelivery ?? "inventory"} | lootTable={rewardOutcome.BossLootTableProtoRef.GetNameFormatted()}");
+            }
+
+            foreach (MythicRiftRewardExtraLootTable extraLootTable in rewardOutcome.ExtraLootTables)
+            {
+                lines.Add($"rewardExtraLoot id={extraLootTable.Id} | chance={extraLootTable.ChancePercent:0.##}% | rolls={extraLootTable.Rolls} | itemLevel={extraLootTable.ItemLevel} | delivery={extraLootTable.Delivery ?? "inventory"} | lootTable={extraLootTable.LootTableProtoRef.GetNameFormatted()}");
+            }
+
+            foreach (MythicRiftRewardGuaranteedItem guaranteedItem in rewardOutcome.GuaranteedItems)
+            {
+                lines.Add($"rewardGuaranteedItem id={guaranteedItem.Id} | quantity={guaranteedItem.Quantity} | itemLevel={guaranteedItem.ItemLevel} | delivery={guaranteedItem.Delivery ?? "inventory"} | item={guaranteedItem.ItemProtoRef.GetNameFormatted()}");
+            }
+
+            return lines;
+        }
+
+        private static string FormatRewardIdList(IEnumerable<string> rewardIds)
+        {
+            if (rewardIds == null)
+                return "none";
+
+            List<string> ids = rewardIds
+                .Where(id => string.IsNullOrWhiteSpace(id) == false)
+                .Take(6)
+                .ToList();
+
+            if (ids.Count == 0)
+                return "none";
+
+            string formatted = string.Join(", ", ids);
+            int totalCount = rewardIds.Count(id => string.IsNullOrWhiteSpace(id) == false);
+            if (totalCount > ids.Count)
+                formatted += $", +{totalCount - ids.Count} more";
+
+            return formatted;
         }
 
         private static List<string> BuildRunLines(MythicRiftRunState runState, TimeSpan currentTime, bool includeResolvedRefs)
