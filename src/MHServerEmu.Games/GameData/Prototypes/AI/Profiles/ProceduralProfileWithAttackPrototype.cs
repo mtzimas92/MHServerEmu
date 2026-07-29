@@ -141,9 +141,20 @@ namespace MHServerEmu.Games.GameData.Prototypes
             }
             else if (currentTime >= blackboardProps[PropertyEnum.AIProceduralNextAttackTime])
             {
-                if (affixPower && agent.Properties.HasProperty(PropertyEnum.EnemyBoost) && AffixSettings != null)
+                if (affixPower && agent.Properties.HasProperty(PropertyEnum.EnemyBoost))
                 {
-                    powerPicker.Add(null, AffixSettings.PickWeight);
+                    if (AffixSettings == null)
+                    {
+                        if (EntityHelper.StandaloneBossAffixFallbackIds.Contains(agent.Id) == false &&
+                            !Verify.IsNotNull(AffixSettings, $"Agent [{agent}] has enemy affix(es), but no AffixSettings data in its procedural profile!"))
+                        {
+                            return StaticBehaviorReturnType.Failed;
+                        }
+                    }
+                    else
+                    {
+                        powerPicker.Add(null, AffixSettings.PickWeight);
+                    }
                 }
 
                 while (powerPicker.Empty() == false)
