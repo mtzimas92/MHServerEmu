@@ -872,8 +872,13 @@ namespace MHServerEmu.Games.MythicRifts
             };
 
             return useHighTier
+#if GAME_VERSION_1_53
+                ? ResolveRiftDifficultyTier(ref _cachedHighRiftDifficultyTierRef, HighRiftDifficultyTierPrototypeName, DifficultyTier.Tier02Cosmic)
+                : ResolveRiftDifficultyTier(ref _cachedBaseRiftDifficultyTierRef, BaseRiftDifficultyTierPrototypeName, DifficultyTier.Tier01Heroic);
+#else
                 ? ResolveRiftDifficultyTier(ref _cachedHighRiftDifficultyTierRef, HighRiftDifficultyTierPrototypeName, DifficultyTier.Cosmic)
                 : ResolveRiftDifficultyTier(ref _cachedBaseRiftDifficultyTierRef, BaseRiftDifficultyTierPrototypeName, DifficultyTier.Red);
+#endif
         }
 
         private static PrototypeId ResolveRiftDifficultyTier(ref PrototypeId cachedDifficultyTierRef, string difficultyTierPrototypeName, DifficultyTier fallbackTier)

@@ -141,11 +141,8 @@ namespace MHServerEmu.Games.GameData.Prototypes
             }
             else if (currentTime >= blackboardProps[PropertyEnum.AIProceduralNextAttackTime])
             {
-                if (affixPower && agent.Properties.HasProperty(PropertyEnum.EnemyBoost))
+                if (affixPower && agent.Properties.HasProperty(PropertyEnum.EnemyBoost) && AffixSettings != null)
                 {
-                    if (!Verify.IsNotNull(AffixSettings, $"Agent [{agent}] has enemy affix(es), but no AffixSettings data in its procedural profile!"))
-                        return StaticBehaviorReturnType.Failed;
-
                     powerPicker.Add(null, AffixSettings.PickWeight);
                 }
 

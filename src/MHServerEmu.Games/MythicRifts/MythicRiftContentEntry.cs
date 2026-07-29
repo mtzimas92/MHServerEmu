@@ -13,6 +13,7 @@ namespace MHServerEmu.Games.MythicRifts
         public bool UseOwnBossSourceWhenSelected { get; init; }
         public bool UseCustomPopulation { get; init; }
         public bool BossOnlyCheckpointEligible { get; init; }
+        public string BossFamily { get; init; }
         public int MinRandomRiftLevel { get; init; } = 1;
         public int MaxRandomRiftLevel { get; init; }
         public int MaxPlayerCount { get; init; }

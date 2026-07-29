@@ -1174,6 +1174,61 @@ namespace MHServerEmu.Games.GameData.Prototypes
             InitPowers(agent, SummonProceduralPowers);
         }
 
+        private static StaticBehaviorReturnType MoveTowardTargetIfOutOfRange(
+            AIController ownerController,
+            ProceduralAI proceduralAI,
+            Agent agent,
+            WorldEntity target,
+            Picker<ProceduralUsePowerContextPrototype> powerPicker)
+        {
+            if (agent == null || target == null || target.IsInWorld == false)
+                return StaticBehaviorReturnType.Failed;
+
+            if (EntityHelper.StandaloneBossIds.Contains(agent.Id) == false)
+                return StaticBehaviorReturnType.Completed;
+
+            float minRange = float.MaxValue;
+            int numPowers = powerPicker.GetNumElements();
+            for (int i = 0; i < numPowers; i++)
+            {
+                if (powerPicker.GetElementAt(i, out ProceduralUsePowerContextPrototype proto) == false)
+                    continue;
+
+                PrototypeId powerRef = proto?.PowerContext?.Power?.DataRef ?? PrototypeId.Invalid;
+                if (powerRef == PrototypeId.Invalid)
+                    continue;
+
+                Power power = agent.GetPower(powerRef);
+                if (power == null)
+                    continue;
+
+                float range = power.GetRange();
+                if (range > 0f && range < minRange)
+                    minRange = range;
+            }
+
+            if (minRange == float.MaxValue)
+                return StaticBehaviorReturnType.Completed;
+
+            float currentDistance = agent.GetDistanceTo(target, true);
+            if (currentDistance <= minRange)
+                return StaticBehaviorReturnType.Completed;
+
+            MoveToContext moveContext = new()
+            {
+                OwnerController = ownerController,
+                MoveTo = MoveToType.Target,
+                MovementSpeed = MovementSpeedOverride.Default,
+                EnforceLOS = false,
+                RangeMin = 0f,
+                RangeMax = minRange * 0.7f,
+                LOSSweepPadding = 0f,
+                StopLocomotorOnMoveToFail = false,
+            };
+
+            return proceduralAI.HandleContext(MoveTo.Instance, moveContext, null);
+        }
+
         public override void Think(AIController ownerController)
         {
             ProceduralAI proceduralAI = ownerController.Brain;
@@ -1250,6 +1305,9 @@ namespace MHServerEmu.Games.GameData.Prototypes
 
                     powerPicker = new(random);
                     PopulatePowerPicker(ownerController, powerPicker);
+                    if (MoveTowardTargetIfOutOfRange(ownerController, proceduralAI, agent, target, powerPicker) == StaticBehaviorReturnType.Running)
+                        return;
+
                     if (HandleProceduralPower(ownerController, proceduralAI, random, currentTime, powerPicker, true) == StaticBehaviorReturnType.Running)
                         return;
 
@@ -1264,6 +1322,9 @@ namespace MHServerEmu.Games.GameData.Prototypes
 
                     powerPicker = new(random);
                     PopulatePowerPicker(ownerController, powerPicker);
+                    if (MoveTowardTargetIfOutOfRange(ownerController, proceduralAI, agent, target, powerPicker) == StaticBehaviorReturnType.Running)
+                        return;
+
                     if (HandleProceduralPower(ownerController, proceduralAI, random, currentTime, powerPicker, true) == StaticBehaviorReturnType.Running)
                         return;
 

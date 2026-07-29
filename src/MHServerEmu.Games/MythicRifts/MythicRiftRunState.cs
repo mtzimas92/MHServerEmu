@@ -21,6 +21,7 @@ namespace MHServerEmu.Games.MythicRifts
         private readonly HashSet<ulong> _earlyExitPlayerDbIds = new();
         private readonly HashSet<ulong> _riftEntryBannerSentPlayerDbIds = new();
         private readonly HashSet<ulong> _customPopulationEntityIds = new();
+        private readonly HashSet<ulong> _hazardEntityIds = new();
         private readonly HashSet<ulong> _activeBossEntityIds = new();
         private readonly HashSet<ulong> _milestoneMiniBossEntityIds = new();
         private readonly HashSet<int> _sentTimeWarningThresholds = new();
@@ -47,6 +48,9 @@ namespace MHServerEmu.Games.MythicRifts
         public TimeSpan LastParticipantOnlineAt { get; private set; }
         public TimeSpan NextCustomPopulationSpawnAt { get; private set; }
         public int CustomPopulationTotalSpawned { get; private set; }
+        public TimeSpan NextHazardSpawnAt { get; private set; }
+        public TimeSpan? ReadyCheckEndsAt { get; private set; }
+        public string ReadyCheckLabel { get; private set; }
         public bool RegionDifficultyScalingApplied { get; private set; }
         public int BossSpawnCount { get; private set; }
         public int BossKillCount { get; private set; }
@@ -62,6 +66,7 @@ namespace MHServerEmu.Games.MythicRifts
         public IReadOnlyCollection<ulong> ParticipantsSeenInRunRegionPlayerDbIds => _participantsSeenInRunRegion;
         public IReadOnlyCollection<ulong> EarlyExitPlayerDbIds => _earlyExitPlayerDbIds;
         public IReadOnlyCollection<ulong> CustomPopulationEntityIds => _customPopulationEntityIds;
+        public IReadOnlyCollection<ulong> HazardEntityIds => _hazardEntityIds;
         public IReadOnlyCollection<ulong> ActiveBossEntityIds => _activeBossEntityIds;
         public int ParticipantCount => _participantPlayerDbIds.Count;
         public int AdmittedPlayerCount => _admittedPlayerDbIds.Count;
@@ -435,6 +440,38 @@ namespace MHServerEmu.Games.MythicRifts
         public bool RemoveCustomPopulationEntity(ulong entityId)
         {
             return entityId != 0 && _customPopulationEntityIds.Remove(entityId);
+        }
+
+        public bool RegisterHazardEntity(ulong entityId)
+        {
+            return entityId != 0 && _hazardEntityIds.Add(entityId);
+        }
+
+        public bool RemoveHazardEntity(ulong entityId)
+        {
+            return entityId != 0 && _hazardEntityIds.Remove(entityId);
+        }
+
+        public void SetNextHazardSpawnAt(TimeSpan nextSpawnAt)
+        {
+            NextHazardSpawnAt = nextSpawnAt;
+        }
+
+        public void BeginReadyCheck(TimeSpan endsAt, string label)
+        {
+            ReadyCheckEndsAt = endsAt;
+            ReadyCheckLabel = string.IsNullOrWhiteSpace(label) ? "Rift wave" : label;
+        }
+
+        public bool IsReadyCheckActive(TimeSpan currentTime)
+        {
+            return ReadyCheckEndsAt.HasValue && currentTime < ReadyCheckEndsAt.Value;
+        }
+
+        public void ClearReadyCheck()
+        {
+            ReadyCheckEndsAt = null;
+            ReadyCheckLabel = null;
         }
 
         public bool HasExpired(TimeSpan currentTime)

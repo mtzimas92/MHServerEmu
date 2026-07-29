@@ -15,7 +15,10 @@ namespace MHServerEmu.Games.Entities
     /// </summary>
     public static class EntityHelper
     {
+        private static readonly Logger Logger = LogManager.CreateLogger();
         public static readonly bool DebugOrb = false;
+        public static readonly HashSet<ulong> StandaloneBossIds = new();
+        private const float StandaloneBossAggroRange = 3000f;
 
         public enum TestOrb : ulong
         {
@@ -78,6 +81,30 @@ namespace MHServerEmu.Games.Entities
                     agent.Properties[PropertyEnum.EnemyBoost, boost] = true;
 
             return agent;
+        }
+
+        public static void ApplyStandaloneBossFixups(Agent agent)
+        {
+            if (agent == null)
+                return;
+
+            StandaloneBossIds.Add(agent.Id);
+
+            if (agent.AIController == null)
+                return;
+
+            PropertyCollection blackboard = agent.AIController.Blackboard.PropertyCollection;
+            blackboard[PropertyEnum.AIAggroRangeOverrideHostile] = StandaloneBossAggroRange;
+            blackboard[PropertyEnum.AIAggroRangeOverrideAlly] = StandaloneBossAggroRange;
+
+            AgentPrototype bossProto = agent.WorldEntityPrototype as AgentPrototype;
+            bool isModokProfile = bossProto?.BehaviorProfile?.Brain.As<Prototype>() is ProceduralProfileMODOKPrototype;
+            if (isModokProfile == false)
+                return;
+
+            blackboard[PropertyEnum.AICustomStateVal1] = 2; // ProceduralProfileMODOKPrototype.State.GenericProcedural
+            blackboard[PropertyEnum.AICustomTimeVal1] = (long)agent.Game.CurrentTime.TotalMilliseconds + 3_600_000_000L;
+            Logger.Debug($"ApplyStandaloneBossFixups(): forced standalone MODOK {agent} into GenericProcedural with long aggro range.");
         }
 
         public static bool GetSpawnPositionNearAvatar(Avatar avatar, Region region, BoundsPrototype entityBoundsPrototype, float maxDistance, out Vector3 spawnPositionResult)
