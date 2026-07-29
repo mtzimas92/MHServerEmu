@@ -4368,8 +4368,8 @@ namespace MHServerEmu.Games.Entities.Avatars
             // in the world instead of being forced to pick a button. There's no legitimate existing "No"/Cancel
             // LocaleStringId anywhere in the game's data to label a second button with (checked every DialogPrototype
             // field in the schema - the one populated real example is single-button only).
-            dialog.Options = DialogOptionEnum.ScreenBottom | DialogOptionEnum.WorldClick;
-            dialog.TargetId = shanna.Id;
+            dialog.Options = DialogOptionEnum.WorldClick;
+	    dialog.TargetId = shanna.Id;
             dialog.InteractorId = player.CurrentAvatar?.Id ?? InvalidId;
             dialog.AddButton(GameDialogResultEnum.eGDR_Option1, YesButtonRef, ButtonStyle.SecondaryPositive);
             dialog.AddButton(GameDialogResultEnum.eGDR_Option2, NoButtonRef, ButtonStyle.SecondaryNegative);

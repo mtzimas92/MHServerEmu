@@ -69,12 +69,21 @@ namespace MHServerEmu.Games.MetaGames.GameModes
             }
         }
 
+        /// <summary>
+        /// Sets the session's filename label, but only the first time it's called for a given
+        /// session - later phases of the same run must not overwrite it. PvEScaleGameMode picks a
+        /// random in-world player on every phase's OnActivate(), and in a multiplayer run the
+        /// roster can change between phases, so letting later calls win meant the filename was a
+        /// coin flip based on whoever happened to be in-world when the last phase activated -
+        /// confirmed live: a run's own log was correctly written and flushed on time, just under a
+        /// different party member's name than the one grepping for it.
+        /// </summary>
         public static void SetPlayerLabel(ulong gameId, ulong metaGameId, string label)
         {
             if (metaGameId == 0 || string.IsNullOrEmpty(label)) return;
             lock (_sessions)
             {
-                if (_sessions.TryGetValue((gameId, metaGameId), out Session session))
+                if (_sessions.TryGetValue((gameId, metaGameId), out Session session) && session.PlayerLabel == "unknown")
                     session.PlayerLabel = label;
             }
         }

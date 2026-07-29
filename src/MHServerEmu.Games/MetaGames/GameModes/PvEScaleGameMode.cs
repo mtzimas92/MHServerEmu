@@ -154,7 +154,7 @@ namespace MHServerEmu.Games.MetaGames.GameModes
 
             _threat = _persistedThreatByMetaGameId.TryGetValue(PersistedThreatKey, out float persistedThreat) ? persistedThreat : 0f;
             _lastScaledPlayerCount = Math.Max(1, CountInWorldPlayers());
-	    _modeEnded = false;
+            _modeEnded = false;
             _powerUpEntityId = 0;
             _killCountThisPhase = 0;
             _powerUpCountThisPhase = 0;
@@ -174,13 +174,19 @@ namespace MHServerEmu.Games.MetaGames.GameModes
             if (IsWaveBattleLoggingEnabled)
             {
                 int playerCount = CountInWorldPlayers();
+
+                // LogWaveBattle() lazily creates the collator session on the first call of the run,
+                // so it must fire before SetPlayerLabel() - otherwise the very first phase's label
+                // attempt is a no-op against a session that doesn't exist yet, and the label is left
+                // for whichever phase activates next to claim (SetPlayerLabel() only honors the
+                // first caller per session, see its own comment).
+                LogWaveBattle($"PHASE_START phase={GameDatabase.GetFormattedPrototypeName(_proto.DataRef)} boss={_isBossPhase} " +
+                    $"durationS={_proto.WaveDurationMS / 1000} enteringThreat={_threat:F2}/{GetEffectiveFailureThreshold()} players={playerCount}");
+
                 Player firstPlayer = GetRandomPlayer();
                 Avatar firstAvatar = firstPlayer?.CurrentAvatar;
                 if (firstPlayer != null && firstAvatar != null)
                     DinosWaveBattleLogCollator.SetPlayerLabel(Game.Id, MetaGame.Id, $"{firstPlayer.GetName()}_L{firstAvatar.CharacterLevel}");
-
-                LogWaveBattle($"PHASE_START phase={GameDatabase.GetFormattedPrototypeName(_proto.DataRef)} boss={_isBossPhase} " +
-                    $"durationS={_proto.WaveDurationMS / 1000} enteringThreat={_threat:F2}/{GetEffectiveFailureThreshold()} players={playerCount}");
             }
 
             Region.EntityDeadEvent.AddActionBack(_entityDeadAction);
@@ -233,6 +239,22 @@ namespace MHServerEmu.Games.MetaGames.GameModes
                 if (remaining < TimeSpan.Zero) remaining = TimeSpan.Zero;
                 SendStartPvPTimer(remaining, TimeSpan.Zero, TimeSpan.Zero, TimeSpan.Zero, player);
             }
+        }
+
+        // Safety net for DinosWaveBattleLogCollator: SucceedMode()/FailMode() are the only places that
+        // normally call EndRun() to flush a run's buffered log to disk, but neither fires if the whole
+        // MetaGame/region tears down some other way first - e.g. every player leaves and the region is
+        // cleaned up, or the server restarts mid-run. Without this, that run's entire buffered log is
+        // silently lost in memory, never written - the exact "inconsistent logging" gap reported live.
+        // MetaGame.Destroy() calls OnDestroy() on every registered mode instance (all phases, not just
+        // the currently active one), so this can fire more than once per real run; EndRun() already
+        // no-ops safely if the session was already flushed or never existed, so calling it unconditionally
+        // here is harmless either way.
+        public override void OnDestroy()
+        {
+            base.OnDestroy();
+            if (IsWaveBattleLoggingEnabled)
+                DinosWaveBattleLogCollator.EndRun(Game.Id, MetaGame.Id, "ABANDONED");
         }
 
         public override void OnDeactivate()
@@ -300,7 +322,7 @@ namespace MHServerEmu.Games.MetaGames.GameModes
                 _lastScaledPlayerCount = inWorldPlayerCount;
             }
 
-	    _threat += _proto.WaveDifficultyPerSecond * inWorldPlayerCount * (WaveTickIntervalMS / 1000f);
+            _threat += _proto.WaveDifficultyPerSecond * inWorldPlayerCount * (WaveTickIntervalMS / 1000f);
             UpdateThreatMeter();
 
             int clustersPerPlayer = GetClustersPerPlayerThisTick();
