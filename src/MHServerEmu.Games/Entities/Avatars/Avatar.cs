@@ -4476,7 +4476,6 @@ namespace MHServerEmu.Games.Entities.Avatars
         private static readonly LocaleStringId YesButtonRef = (LocaleStringId)14959079863731815684;
         private static readonly LocaleStringId NoButtonRef = (LocaleStringId)16244338063872951558;
 
-
         private static void UseShannaPortalGuide(Player player, WorldEntity shanna)
         {
             Game game = player.Game;
@@ -4491,9 +4490,8 @@ namespace MHServerEmu.Games.Entities.Avatars
             dialog.Options = DialogOptionEnum.WorldClick;
 	    dialog.TargetId = shanna.Id;
             dialog.InteractorId = player.CurrentAvatar?.Id ?? InvalidId;
-            dialog.AddButton(GameDialogResultEnum.eGDR_Option1, YesButtonRef, ButtonStyle.SecondaryPositive);
-            dialog.AddButton(GameDialogResultEnum.eGDR_Option2, NoButtonRef, ButtonStyle.SecondaryNegative);
-
+	    dialog.AddButton(GameDialogResultEnum.eGDR_Option1, YesButtonRef, ButtonStyle.SecondaryPositive, false, true);
+	    dialog.AddButton(GameDialogResultEnum.eGDR_Option2, NoButtonRef, ButtonStyle.SecondaryNegative, false, true);
 	    game.GameDialogManager.ShowDialog(dialog);
 
             void OnShannaPortalGuideDialogResponse(ulong playerGuid, DialogResponse response)
