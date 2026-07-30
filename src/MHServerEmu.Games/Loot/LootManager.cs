@@ -105,6 +105,14 @@ namespace MHServerEmu.Games.Loot
             string recipientName = inputSettings.Player?.GetName() ?? "unknown";
             string message = $"BOSS_LOOT recipient={recipientName} rolled:\n{lootResultSummary.ToStringVerbose()}";
             DinosWaveBattleLogCollator.WriteLine(Game.Id, metaGameId, message);
+
+
+            // Belt-and-suspenders: guarantees the boss loot recipient always gets their own copy of
+            // the run's log even in the unlikely case they weren't captured as a participant at any
+            // phase's OnActivate() (e.g. joined in-world only right at the very end).
+            Avatar recipientAvatar = inputSettings.Player?.CurrentAvatar;
+            if (inputSettings.Player != null && recipientAvatar != null)
+                DinosWaveBattleLogCollator.AddParticipant(Game.Id, metaGameId, $"{recipientName}_L{recipientAvatar.CharacterLevel}");
         }
 
 

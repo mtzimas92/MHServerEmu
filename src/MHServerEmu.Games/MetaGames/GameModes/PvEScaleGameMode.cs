@@ -175,18 +175,19 @@ namespace MHServerEmu.Games.MetaGames.GameModes
             {
                 int playerCount = CountInWorldPlayers();
 
-                // LogWaveBattle() lazily creates the collator session on the first call of the run,
-                // so it must fire before SetPlayerLabel() - otherwise the very first phase's label
-                // attempt is a no-op against a session that doesn't exist yet, and the label is left
-                // for whichever phase activates next to claim (SetPlayerLabel() only honors the
-                // first caller per session, see its own comment).
                 LogWaveBattle($"PHASE_START phase={GameDatabase.GetFormattedPrototypeName(_proto.DataRef)} boss={_isBossPhase} " +
                     $"durationS={_proto.WaveDurationMS / 1000} enteringThreat={_threat:F2}/{GetEffectiveFailureThreshold()} players={playerCount}");
 
-                Player firstPlayer = GetRandomPlayer();
-                Avatar firstAvatar = firstPlayer?.CurrentAvatar;
-                if (firstPlayer != null && firstAvatar != null)
-                    DinosWaveBattleLogCollator.SetPlayerLabel(Game.Id, MetaGame.Id, $"{firstPlayer.GetName()}_L{firstAvatar.CharacterLevel}");
+                // Register every in-world player as a participant (not just one random pick) so the
+                // run's log gets flushed under every real participant's own name on EndRun() - lets
+                // support find a specific player's run by name instead of opening every file in the
+                // folder. Re-registering an already-known participant on later phases is a no-op.
+                foreach (Player player in MetaGame.Players)
+                {
+                    Avatar avatar = player?.CurrentAvatar;
+                    if (avatar != null && avatar.IsInWorld)
+                        DinosWaveBattleLogCollator.AddParticipant(Game.Id, MetaGame.Id, $"{player.GetName()}_L{avatar.CharacterLevel}");
+                }
             }
 
             Region.EntityDeadEvent.AddActionBack(_entityDeadAction);

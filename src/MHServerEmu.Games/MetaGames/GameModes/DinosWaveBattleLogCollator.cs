@@ -25,6 +25,13 @@ namespace MHServerEmu.Games.MetaGames.GameModes
     /// and independently-restarting killsThisPhase counters appeared interleaved second-by-second in a
     /// single file. This was a logging artifact, not evidence of two mode instances corrupting the same
     /// real playthrough.
+    ///
+    /// EndRun() writes the SAME buffered run content to one file per distinct participant label
+    /// (AddParticipant()), rather than a single file named after one arbitrarily-picked player.
+    /// Support could not otherwise find a specific player's run without opening every file in the
+    /// folder - the run is a shared instance with no per-player content to split out, so duplicating
+    /// the whole log under every participant's own name (searchable by exact player name) is the
+    /// practical fix, accepted duplication cost included (folder gets pruned every few days anyway).
     /// </summary>
     public static class DinosWaveBattleLogCollator
     {
@@ -37,7 +44,7 @@ namespace MHServerEmu.Games.MetaGames.GameModes
             public readonly ulong MetaGameId;
             public readonly DateTime StartTime;
             public readonly System.Text.StringBuilder Buffer = new();
-            public string PlayerLabel = "unknown";
+            public readonly HashSet<string> ParticipantLabels = new(StringComparer.OrdinalIgnoreCase);
 
             public Session(ulong gameId, ulong metaGameId)
             {
@@ -70,21 +77,26 @@ namespace MHServerEmu.Games.MetaGames.GameModes
         }
 
         /// <summary>
-        /// Sets the session's filename label, but only the first time it's called for a given
-        /// session - later phases of the same run must not overwrite it. PvEScaleGameMode picks a
-        /// random in-world player on every phase's OnActivate(), and in a multiplayer run the
-        /// roster can change between phases, so letting later calls win meant the filename was a
-        /// coin flip based on whoever happened to be in-world when the last phase activated -
-        /// confirmed live: a run's own log was correctly written and flushed on time, just under a
-        /// different party member's name than the one grepping for it.
+        /// Adds a player to this run's participant roster, so the run's log gets written under
+        /// their name too on flush. Safe to call repeatedly for the same player across every phase
+        /// of a run (e.g. once per OnActivate() for every in-world player) - a HashSet, so re-adding
+        /// an already-known participant is a no-op. Also lazily creates the session if this is the
+        /// very first call for a run (a phase can call this before any WriteLine()).
         /// </summary>
-        public static void SetPlayerLabel(ulong gameId, ulong metaGameId, string label)
+        public static void AddParticipant(ulong gameId, ulong metaGameId, string label)
         {
             if (metaGameId == 0 || string.IsNullOrEmpty(label)) return;
+
+            var key = (gameId, metaGameId);
             lock (_sessions)
             {
-                if (_sessions.TryGetValue((gameId, metaGameId), out Session session) && session.PlayerLabel == "unknown")
-                    session.PlayerLabel = label;
+                if (_sessions.TryGetValue(key, out Session session) == false)
+                {
+                    session = new Session(gameId, metaGameId);
+                    _sessions[key] = session;
+                }
+
+                session.ParticipantLabels.Add(label);
             }
         }
 
@@ -108,11 +120,23 @@ namespace MHServerEmu.Games.MetaGames.GameModes
             {
                 string dir = Path.Combine(FileHelper.ServerRoot, "Logs", "DinosWaveBattle");
                 Directory.CreateDirectory(dir);
-                string safePlayerName = string.Join("_", session.PlayerLabel.Split(Path.GetInvalidFileNameChars()));
-                string fileName = $"DinosWaveBattle_{safePlayerName}_{outcome}_{session.StartTime:yyyyMMdd_HHmmss}_{gameId}_{metaGameId}.log";
-                string path = Path.Combine(dir, fileName);
-                File.WriteAllText(path, session.Buffer.ToString());
-                Logger.Info($"[DinosWaveBattleCollator] Wrote {session.Buffer.Length} chars to '{path}'.");
+
+                List<string> participants = session.ParticipantLabels.Count > 0
+                    ? new List<string>(session.ParticipantLabels)
+                    : new List<string> { "unknown" };
+
+                string content = session.Buffer.ToString();
+                string timestamp = $"{session.StartTime:yyyyMMdd_HHmmss}";
+
+                foreach (string participantLabel in participants)
+                {
+                    string safePlayerName = string.Join("_", participantLabel.Split(Path.GetInvalidFileNameChars()));
+                    string fileName = $"DinosWaveBattle_{safePlayerName}_{outcome}_{timestamp}_{gameId}_{metaGameId}.log";
+                    string path = Path.Combine(dir, fileName);
+                    File.WriteAllText(path, content);
+                }
+
+                Logger.Info($"[DinosWaveBattleCollator] Wrote {content.Length} chars to {participants.Count} file(s) (one per participant) for Game {gameId} MetaGame {metaGameId}.");
             }
             catch (Exception ex)
             {
