@@ -10,6 +10,7 @@ using MHServerEmu.Games.GameData.Calligraphy;
 using MHServerEmu.Games.GameData.LiveTuning;
 using MHServerEmu.Games.GameData.Prototypes;
 using MHServerEmu.Games.GameData.Tables;
+using MHServerEmu.Games.MetaGames.GameModes;
 using MHServerEmu.Games.Missions;
 using MHServerEmu.Games.Properties;
 using MHServerEmu.Games.Regions;
@@ -195,10 +196,37 @@ namespace MHServerEmu.Games.Loot
                 cooldownChannelProto.SetCooldown(Player, count);
                 _allowedCooldownDrops.Add(dropProtoRef);    // Do not check this drop's cooldown again for this context
             }
-
-            //Logger.Debug($"IsOnCooldown(): {dropProtoRef.GetName()} x{count} = {isOnCooldown}");
+	    
+	    // Dino Cooldown Log
+	    if (isOnCooldown)
+                LogDinosLootLockoutIfApplicable(dropProtoRef);
+	    //
+            
+	    //Logger.Debug($"IsOnCooldown(): {dropProtoRef.GetName()} x{count} = {isOnCooldown}");
             return isOnCooldown;
         }
+
+        // Cooldown channels are a generic mechanism used by every loot table in the game, not just
+        // Dinos Invade Manhattan's Cosmic Artifact - gated the same way LootManager.LogDinosBossLootIfApplicable
+        // gates its own boss-loot logging (DinosWaveBattleLoggingEnable + an active wave-battle region),
+        // so this stays a no-op everywhere else instead of adding global cooldown-check log spam.
+        // Added because "the Cosmic Artifact isn't dropping" reports were previously indistinguishable
+        // from "it dropped and something else ate it" without digging through client packets - a lockout
+        // hit now leaves a plain record in that player's own run log.
+        private void LogDinosLootLockoutIfApplicable(PrototypeId dropProtoRef)
+        {
+            if (Player?.Game?.CustomGameOptions?.DinosWaveBattleLoggingEnable != true) return;
+
+            Region region = Player.GetRegion();
+            if (region == null || region.MetaGames.Count == 0) return;
+
+            ulong metaGameId = region.MetaGames[0];
+            string playerLabel = $"{Player.GetName()}_L{Player.CurrentAvatar?.CharacterLevel ?? 0}";
+            DinosWaveBattleLogCollator.WriteLine(Player.Game.Id, metaGameId,
+                $"LOOT_LOCKOUT recipient={Player.GetName()} drop={dropProtoRef.GetNameFormatted()} - cooldown channel active, no roll for this drop.");
+            DinosWaveBattleLogCollator.AddParticipant(Player.Game.Id, metaGameId, playerLabel);
+        }
+
 
         private void SetInternal(LootContext lootContext, Player player, WorldEntity sourceEntity, Mission mission)
         {

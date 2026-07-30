@@ -10,6 +10,7 @@ using MHServerEmu.Games.Entities.Items;
 using MHServerEmu.Games.GameData;
 using MHServerEmu.Games.GameData.Prototypes;
 using MHServerEmu.Games.Loot.Specs;
+using MHServerEmu.Games.MetaGames.GameModes;
 using MHServerEmu.Games.Missions;
 using MHServerEmu.Games.Properties;
 using MHServerEmu.Games.Regions;
@@ -53,8 +54,12 @@ namespace MHServerEmu.Games.Loot
             RollLootTable(lootTableProtoRef, inputSettings, lootResultSummary);
 
             if (lootResultSummary.HasAnyResult == false) return;
+            
+	    // DINO LOOT ENTRY
+            LogDinosBossLootIfApplicable(inputSettings, lootResultSummary);
+            //
 
-            SpawnLootFromSummary(lootResultSummary, inputSettings, recipientId);
+	    SpawnLootFromSummary(lootResultSummary, inputSettings, recipientId);
         }
 
         public void GiveLootFromTable(PrototypeId lootTableProtoRef, LootInputSettings inputSettings)
@@ -66,6 +71,50 @@ namespace MHServerEmu.Games.Loot
 
             GiveLootFromSummary(lootResultSummary, inputSettings.Player);
         }
+
+        // Dinos Invade Manhattan's final boss is a random toss-up between these two repurposed EG02
+        // mobs (see ItemResolverContext's DinosSharedBossCooldownRefs for the same normalization
+        // rationale) - either one dying can trigger the roll we want to log.
+        private static readonly HashSet<PrototypeId> DinosBossPrototypeRefs = new()
+        {
+            (PrototypeId)9671380227843956965,   // KingLizardBossEG02.prototype
+            (PrototypeId)12761272367405933307,  // KingLizardRiderBossEG02.prototype
+        };
+
+        /// <summary>
+        /// Logs the full rolled contents of the Dinos Invade Manhattan final boss's loot table roll,
+        /// per recipient, into that run's DinosWaveBattleLogCollator session - gives server ops a real
+        /// record of exactly what each player received (e.g. for the guaranteed Cosmic Artifact slot)
+        /// without digging through client packets, when players report not getting an advertised drop.
+        /// Gated by the same DinosWaveBattleLoggingEnable flag PvEScaleGameMode uses for its own tick/
+        /// kill diagnostics - no-op for every other kill/drop in the game (regular mobs, wave trash,
+        /// etc.), so this doesn't add log spam globally, only the boss's own roll.
+        /// </summary>
+        private void LogDinosBossLootIfApplicable(LootInputSettings inputSettings, LootResultSummary lootResultSummary)
+        {
+            if (Game.CustomGameOptions?.DinosWaveBattleLoggingEnable != true) return;
+
+            WorldEntity sourceEntity = inputSettings.SourceEntity;
+            if (sourceEntity == null || DinosBossPrototypeRefs.Contains(sourceEntity.PrototypeDataRef) == false) return;
+
+            ulong metaGameId = 0;
+            if (sourceEntity.Region != null && sourceEntity.Region.MetaGames.Count > 0)
+                metaGameId = sourceEntity.Region.MetaGames[0];
+            if (metaGameId == 0) return;
+
+            string recipientName = inputSettings.Player?.GetName() ?? "unknown";
+            string message = $"BOSS_LOOT recipient={recipientName} rolled:\n{lootResultSummary.ToStringVerbose()}";
+            DinosWaveBattleLogCollator.WriteLine(Game.Id, metaGameId, message);
+
+
+            // Belt-and-suspenders: guarantees the boss loot recipient always gets their own copy of
+            // the run's log even in the unlikely case they weren't captured as a participant at any
+            // phase's OnActivate() (e.g. joined in-world only right at the very end).
+            Avatar recipientAvatar = inputSettings.Player?.CurrentAvatar;
+            if (inputSettings.Player != null && recipientAvatar != null)
+                DinosWaveBattleLogCollator.AddParticipant(Game.Id, metaGameId, $"{recipientName}_L{recipientAvatar.CharacterLevel}");
+        }
+
 
         public void AwardLootFromTables(List<(PrototypeId, LootActionType)> tables, LootInputSettings inputSettings, int recipientId)
         {
