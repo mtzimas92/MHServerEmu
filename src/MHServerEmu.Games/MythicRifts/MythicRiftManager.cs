@@ -104,6 +104,7 @@ namespace MHServerEmu.Games.MythicRifts
         private const int RiftCompletionCrafterMinimumItemLevel = 69;
         private const int RiftCompletionCrafterCosmicMinimumItemLevel = 63;
         private const int RiftCompletionCrafterMaximumItemLevel = 75;
+        private const string RiftCompletionCrafterCurrencyPrototypeName = "Entity/Items/CurrencyItems/CurrencyPrototypes/GenoshaRaidCurrency.prototype";
         private const float RiftCompletionCrafterSpawnOffset = 390f;
         private const string BossGauntletArenaContentId = "boss-gauntlet-tutorial-arena";
         private const float SpecialRandomMapChance = 0.05f;
@@ -1375,6 +1376,46 @@ namespace MHServerEmu.Games.MythicRifts
             return RegisterRun(config);
         }
 
+        // Skips the actual Rift region entirely and runs the real success-completion pipeline (rewards,
+        // progression, completion crafter spawn) against the player's current region, so testers can reach
+        // the completion crafter without playing a full run.
+        public bool DebugCompleteRunForPlayer(Player player, out string errorMessage)
+        {
+            errorMessage = string.Empty;
+
+            Region region = player?.CurrentAvatar?.Region;
+            if (region == null)
+            {
+                errorMessage = "Player not found or not currently in a region.";
+                return false;
+            }
+
+            MythicRiftRunState runState = CreateRandomDebugRun(riftLevel: 1, requestedPlayerCount: 1, killQuota: 1, timeLimit: TimeSpan.FromMinutes(30));
+            if (runState == null)
+            {
+                errorMessage = "Failed to create a debug Mythic Rift run.";
+                return false;
+            }
+
+            runState.AttachRegion(region.Id);
+            runState.RegisterParticipant(player.DatabaseUniqueId);
+            runState.Start(Game.CurrentTime);
+            if (runState.Status != MythicRiftRunStatus.Active)
+            {
+                errorMessage = "Failed to start the debug run.";
+                return false;
+            }
+
+            if (CompleteRunSuccess(runState, Game.CurrentTime) == false)
+            {
+                errorMessage = "Failed to complete the debug run.";
+                return false;
+            }
+
+            Logger.Info($"Mythic Rift debug run {runState.Config.RunId} force-completed for playerDbId=0x{player.DatabaseUniqueId:X} in regionId=0x{region.Id:X}.");
+            return true;
+        }
+
         public MythicRiftRunState RequestRun(Player player, int riftLevel, int killQuota, TimeSpan timeLimit, out string errorMessage)
         {
             return RequestRun(player, riftLevel, killQuota, timeLimit, MythicRiftMode.Standard, out errorMessage);
@@ -1480,6 +1521,22 @@ namespace MHServerEmu.Games.MythicRifts
         public int CompletionCrafterMinimumItemLevel => RiftCompletionCrafterMinimumItemLevel;
         public int CompletionCrafterCosmicMinimumItemLevel => RiftCompletionCrafterCosmicMinimumItemLevel;
         public int CompletionCrafterMaximumItemLevel => RiftCompletionCrafterMaximumItemLevel;
+
+        // The recipes' own native CraftingCost fields (CostEvalCredits/CostEvalCurrencies) are never read for
+        // this flow - TryHandleMythicRiftCompletionCraft() in Player.Crafting.cs bypasses the whole native
+        // GetCraftingCost()/CraftPayCost() pipeline entirely, so this cost has to be checked/charged directly
+        // in that custom handler instead of via a data patch to the recipe prototypes.
+        public PrototypeId CompletionCrafterCurrencyProtoRef => ResolvePrototype(RiftCompletionCrafterCurrencyPrototypeName);
+
+        // Costs are editable per-recipe in CosmicRiftRewards.json (CompletionCrafterUniqueRecipeCost /
+        // CompletionCrafterCosmicRecipeCost) so testers can retune them without a rebuild.
+        public uint GetCompletionCrafterCurrencyCost(PrototypeId recipeProtoRef)
+        {
+            MythicRiftRewardTuning tuning = _rewardTuning ?? MythicRiftRewardTuning.CreateDefault();
+            return (uint)(IsCosmicCompletionCrafterRecipe(recipeProtoRef)
+                ? tuning.CompletionCrafterCosmicRecipeCost
+                : tuning.CompletionCrafterUniqueRecipeCost);
+        }
         public IReadOnlyList<PrototypeId> CompletionCrafterRecipePrototypeRefs
         {
             get
@@ -1521,6 +1578,15 @@ namespace MHServerEmu.Games.MythicRifts
 
             if (recipeProtoRef == RiftCompletionCrafterRecipePrototypeRef)
                 return true;
+
+            PrototypeId cosmicRecipeProtoRef = ResolvePrototype(RiftCompletionCrafterCosmicRecipePrototypeName);
+            return cosmicRecipeProtoRef != PrototypeId.Invalid && recipeProtoRef == cosmicRecipeProtoRef;
+        }
+
+        public bool IsCosmicCompletionCrafterRecipe(PrototypeId recipeProtoRef)
+        {
+            if (recipeProtoRef == PrototypeId.Invalid)
+                return false;
 
             PrototypeId cosmicRecipeProtoRef = ResolvePrototype(RiftCompletionCrafterCosmicRecipePrototypeName);
             return cosmicRecipeProtoRef != PrototypeId.Invalid && recipeProtoRef == cosmicRecipeProtoRef;
@@ -6014,9 +6080,10 @@ namespace MHServerEmu.Games.MythicRifts
                 Player player = Game.EntityManager.GetEntityByDbGuid<Player>(playerDbId);
                 if (player != null)
                 {
+                    MythicRiftRewardTuning tuning = _rewardTuning ?? MythicRiftRewardTuning.CreateDefault();
                     Game.ChatManager?.SendChatFromCustomSystem(
                         player,
-                        $"[Mythic Rift] Completion crafter unlocked: {RiftCompletionCrafterAttemptsPerRun} attempts, {RiftCompletionCrafterUpgradeChance:P0} chance to upgrade item level {RiftCompletionCrafterMinimumItemLevel}-{RiftCompletionCrafterMaximumItemLevel - 1} Unique or {RiftCompletionCrafterCosmicMinimumItemLevel}-{RiftCompletionCrafterMaximumItemLevel - 1} Cosmic gear slot 1-5 by +1. A success ends this run's attempts.",
+                        $"[Mythic Rift] Completion crafter unlocked: {RiftCompletionCrafterAttemptsPerRun} attempts, {RiftCompletionCrafterUpgradeChance:P0} chance to upgrade item level {RiftCompletionCrafterMinimumItemLevel}-{RiftCompletionCrafterMaximumItemLevel - 1} Unique or {RiftCompletionCrafterCosmicMinimumItemLevel}-{RiftCompletionCrafterMaximumItemLevel - 1} Cosmic gear slot 1-5 by +1. Costs {tuning.CompletionCrafterUniqueRecipeCost} (Unique) or {tuning.CompletionCrafterCosmicRecipeCost} (Cosmic) Champion's Commendations on a successful upgrade. A success ends this run's attempts.",
                         showSender: false);
                 }
             }
@@ -6484,7 +6551,8 @@ namespace MHServerEmu.Games.MythicRifts
 
             crafter.Properties[PropertyEnum.VendorType] = vendorTypeProtoRef;
             runState.AttachCompletionCrafter(crafter.Id);
-            NotifyRunPlayers(runState, "[Mythic Rift] Completion crafter spawned. Use it for item level 69-74 unique upgrades; each eligible player has three attempts and one success per cleared Rift.");
+            MythicRiftRewardTuning spawnTuning = _rewardTuning ?? MythicRiftRewardTuning.CreateDefault();
+            NotifyRunPlayers(runState, $"[Mythic Rift] Completion crafter spawned. Use it for item level 69-74 unique or 63-74 cosmic upgrades; each eligible player has three attempts and one success per cleared Rift. Costs {spawnTuning.CompletionCrafterUniqueRecipeCost} (Unique) or {spawnTuning.CompletionCrafterCosmicRecipeCost} (Cosmic) Champion's Commendations on a successful upgrade.");
             Logger.Info($"Mythic Rift run {runState.Config.RunId} spawned completion crafter {crafter.PrototypeName} (0x{crafter.Id:X}) vendorType={vendorTypeProtoRef.GetNameFormatted()}.");
             return true;
         }

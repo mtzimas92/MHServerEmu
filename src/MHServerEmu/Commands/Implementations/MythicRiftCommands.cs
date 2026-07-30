@@ -344,6 +344,25 @@ namespace MHServerEmu.Commands.Implementations
             return string.Empty;
         }
 
+        [Command("debugcompletecrafter")]
+        [CommandDescription("Force-completes a synthetic Mythic Rift run for the invoking player in their current region, granting rewards and spawning the completion crafter as if a real run had just been cleared.")]
+        [CommandUsage("rift debugcompletecrafter")]
+        [CommandUserLevel(AccountUserLevel.Admin)]
+        [CommandInvokerType(CommandInvokerType.Client)]
+        public string DebugCompleteCrafter(string[] @params, NetClient client)
+        {
+            PlayerConnection playerConnection = (PlayerConnection)client;
+            Game game = playerConnection?.Game;
+            Player player = playerConnection?.Player;
+            if (game == null || player == null)
+                return "Game or player not found.";
+
+            if (game.MythicRiftManager.DebugCompleteRunForPlayer(player, out string errorMessage) == false)
+                return errorMessage;
+
+            return "Debug run completed. Completion crafter should now be spawned nearby.";
+        }
+
         [Command("setaccess")]
         [CommandDescription("Sets the highest unlocked Rift level for the invoking player.")]
         [CommandUsage("rift setaccess [level] [cosmic|gauntlet|bossgauntlet]")]

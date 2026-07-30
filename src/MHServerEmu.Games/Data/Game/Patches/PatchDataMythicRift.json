@@ -25,6 +25,14 @@
   },
   {
     "Enabled": true,
+    "Prototype": "Entity/Items/Consumables/Prototypes/DangerRoom/PortalToRandomMaxAffixDungeon.prototype",
+    "Path": "IconPath",
+    "Description": "Give the Cosmic Rift launcher its own distinct icon (a glowing blue energy rift) instead of the generic Danger Room simulation chip shared by all three consumables.",
+    "ValueType": "AssetId",
+    "Value": 18109230673074853238
+  },
+  {
+    "Enabled": true,
     "Prototype": "Entity/Items/Consumables/Prototypes/DangerRoom/PortalToDangerRoomRandomThemeNoAffixesPurple.prototype",
     "Path": "DesignState",
     "Description": "Enable the unused purple no-affix Danger Room portal as the 30-wave Rift Gauntlet technical launcher base.",
@@ -67,33 +75,33 @@
     "Enabled": true,
     "Prototype": "Entity/Items/Consumables/Prototypes/Test/TestHearthStone.prototype",
     "Path": "IconPath",
-    "Description": "Use the Danger Room simulation chip icon for the Rift Gauntlet presentation item.",
+    "Description": "Give the Rift Gauntlet presentation item its own distinct icon (Scarlet Witch's red Chaos Rift power icon) instead of the generic Danger Room simulation chip shared by all three consumables.",
     "ValueType": "AssetId",
-    "Value": 12202641426798417230
+    "Value": 18306558645704594592
   },
   {
     "Enabled": true,
     "Prototype": "Entity/Items/Consumables/Prototypes/Test/TestHearthStone.prototype",
     "Path": "IconPathHiRes",
-    "Description": "Use the Danger Room simulation chip icon for high-resolution Rift Gauntlet item surfaces.",
+    "Description": "Use the Chaos Rift icon for high-resolution Rift Gauntlet item surfaces.",
     "ValueType": "AssetId",
-    "Value": 12202641426798417230
+    "Value": 18306558645704594592
   },
   {
     "Enabled": true,
     "Prototype": "Entity/Items/Consumables/Prototypes/Test/TestHearthStone.prototype",
     "Path": "IconPathTooltipHeader",
-    "Description": "Use the Danger Room simulation chip icon for Rift Gauntlet tooltip headers.",
+    "Description": "Use the Chaos Rift icon for Rift Gauntlet tooltip headers.",
     "ValueType": "AssetId",
-    "Value": 12202641426798417230
+    "Value": 18306558645704594592
   },
   {
     "Enabled": true,
     "Prototype": "Entity/Items/Consumables/Prototypes/Test/TestHearthStone.prototype",
     "Path": "StoreIconPath",
-    "Description": "Use the Danger Room simulation chip icon for vendor/store Rift Gauntlet item surfaces.",
+    "Description": "Use the Chaos Rift icon for vendor/store Rift Gauntlet item surfaces.",
     "ValueType": "AssetId",
-    "Value": 12202641426798417230
+    "Value": 18306558645704594592
   },
   {
     "Enabled": true,
@@ -139,33 +147,33 @@
     "Enabled": true,
     "Prototype": "Entity/Items/Consumables/Prototypes/Test/TestStunKit.prototype",
     "Path": "IconPath",
-    "Description": "Use the Danger Room simulation chip icon for the Boss Gauntlet presentation item.",
+    "Description": "Give the Boss Gauntlet presentation item its own distinct icon (a dark infinity-symbol orb, fitting for an endless boss-wave survival mode) instead of the generic Danger Room simulation chip shared by all three consumables.",
     "ValueType": "AssetId",
-    "Value": 12202641426798417230
+    "Value": 16131469697309218259
   },
   {
     "Enabled": true,
     "Prototype": "Entity/Items/Consumables/Prototypes/Test/TestStunKit.prototype",
     "Path": "IconPathHiRes",
-    "Description": "Use the Danger Room simulation chip icon for high-resolution Boss Gauntlet item surfaces.",
+    "Description": "Use the Infinity Orb icon for high-resolution Boss Gauntlet item surfaces.",
     "ValueType": "AssetId",
-    "Value": 12202641426798417230
+    "Value": 16131469697309218259
   },
   {
     "Enabled": true,
     "Prototype": "Entity/Items/Consumables/Prototypes/Test/TestStunKit.prototype",
     "Path": "IconPathTooltipHeader",
-    "Description": "Use the Danger Room simulation chip icon for Boss Gauntlet tooltip headers.",
+    "Description": "Use the Infinity Orb icon for Boss Gauntlet tooltip headers.",
     "ValueType": "AssetId",
-    "Value": 12202641426798417230
+    "Value": 16131469697309218259
   },
   {
     "Enabled": true,
     "Prototype": "Entity/Items/Consumables/Prototypes/Test/TestStunKit.prototype",
     "Path": "StoreIconPath",
-    "Description": "Use the Danger Room simulation chip icon for vendor/store Boss Gauntlet item surfaces.",
+    "Description": "Use the Infinity Orb icon for vendor/store Boss Gauntlet item surfaces.",
     "ValueType": "AssetId",
-    "Value": 12202641426798417230
+    "Value": 16131469697309218259
   },
   {
     "Enabled": true,
@@ -174,5 +182,21 @@
     "Description": "Disable the native 'donate items to increase rank' action on the Rift completion crafter - she has no persistent rank (spawned fresh each run with fixed attempts), so the button only confused players. Isolated re-test: this field previously failed to take effect alongside several LocaleStringId field patches that we now know don't reach the client at all (text-on-VendorType is client-resolved from its own local data) - testing this boolean action-flag on its own since it's a different kind of field (behavior, not display text) and vendor stock/behavior data has separately been confirmed to transmit correctly.",
     "ValueType": "Boolean",
     "Value": false
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Crafting/Recipes/Tab3Gear/RerollCosmicReplacement.prototype",
+    "Path": "CraftingCost.CostEvalCredits.Value",
+    "Description": "This recipe's native 75,000-credit CraftingCost is purely a client-side display value - the server never reads it (see TryHandleMythicRiftCompletionCraft() in Player.Crafting.cs, which intercepts this recipe entirely before the native cost-eval code is ever reached) and it was misleadingly showing 75,000 credits in the crafting UI when the real cost is 100 Protector's Commendations on a successful upgrade. Zeroed to the same CostEvalCredits=0 baseline every no-cost recipe in the game already uses (confirmed via Entity/Items/Crafting/ZAbstract/CraftingCost.defaults), so the UI shows no cost pill instead of a wrong one.",
+    "ValueType": "Integer",
+    "Value": 0
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Crafting/Recipes/Tab3Gear/UnbindUnique.prototype",
+    "Path": "CraftingCost.CostEvalCredits.Value",
+    "Description": "Same fix as RerollCosmicReplacement.prototype above, for the Unique-gear completion-crafter recipe (was showing a misleading 200,000 credits).",
+    "ValueType": "Integer",
+    "Value": 0
   }
 ]

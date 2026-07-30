@@ -247,6 +247,20 @@ namespace MHServerEmu.Games.Entities
                 return true;
             }
 
+            // This recipe's own native CraftingCost fields are never consulted for this flow (see
+            // GetCraftingCost()'s callers in Player.cs/Item.cs - neither is ever reached here since this
+            // whole method returns before Craft() gets to them), so the cost has to be checked and charged
+            // directly here instead. Checked before spending an attempt below so a player who can't afford
+            // it doesn't burn one of their 3 attempts for nothing.
+            PrototypeId currencyProtoRef = Game.MythicRiftManager.CompletionCrafterCurrencyProtoRef;
+            uint currencyCost = Game.MythicRiftManager.GetCompletionCrafterCurrencyCost(recipeItem.PrototypeDataRef);
+            if (currencyProtoRef != PrototypeId.Invalid && currencyCost > 0 && Properties[PropertyEnum.Currency, currencyProtoRef] < currencyCost)
+            {
+                craftingResult = CraftingResult.InsufficientIngredients;   // generic error code, same as the native "other currencies" fallback in Item.cs
+                Game.ChatManager?.SendChatFromCustomSystem(this, $"[Mythic Rift] Not enough Champion's Commendations. A successful upgrade costs {currencyCost}.", showSender: false);
+                return true;
+            }
+
             if (Game.MythicRiftManager.TrySpendCompletionCrafterAttempt(this, out bool upgraded, out int attemptsRemaining, out string failureReason) == false)
             {
                 Game.ChatManager?.SendChatFromCustomSystem(this, $"[Mythic Rift] {failureReason}", showSender: false);
@@ -261,6 +275,11 @@ namespace MHServerEmu.Games.Entities
                     showSender: false);
                 return true;
             }
+
+            // Charged only on a successful upgrade - a failed attempt still costs one of the 3 tries
+            // above, but not the currency.
+            if (currencyProtoRef != PrototypeId.Invalid && currencyCost > 0)
+                Properties.AdjustProperty(-(int)currencyCost, new(PropertyEnum.Currency, currencyProtoRef));
 
             int outputLevel = Math.Min(sourceLevel + 1, Game.MythicRiftManager.CompletionCrafterMaximumItemLevel);
             Item outputItem = CreateMythicRiftCompletionCraftOutput(sourceItem, resultsInv, outputLevel);

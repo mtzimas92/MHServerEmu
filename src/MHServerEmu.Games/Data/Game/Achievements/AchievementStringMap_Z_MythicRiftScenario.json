@@ -48,7 +48,7 @@
     "en_us": "Requires: Unique armor or weapon (item level 69-74)"
   },
   "8901031692473861378": {
-    "en_us": "Attempt to upgrade a Unique gear piece (slots 1-5, item level 69-74) by +1 item level. You have 3 attempts per completed Rift, 30% chance each. A successful upgrade ends your attempts for this run. Maximum item level 75."
+    "en_us": "Attempt to upgrade a Unique gear piece (slots 1-5, item level 69-74) by +1 item level. Costs 100 Champion's Commendations on a successful upgrade. You have 3 attempts per completed Rift, 30% chance each. A successful upgrade ends your attempts for this run. Maximum item level 75."
   },
   "15297019336788215139": {
     "en_us": "Rift Cosmic Gear Upgrade"
@@ -57,6 +57,6 @@
     "en_us": "Requires: Cosmic armor or weapon (item level 63-74)"
   },
   "9161134654277420337": {
-    "en_us": "Attempt to upgrade a Cosmic gear piece (slots 1-5, item level 63-74) by +1 item level. You have 3 attempts per completed Rift, 30% chance each. A successful upgrade ends your attempts for this run. Maximum item level 75."
+    "en_us": "Attempt to upgrade a Cosmic gear piece (slots 1-5, item level 63-74) by +1 item level. Costs 100 Champion's Commendations on a successful upgrade. You have 3 attempts per completed Rift, 30% chance each. A successful upgrade ends your attempts for this run. Maximum item level 75."
   }
 }

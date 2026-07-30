@@ -12,6 +12,8 @@
   "failureBonusRarityPct": 0,
   "failureBonusSpecialPct": 0,
   "defaultDelivery": "ground",
+  "completionCrafterUniqueRecipeCost": 100,
+  "completionCrafterCosmicRecipeCost": 100,
   "lootTableAliases": {
     "cosmic-artifacts": "Loot/Tables/Mob/Bosses/CosmicArtifactsTable.prototype",
     "cosmic-doop-overlord": "Loot/Tables/Mob/NormalMobs/CosmicDoopOverlordTable.prototype",
