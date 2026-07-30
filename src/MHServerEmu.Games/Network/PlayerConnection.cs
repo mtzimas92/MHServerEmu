@@ -570,12 +570,17 @@ namespace MHServerEmu.Games.Network
                 // case ClientToGameServerMessage.NetMessageSelectPublicEventTeam:          OnSelectPublicEventTeam(message); break;
 #if GAME_VERSION_1_52 || GAME_VERSION_1_53
                 case ClientToGameServerMessage.NetMessageRefreshAbilityKeyMapping:          OnRefreshAbilityKeyMapping(message); break;
+#else
+                case ClientToGameServerMessage.NetMessageSelectAbilityKeyMapping:           OnSelectAbilityKeyMapping(message); break;
 #endif
                 case ClientToGameServerMessage.NetMessageAbilitySlotToAbilityBar:           OnAbilitySlotToAbilityBar(message); break;
                 case ClientToGameServerMessage.NetMessageAbilityUnslotFromAbilityBar:       OnAbilityUnslotFromAbilityBar(message); break;
                 case ClientToGameServerMessage.NetMessageAbilitySwapInAbilityBar:           OnAbilitySwapInAbilityBar(message); break;
                 // case ClientToGameServerMessage.NetMessageModCommitTemporary:             OnModCommitTemporary(message); break;
                 // case ClientToGameServerMessage.NetMessageModReset:                       OnModReset(message); break;
+#if GAME_VERSION_1_48
+                case ClientToGameServerMessage.NetMessagePowerPointAllocationCommit:        OnPowerPointAllocationCommit(message); break;
+#endif
 #if GAME_VERSION_1_52 || GAME_VERSION_1_53
                 case ClientToGameServerMessage.NetMessagePowerRecentlyUnlocked:             OnPowerRecentlyUnlocked(message); break;
 #endif
@@ -664,7 +669,7 @@ namespace MHServerEmu.Games.Network
                 case ClientToGameServerMessage.NetMessageOmegaBonusAllocationCommit:        OnOmegaBonusAllocationCommit(message); break;
                 case ClientToGameServerMessage.NetMessageRespecOmegaBonus:                  OnRespecOmegaBonus(message); break;
 #endif
-                // case ClientToGameServerMessage.NetMessageRespecPowerSpec:                OnRespecPowerSpec(message); break;
+                case ClientToGameServerMessage.NetMessageRespecPowerSpec:                   OnRespecPowerSpec(message); break;
                 case ClientToGameServerMessage.NetMessageNewItemGlintPlayed:                OnNewItemGlintPlayed(message); break;
                 case ClientToGameServerMessage.NetMessageNewItemHighlightCleared:           OnNewItemHighlightCleared(message); break;
                 // case ClientToGameServerMessage.NetMessageNewSynergyCleared:              OnNewSynergyCleared(message); break;
@@ -705,7 +710,7 @@ namespace MHServerEmu.Games.Network
                 case ClientToGameServerMessage.NetMessageAchievementMissionTrackerFilterChange: OnAchievementMissionTrackerFilterChange(message); break;
                 // case ClientToGameServerMessage.NetMessageBillingRoutedClientMessage:     OnBillingRoutedClientMessage(message); break;
                 // case ClientToGameServerMessage.NetMessagePlayerLookupByNameClientRequest:OnPlayerLookupByNameClientRequest(message); break;
-                // case ClientToGameServerMessage.NetMessageCostumeChange:                  OnCostumeChange(message); break;
+                case ClientToGameServerMessage.NetMessageCostumeChange:                     OnCostumeChange(message); break;
                 // case ClientToGameServerMessage.NetMessageLookForParty:                   OnLookForParty(message); break;
 #endif
 
@@ -1083,12 +1088,7 @@ namespace MHServerEmu.Games.Network
             if (result != InventoryResult.Success)
             {
                 if (result == InventoryResult.InventoryFull || result == InventoryResult.NoAvailableInventory)
-                {
-                    SendMessage(NetMessageInventoryFull.CreateBuilder()
-                        .SetPlayerID(Player.Id)
-                        .SetItemID(item.Id)
-                        .Build());
-                }
+                    Player.SendInventoryFullMessage(item.Id, inventory.PrototypeDataRef);
 
                 return;
             }
@@ -1158,11 +1158,7 @@ namespace MHServerEmu.Games.Network
                 uint freeSlot = generalInv.GetFreeSlot(item, true, true);
                 if (freeSlot == Inventory.InvalidSlot || Player.TryInventoryMove(itemId, playerId, generalInv.PrototypeDataRef, freeSlot) == false)
                 {
-                    SendMessage(NetMessageInventoryFull.CreateBuilder()
-                        .SetPlayerID(playerId)
-                        .SetItemID(Entity.InvalidId)
-                        .Build());
-
+                    Player.SendInventoryFullMessage(Entity.InvalidId, generalInv.PrototypeDataRef);
                     break;
                 }
             }
@@ -1346,6 +1342,20 @@ namespace MHServerEmu.Games.Network
 
             avatar.RefreshAbilityKeyMapping(false);
         }
+#else
+        public void OnSelectAbilityKeyMapping(in MailboxMessage message)
+        {
+            var selectAbilityKeyMapping = message.As<NetMessageSelectAbilityKeyMapping>();
+            if (!Verify.IsNotNull(selectAbilityKeyMapping)) return;
+
+            Avatar avatar = Game.EntityManager.GetEntity<Avatar>(selectAbilityKeyMapping.AvatarId);
+            if (!Verify.IsNotNull(avatar)) return;
+
+            if (!Verify.IsTrue(avatar.GetOwnerOfType<Player>() == Player, $"Player [{Player}] is attempting to select ability key mapping for avatar [{avatar}] that belongs to another player"))
+                return;
+
+            avatar.SelectAbilityKeyMapping((int)selectAbilityKeyMapping.KeyMappingIndex, false);
+        }
 #endif
 
         private void OnAbilitySlotToAbilityBar(in MailboxMessage message)
@@ -1359,7 +1369,12 @@ namespace MHServerEmu.Games.Network
             if (!Verify.IsTrue(avatar.GetOwnerOfType<Player>() == Player, $"Player [{Player}] is attempting to slot ability for avatar [{avatar}] that belongs to another player"))
                 return;
 
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
             avatar.SlotAbility((PrototypeId)abilitySlotToAbilityBar.PrototypeRefId, (AbilitySlot)abilitySlotToAbilityBar.SlotNumber, false, false);
+#else
+            avatar.SlotAbility((PrototypeId)abilitySlotToAbilityBar.PrototypeRefId, (int)abilitySlotToAbilityBar.KeyMappingIndex,
+                (AbilitySlot)abilitySlotToAbilityBar.SlotNumber, false, false);
+#endif
         }
 
         private void OnAbilityUnslotFromAbilityBar(in MailboxMessage message)
@@ -1373,7 +1388,11 @@ namespace MHServerEmu.Games.Network
             if (!Verify.IsTrue(avatar.GetOwnerOfType<Player>() == Player, $"Player [{Player}] is attempting to unslot ability for avatar [{avatar}] that belongs to another player"))
                 return;
 
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
             avatar.UnslotAbility((AbilitySlot)abilityUnslotFromAbilityBar.SlotNumber, false);
+#else
+            avatar.UnslotAbility((int)abilityUnslotFromAbilityBar.KeyMappingIndex, (AbilitySlot)abilityUnslotFromAbilityBar.SlotNumber, false);
+#endif
         }
 
         private void OnAbilitySwapInAbilityBar(in MailboxMessage message)
@@ -1407,6 +1426,32 @@ namespace MHServerEmu.Games.Network
             if (!Verify.IsNotNull(powerProto)) return;
 
             avatar.Properties[PropertyEnum.PowerUnlocked, powerProto.DataRef] = powerRecentlyUnlocked.IsRecentlyUnlocked;
+        }
+#endif
+
+#if GAME_VERSION_1_48
+        private void OnPowerPointAllocationCommit(in MailboxMessage message)
+        {
+            var powerPointAllocationCommit = message.As<NetMessagePowerPointAllocationCommit>();
+            if (!Verify.IsNotNull(powerPointAllocationCommit)) return;
+
+            PrototypeId agentProtoRef = (PrototypeId)powerPointAllocationCommit.AgentRef;
+            AgentPrototype agentProto = GameDatabase.GetPrototype<AgentPrototype>(agentProtoRef);
+            if (!Verify.IsNotNull(agentProto)) return;
+
+            Agent agent = null;
+
+            if (agentProto is AvatarPrototype)
+                agent = Player.GetAvatar(agentProtoRef);
+            else if (agentProto is AgentTeamUpPrototype)
+                agent = Player.GetTeamUpAgent(agentProtoRef);
+
+            if (!Verify.IsNotNull(agent)) return;
+
+            if (!Verify.IsTrue(agent.GetOwnerOfType<Player>() == Player, $"Player [{Player}] is attempting to allocate power points for agent [{agent}] that belongs to another player"))
+                return;
+
+            agent.PowerPointAllocationCommit(powerPointAllocationCommit);
         }
 #endif
 
@@ -1862,11 +1907,7 @@ namespace MHServerEmu.Games.Network
                 // we are full
                 if (freeSlot == Inventory.InvalidSlot)
                 {
-                    SendMessage(NetMessageInventoryFull.CreateBuilder()
-                        .SetPlayerID(Player.Id)
-                        .SetItemID(item.Id)
-                        .Build());
-
+                    Player.SendInventoryFullMessage(item.Id, generalInventory.PrototypeDataRef);
                     return;
                 }
 
@@ -2146,6 +2187,23 @@ namespace MHServerEmu.Games.Network
             avatar.RespecOmegaBonus();
         }
 #endif
+
+        private void OnRespecPowerSpec(in MailboxMessage message)
+        {
+            var respecPowerSpec = message.As<NetMessageRespecPowerSpec>();
+            if (!Verify.IsNotNull(respecPowerSpec)) return;
+
+            Agent agent = Game.EntityManager.GetEntity<Agent>(respecPowerSpec.CharacterId);
+            if (!Verify.IsNotNull(agent)) return;
+
+            int powerSpecIndex = respecPowerSpec.PowerSpecIndex;
+            if (!Verify.IsTrue(powerSpecIndex >= 0 && powerSpecIndex <= agent.GetPowerSpecIndexUnlocked())) return;
+
+            if (!Verify.IsTrue(agent.GetOwnerOfType<Player>() == Player, $"Player [{Player}] is attempting to respec power spec for agent [{agent}] that belongs to another player"))
+                return;
+
+            Verify.IsTrue(agent.RespecPowerSpec(powerSpecIndex, PowersRespecReason.PlayerRequest));
+        }
 
         private void OnNewItemGlintPlayed(in MailboxMessage message)
         {
@@ -2492,6 +2550,19 @@ namespace MHServerEmu.Games.Network
             if (!Verify.IsTrue(achievementId != 0)) return;
 
             Player.Properties[PropertyEnum.MissionTrackerAchievements, achievementId] = isFiltered;
+        }
+#endif
+
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
+        private void OnCostumeChange(in MailboxMessage message)
+        {
+            var costumeChange = message.As<NetMessageCostumeChange>();
+            if (!Verify.IsNotNull(costumeChange)) return;
+
+            Avatar avatar = Player.GetActiveAvatarById(costumeChange.AvatarId);
+            if (!Verify.IsNotNull(avatar)) return;
+
+            avatar.ChangeCostume((PrototypeId)costumeChange.CostumePrototypeId, true);
         }
 #endif
 
