@@ -967,6 +967,7 @@ namespace MHServerEmu.Games.MythicRifts
         private static PrototypeId[] _cachedCustomRiftPopulationMobPrototypeRefs;
         private IReadOnlyList<PrototypeId> _cachedRiftHazardPrototypeRefs;
         private readonly Dictionary<(ulong RunId, ulong PlayerDbId), GameDialogInstance> _readyCheckDialogs = new();
+        private readonly HashSet<(ulong RunId, ulong PlayerDbId)> _riftModifierButtonCallbacks = new();
         private MythicRiftRewardTuning _rewardTuning = MythicRiftRewardTuning.CreateDefault();
         private string _rewardTuningLastLoadMessage = "Using built-in default Mythic Rift reward tuning.";
         private MythicRiftHazardTuning _hazardTuning = MythicRiftHazardTuning.CreateDefault();
@@ -1559,6 +1560,7 @@ namespace MHServerEmu.Games.MythicRifts
                 _pendingFailedRunEvacuationsAt.Remove(runId);
                 _pendingBossGauntletFailureRecoveriesAt.Remove(runId);
                 ClearReadyCheckDialogs(runState);
+                ClearRiftModifierButtonCallbacks(runId);
                 CleanupRunHazards(runState);
                 CleanupRewardChests(runId);
                 CleanupCompletionCrafterOpportunities(runId);
@@ -3463,6 +3465,9 @@ namespace MHServerEmu.Games.MythicRifts
             foreach (Player player in GetRunPlayers(runState))
             {
                 ulong playerDbId = player.DatabaseUniqueId;
+                if (_riftModifierButtonCallbacks.Add((runState.Config.RunId, playerDbId)) == false)
+                    continue;
+
                 modifierButton.AddCallback(playerDbId, (callbackPlayerDbId, _) => ShowRiftModifierDetails(runState.Config.RunId, callbackPlayerDbId));
             }
         }
@@ -3490,7 +3495,7 @@ namespace MHServerEmu.Games.MythicRifts
             }
         }
 
-        private static void ClearDangerRoomRiftWidgets(UIDataProvider uiDataProvider, MythicRiftRunState runState)
+        private void ClearDangerRoomRiftWidgets(UIDataProvider uiDataProvider, MythicRiftRunState runState)
         {
             if (uiDataProvider == null || runState?.Config == null)
                 return;
@@ -3511,6 +3516,16 @@ namespace MHServerEmu.Games.MythicRifts
             PrototypeId modifierButtonWidgetRef = GetRiftModifierButtonWidgetPrototypeRef();
             if (modifierButtonWidgetRef != PrototypeId.Invalid)
                 uiDataProvider.DeleteWidget(modifierButtonWidgetRef, contextRef);
+
+            ClearRiftModifierButtonCallbacks(runState.Config.RunId);
+        }
+
+        private void ClearRiftModifierButtonCallbacks(ulong runId)
+        {
+            if (runId == 0)
+                return;
+
+            _riftModifierButtonCallbacks.RemoveWhere(callback => callback.RunId == runId);
         }
 
         private static PrototypeId GetRiftWidgetContextRef(MythicRiftRunState runState)

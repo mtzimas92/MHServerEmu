@@ -60,7 +60,6 @@ namespace MHServerEmu.Games.UI.Widgets
 
         public void AddCallback(ulong playerGuid, Action<ulong, bool> action)
         {
-            _callbackList.RemoveAll(callback => callback.PlayerGuid == playerGuid);
             CallbackEvent callbackEvent = new(playerGuid, action);
             _callbackList.Add(callbackEvent);
             UpdateUI();
