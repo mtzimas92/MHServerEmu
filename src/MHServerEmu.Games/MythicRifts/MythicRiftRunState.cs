@@ -1,3 +1,5 @@
+using MHServerEmu.Games.UI.Widgets;
+
 namespace MHServerEmu.Games.MythicRifts
 {
     public enum MythicRiftRunStatus
@@ -24,6 +26,7 @@ namespace MHServerEmu.Games.MythicRifts
         private readonly HashSet<ulong> _hazardEntityIds = new();
         private readonly HashSet<ulong> _activeBossEntityIds = new();
         private readonly HashSet<ulong> _milestoneMiniBossEntityIds = new();
+        private readonly Dictionary<ulong, PlayerState> _readyCheckPlayerStates = new();
         private readonly HashSet<int> _sentTimeWarningThresholds = new();
         private readonly HashSet<int> _sentKillProgressMilestones = new();
         private readonly HashSet<int> _spawnedMilestoneEncounterPercents = new();
@@ -68,6 +71,7 @@ namespace MHServerEmu.Games.MythicRifts
         public IReadOnlyCollection<ulong> CustomPopulationEntityIds => _customPopulationEntityIds;
         public IReadOnlyCollection<ulong> HazardEntityIds => _hazardEntityIds;
         public IReadOnlyCollection<ulong> ActiveBossEntityIds => _activeBossEntityIds;
+        public IReadOnlyDictionary<ulong, PlayerState> ReadyCheckPlayerStates => _readyCheckPlayerStates;
         public int ParticipantCount => _participantPlayerDbIds.Count;
         public int AdmittedPlayerCount => _admittedPlayerDbIds.Count;
         public int EffectivePlayerCount => Difficulty.EffectivePlayerCount;
@@ -457,10 +461,20 @@ namespace MHServerEmu.Games.MythicRifts
             NextHazardSpawnAt = nextSpawnAt;
         }
 
-        public void BeginReadyCheck(TimeSpan endsAt, string label)
+        public void BeginReadyCheck(TimeSpan endsAt, string label, IEnumerable<ulong> playerDbIds)
         {
             ReadyCheckEndsAt = endsAt;
             ReadyCheckLabel = string.IsNullOrWhiteSpace(label) ? "Rift wave" : label;
+            _readyCheckPlayerStates.Clear();
+
+            if (playerDbIds == null)
+                return;
+
+            foreach (ulong playerDbId in playerDbIds)
+            {
+                if (playerDbId != 0 && IsParticipant(playerDbId) && HasParticipantLeftEarly(playerDbId) == false)
+                    _readyCheckPlayerStates[playerDbId] = PlayerState.Pending;
+            }
         }
 
         public bool IsReadyCheckActive(TimeSpan currentTime)
@@ -472,6 +486,42 @@ namespace MHServerEmu.Games.MythicRifts
         {
             ReadyCheckEndsAt = null;
             ReadyCheckLabel = null;
+            _readyCheckPlayerStates.Clear();
+        }
+
+        public PlayerState GetReadyCheckPlayerState(ulong playerDbId)
+        {
+            return _readyCheckPlayerStates.TryGetValue(playerDbId, out PlayerState state)
+                ? state
+                : PlayerState.Fallback;
+        }
+
+        public bool SetReadyCheckPlayerState(ulong playerDbId, PlayerState state)
+        {
+            if (playerDbId == 0 || _readyCheckPlayerStates.ContainsKey(playerDbId) == false)
+                return false;
+
+            _readyCheckPlayerStates[playerDbId] = state;
+            return true;
+        }
+
+        public bool AreReadyCheckPlayersReady(IEnumerable<ulong> activePlayerDbIds)
+        {
+            if (ReadyCheckEndsAt.HasValue == false)
+                return true;
+
+            bool hasTrackedActivePlayer = false;
+            foreach (ulong playerDbId in activePlayerDbIds ?? Array.Empty<ulong>())
+            {
+                if (playerDbId == 0 || IsParticipant(playerDbId) == false || HasParticipantLeftEarly(playerDbId))
+                    continue;
+
+                hasTrackedActivePlayer = true;
+                if (GetReadyCheckPlayerState(playerDbId) == PlayerState.Pending)
+                    return false;
+            }
+
+            return hasTrackedActivePlayer && _readyCheckPlayerStates.Count > 0;
         }
 
         public bool HasExpired(TimeSpan currentTime)

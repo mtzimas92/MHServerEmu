@@ -37,8 +37,6 @@ namespace MHServerEmu.Games.MythicRifts
         private static readonly TimeSpan NativeBossSuppressionScanInterval = TimeSpan.FromSeconds(2);
         private static readonly TimeSpan RiftObjectiveWidgetRefreshInterval = TimeSpan.FromMilliseconds(500);
         private static readonly TimeSpan RiftReadyCheckDuration = TimeSpan.FromSeconds(5);
-        private static readonly TimeSpan RiftHazardSpawnInterval = TimeSpan.FromSeconds(14);
-        private static readonly TimeSpan RiftHazardDuration = TimeSpan.FromSeconds(8);
         private static readonly TimeSpan FailedRunEvacuationDelay = TimeSpan.FromMilliseconds(250);
         private static readonly TimeSpan FailedRunEvacuationRetryDelay = TimeSpan.FromSeconds(1);
         private static readonly TimeSpan BossGauntletFailureRecoveryDelay = TimeSpan.FromMilliseconds(250);
@@ -87,6 +85,11 @@ namespace MHServerEmu.Games.MythicRifts
         private const ulong RiftStatusLocaleBossModifiers = 18000000000000040003UL;
         private const ulong RiftStatusLocaleBossWave = 18000000000000040004UL;
         private const ulong RiftStatusLocaleHazards = 18000000000000040005UL;
+        private const ulong RiftReadyCheckDialogLocale = 18000000000000040006UL;
+        private const ulong RiftReadyCheckReadyButtonLocale = 18000000000000040007UL;
+        private const ulong RiftReadyCheckWaitButtonLocale = 18000000000000040008UL;
+        private const ulong RiftModifierDialogLocale = 18000000000000040009UL;
+        private const ulong RiftModifierButtonLocale = 18000000000000040010UL;
         private const ulong RiftDangerRoomLevelLocaleStringBase = 18000000000000010000UL;
         private const int RiftDangerRoomLevelLocalizedLevelLimit = 10000;
         private static readonly PrototypeId RiftDangerRoomLevelWidgetPrototypeRef = (PrototypeId)7164846210465729875UL;
@@ -108,22 +111,6 @@ namespace MHServerEmu.Games.MythicRifts
         private const float RiftCompletionCrafterSpawnOffset = 390f;
         private const string BossGauntletArenaContentId = "boss-gauntlet-tutorial-arena";
         private const float SpecialRandomMapChance = 0.05f;
-        private const int MaxActiveRiftHazards = 4;
-        private const float RiftHazardSpawnDistance = 420f;
-        private const float RiftHazardSpawnSearchDistance = 260f;
-        private static readonly string[] RiftHazardNameKeywords =
-        {
-            "hazard",
-            "hotspot",
-            "lava",
-            "fire",
-            "poison",
-            "acid",
-            "laser",
-            "bomb",
-            "explosion",
-            "lightning"
-        };
         private static readonly string[] RiftBossIconWidgetNameKeywords =
         {
             "boss",
@@ -976,10 +963,14 @@ namespace MHServerEmu.Games.MythicRifts
         private static PrototypeId _cachedRiftDangerRoomTimerWidgetPrototypeRef = PrototypeId.Invalid;
         private static PrototypeId _cachedRiftReadyCheckWidgetPrototypeRef = PrototypeId.Invalid;
         private static PrototypeId _cachedRiftBossIconsWidgetPrototypeRef = PrototypeId.Invalid;
+        private static PrototypeId _cachedRiftModifierButtonWidgetPrototypeRef = PrototypeId.Invalid;
         private static PrototypeId[] _cachedCustomRiftPopulationMobPrototypeRefs;
-        private static IReadOnlyList<PrototypeId> _cachedRiftHazardPrototypeRefs;
+        private IReadOnlyList<PrototypeId> _cachedRiftHazardPrototypeRefs;
+        private readonly Dictionary<(ulong RunId, ulong PlayerDbId), GameDialogInstance> _readyCheckDialogs = new();
         private MythicRiftRewardTuning _rewardTuning = MythicRiftRewardTuning.CreateDefault();
         private string _rewardTuningLastLoadMessage = "Using built-in default Mythic Rift reward tuning.";
+        private MythicRiftHazardTuning _hazardTuning = MythicRiftHazardTuning.CreateDefault();
+        private string _hazardTuningLastLoadMessage = "Using built-in default Mythic Rift hazard tuning.";
         private ulong _nextRunId = 1;
 
         private sealed class CompletionCrafterOpportunity
@@ -997,6 +988,8 @@ namespace MHServerEmu.Games.MythicRifts
             RegisterDefaultContent();
             TryReloadRewardTuning(out _rewardTuningLastLoadMessage);
             Logger.Info($"Mythic Rift reward tuning: {_rewardTuningLastLoadMessage}");
+            TryReloadHazardTuning(out _hazardTuningLastLoadMessage);
+            Logger.Info($"Mythic Rift hazard tuning: {_hazardTuningLastLoadMessage}");
         }
 
         public IReadOnlyList<MythicRiftContentEntry> ContentPool => _contentPool;
@@ -1006,6 +999,61 @@ namespace MHServerEmu.Games.MythicRifts
         public IReadOnlyCollection<MythicRiftRunState> ActiveRuns => _activeRuns.Values;
         public MythicRiftRewardTuning RewardTuning => _rewardTuning;
         public string RewardTuningLastLoadMessage => _rewardTuningLastLoadMessage;
+        public MythicRiftHazardTuning HazardTuning => _hazardTuning;
+        public string HazardTuningLastLoadMessage => _hazardTuningLastLoadMessage;
+
+        public bool TrySetReadyCheckForPlayer(ulong playerDbId, bool ready, out string message)
+        {
+            message = null;
+            MythicRiftRunState runState = GetInProgressRunForPlayer(playerDbId);
+            if (runState == null)
+            {
+                message = "No active Rift run found for this player.";
+                return false;
+            }
+
+            if (runState.ReadyCheckEndsAt.HasValue == false)
+            {
+                message = $"Run {runState.Config.RunId} has no active ready check.";
+                return false;
+            }
+
+            PlayerState state = ready ? PlayerState.Ready : PlayerState.Pending;
+            if (runState.SetReadyCheckPlayerState(playerDbId, state) == false)
+            {
+                message = $"Player is not tracked by ready check for run {runState.Config.RunId}.";
+                return false;
+            }
+
+            if (_readyCheckDialogs.TryGetValue((runState.Config.RunId, playerDbId), out GameDialogInstance dialog))
+            {
+                Game.GameDialogManager.RemoveDialog(dialog);
+                _readyCheckDialogs.Remove((runState.Config.RunId, playerDbId));
+            }
+
+            RefreshRiftHudWidgets(runState, Game.CurrentTime);
+            message = $"Ready check updated for run {runState.Config.RunId}: {state}.";
+            return true;
+        }
+
+        public List<string> BuildModifierDiagnostics(ulong runId)
+        {
+            MythicRiftRunState runState = GetRun(runId);
+            if (runState?.Config == null)
+                return new() { $"Run not found: {runId}" };
+
+            string modifierText = BuildRiftModifierText(runState.Config);
+            if (string.IsNullOrWhiteSpace(modifierText))
+                modifierText = "none";
+
+            return new()
+            {
+                $"runId={runState.Config.RunId} | mode={runState.Config.Mode} | level={runState.Config.RiftLevel} | wave={runState.Config.WaveNumber}",
+                $"modifierText={modifierText}",
+                $"regionAffixes={FormatPrototypeRefListForDiagnostics(runState.Config.RegionAffixes)}",
+                $"bossAffixes={FormatPrototypeRefListForDiagnostics(runState.Config.BossAffixes)}"
+            };
+        }
         public MythicRiftDifficultySnapshot GetDifficultySnapshot(
             int riftLevel,
             int requestedPlayerCount,
@@ -1510,6 +1558,7 @@ namespace MHServerEmu.Games.MythicRifts
                 _serverSuspendedNativeObjectiveMissionsByRun.Remove(runId);
                 _pendingFailedRunEvacuationsAt.Remove(runId);
                 _pendingBossGauntletFailureRecoveriesAt.Remove(runId);
+                ClearReadyCheckDialogs(runState);
                 CleanupRunHazards(runState);
                 CleanupRewardChests(runId);
                 CleanupCompletionCrafterOpportunities(runId);
@@ -2349,6 +2398,72 @@ namespace MHServerEmu.Games.MythicRifts
 
             if (tuning.GuaranteedItems.Count > 20)
                 lines.Add($"... {tuning.GuaranteedItems.Count - 20} more guaranteed item entries omitted.");
+
+            return lines;
+        }
+
+        public bool TryReloadHazardTuning(out string message)
+        {
+            string configPath = MythicRiftHazardTuning.ConfigPath;
+            MythicRiftHazardTuning previousTuning = _hazardTuning ?? MythicRiftHazardTuning.CreateDefault();
+
+            if (File.Exists(configPath) == false)
+            {
+                _hazardTuning = MythicRiftHazardTuning.CreateDefault();
+                _cachedRiftHazardPrototypeRefs = null;
+                message = $"Hazard tuning file not found at {FileHelper.GetRelativePath(configPath)}; using built-in defaults.";
+                _hazardTuningLastLoadMessage = message;
+                return true;
+            }
+
+            MythicRiftHazardTuning loadedTuning = FileHelper.DeserializeJson<MythicRiftHazardTuning>(configPath, MythicRiftHazardTuning.JsonOptions);
+            if (loadedTuning == null)
+            {
+                _hazardTuning = previousTuning;
+                message = $"Failed to load hazard tuning from {FileHelper.GetRelativePath(configPath)}; keeping previous profile '{previousTuning.ProfileName}'.";
+                _hazardTuningLastLoadMessage = message;
+                return false;
+            }
+
+            loadedTuning.Normalize();
+            _hazardTuning = loadedTuning.Enabled ? loadedTuning : MythicRiftHazardTuning.CreateDefault();
+            _cachedRiftHazardPrototypeRefs = null;
+            message = loadedTuning.Enabled
+                ? $"Loaded hazard tuning profile '{_hazardTuning.ProfileName}' from {FileHelper.GetRelativePath(configPath)}. configuredHazards={_hazardTuning.Hazards.Count} keywordDiscovery={_hazardTuning.UseKeywordDiscovery}"
+                : $"Hazard tuning file loaded but disabled; using built-in defaults. path={FileHelper.GetRelativePath(configPath)}";
+            _hazardTuningLastLoadMessage = message;
+            return true;
+        }
+
+        public List<string> BuildHazardTuningDiagnostics()
+        {
+            MythicRiftHazardTuning tuning = _hazardTuning ?? MythicRiftHazardTuning.CreateDefault();
+            IReadOnlyList<PrototypeId> hazardRefs = GetRiftHazardPrototypeRefs(null);
+            List<string> lines = new()
+            {
+                $"hazardTuningPath={FileHelper.GetRelativePath(MythicRiftHazardTuning.ConfigPath)}",
+                $"lastLoad={_hazardTuningLastLoadMessage}",
+                $"profile={tuning.ProfileName} | enabled={tuning.Enabled} | keywordDiscovery={tuning.UseKeywordDiscovery}",
+                $"maxActive={tuning.MaxActiveHazards} | interval={tuning.SpawnIntervalSeconds:0.##}s | duration={tuning.DurationSeconds:0.##}s | distance={tuning.SpawnDistance:0.##} | search={tuning.SpawnSearchDistance:0.##}",
+                $"thresholds cosmicLevel={tuning.MinStandardRiftLevel} | riftGauntletWave={tuning.MinRiftGauntletWave} | bossGauntletWave={tuning.MinBossGauntletWave}",
+                $"configuredHazards={tuning.Hazards.Count} | resolvedHazardRefs={hazardRefs.Count} | discoveryKeywords={string.Join(",", tuning.DiscoveryNameKeywords)} | blockedKeywords={string.Join(",", tuning.BlockedNameKeywords)}"
+            };
+
+            foreach (MythicRiftHazardEntryTuning hazard in tuning.Hazards.Take(20))
+            {
+                string maxLevelText = hazard.MaxRiftLevel > 0 ? hazard.MaxRiftLevel.ToString() : "none";
+                string maxWaveText = hazard.MaxWave > 0 ? hazard.MaxWave.ToString() : "none";
+                lines.Add($"hazard id={hazard.Id} | enabled={hazard.Enabled} | weight={hazard.Weight} | minLevel={hazard.MinRiftLevel} | maxLevel={maxLevelText} | minWave={hazard.MinWave} | maxWave={maxWaveText} | modes={string.Join(",", hazard.Modes)} | prototype={hazard.Prototype}");
+            }
+
+            if (tuning.Hazards.Count > 20)
+                lines.Add($"... {tuning.Hazards.Count - 20} more hazard entries omitted.");
+
+            foreach (PrototypeId hazardRef in hazardRefs.Take(20))
+                lines.Add($"resolvedHazard={hazardRef.GetNameFormatted()}");
+
+            if (hazardRefs.Count > 20)
+                lines.Add($"... {hazardRefs.Count - 20} more resolved hazards omitted.");
 
             return lines;
         }
@@ -3246,6 +3361,7 @@ namespace MHServerEmu.Games.MythicRifts
             RefreshDangerRoomRiftLevelWidget(uiDataProvider, runState, contextRef, currentTime);
             RefreshRiftReadyCheckWidget(uiDataProvider, runState, contextRef, currentTime);
             RefreshRiftBossIconWidget(uiDataProvider, runState, contextRef);
+            RefreshRiftModifierButtonWidget(uiDataProvider, runState, contextRef);
 
             if (runState.Config.Content.BossOnlyCheckpointEligible)
             {
@@ -3324,7 +3440,30 @@ namespace MHServerEmu.Games.MythicRifts
                 if (string.IsNullOrWhiteSpace(playerName))
                     playerName = $"Player {player.DatabaseUniqueId:X}";
 
-                readyCheckWidget.SetPlayerState(player.DatabaseUniqueId, playerName, PlayerState.Ready);
+                readyCheckWidget.SetPlayerState(player.DatabaseUniqueId, playerName, runState.GetReadyCheckPlayerState(player.DatabaseUniqueId));
+            }
+        }
+
+        private void RefreshRiftModifierButtonWidget(UIDataProvider uiDataProvider, MythicRiftRunState runState, PrototypeId contextRef)
+        {
+            PrototypeId modifierButtonWidgetRef = GetRiftModifierButtonWidgetPrototypeRef();
+            if (uiDataProvider == null || modifierButtonWidgetRef == PrototypeId.Invalid)
+                return;
+
+            if (HasRiftModifiers(runState.Config) == false)
+            {
+                uiDataProvider.DeleteWidget(modifierButtonWidgetRef, contextRef);
+                return;
+            }
+
+            UIWidgetButton modifierButton = uiDataProvider.GetWidget<UIWidgetButton>(modifierButtonWidgetRef, contextRef);
+            if (modifierButton == null)
+                return;
+
+            foreach (Player player in GetRunPlayers(runState))
+            {
+                ulong playerDbId = player.DatabaseUniqueId;
+                modifierButton.AddCallback(playerDbId, (callbackPlayerDbId, _) => ShowRiftModifierDetails(runState.Config.RunId, callbackPlayerDbId));
             }
         }
 
@@ -3369,6 +3508,9 @@ namespace MHServerEmu.Games.MythicRifts
             PrototypeId bossIconsWidgetRef = GetRiftBossIconsWidgetPrototypeRef();
             if (bossIconsWidgetRef != PrototypeId.Invalid)
                 uiDataProvider.DeleteWidget(bossIconsWidgetRef, contextRef);
+            PrototypeId modifierButtonWidgetRef = GetRiftModifierButtonWidgetPrototypeRef();
+            if (modifierButtonWidgetRef != PrototypeId.Invalid)
+                uiDataProvider.DeleteWidget(modifierButtonWidgetRef, contextRef);
         }
 
         private static PrototypeId GetRiftWidgetContextRef(MythicRiftRunState runState)
@@ -3417,6 +3559,14 @@ namespace MHServerEmu.Games.MythicRifts
                 _cachedRiftBossIconsWidgetPrototypeRef = FindFirstWidgetPrototypeRef<UIWidgetEntityIconsPrototype>(RiftBossIconWidgetNameKeywords);
 
             return _cachedRiftBossIconsWidgetPrototypeRef;
+        }
+
+        private static PrototypeId GetRiftModifierButtonWidgetPrototypeRef()
+        {
+            if (_cachedRiftModifierButtonWidgetPrototypeRef == PrototypeId.Invalid)
+                _cachedRiftModifierButtonWidgetPrototypeRef = FindFirstWidgetPrototypeRef<UIWidgetButtonPrototype>(Array.Empty<string>());
+
+            return _cachedRiftModifierButtonWidgetPrototypeRef;
         }
 
         private static PrototypeId FindFirstWidgetPrototypeRef<TPrototype>(IReadOnlyList<string> preferredNameKeywords)
@@ -4977,8 +5127,10 @@ namespace MHServerEmu.Games.MythicRifts
                 return;
 
             CleanupRunHazards(runState);
-            runState.BeginReadyCheck(currentTime + RiftReadyCheckDuration, label);
-            runState.SetNextHazardSpawnAt(currentTime + RiftReadyCheckDuration + TimeSpan.FromSeconds(4));
+            runState.BeginReadyCheck(currentTime + RiftReadyCheckDuration, label, GetRunPlayers(runState).Select(player => player.DatabaseUniqueId));
+            runState.SetNextHazardSpawnAt(currentTime + RiftReadyCheckDuration + TimeSpan.FromSeconds(Math.Min((_hazardTuning ?? MythicRiftHazardTuning.CreateDefault()).SpawnIntervalSeconds, 4f)));
+            ShowReadyCheckDialogs(runState);
+            RefreshRiftHudWidgets(runState, currentTime);
             NotifyRunPlayers(runState, $"[Mythic Rift] {runState.ReadyCheckLabel} starts in {(int)RiftReadyCheckDuration.TotalSeconds} seconds.");
         }
 
@@ -4987,16 +5139,83 @@ namespace MHServerEmu.Games.MythicRifts
             if (runState == null)
                 return false;
 
-            if (runState.IsReadyCheckActive(currentTime))
+            if (runState.IsReadyCheckActive(currentTime) &&
+                runState.AreReadyCheckPlayersReady(GetRunPlayers(runState).Select(player => player.DatabaseUniqueId)) == false)
                 return true;
 
             if (runState.ReadyCheckEndsAt.HasValue)
             {
+                ClearReadyCheckDialogs(runState);
                 runState.ClearReadyCheck();
                 RefreshRiftHudWidgets(runState, currentTime);
             }
 
             return false;
+        }
+
+        private void ShowReadyCheckDialogs(MythicRiftRunState runState)
+        {
+            if (runState?.Config == null)
+                return;
+
+            foreach (Player player in GetRunPlayers(runState))
+                ShowReadyCheckDialog(runState, player);
+        }
+
+        private void ShowReadyCheckDialog(MythicRiftRunState runState, Player player)
+        {
+            if (runState?.Config == null || player == null || player.DatabaseUniqueId == 0)
+                return;
+
+            ulong playerDbId = player.DatabaseUniqueId;
+            if (runState.GetReadyCheckPlayerState(playerDbId) != PlayerState.Pending)
+                return;
+
+            (ulong RunId, ulong PlayerDbId) key = (runState.Config.RunId, playerDbId);
+            if (_readyCheckDialogs.TryGetValue(key, out GameDialogInstance existingDialog))
+                Game.GameDialogManager.RemoveDialog(existingDialog);
+
+            GameDialogInstance dialog = Game.GameDialogManager.CreateInstance(playerDbId);
+            dialog.Message.LocaleString = (LocaleStringId)RiftReadyCheckDialogLocale;
+            dialog.Options = DialogOptionEnum.ScreenBottom | DialogOptionEnum.WorldClick;
+            dialog.OnResponse = (responsePlayerDbId, response) => OnReadyCheckDialogResponse(runState.Config.RunId, responsePlayerDbId, response);
+            dialog.AddButton(GameDialogResultEnum.eGDR_Option1, (LocaleStringId)RiftReadyCheckReadyButtonLocale, ButtonStyle.SecondaryPositive);
+            dialog.AddButton(GameDialogResultEnum.eGDR_Option2, (LocaleStringId)RiftReadyCheckWaitButtonLocale, ButtonStyle.SecondaryNegative);
+
+            _readyCheckDialogs[key] = dialog;
+            Game.GameDialogManager.ShowDialog(dialog);
+        }
+
+        private void OnReadyCheckDialogResponse(ulong runId, ulong playerDbId, DialogResponse response)
+        {
+            if (_readyCheckDialogs.TryGetValue((runId, playerDbId), out GameDialogInstance dialog))
+            {
+                Game.GameDialogManager.RemoveDialog(dialog);
+                _readyCheckDialogs.Remove((runId, playerDbId));
+            }
+
+            MythicRiftRunState runState = GetRun(runId);
+            if (runState == null || runState.ReadyCheckEndsAt.HasValue == false)
+                return;
+
+            PlayerState state = response.ButtonIndex == GameDialogResultEnum.eGDR_Option1
+                ? PlayerState.Ready
+                : PlayerState.Pending;
+            runState.SetReadyCheckPlayerState(playerDbId, state);
+            RefreshRiftHudWidgets(runState, Game.CurrentTime);
+        }
+
+        private void ClearReadyCheckDialogs(MythicRiftRunState runState)
+        {
+            if (runState?.Config == null)
+                return;
+
+            ulong runId = runState.Config.RunId;
+            foreach (var kvp in _readyCheckDialogs.Where(kvp => kvp.Key.RunId == runId).ToList())
+            {
+                Game.GameDialogManager.RemoveDialog(kvp.Value);
+                _readyCheckDialogs.Remove(kvp.Key);
+            }
         }
 
         private bool TryStartBossOnlyCheckpoint(MythicRiftRunState runState, TimeSpan currentTime)
@@ -5247,31 +5466,33 @@ namespace MHServerEmu.Games.MythicRifts
             if (ShouldRunUseEnvironmentalHazards(runState) == false)
                 return;
 
-            if (runState.HazardEntityIds.Count >= MaxActiveRiftHazards)
+            MythicRiftHazardTuning tuning = _hazardTuning ?? MythicRiftHazardTuning.CreateDefault();
+            if (runState.HazardEntityIds.Count >= tuning.MaxActiveHazards)
                 return;
 
             if (currentTime < runState.NextHazardSpawnAt)
                 return;
 
-            runState.SetNextHazardSpawnAt(currentTime + RiftHazardSpawnInterval);
+            runState.SetNextHazardSpawnAt(currentTime + TimeSpan.FromSeconds(tuning.SpawnIntervalSeconds));
             if (TrySpawnRiftHazard(runState, region) == false)
                 return;
 
             RefreshRiftHudWidgets(runState, currentTime);
         }
 
-        private static bool ShouldRunUseEnvironmentalHazards(MythicRiftRunState runState)
+        private bool ShouldRunUseEnvironmentalHazards(MythicRiftRunState runState)
         {
-            if (runState?.Config == null)
+            MythicRiftHazardTuning tuning = _hazardTuning ?? MythicRiftHazardTuning.CreateDefault();
+            if (tuning.Enabled == false || tuning.MaxActiveHazards <= 0 || runState?.Config == null)
                 return false;
 
             if (runState.Config.UseBossGauntletMode)
-                return runState.Config.WaveNumber >= 10;
+                return runState.Config.WaveNumber >= tuning.MinBossGauntletWave;
 
             if (runState.Config.UseThirtyWaveMode)
-                return runState.Config.WaveNumber >= 10;
+                return runState.Config.WaveNumber >= tuning.MinRiftGauntletWave;
 
-            return runState.Config.RiftLevel >= 30 || runState.BossUnlocked;
+            return runState.Config.RiftLevel >= tuning.MinStandardRiftLevel || runState.BossUnlocked;
         }
 
         private void CleanupExpiredHazardRefs(MythicRiftRunState runState, Region region)
@@ -5304,7 +5525,8 @@ namespace MHServerEmu.Games.MythicRifts
 
         private bool TrySpawnRiftHazard(MythicRiftRunState runState, Region region)
         {
-            IReadOnlyList<PrototypeId> hazardRefs = GetRiftHazardPrototypeRefs();
+            MythicRiftHazardTuning tuning = _hazardTuning ?? MythicRiftHazardTuning.CreateDefault();
+            IReadOnlyList<PrototypeId> hazardRefs = GetRiftHazardPrototypeRefs(runState);
             if (hazardRefs.Count == 0)
                 return false;
 
@@ -5320,7 +5542,7 @@ namespace MHServerEmu.Games.MythicRifts
                 if (hazardProto?.Bounds == null)
                     continue;
 
-                Vector3 spawnPosition = anchorAvatar.RegionLocation.Position + (anchorAvatar.Forward * RiftHazardSpawnDistance);
+                Vector3 spawnPosition = anchorAvatar.RegionLocation.Position + (anchorAvatar.Forward * tuning.SpawnDistance);
                 Bounds spawnBounds = new(hazardProto.Bounds, spawnPosition);
                 PathFlags pathFlags = Region.GetPathFlagsForEntity(hazardProto);
                 bool foundPosition = region.ChooseRandomPositionNearPoint(
@@ -5328,20 +5550,20 @@ namespace MHServerEmu.Games.MythicRifts
                     pathFlags,
                     PositionCheckFlags.CanBeBlockedEntity | PositionCheckFlags.PreferNoEntity,
                     BlockingCheckFlags.None,
-                    RiftHazardSpawnDistance - RiftHazardSpawnSearchDistance,
-                    RiftHazardSpawnDistance + RiftHazardSpawnSearchDistance,
+                    Math.Max(tuning.SpawnDistance - tuning.SpawnSearchDistance, 0f),
+                    tuning.SpawnDistance + tuning.SpawnSearchDistance,
                     out spawnPosition,
                     maxPositionTests: 48);
 
                 if (foundPosition == false)
                 {
-                    spawnBounds.Center = anchorAvatar.RegionLocation.Position + (anchorAvatar.Forward * RiftHazardSpawnDistance);
+                    spawnBounds.Center = anchorAvatar.RegionLocation.Position + (anchorAvatar.Forward * tuning.SpawnDistance);
                     foundPosition = region.ChoosePositionAtOrNearPoint(
                         ref spawnBounds,
                         pathFlags,
                         PositionCheckFlags.CanBeBlockedEntity | PositionCheckFlags.PreferNoEntity,
                         BlockingCheckFlags.None,
-                        RiftHazardSpawnSearchDistance,
+                        tuning.SpawnSearchDistance,
                         out spawnPosition,
                         maxPositionTests: 32);
                 }
@@ -5364,7 +5586,7 @@ namespace MHServerEmu.Games.MythicRifts
                 settings.Cell = spawnCell;
                 settings.IsPopulation = false;
                 settings.HotspotSkipCollide = false;
-                settings.Lifespan = RiftHazardDuration;
+                settings.Lifespan = TimeSpan.FromSeconds(tuning.DurationSeconds);
 
                 using PropertyCollection settingsProperties = ObjectPoolManager.Instance.Get<PropertyCollection>();
                 int level = spawnCell.Area.GetCharacterLevel(hazardProto);
@@ -5386,24 +5608,47 @@ namespace MHServerEmu.Games.MythicRifts
             return false;
         }
 
-        private static IReadOnlyList<PrototypeId> GetRiftHazardPrototypeRefs()
+        private IReadOnlyList<PrototypeId> GetRiftHazardPrototypeRefs(MythicRiftRunState runState)
         {
             if (_cachedRiftHazardPrototypeRefs != null)
-                return _cachedRiftHazardPrototypeRefs;
+                return FilterConfiguredHazardsForRun(_cachedRiftHazardPrototypeRefs, runState);
 
+            MythicRiftHazardTuning tuning = _hazardTuning ?? MythicRiftHazardTuning.CreateDefault();
             List<PrototypeId> hazardRefs = new();
-            foreach (PrototypeId hazardRef in GameDatabase.DataDirectory.IteratePrototypesInHierarchy<HotspotPrototype>(PrototypeIterateFlags.NoAbstractApprovedOnly))
+            foreach (MythicRiftHazardEntryTuning configuredHazard in tuning.Hazards)
             {
+                if (configuredHazard == null)
+                    continue;
+
+                PrototypeId hazardRef = ResolvePrototype(configuredHazard.Prototype);
                 HotspotPrototype hazardProto = hazardRef.As<HotspotPrototype>();
-                if (hazardProto == null ||
-                    hazardProto.Bounds == null ||
-                    (hazardProto.AppliesPowers.IsNullOrEmpty() && hazardProto.AppliesIntervalPowers.IsNullOrEmpty()))
+                if (IsUsableRiftHazardPrototype(hazardProto) == false)
                 {
+                    Logger.Warn($"Mythic Rift hazard tuning skipped invalid hazard id={configuredHazard.Id} prototype={configuredHazard.Prototype}");
                     continue;
                 }
 
+                for (int i = 0; i < configuredHazard.Weight; i++)
+                    hazardRefs.Add(hazardRef);
+            }
+
+            if (tuning.UseKeywordDiscovery == false)
+            {
+                _cachedRiftHazardPrototypeRefs = hazardRefs.ToArray();
+                return FilterConfiguredHazardsForRun(_cachedRiftHazardPrototypeRefs, runState);
+            }
+
+            foreach (PrototypeId hazardRef in GameDatabase.DataDirectory.IteratePrototypesInHierarchy<HotspotPrototype>(PrototypeIterateFlags.NoAbstractApprovedOnly))
+            {
+                HotspotPrototype hazardProto = hazardRef.As<HotspotPrototype>();
+                if (IsUsableRiftHazardPrototype(hazardProto) == false)
+                    continue;
+
                 string prototypeName = GameDatabase.GetPrototypeName(hazardRef) ?? string.Empty;
-                if (RiftHazardNameKeywords.Any(keyword => prototypeName.Contains(keyword, StringComparison.OrdinalIgnoreCase)) == false)
+                if (tuning.DiscoveryNameKeywords.Any(keyword => prototypeName.Contains(keyword, StringComparison.OrdinalIgnoreCase)) == false)
+                    continue;
+
+                if (tuning.BlockedNameKeywords.Any(keyword => prototypeName.Contains(keyword, StringComparison.OrdinalIgnoreCase)))
                     continue;
 
                 hazardRefs.Add(hazardRef);
@@ -5413,7 +5658,36 @@ namespace MHServerEmu.Games.MythicRifts
                 .OrderBy(hazardRef => GameDatabase.GetPrototypeName(hazardRef), StringComparer.OrdinalIgnoreCase)
                 .ToArray();
             Logger.Info($"Mythic Rift discovered {_cachedRiftHazardPrototypeRefs.Count} hotspot-style environmental hazard prototype(s).");
-            return _cachedRiftHazardPrototypeRefs;
+            return FilterConfiguredHazardsForRun(_cachedRiftHazardPrototypeRefs, runState);
+        }
+
+        private IReadOnlyList<PrototypeId> FilterConfiguredHazardsForRun(IReadOnlyList<PrototypeId> hazardRefs, MythicRiftRunState runState)
+        {
+            if (hazardRefs == null || hazardRefs.Count == 0)
+                return Array.Empty<PrototypeId>();
+
+            if (runState?.Config == null)
+                return hazardRefs;
+
+            MythicRiftHazardTuning tuning = _hazardTuning ?? MythicRiftHazardTuning.CreateDefault();
+            List<MythicRiftHazardEntryTuning> configuredHazards = tuning.Hazards
+                .Where(hazard => hazard?.AppliesTo(runState) == true)
+                .ToList();
+            if (configuredHazards.Count == 0)
+                return hazardRefs;
+
+            HashSet<PrototypeId> allowedRefs = configuredHazards
+                .Select(hazard => ResolvePrototype(hazard.Prototype))
+                .Where(hazardRef => hazardRef != PrototypeId.Invalid)
+                .ToHashSet();
+            return hazardRefs.Where(allowedRefs.Contains).ToArray();
+        }
+
+        private static bool IsUsableRiftHazardPrototype(HotspotPrototype hazardProto)
+        {
+            return hazardProto?.Bounds != null &&
+                   (hazardProto.AppliesPowers.IsNullOrEmpty() == false ||
+                    hazardProto.AppliesIntervalPowers.IsNullOrEmpty() == false);
         }
 
         private int CountLiveCustomRiftPopulationEntities(MythicRiftRunState runState, Region region)
@@ -6817,6 +7091,13 @@ namespace MHServerEmu.Games.MythicRifts
             return string.Join(" | ", modifierGroups);
         }
 
+        private static bool HasRiftModifiers(MythicRiftRunConfig config)
+        {
+            return config != null &&
+                   ((config.RegionAffixes != null && config.RegionAffixes.Count > 0) ||
+                    (config.BossAffixes != null && config.BossAffixes.Count > 0));
+        }
+
         private static string FormatPrototypeNameList(IReadOnlyList<PrototypeId> prototypeRefs)
         {
             if (prototypeRefs == null || prototypeRefs.Count == 0)
@@ -6989,6 +7270,42 @@ namespace MHServerEmu.Games.MythicRifts
 
             foreach (Player player in GetRunPlayers(runState))
                 Game.ChatManager.SendChatFromCustomSystem(player, message, showSender: false);
+        }
+
+        private void ShowRiftModifierDetails(ulong runId, ulong playerDbId)
+        {
+            MythicRiftRunState runState = GetRun(runId);
+            Player player = Game.EntityManager.GetEntityByDbGuid<Player>(playerDbId);
+            if (runState?.Config == null || player == null)
+                return;
+
+            string modifierText = BuildRiftModifierText(runState.Config);
+            if (string.IsNullOrWhiteSpace(modifierText))
+                modifierText = "No Rift modifiers are active.";
+
+            Game.ChatManager.SendChatFromCustomSystem(
+                player,
+                $"[Mythic Rift] Active modifiers: {modifierText}",
+                showSender: false);
+
+            GameDialogInstance dialog = Game.GameDialogManager.CreateInstance(playerDbId);
+            dialog.Message.LocaleString = (LocaleStringId)RiftModifierDialogLocale;
+            dialog.Options = DialogOptionEnum.ScreenBottom | DialogOptionEnum.WorldClick;
+            dialog.OnResponse = (_, _) => { };
+            dialog.AddButton(GameDialogResultEnum.eGDR_Option1, (LocaleStringId)RiftReadyCheckReadyButtonLocale, ButtonStyle.SecondaryPositive);
+            Game.GameDialogManager.ShowDialog(dialog);
+        }
+
+        private static string FormatPrototypeRefListForDiagnostics(IEnumerable<PrototypeId> prototypeRefs)
+        {
+            if (prototypeRefs == null)
+                return "none";
+
+            List<string> names = prototypeRefs
+                .Where(prototypeRef => prototypeRef != PrototypeId.Invalid)
+                .Select(prototypeRef => prototypeRef.GetNameFormatted())
+                .ToList();
+            return names.Count > 0 ? string.Join(", ", names) : "none";
         }
 
         private void SendMessageToRunPlayers(MythicRiftRunState runState, Google.ProtocolBuffers.IMessage message)

@@ -73,5 +73,20 @@
   },
   "18000000000000040005": {
     "en_us": "Rift Hazards Active"
+  },
+  "18000000000000040006": {
+    "en_us": "The next Rift wave is ready. Start now?"
+  },
+  "18000000000000040007": {
+    "en_us": "Ready"
+  },
+  "18000000000000040008": {
+    "en_us": "Wait"
+  },
+  "18000000000000040009": {
+    "en_us": "Rift modifiers are active. Details were sent to chat."
+  },
+  "18000000000000040010": {
+    "en_us": "Modifiers"
   }
 }

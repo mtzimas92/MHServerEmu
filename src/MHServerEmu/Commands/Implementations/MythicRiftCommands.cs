@@ -18,6 +18,7 @@ using MHServerEmu.Games.MythicRifts;
 using MHServerEmu.Games.Network;
 using MHServerEmu.Games.Properties;
 using MHServerEmu.Games.Regions;
+using MHServerEmu.Games.UI.Widgets;
 
 namespace MHServerEmu.Commands.Implementations
 {
@@ -1754,6 +1755,7 @@ namespace MHServerEmu.Commands.Implementations
                 $"region={region.PrototypeName} | regionId=0x{region.Id:X} | players={playerCount} | participants={runState.ParticipantCount} | earlyExits={runState.EarlyExitPlayerDbIds.Count}",
                 $"entities={entityCount} | agents={agentCount} | aliveAgents={aliveAgentCount} | hostileAgents={hostileAgentCount} | simulatedAgents={simulatedAgentCount}",
                 $"areas={areaCount} | respawnAreas={respawnAreaCount} | killProgress={Math.Min(runState.CurrentKillCount, runState.Config.KillQuota)}/{runState.Config.KillQuota} | bossUnlocked={runState.BossUnlocked}",
+                $"activeBosses={runState.ActiveBossEntityIds.Count} | customTracked={runState.CustomPopulationEntityIds.Count} | hazards={runState.HazardEntityIds.Count} | readyPlayers={runState.ReadyCheckPlayerStates.Count(state => state.Value == PlayerState.Ready)}/{runState.ReadyCheckPlayerStates.Count}",
                 $"timerRemaining={runState.GetTimeRemaining(game.CurrentTime).TotalSeconds:0}s | privateRiftRegion=True"
             };
 
@@ -1786,6 +1788,40 @@ namespace MHServerEmu.Commands.Implementations
 
             CommandHelper.SendMessages(client, BuildRunLines(runState, game.CurrentTime, includeResolvedRefs: false));
             return string.Empty;
+        }
+
+        [Command("ready")]
+        [CommandDescription("Marks the invoking player ready, or waiting, for the active Rift ready check.")]
+        [CommandUsage("rift ready [ready|wait]")]
+        [CommandUserLevel(AccountUserLevel.User)]
+        [CommandInvokerType(CommandInvokerType.Client)]
+        public string Ready(string[] @params, NetClient client)
+        {
+            PlayerConnection playerConnection = (PlayerConnection)client;
+            Game game = playerConnection?.Game;
+            Player player = playerConnection?.Player;
+            if (game == null || player == null)
+                return "Game or player not found.";
+
+            bool ready = true;
+            if (@params.Length > 0)
+            {
+                string action = @params[0];
+                if (string.Equals(action, "wait", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(action, "pending", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(action, "notready", StringComparison.OrdinalIgnoreCase))
+                {
+                    ready = false;
+                }
+                else if (string.Equals(action, "ready", StringComparison.OrdinalIgnoreCase) == false)
+                {
+                    return "Unknown ready action. Use `rift ready` or `rift ready wait`.";
+                }
+            }
+
+            return game.MythicRiftManager.TrySetReadyCheckForPlayer(player.DatabaseUniqueId, ready, out string message)
+                ? message
+                : message ?? "Failed to update ready check.";
         }
 
         [Command("level")]
@@ -2123,6 +2159,70 @@ namespace MHServerEmu.Commands.Implementations
             }
 
             CommandHelper.SendMessages(client, game.MythicRiftManager.BuildRewardTuningDiagnostics());
+            return string.Empty;
+        }
+
+        [Command("hazardconfig")]
+        [CommandDescription("Displays or reloads the server-side Cosmic Rift hazard tuning file.")]
+        [CommandUsage("rift hazardconfig [reload]")]
+        [CommandUserLevel(AccountUserLevel.Admin)]
+        [CommandInvokerType(CommandInvokerType.Client)]
+        public string HazardConfig(string[] @params, NetClient client)
+        {
+            PlayerConnection playerConnection = (PlayerConnection)client;
+            Game game = playerConnection?.Game;
+            if (game == null)
+                return "Game not found.";
+
+            if (@params.Length > 0)
+            {
+                string action = @params[0];
+                if (string.Equals(action, "reload", StringComparison.OrdinalIgnoreCase))
+                {
+                    bool loaded = game.MythicRiftManager.TryReloadHazardTuning(out string reloadMessage);
+                    List<string> reloadLines = game.MythicRiftManager.BuildHazardTuningDiagnostics();
+                    reloadLines.Insert(0, loaded ? $"Hazard tuning reload OK: {reloadMessage}" : $"Hazard tuning reload FAILED: {reloadMessage}");
+                    CommandHelper.SendMessages(client, reloadLines);
+                    return string.Empty;
+                }
+
+                return "Unknown hazardconfig action. Use `rift hazardconfig` or `rift hazardconfig reload`.";
+            }
+
+            CommandHelper.SendMessages(client, game.MythicRiftManager.BuildHazardTuningDiagnostics());
+            return string.Empty;
+        }
+
+        [Command("modifiers")]
+        [CommandDescription("Displays the active modifier identity for the invoking player's Rift run, or for a specific run id.")]
+        [CommandUsage("rift modifiers [runId]")]
+        [CommandUserLevel(AccountUserLevel.User)]
+        [CommandInvokerType(CommandInvokerType.Client)]
+        public string Modifiers(string[] @params, NetClient client)
+        {
+            PlayerConnection playerConnection = (PlayerConnection)client;
+            Game game = playerConnection?.Game;
+            Player player = playerConnection?.Player;
+            if (game == null || player == null)
+                return "Game or player not found.";
+
+            MythicRiftRunState runState;
+            if (@params.Length > 0)
+            {
+                if (TryParseRunId(@params[0], out ulong runId) == false)
+                    return "Invalid run id.";
+
+                runState = game.MythicRiftManager.GetRun(runId);
+            }
+            else
+            {
+                runState = game.MythicRiftManager.GetInProgressRunForPlayer(player.DatabaseUniqueId);
+            }
+
+            if (runState == null)
+                return "No active Rift run found.";
+
+            CommandHelper.SendMessages(client, game.MythicRiftManager.BuildModifierDiagnostics(runState.Config.RunId));
             return string.Empty;
         }
 
@@ -2677,6 +2777,7 @@ namespace MHServerEmu.Commands.Implementations
                 $"participants={runState.ParticipantCount} | earlyExits={runState.EarlyExitPlayerDbIds.Count} | rewardedPlayers={runState.RewardedPlayerCount}",
                 $"competitiveEligibility=bossUnlock:{runState.BossUnlockEligiblePlayerDbIds.Count} | bossKill:{runState.ProgressionEligiblePlayerDbIds.Count}",
                 $"customPopulation={runState.Config.Content.UseCustomPopulation} | customSpawned={runState.CustomPopulationTotalSpawned} | customTracked={runState.CustomPopulationEntityIds.Count} | checkpointBoss={runState.Config.Content.BossOnlyCheckpointEligible}",
+                $"readyCheck={(runState.ReadyCheckEndsAt.HasValue ? $"{runState.ReadyCheckLabel} until {runState.ReadyCheckEndsAt.Value}" : "none")} | readyPlayers={runState.ReadyCheckPlayerStates.Count(state => state.Value == PlayerState.Ready)}/{runState.ReadyCheckPlayerStates.Count} | hazards={runState.HazardEntityIds.Count}",
                 $"regionAffixes={FormatPrototypeRefList(runState.Config.RegionAffixes)} | bossAffixes={FormatPrototypeRefList(runState.Config.BossAffixes)}",
                 $"nextUnlockOnSuccess={runState.Config.RiftLevel + 1}"
             };
