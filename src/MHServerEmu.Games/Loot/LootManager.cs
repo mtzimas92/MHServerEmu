@@ -112,7 +112,7 @@ namespace MHServerEmu.Games.Loot
             // phase's OnActivate() (e.g. joined in-world only right at the very end).
             Avatar recipientAvatar = inputSettings.Player?.CurrentAvatar;
             if (inputSettings.Player != null && recipientAvatar != null)
-                DinosWaveBattleLogCollator.AddParticipant(Game.Id, metaGameId, $"{recipientName}_L{recipientAvatar.CharacterLevel}");
+                DinosWaveBattleLogCollator.AddParticipant(Game.Id, metaGameId, inputSettings.Player.DatabaseUniqueId, $"{recipientName}_L{recipientAvatar.CharacterLevel}");
         }
 
 

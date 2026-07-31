@@ -186,7 +186,7 @@ namespace MHServerEmu.Games.MetaGames.GameModes
                 {
                     Avatar avatar = player?.CurrentAvatar;
                     if (avatar != null && avatar.IsInWorld)
-                        DinosWaveBattleLogCollator.AddParticipant(Game.Id, MetaGame.Id, $"{player.GetName()}_L{avatar.CharacterLevel}");
+                        DinosWaveBattleLogCollator.AddParticipant(Game.Id, MetaGame.Id, player.DatabaseUniqueId, $"{player.GetName()}_L{avatar.CharacterLevel}");
                 }
             }
 
