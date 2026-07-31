@@ -34,6 +34,13 @@ namespace MHServerEmu.Games.MythicRifts
         public const string BossGauntletRiftBeaconPrototypePath = "Entity/Items/Consumables/Prototypes/DangerRoom/PortalToDangerRoomRandomThemeNoAffixesBlue.prototype";
         public const string PresentationBossGauntletRiftBeaconPrototypeName = MythicRiftItemPresentation.BossGauntletPresentationPrototypeName;
         public const string PresentationBossGauntletRiftBeaconPrototypePath = MythicRiftItemPresentation.BossGauntletPresentationPrototypePath;
+        // [ScenarioItems] Danger Room Scenario Vendor crates (Cosmic Rift <- Blue, Rift Gauntlet <- Purple, Boss Gauntlet <- Cosmic).
+        public const string ScenarioVendorCosmicRiftCratePrototypeName = "DangerRoomScenarioCrateBlue";
+        public const string ScenarioVendorCosmicRiftCratePrototypePath = "Entity/Items/Consumables/Prototypes/DangerRoom/DangerRoomScenarioCrateBlue.prototype";
+        public const string ScenarioVendorEndlessRiftCratePrototypeName = "DangerRoomScenarioCratePurple";
+        public const string ScenarioVendorEndlessRiftCratePrototypePath = "Entity/Items/Consumables/Prototypes/DangerRoom/DangerRoomScenarioCratePurple.prototype";
+        public const string ScenarioVendorBossGauntletRiftCratePrototypeName = "DangerRoomScenarioCrateCosmic";
+        public const string ScenarioVendorBossGauntletRiftCratePrototypePath = "Entity/Items/Consumables/Prototypes/DangerRoom/DangerRoomScenarioCrateCosmic.prototype";
         public static readonly TimeSpan DefaultLauncherTimeLimit = TimeSpan.FromMinutes(10);
         public static readonly TimeSpan BossGauntletLauncherTimeLimit = TimeSpan.FromDays(1);
         private const int StandardOmegaDifficultyStartLevel = 70;
@@ -55,7 +62,17 @@ namespace MHServerEmu.Games.MythicRifts
             BossGauntletRiftBeaconPrototypeName,
             BossGauntletRiftBeaconPrototypePath,
             PresentationBossGauntletRiftBeaconPrototypeName,
-            PresentationBossGauntletRiftBeaconPrototypePath
+            PresentationBossGauntletRiftBeaconPrototypePath,
+            // [ScenarioItems] Without these, IsChosenBeaconPrototype() (used both at vendor-purchase time to grant
+            // a tracked charge, and as the zero-charge fallback in TryHandleTrackedBeaconUse) never recognizes the
+            // crates, so purchasing/using them silently no-ops even though RegisterDefaultMappings() alone makes
+            // CanHandleItem() return true for them.
+            ScenarioVendorCosmicRiftCratePrototypeName,
+            ScenarioVendorCosmicRiftCratePrototypePath,
+            ScenarioVendorEndlessRiftCratePrototypeName,
+            ScenarioVendorEndlessRiftCratePrototypePath,
+            ScenarioVendorBossGauntletRiftCratePrototypeName,
+            ScenarioVendorBossGauntletRiftCratePrototypePath
         };
         private readonly Dictionary<string, string> _candidateToEntryPointId = new(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<ulong, MythicRiftLauncherIntent> _pendingIntentsByPlayerDbId = new();
@@ -1354,6 +1371,15 @@ namespace MHServerEmu.Games.MythicRifts
             RegisterCandidateMapping(BossGauntletRiftBeaconPrototypePath, MythicRiftEntryService.BossGauntletConsumablePortalEntryPointId);
             RegisterCandidateMapping(PresentationBossGauntletRiftBeaconPrototypeName, MythicRiftEntryService.BossGauntletConsumablePortalEntryPointId);
             RegisterCandidateMapping(PresentationBossGauntletRiftBeaconPrototypePath, MythicRiftEntryService.BossGauntletConsumablePortalEntryPointId);
+
+            // [ScenarioItems] Danger Room Scenario Vendor crates, sold as static vendor stock rather than granted
+            // via the presentation-swap system above - registered as additional candidates for the same entry points.
+            RegisterCandidateMapping(ScenarioVendorCosmicRiftCratePrototypeName, MythicRiftEntryService.ConsumablePortalEntryPointId);
+            RegisterCandidateMapping(ScenarioVendorCosmicRiftCratePrototypePath, MythicRiftEntryService.ConsumablePortalEntryPointId);
+            RegisterCandidateMapping(ScenarioVendorEndlessRiftCratePrototypeName, MythicRiftEntryService.EndlessConsumablePortalEntryPointId);
+            RegisterCandidateMapping(ScenarioVendorEndlessRiftCratePrototypePath, MythicRiftEntryService.EndlessConsumablePortalEntryPointId);
+            RegisterCandidateMapping(ScenarioVendorBossGauntletRiftCratePrototypeName, MythicRiftEntryService.BossGauntletConsumablePortalEntryPointId);
+            RegisterCandidateMapping(ScenarioVendorBossGauntletRiftCratePrototypePath, MythicRiftEntryService.BossGauntletConsumablePortalEntryPointId);
         }
 
         private void RegisterCandidateMapping(string prototypeName, string entryPointId)

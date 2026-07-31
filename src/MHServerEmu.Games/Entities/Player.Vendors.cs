@@ -1115,18 +1115,24 @@ namespace MHServerEmu.Games.Entities
             if (region.PrototypeDataRef != (PrototypeId)RegionPrototypeId.DangerRoomHubRegion)
                 return false;
 
-            return vendor.IsVendor;
+            if (vendor.IsVendor == false)
+                return false;
+
+            // [ScenarioItems] Now that a second vendor (Danger Room Scenario Vendor, VendorDangerRoomScenario)
+            // can also exist in this region, this must be gated by vendor type name too - otherwise it would
+            // auto-stock the Scenario Vendor with the presentation launcher items on top of its own static
+            // Blue/Purple/Cosmic crate stock, duplicating them.
+            PrototypeId vendorTypeProtoRef = vendor.Properties[PropertyEnum.VendorType];
+            VendorTypePrototype vendorTypeProto = vendorTypeProtoRef.As<VendorTypePrototype>();
+            return ShouldInjectMythicRiftVendorStock(vendorTypeProto);
         }
 
         private static bool ShouldInjectMythicRiftVendorStock(VendorTypePrototype vendorTypeProto)
         {
-            if (vendorTypeProto == null)
-                return false;
-
-            return string.Equals(
-                vendorTypeProto.DataRef.GetNameFormatted(),
-                MythicRiftDangerRoomVendorTypeName,
-                StringComparison.OrdinalIgnoreCase);
+            // [ScenarioItems] Retired - the Danger Room Rewards Vendor (VendorDangerRoomRewards) no longer needs
+            // dynamically-injected CableFight/TestHearthStone/TestStunKit stock now that the dedicated Danger Room
+            // Scenario Vendor sells the equivalent Blue/Purple/Cosmic crates as static loot-table stock instead.
+            return false;
         }
 
         private bool TryInitializeMythicRiftCompletionCrafterInventory(PrototypeId inventoryProtoRef)

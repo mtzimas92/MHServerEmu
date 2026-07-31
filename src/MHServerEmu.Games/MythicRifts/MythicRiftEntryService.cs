@@ -191,7 +191,9 @@ namespace MHServerEmu.Games.MythicRifts
                 {
                     MythicRiftLauncherService.CosmicRiftBeaconPrototypeName,
                     MythicRiftLauncherService.PresentationCosmicRiftBeaconPrototypeName,
-                    MythicRiftLauncherService.PresentationCosmicRiftBeaconPrototypePath
+                    MythicRiftLauncherService.PresentationCosmicRiftBeaconPrototypePath,
+                    MythicRiftLauncherService.ScenarioVendorCosmicRiftCratePrototypeName,
+                    MythicRiftLauncherService.ScenarioVendorCosmicRiftCratePrototypePath
                 },
                 CandidateTransitionPrototypeName = "ReturnToLastBaseDR",
                 Notes = "Official current direction for the feature: Mythic Rift uses PortalToRandomMaxAffixDungeon as the technical launcher base, can present it as Mythic Rift Scenario, and returns players through the Danger Room base transition."
@@ -212,7 +214,9 @@ namespace MHServerEmu.Games.MythicRifts
                     MythicRiftLauncherService.EndlessRiftBeaconPrototypeName,
                     MythicRiftLauncherService.EndlessRiftBeaconPrototypePath,
                     MythicRiftLauncherService.PresentationEndlessRiftBeaconPrototypeName,
-                    MythicRiftLauncherService.PresentationEndlessRiftBeaconPrototypePath
+                    MythicRiftLauncherService.PresentationEndlessRiftBeaconPrototypePath,
+                    MythicRiftLauncherService.ScenarioVendorEndlessRiftCratePrototypeName,
+                    MythicRiftLauncherService.ScenarioVendorEndlessRiftCratePrototypePath
                 },
                 CandidateTransitionPrototypeName = "ReturnToLastBaseDR",
                 Notes = "Endless Rift uses the unused purple no-affix Danger Room portal as its technical base, presents as Endless Rift Scenario through TestHearthStone, and uses the repeating 30-wave boss cycle."
@@ -233,7 +237,9 @@ namespace MHServerEmu.Games.MythicRifts
                     MythicRiftLauncherService.BossGauntletRiftBeaconPrototypeName,
                     MythicRiftLauncherService.BossGauntletRiftBeaconPrototypePath,
                     MythicRiftLauncherService.PresentationBossGauntletRiftBeaconPrototypeName,
-                    MythicRiftLauncherService.PresentationBossGauntletRiftBeaconPrototypePath
+                    MythicRiftLauncherService.PresentationBossGauntletRiftBeaconPrototypePath,
+                    MythicRiftLauncherService.ScenarioVendorBossGauntletRiftCratePrototypeName,
+                    MythicRiftLauncherService.ScenarioVendorBossGauntletRiftCratePrototypePath
                 },
                 CandidateTransitionPrototypeName = "ReturnToLastBaseDR",
                 Notes = "Boss Gauntlet uses the unused blue no-affix Danger Room portal as its technical base, presents as Boss Gauntlet Scenario through TestStunKit, and runs endless sequential boss waves with delayed failure loot."
@@ -318,6 +324,45 @@ namespace MHServerEmu.Games.MythicRifts
                 PatcherFriendly = true,
                 Recommendation = "chosen-boss-gauntlet-presentation",
                 Notes = "Independent player-facing wrapper for Boss Gauntlet. Its display name, tooltip, and icon are patched without changing the Cosmic Rift or Rift Gauntlet items."
+            });
+
+            RegisterLauncherItemCandidate(new MythicRiftLauncherItemCandidate
+            {
+                PrototypeName = MythicRiftLauncherService.ScenarioVendorCosmicRiftCratePrototypeName,
+                DisplayName = "Cosmic Rift Scenario (Danger Room Scenario Vendor crate)",
+                SourceFamily = "DangerRoom / ScenarioCrateBlue",
+                IsLikelyUnusedOrLowRisk = true,
+                IsShopLinked = true,
+                SupportsRandomThemeIdentity = false,
+                PatcherFriendly = true,
+                Recommendation = "chosen-presentation",
+                Notes = "Sold directly as static vendor stock from the dedicated Danger Room Scenario Vendor, independent of the CableFight presentation item."
+            });
+
+            RegisterLauncherItemCandidate(new MythicRiftLauncherItemCandidate
+            {
+                PrototypeName = MythicRiftLauncherService.ScenarioVendorEndlessRiftCratePrototypeName,
+                DisplayName = "Rift Gauntlet Scenario (Danger Room Scenario Vendor crate)",
+                SourceFamily = "DangerRoom / ScenarioCratePurple",
+                IsLikelyUnusedOrLowRisk = true,
+                IsShopLinked = true,
+                SupportsRandomThemeIdentity = false,
+                PatcherFriendly = true,
+                Recommendation = "chosen-endless-presentation",
+                Notes = "Sold directly as static vendor stock from the dedicated Danger Room Scenario Vendor, independent of the TestHearthStone presentation item."
+            });
+
+            RegisterLauncherItemCandidate(new MythicRiftLauncherItemCandidate
+            {
+                PrototypeName = MythicRiftLauncherService.ScenarioVendorBossGauntletRiftCratePrototypeName,
+                DisplayName = "Boss Gauntlet Scenario (Danger Room Scenario Vendor crate)",
+                SourceFamily = "DangerRoom / ScenarioCrateCosmic",
+                IsLikelyUnusedOrLowRisk = true,
+                IsShopLinked = true,
+                SupportsRandomThemeIdentity = false,
+                PatcherFriendly = true,
+                Recommendation = "chosen-boss-gauntlet-presentation",
+                Notes = "Sold directly as static vendor stock from the dedicated Danger Room Scenario Vendor, independent of the TestStunKit presentation item."
             });
 
             RegisterLauncherItemCandidate(new MythicRiftLauncherItemCandidate
