@@ -175,6 +175,40 @@ namespace MHServerEmu.Games.Loot
             return (int)scaledAmount;
         }
 
+	public bool IsOnCooldown(PrototypeId dropProtoRef, int count)
+        {
+            // Check if cooldowns are applicable in this loot context (e.g. crafting should not have any cooldowns)
+            if (LootContext != LootContext.Drop && LootContext != LootContext.MissionReward)
+                return false;
+
+            // Check if this drop has already passed cooldown checks on initial roll
+            if (_allowedCooldownDrops.Contains(dropProtoRef))
+                return false;
+
+            // Check if this drop has a cooldown channel
+            LootCooldownChannelPrototype cooldownChannelProto = GameDataTables.Instance.LootCooldownTable.GetCooldownChannelForLoot(dropProtoRef);
+            if (cooldownChannelProto == null)
+                return false;
+
+            // Reset drop count if needed
+            cooldownChannelProto.UpdateCooldown(Player, dropProtoRef);
+
+            bool isOnCooldown = cooldownChannelProto.IsOnCooldown(Player.Game, Player.Properties);
+
+            // Set cooldown if this drop wasn't on cooldown
+            if (isOnCooldown == false)
+            {
+                cooldownChannelProto.SetCooldown(Player, count);
+                _allowedCooldownDrops.Add(dropProtoRef);    // Do not check this drop's cooldown again for this context
+            }
+
+            if (isOnCooldown)
+                LogDinosLootLockoutIfApplicable(dropProtoRef);
+
+            //Logger.Debug($"IsOnCooldown(): {dropProtoRef.GetName()} x{count} = {isOnCooldown}");
+            return isOnCooldown;
+        }
+
         // Cooldown blocks are a generic mechanism used by every loot table in the game, not just
         // Dinos Invade Manhattan's Cosmic Artifact - gated the same way LootManager.LogDinosBossLootIfApplicable
         // gates its own boss-loot logging (DinosWaveBattleLoggingEnable + an active wave-battle region),
