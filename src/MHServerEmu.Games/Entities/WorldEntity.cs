@@ -9,6 +9,7 @@ using MHServerEmu.Core.Serialization;
 using MHServerEmu.Core.System.Time;
 using MHServerEmu.Core.VectorMath;
 using MHServerEmu.Games.Common;
+using MHServerEmu.Games.Diagnostics;
 using MHServerEmu.Games.Dialog;
 using MHServerEmu.Games.Entities.Avatars;
 using MHServerEmu.Games.Entities.Inventories;
@@ -2218,6 +2219,8 @@ namespace MHServerEmu.Games.Entities
 
             if (powerResults.IsAvoided)
                 return false;
+
+            PowerDamageMetricsLogger.RecordDamage(powerResults, this, ultimateOwner, powerUser, startHealth, health, adjustHealth);
 
             // Apply health change
             bool killed = false;
