@@ -37,7 +37,7 @@ namespace MHServerEmu.Games.Tests.MythicRifts
             Assert.InRange(snapshot.EquivalentD3RiftLevel, 9.999f, 10.001f);
             Assert.InRange(snapshot.GroupHealthMultiplier, 0.999f, 1.001f);
             Assert.InRange(snapshot.HealthMultiplier, 4.107f, 4.109f);
-            Assert.InRange(snapshot.DamageMultiplier, 1.839f, 1.841f);
+            Assert.InRange(snapshot.DamageMultiplier, 1.719f, 1.721f);
         }
 
         [Fact]
@@ -73,7 +73,7 @@ namespace MHServerEmu.Games.Tests.MythicRifts
         {
             MythicRiftDifficultySnapshot levelTwoHundred = MythicRiftScaling.BuildSnapshot(200, 1);
 
-            Assert.InRange(levelTwoHundred.DamageMultiplier, 2.999f, 3.001f);
+            Assert.InRange(levelTwoHundred.DamageMultiplier, 2.399f, 2.401f);
         }
 
         [Fact]
@@ -127,7 +127,7 @@ namespace MHServerEmu.Games.Tests.MythicRifts
         {
             MythicRiftDifficultySnapshot waveThirty = MythicRiftScaling.BuildSnapshot(30, 1, useThirtyWaveMode: true);
 
-            Assert.InRange(waveThirty.DamageMultiplier, 2.999f, 3.001f);
+            Assert.InRange(waveThirty.DamageMultiplier, 2.399f, 2.401f);
         }
 
         [Fact]

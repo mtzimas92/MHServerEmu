@@ -177,6 +177,38 @@
   },
   {
     "Enabled": true,
+    "Prototype": "Entity/Items/CurrencyItems/VacuumingCurrencies/TestCurrencyItem.prototype",
+    "Path": "DesignState",
+    "Description": "Enable the unused test currency item as the Rift Sigil deterministic reward currency.",
+    "ValueType": "Enum",
+    "Value": "Live"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/CurrencyItems/VacuumingCurrencies/TestCurrencyItem.prototype",
+    "Path": "DisplayName",
+    "Description": "Rename the unused test currency item to Rift Sigil.",
+    "ValueType": "LocaleStringId",
+    "Value": 18000000000000080100
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/CurrencyItems/VacuumingCurrencies/TestCurrencyItem.prototype",
+    "Path": "TooltipDescription",
+    "Description": "Describe Rift Sigils as the deterministic Rift reward currency.",
+    "ValueType": "LocaleStringId",
+    "Value": 18000000000000080101
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/CurrencyItems/VacuumingCurrencies/TestCurrencyItem.prototype",
+    "Path": "IconPath",
+    "Description": "Give Rift Sigils the Cosmic Rift icon until a dedicated currency icon is selected.",
+    "ValueType": "AssetId",
+    "Value": 18109230673074853238
+  },
+  {
+    "Enabled": true,
     "Prototype": "Entity/Characters/Vendors/VendorTypes/TestVendorCrafter.prototype",
     "Path": "AllowActionDonate",
     "Description": "Disable the native 'donate items to increase rank' action on the Rift completion crafter - she has no persistent rank (spawned fresh each run with fixed attempts), so the button only confused players. Isolated re-test: this field previously failed to take effect alongside several LocaleStringId field patches that we now know don't reach the client at all (text-on-VendorType is client-resolved from its own local data) - testing this boolean action-flag on its own since it's a different kind of field (behavior, not display text) and vendor stock/behavior data has separately been confirmed to transmit correctly.",

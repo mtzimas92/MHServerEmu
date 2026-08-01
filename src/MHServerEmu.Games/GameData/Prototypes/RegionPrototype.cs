@@ -451,6 +451,13 @@ namespace MHServerEmu.Games.GameData.Prototypes
             {
                 if (mask.HasFlag((DifficultyTierMask)(1 << (int)i)))
                 {
+                    // Multiple concrete tiers can share the same coarse enum bucket
+                    // (Tier3Superheroic, Tier4Cosmic, and Tier5Omega1 are all Cosmic).
+                    // Preserve an exact requested tier when the destination supports
+                    // that bucket instead of collapsing to the registered default.
+                    if (i == tier)
+                        return difficultyTierProto.DataRef;
+
                     DifficultyTierPrototype constrainedDifficultyProto = GameDatabase.GlobalsPrototype.GetDifficultyTierByEnum(i);
                     return constrainedDifficultyProto.DataRef;
                 }

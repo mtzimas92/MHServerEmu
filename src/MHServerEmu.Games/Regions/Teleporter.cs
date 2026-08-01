@@ -221,6 +221,7 @@ namespace MHServerEmu.Games.Regions
                     case TeleportContextEnum.TeleportContext_Mission:
                     case TeleportContextEnum.TeleportContext_Power:
                     case TeleportContextEnum.TeleportContext_Resurrect:
+                    case TeleportContextEnum.TeleportContext_MetaGame:
                         DifficultyTierRef = region.DifficultyTierRef;
                         break;
                 }

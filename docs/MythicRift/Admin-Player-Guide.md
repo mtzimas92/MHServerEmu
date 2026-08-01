@@ -16,6 +16,7 @@ Useful player-safe commands:
 
 ```text
 rift status
+rift identity
 rift progression
 rift level
 rift level cosmic [level|max]
@@ -68,6 +69,7 @@ rift validatecontent
 rift previewrandom [count] [level] [players] [minutes]
 rift validaterandompool [level] [players] [minutes]
 rift scale [level] [players]
+rift identity
 ```
 
 Modifier diagnostics:

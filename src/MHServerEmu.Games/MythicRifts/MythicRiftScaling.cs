@@ -8,11 +8,11 @@ namespace MHServerEmu.Games.MythicRifts
         private const int MidScalingStartLevel = 21;
         private const int LateScalingStartLevel = 51;
         private const float MaxStandardHealthMultiplier = 12.0f;
-        private const float MaxStandardDamageMultiplier = 3.0f;
-        private const float MaxThirtyWaveDamageMultiplier = 3.0f;
-        private const float MaxBossGauntletHealthMultiplier = 8.0f;
-        private const float MaxBossGauntletDamageMultiplier = 2.25f;
-        private const int MaxBossGauntletBossCount = 6;
+        private const float MaxStandardDamageMultiplier = 2.4f;
+        private const float MaxThirtyWaveDamageMultiplier = 2.4f;
+        private const float MaxBossGauntletHealthMultiplier = 7.0f;
+        private const float MaxBossGauntletDamageMultiplier = 2.0f;
+        private const int MaxBossGauntletBossCount = 5;
         private static readonly float[] RiftPartyHealthMultipliersByBucket =
         {
             1.00f,
@@ -101,9 +101,9 @@ namespace MHServerEmu.Games.MythicRifts
             int lateLevels = Math.Max(normalizedLevel - 71, 0);
 
             double multiplier = 1d
-                + (earlyLevels * 0.035d)
-                + (midLevels * 0.020d)
-                + (lateLevels * 0.005d);
+                + (earlyLevels * 0.030d)
+                + (midLevels * 0.015d)
+                + (lateLevels * 0.004d);
 
             return (float)multiplier;
         }
@@ -130,17 +130,17 @@ namespace MHServerEmu.Games.MythicRifts
         public static int GetBossGauntletBossCount(int wave)
         {
             int normalizedWave = Math.Max(wave, 1);
-            return Math.Clamp(1 + ((normalizedWave - 1) / 5), 1, MaxBossGauntletBossCount);
+            return Math.Clamp(1 + ((normalizedWave - 1) / 6), 1, MaxBossGauntletBossCount);
         }
 
         public static MythicRiftDifficultySnapshot BuildBossGauntletSnapshot(int wave, int requestedPlayerCount)
         {
             int normalizedWave = Math.Max(wave, 1);
             int effectivePlayerCount = GetEffectivePlayerCount(requestedPlayerCount);
-            float groupHealthMultiplier = Math.Min(GetGroupHealthMultiplier(requestedPlayerCount), 2.0f);
-            float waveHealthMultiplier = 1f + ((normalizedWave - 1) * 0.12f);
+            float groupHealthMultiplier = Math.Min(GetGroupHealthMultiplier(requestedPlayerCount), 1.75f);
+            float waveHealthMultiplier = 1f + ((normalizedWave - 1) * 0.10f);
             float finalHealthMultiplier = Math.Min(waveHealthMultiplier * groupHealthMultiplier, MaxBossGauntletHealthMultiplier);
-            float finalDamageMultiplier = Math.Min(1f + ((normalizedWave - 1) * 0.025f), MaxBossGauntletDamageMultiplier);
+            float finalDamageMultiplier = Math.Min(1f + ((normalizedWave - 1) * 0.018f), MaxBossGauntletDamageMultiplier);
 
             return new MythicRiftDifficultySnapshot(
                 normalizedWave,

@@ -1,5 +1,6 @@
 ﻿using MHServerEmu.Core.Helpers;
 using MHServerEmu.Core.Logging;
+using MHServerEmu.Core.VectorMath;
 using MHServerEmu.Games.GameData.Prototypes;
 using System.ComponentModel;
 using System.Reflection;
@@ -210,6 +211,9 @@ namespace MHServerEmu.Games.GameData.PatchManager
                     return proto;
                 }
             }
+
+            if (targetType == typeof(Orientation) && rawValue is Vector3 vec)
+                return new Orientation(vec.X, vec.Y, vec.Z);
 
             TypeConverter converter = TypeDescriptor.GetConverter(targetType);
             if (converter != null && converter.CanConvertFrom(rawValue.GetType()))

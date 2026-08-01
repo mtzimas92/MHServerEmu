@@ -10,14 +10,14 @@ namespace MHServerEmu.Games.MythicRifts
         public string ProfileName { get; set; } = "default-hazards";
         public bool Enabled { get; set; } = true;
         public bool UseKeywordDiscovery { get; set; } = true;
-        public int MaxActiveHazards { get; set; } = 4;
-        public float SpawnIntervalSeconds { get; set; } = 14f;
-        public float DurationSeconds { get; set; } = 8f;
+        public int MaxActiveHazards { get; set; } = 2;
+        public float SpawnIntervalSeconds { get; set; } = 20f;
+        public float DurationSeconds { get; set; } = 6f;
         public float SpawnDistance { get; set; } = 420f;
         public float SpawnSearchDistance { get; set; } = 260f;
-        public int MinStandardRiftLevel { get; set; } = 30;
-        public int MinRiftGauntletWave { get; set; } = 10;
-        public int MinBossGauntletWave { get; set; } = 10;
+        public int MinStandardRiftLevel { get; set; } = 35;
+        public int MinRiftGauntletWave { get; set; } = 15;
+        public int MinBossGauntletWave { get; set; } = 18;
         public List<string> DiscoveryNameKeywords { get; set; } = new()
         {
             "hazard",
@@ -27,8 +27,6 @@ namespace MHServerEmu.Games.MythicRifts
             "poison",
             "acid",
             "laser",
-            "bomb",
-            "explosion",
             "lightning"
         };
         public List<string> BlockedNameKeywords { get; set; } = new()
@@ -40,7 +38,9 @@ namespace MHServerEmu.Games.MythicRifts
             "checkpoint",
             "objective",
             "script",
-            "ui"
+            "ui",
+            "cinematic",
+            "raid"
         };
         public List<MythicRiftHazardEntryTuning> Hazards { get; set; } = new();
 

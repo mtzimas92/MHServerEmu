@@ -235,30 +235,38 @@ namespace MHServerEmu.Commands.Implementations
         }
 
         [CommandGroup("Ultron")]
-        [CommandGroupDescription("Teleports to the Ultron Raid.")]
+        [CommandGroupDescription("Teleports to the Ultron Raid at a forced difficulty tier.")]
         [CommandGroupFlags(CommandGroupFlags.SingleCommand)]
         public class UltronCommand : CommandGroup
         {
             [DefaultCommand]
+            [CommandUsage("Ultron [t3|t4|t5]")]
             [CommandInvokerType(CommandInvokerType.Client)]
             public string Ultron(string[] @params, NetClient client)
             {
                 Player player = ((PlayerConnection)client).Player;
                 PrototypeId targetProtoRef = (PrototypeId)6101407482858775734;
-                PrototypeId omegaDifficulty = (PrototypeId)586640101754933627;
-                if (omegaDifficulty == PrototypeId.Invalid)
+                string tierParam = @params.Length > 0 ? @params[0].ToLower() : "t3";
+                PrototypeId difficultyTierRef = tierParam switch
                 {
-                    return "Error: Could not find 'Difficulty/Tiers/Tier4Cosmic.prototype'.";
-                }
+                    "t3" => GameDatabase.GetPrototypeRefByName("Difficulty/Tiers/Tier3Superheroic.prototype"),
+                    "t4" => (PrototypeId)1087474643293441873,
+                    "t5" => (PrototypeId)424700179461639950,
+                    _ => PrototypeId.Invalid
+                };
+
+                if (difficultyTierRef == PrototypeId.Invalid)
+                    return "Unknown difficulty. Valid difficulties: t3, t4, t5";
+
                 using Teleporter teleporter = ObjectPoolManager.Instance.Get<Teleporter>();
                 teleporter.Initialize(player, TeleportContextEnum.TeleportContext_Debug);
-                teleporter.DifficultyTierRef = omegaDifficulty;
+                teleporter.DifficultyTierRef = difficultyTierRef;
 
                 if (teleporter.TeleportToTarget(targetProtoRef) == false)
                 {
                     return "Teleport failed. Check server logs for details.";
                 }
-                return "Teleporting to Ultron (Cosmic)...";
+                return $"Teleporting to Ultron ({tierParam.ToUpper()})...";
             }
         }
 

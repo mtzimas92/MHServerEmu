@@ -66,7 +66,7 @@ namespace MHServerEmu.Games.MythicRifts
         private const int MilestoneMiniBossKillCredit = 10;
         private const int RiftPopulationRespawnDelayMS = 20000;
         private const int RecentRandomMapHistoryLimit = 4;
-        private const int RecentRandomBossFamilyHistoryLimit = 4;
+        private const int RecentRandomBossFamilyHistoryLimit = 8;
         private const int RiftSecondRegionAffixStartLevel = 30;
         private const int RiftThirdRegionAffixStartLevel = 70;
         private const int BossGauntletSecondBossAffixStartWave = 30;
@@ -3426,24 +3426,8 @@ namespace MHServerEmu.Games.MythicRifts
             if (uiDataProvider == null || readyCheckWidgetRef == PrototypeId.Invalid)
                 return;
 
-            if (runState.IsReadyCheckActive(currentTime) == false)
-            {
-                uiDataProvider.DeleteWidget(readyCheckWidgetRef, contextRef);
-                return;
-            }
-
-            UIWidgetReadyCheck readyCheckWidget = uiDataProvider.GetWidget<UIWidgetReadyCheck>(readyCheckWidgetRef, contextRef);
-            if (readyCheckWidget == null)
-                return;
-
-            foreach (Player player in GetRunPlayers(runState))
-            {
-                string playerName = player.GetName();
-                if (string.IsNullOrWhiteSpace(playerName))
-                    playerName = $"Player {player.DatabaseUniqueId:X}";
-
-                readyCheckWidget.SetPlayerState(player.DatabaseUniqueId, playerName, runState.GetReadyCheckPlayerState(player.DatabaseUniqueId));
-            }
+            // Rift waves use a short automatic staging delay; do not show the native ready-check UI.
+            uiDataProvider.DeleteWidget(readyCheckWidgetRef, contextRef);
         }
 
         private void RefreshRiftModifierButtonWidget(UIDataProvider uiDataProvider, MythicRiftRunState runState, PrototypeId contextRef)
@@ -3628,9 +3612,6 @@ namespace MHServerEmu.Games.MythicRifts
         {
             if (runState == null)
                 return LocaleStringId.Blank;
-
-            if (runState.IsReadyCheckActive(currentTime))
-                return (LocaleStringId)RiftStatusLocaleReadyCheck;
 
             if (runState.HazardEntityIds.Count > 0)
                 return (LocaleStringId)RiftStatusLocaleHazards;
@@ -5144,9 +5125,7 @@ namespace MHServerEmu.Games.MythicRifts
             CleanupRunHazards(runState);
             runState.BeginReadyCheck(currentTime + RiftReadyCheckDuration, label, GetRunPlayers(runState).Select(player => player.DatabaseUniqueId));
             runState.SetNextHazardSpawnAt(currentTime + RiftReadyCheckDuration + TimeSpan.FromSeconds(Math.Min((_hazardTuning ?? MythicRiftHazardTuning.CreateDefault()).SpawnIntervalSeconds, 4f)));
-            ShowReadyCheckDialogs(runState);
             RefreshRiftHudWidgets(runState, currentTime);
-            NotifyRunPlayers(runState, $"[Mythic Rift] {runState.ReadyCheckLabel} starts in {(int)RiftReadyCheckDuration.TotalSeconds} seconds.");
         }
 
         private bool TryHoldForRiftReadyCheck(MythicRiftRunState runState, TimeSpan currentTime)

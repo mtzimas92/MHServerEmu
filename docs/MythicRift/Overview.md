@@ -51,21 +51,21 @@ Cosmic Rift:
 
 - Piecewise climb curve inspired by Diablo 3 rifts.
 - Health cap: `12x`.
-- Damage cap: `3x`.
+- Damage cap: `2.4x`.
 - Party health buckets: `1.0x`, `1.5x`, `2.0x`, `2.5x`, `3.0x` for 1-5 players.
 
 Rift Gauntlet:
 
 - Uses the 30-wave profile table.
 - Party health multiplier is not added on top of the wave table.
-- Damage uses the stronger of baseline wave damage or total boss pressure, capped at `3x`.
+- Damage uses the stronger of baseline wave damage or total boss pressure, capped at `2.4x`.
 - Boss count ramps from 1 boss early to 6 bosses at wave 30.
 
 Boss Gauntlet:
 
-- Boss count increases by one every 5 waves, capped at 6.
-- Health cap: `8x`.
-- Damage cap: `2.25x`.
+- Boss count increases by one every 6 waves, capped at 5.
+- Health cap: `7x`.
+- Damage cap: `2x`.
 - Party health multiplier is capped lower for this mode.
 
 Difficulty tiers are selected by launcher/run state:
@@ -89,7 +89,17 @@ Current first-pass modifier counts:
 - Cosmic Rift and Rift Gauntlet: 1 affix by default, 2 at level/wave 30, 3 at level/wave 70.
 - Boss Gauntlet: 1 boss affix by default, 2 at wave 30, 3 at wave 70.
 
-This first pass intentionally uses enemy-boost affixes only. Player lockout affixes, scripted environmental hazards, ready-check widgets, and leaderboards are still future work.
+This pass intentionally uses enemy-boost affixes only. Player lockout affixes and leaderboards are still future work.
+
+## Rift UX
+
+Current in-run UX includes Rift-owned objective widgets, automatic short staging delays before boss waves, a modifier/status button, boss/party status indicators where client widgets are available, and optional hotspot-style environmental hazards from `Game/MythicRift/CosmicRiftHazards.json`.
+
+Useful UX checks:
+
+- `rift identity`: summarizes the three mode identities and current reward/hazard profiles.
+- `rift modifiers`: shows the active affixes for the invoking player's run.
+- `rift hazardconfig`: shows the resolved hazard tuning profile.
 
 ## Content Rules
 

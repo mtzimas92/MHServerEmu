@@ -58,5 +58,11 @@
   },
   "9161134654277420337": {
     "en_us": "Attempt to upgrade a Cosmic gear piece (slots 1-5, item level 63-74) by +1 item level. Costs 100 Champion's Commendations on a successful upgrade. You have 3 attempts per completed Rift, 30% chance each. A successful upgrade ends your attempts for this run. Maximum item level 75."
+  },
+  "18000000000000080100": {
+    "en_us": "Rift Sigil"
+  },
+  "18000000000000080101": {
+    "en_us": "Earned from Rift modes. Spend at the Rift vendor for targeted upgrade caches and progression rewards."
   }
 }

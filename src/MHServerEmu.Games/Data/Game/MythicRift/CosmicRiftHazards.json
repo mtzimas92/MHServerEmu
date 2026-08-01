@@ -1,15 +1,15 @@
 {
-  "profileName": "safe-keyword-hotspots-v1",
+  "profileName": "safe-keyword-hotspots-v2-lightweight",
   "enabled": true,
   "useKeywordDiscovery": true,
-  "maxActiveHazards": 4,
-  "spawnIntervalSeconds": 14,
-  "durationSeconds": 8,
+  "maxActiveHazards": 2,
+  "spawnIntervalSeconds": 20,
+  "durationSeconds": 6,
   "spawnDistance": 420,
   "spawnSearchDistance": 260,
-  "minStandardRiftLevel": 30,
-  "minRiftGauntletWave": 10,
-  "minBossGauntletWave": 10,
+  "minStandardRiftLevel": 35,
+  "minRiftGauntletWave": 15,
+  "minBossGauntletWave": 18,
   "discoveryNameKeywords": [
     "hazard",
     "hotspot",
@@ -18,8 +18,6 @@
     "poison",
     "acid",
     "laser",
-    "bomb",
-    "explosion",
     "lightning"
   ],
   "blockedNameKeywords": [
@@ -30,7 +28,9 @@
     "checkpoint",
     "objective",
     "script",
-    "ui"
+    "ui",
+    "cinematic",
+    "raid"
   ],
   "hazards": []
 }

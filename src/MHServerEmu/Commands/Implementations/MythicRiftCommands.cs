@@ -345,6 +345,37 @@ namespace MHServerEmu.Commands.Implementations
             return string.Empty;
         }
 
+        [Command("identity")]
+        [CommandDescription("Summarizes the intended identity, progression, scaling, rewards, and live tuning profiles for each Rift mode.")]
+        [CommandUsage("rift identity")]
+        [CommandUserLevel(AccountUserLevel.User)]
+        [CommandInvokerType(CommandInvokerType.Client)]
+        public string Identity(string[] @params, NetClient client)
+        {
+            PlayerConnection playerConnection = (PlayerConnection)client;
+            Game game = playerConnection?.Game;
+            Player player = playerConnection?.Player;
+            if (game == null || player == null)
+                return "Game or player not found.";
+
+            MythicRiftDifficultySnapshot cosmicLevel70 = game.MythicRiftManager.GetDifficultySnapshot(70, 1, MythicRiftMode.Standard);
+            MythicRiftDifficultySnapshot gauntletWave30 = game.MythicRiftManager.GetDifficultySnapshot(30, 1, MythicRiftMode.Endless);
+            MythicRiftDifficultySnapshot bossWave30 = game.MythicRiftManager.GetDifficultySnapshot(30, 1, MythicRiftMode.BossGauntlet);
+
+            List<string> lines = new()
+            {
+                "Rift identities:",
+                $"Cosmic Rift: infinite personal climb. Farm/push mode with kill quota, final boss wave, persistent level unlocks, capped incoming damage. Example level 70 solo: HP x{cosmicLevel70.HealthMultiplier:F2}, damage x{cosmicLevel70.DamageMultiplier:F2}.",
+                $"Rift Gauntlet: 30-wave boss milestone loop. Best for faster boss-focused farming; wave 30 resets this mode back to wave 1. Example wave 30 solo: bosses={MythicRiftScaling.GetThirtyWaveProfile(30).BossCount}, perBossHP x{gauntletWave30.HealthMultiplier:F2}, damage x{gauntletWave30.DamageMultiplier:F2}.",
+                $"Boss Gauntlet: single-arena endless survival. Bosses arrive sequentially with short rests; rewards pay out when the gauntlet ends. Example wave 30 solo: bosses={MythicRiftScaling.GetBossGauntletBossCount(30)}, HP x{bossWave30.HealthMultiplier:F2}, damage x{bossWave30.DamageMultiplier:F2}.",
+                $"Reward profile={game.MythicRiftManager.RewardTuning.ProfileName} | hazard profile={game.MythicRiftManager.HazardTuning.ProfileName} | randomMaps={game.MythicRiftManager.RandomMapEligibleContentPool.Count} | randomBossSources={game.MythicRiftManager.RandomBossEligibleContentPool.Count}",
+                "Useful checks: rift progression, rift level [mode], rift modifiers, rift rewardconfig, rift hazardconfig, rift rewardsim [mode] [start] [end] [players]."
+            };
+
+            CommandHelper.SendMessages(client, lines);
+            return string.Empty;
+        }
+
         [Command("debugcompletecrafter")]
         [CommandDescription("Force-completes a synthetic Mythic Rift run for the invoking player in their current region, granting rewards and spawning the completion crafter as if a real run had just been cleared.")]
         [CommandUsage("rift debugcompletecrafter")]

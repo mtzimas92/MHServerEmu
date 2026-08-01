@@ -1,0 +1,186 @@
+[
+  {
+    "Enabled": true,
+    "Prototype": "Resource/Cells/DistrictCells/Avengers_Tower/AvengersTowerNPE_HUB.cell",
+    "Path": "MarkerSet.Markers[30].EntityGuid",
+    "Description": "[Rift Access] Place Misty Knight as the Omega patrol selector NPC.",
+    "ValueType": "PrototypeGuid",
+    "Value": 4227756442550214266
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Resource/Cells/DistrictCells/Avengers_Tower/AvengersTowerNPE_HUB.cell",
+    "Path": "MarkerSet.Markers[30].Position",
+    "Description": "[Rift Access] Omega patrol selector position in Avengers Tower.",
+    "ValueType": "Vector3",
+    "Value": [294.25, 858.375, 372]
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Resource/Cells/DistrictCells/Avengers_Tower/AvengersTowerNPE_HUB.cell",
+    "Path": "MarkerSet.Markers[30].Rotation",
+    "Description": "[Rift Access] Omega patrol selector rotation.",
+    "ValueType": "Vector3",
+    "Value": [0, 0, 0]
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Characters/NPCs/DoctorStrange.prototype",
+    "Path": "DesignState",
+    "Description": "[Rift Access] Enable Doctor Strange as the raid access selector NPC.",
+    "ValueType": "Enum",
+    "Value": "Live"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Resource/Cells/DistrictCells/Avengers_Tower/AvengersTowerNPE_HUB.cell",
+    "Path": "MarkerSet.Markers[32].EntityGuid",
+    "Description": "[Rift Access] Place Doctor Strange as the Cosmic/Omega raid selector NPC.",
+    "ValueType": "PrototypeGuid",
+    "Value": 4823431446756076203
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Resource/Cells/DistrictCells/Avengers_Tower/AvengersTowerNPE_HUB.cell",
+    "Path": "MarkerSet.Markers[32].Position",
+    "Description": "[Rift Access] Raid selector position in Avengers Tower.",
+    "ValueType": "Vector3",
+    "Value": [758.857, 580.75, 371]
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Resource/Cells/DistrictCells/Avengers_Tower/AvengersTowerNPE_HUB.cell",
+    "Path": "MarkerSet.Markers[32].Rotation",
+    "Description": "[Rift Access] Raid selector rotation.",
+    "ValueType": "Vector3",
+    "Value": [1.5707963267948966, 0, 0]
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Regions/RAIDS/AxisRaid/AxisRaidRegionBand.prototype",
+    "Path": "AccessDifficulties[]",
+    "Description": "[Rift Access] Allow Cosmic Axis entry at Tier3Superheroic.",
+    "ValueType": "PrototypeId",
+    "Value": 586640101754933627
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Regions/RAIDS/AxisRaid/AxisRaidRegionGreen.prototype",
+    "Path": "AccessDifficulties[]",
+    "Description": "[Rift Access] Keep Axis Green internal transitions at Tier3Superheroic.",
+    "ValueType": "PrototypeId",
+    "Value": 586640101754933627
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Regions/RAIDS/AxisRaid/AxisRaidRegionRed.prototype",
+    "Path": "AccessDifficulties[]",
+    "Description": "[Rift Access] Keep Axis Red internal transitions at Tier3Superheroic.",
+    "ValueType": "PrototypeId",
+    "Value": 586640101754933627
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Regions/RAIDS/MuspelheimRaid/SurturRaidRegionBand.prototype",
+    "Path": "AccessDifficulties[]",
+    "Description": "[Rift Access] Allow Omega Muspelheim entry at Tier5Omega1.",
+    "ValueType": "PrototypeId",
+    "Value": 424700179461639950
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Regions/RAIDS/MuspelheimRaid/SurturRaidRegionGreen.prototype",
+    "Path": "AccessDifficulties[]",
+    "Description": "[Rift Access] Keep Muspelheim Green internal transitions at Tier5Omega1.",
+    "ValueType": "PrototypeId",
+    "Value": 424700179461639950
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Regions/RAIDS/MuspelheimRaid/SurturRaidRegionRed.prototype",
+    "Path": "AccessDifficulties[]",
+    "Description": "[Rift Access] Keep Muspelheim Red internal transitions at Tier5Omega1.",
+    "ValueType": "PrototypeId",
+    "Value": 424700179461639950
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Regions/RAIDS/MuspelheimRaid/SurturRaidRegionBase.prototype",
+    "Path": "AccessDifficulties[]",
+    "Description": "[Rift Access] Keep Muspelheim base-region transitions at Tier5Omega1.",
+    "ValueType": "PrototypeId",
+    "Value": 424700179461639950
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Regions/EndGame/TierX/UltronGameMode/UltronRaidRegionCosmic.prototype",
+    "Path": "AccessDifficulties[]",
+    "Description": "[Rift Access] Allow Cosmic Ultron raid entry and internal transitions at Tier3Superheroic.",
+    "ValueType": "PrototypeId",
+    "Value": 586640101754933627
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Regions/EndGame/TierX/UltronGameMode/UltronRaidRegionCosmic.prototype",
+    "Path": "AccessDifficulties[]",
+    "Description": "[Rift Access] Allow Ultron raid entry and internal transitions at Tier4Cosmic for the !Ultron t4 command.",
+    "ValueType": "PrototypeId",
+    "Value": 1087474643293441873
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Regions/EndGame/TierX/UltronGameMode/UltronRaidRegionCosmic.prototype",
+    "Path": "AccessDifficulties[]",
+    "Description": "[Rift Access] Allow Ultron raid entry and internal transitions at Tier5Omega1 for the !Ultron t5 command.",
+    "ValueType": "PrototypeId",
+    "Value": 424700179461639950
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Regions/EndGame/TierX/PatrolMidtown/XManhattanRegionBand.prototype",
+    "Path": "AccessDifficulties[]",
+    "Description": "[Rift Access] Allow Omega Midtown Patrol at Tier5Omega1.",
+    "ValueType": "PrototypeId",
+    "Value": 424700179461639950
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Regions/EndGame/TierX/PatrolMidtown/AltRegions/XManhattanRegion60Cosmic.prototype",
+    "Path": "AccessDifficulties[]",
+    "Description": "[Rift Access] Allow Omega Midtown Patrol cosmic alt at Tier5Omega1.",
+    "ValueType": "PrototypeId",
+    "Value": 424700179461639950
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Regions/EndGame/TierX/PatrolBrooklyn/BrooklynPatrolRegionBand.prototype",
+    "Path": "AccessDifficulties[]",
+    "Description": "[Rift Access] Allow Omega Industry City Patrol at Tier5Omega1.",
+    "ValueType": "PrototypeId",
+    "Value": 424700179461639950
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Regions/EndGame/TierX/PatrolBrooklyn/AltRegions/BrooklynPatrolRegionL60Cosmic.prototype",
+    "Path": "AccessDifficulties[]",
+    "Description": "[Rift Access] Allow Omega Industry City Patrol cosmic alt at Tier5Omega1.",
+    "ValueType": "PrototypeId",
+    "Value": 424700179461639950
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Regions/EndGame/TierX/PatrolHightown/UpperMadripoorRegionBand.prototype",
+    "Path": "AccessDifficulties[]",
+    "Description": "[Rift Access] Allow Omega Hightown Patrol at Tier5Omega1.",
+    "ValueType": "PrototypeId",
+    "Value": 424700179461639950
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Regions/EndGame/TierX/PatrolHightown/AltRegions/UpperMadripoorRegionL60Cosmic.prototype",
+    "Path": "AccessDifficulties[]",
+    "Description": "[Rift Access] Allow Omega Hightown Patrol cosmic alt at Tier5Omega1.",
+    "ValueType": "PrototypeId",
+    "Value": 424700179461639950
+  }
+]
