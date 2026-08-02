@@ -5155,7 +5155,7 @@ namespace MHServerEmu.Games.MythicRifts
             if (entity == null || entity.IsDestroyed)
                 return;
 
-            EntityHelper.ClearStandaloneBossFixups(entity.Id);
+            MythicRiftStandaloneBossFixups.Clear(entity.Id);
 
             if (entity is Agent agent)
                 agent.KillSummonedOnOwnerDeath();
@@ -6259,7 +6259,7 @@ namespace MHServerEmu.Games.MythicRifts
                 if (bossAgent == null)
                     break;
 
-                EntityHelper.ApplyStandaloneBossFixups(bossAgent, allowMissingAffixSettingsFallback: true);
+                MythicRiftStandaloneBossFixups.Apply(bossAgent, allowMissingAffixSettingsFallback: true);
                 ApplyCheckpointBossTuning(runState, bossAgent);
                 runState.AttachBoss(bossAgent.Id);
                 spawnedThisCall++;
@@ -6416,7 +6416,7 @@ namespace MHServerEmu.Games.MythicRifts
             if (spawnedAgent == null)
                 return false;
 
-            EntityHelper.ApplyStandaloneBossFixups(spawnedAgent, allowMissingAffixSettingsFallback: true);
+            MythicRiftStandaloneBossFixups.Apply(spawnedAgent, allowMissingAffixSettingsFallback: true);
             if (agentProto.ModifiersGuaranteed != null)
             {
                 foreach (PrototypeId boost in agentProto.ModifiersGuaranteed)

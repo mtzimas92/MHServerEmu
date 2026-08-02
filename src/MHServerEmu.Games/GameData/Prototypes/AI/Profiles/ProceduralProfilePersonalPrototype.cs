@@ -14,6 +14,7 @@ using MHServerEmu.Games.Entities;
 using MHServerEmu.Games.Entities.Avatars;
 using MHServerEmu.Games.Entities.Locomotion;
 using MHServerEmu.Games.GameData.Calligraphy;
+using MHServerEmu.Games.MythicRifts;
 using MHServerEmu.Games.Navi;
 using MHServerEmu.Games.Powers;
 using MHServerEmu.Games.Powers.Conditions;
@@ -1184,7 +1185,7 @@ namespace MHServerEmu.Games.GameData.Prototypes
             if (agent == null || target == null || target.IsInWorld == false)
                 return StaticBehaviorReturnType.Failed;
 
-            if (EntityHelper.StandaloneBossIds.Contains(agent.Id) == false)
+            if (MythicRiftStandaloneBossFixups.IsStandaloneBoss(agent) == false)
                 return StaticBehaviorReturnType.Completed;
 
             float minRange = float.MaxValue;

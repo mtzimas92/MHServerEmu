@@ -11,6 +11,7 @@ using MHServerEmu.Games.Behavior.StaticAI;
 using MHServerEmu.Games.Common;
 using MHServerEmu.Games.Entities;
 using MHServerEmu.Games.Entities.Avatars;
+using MHServerEmu.Games.MythicRifts;
 using MHServerEmu.Games.Powers;
 using MHServerEmu.Games.Properties;
 using MHServerEmu.Games.Regions;
@@ -145,7 +146,7 @@ namespace MHServerEmu.Games.GameData.Prototypes
                 {
                     if (AffixSettings == null)
                     {
-                        if (EntityHelper.StandaloneBossAffixFallbackIds.Contains(agent.Id) == false &&
+                        if (MythicRiftStandaloneBossFixups.AllowsMissingAffixSettingsFallback(agent) == false &&
                             !Verify.IsNotNull(AffixSettings, $"Agent [{agent}] has enemy affix(es), but no AffixSettings data in its procedural profile!"))
                         {
                             return StaticBehaviorReturnType.Failed;

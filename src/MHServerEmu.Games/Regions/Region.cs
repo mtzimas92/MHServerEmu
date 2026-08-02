@@ -24,6 +24,7 @@ using MHServerEmu.Games.GameData.Prototypes;
 using MHServerEmu.Games.Loot;
 using MHServerEmu.Games.MetaGames;
 using MHServerEmu.Games.Missions;
+using MHServerEmu.Games.MythicRifts;
 using MHServerEmu.Games.Navi;
 using MHServerEmu.Games.Network;
 using MHServerEmu.Games.Populations;
@@ -475,11 +476,11 @@ namespace MHServerEmu.Games.Regions
             IsGenerated = true;
             CreatedTime = Clock.UnixTime;
 
-	    if (regionProto.DataRef == NPEAvengersTowerHUBRegionRef)
+            if (regionProto.DataRef == NPEAvengersTowerHUBRegionRef)
                 SpawnShannaPortalGuide();
 
             if (regionProto.DataRef == (PrototypeId)RegionPrototypeId.DangerRoomHubRegion)
-                SpawnDangerRoomScenarioVendor();
+                MythicRiftScenarioVendorSpawner.SpawnDangerRoomScenarioVendor(this);
 
             return true;
         }
@@ -524,54 +525,6 @@ namespace MHServerEmu.Games.Regions
 
             if (Game.EntityManager.CreateEntity(entitySettings) == null)
                 Logger.Warn("SpawnShannaPortalGuide(): Failed to create the Shanna portal guide entity");
-        }
-
-        // [ScenarioItems] MoiraMacTaggertXMHealer.prototype (the Danger Room hub healer) is baked entirely into
-        // the compiled binary cell (DangerRoom_LaunchTerminal.cell) - no Population/marker JSON references her at
-        // all, so her placement can't be repointed to a different prototype directly. Instead we spawn the
-        // (patched Live) DangerRoomScenarioVendor.prototype as a second entity beside her already-spawned runtime
-        // position, and hide her separately via eWETV_Visible LiveTuning (see LiveTuningData.json) - she keeps no
-        // role at all going forward.
-        private static readonly PrototypeId MoiraMacTaggertXMHealerRef = (PrototypeId)10965963107371852253;
-        private static readonly PrototypeId DangerRoomScenarioVendorRef = (PrototypeId)9925076672486449187;
-
-        // Side offset for the vendor spawn, in the same direction/shape as ShannaPortalGuideSideOffset above -
-        // needs live tuning once we can see the Danger Room hub in-game (expect to adjust this).
-        private const float DangerRoomScenarioVendorSideOffset = 150f;
-
-        private void SpawnDangerRoomScenarioVendor()
-        {
-            WorldEntity moira = null;
-            foreach (Entity entity in Entities)
-            {
-                if (entity.PrototypeDataRef == MoiraMacTaggertXMHealerRef && entity is WorldEntity worldEntity)
-                {
-                    moira = worldEntity;
-                    break;
-                }
-            }
-
-            if (moira == null)
-            {
-                Logger.Warn("SpawnDangerRoomScenarioVendor(): Failed to find Moira MacTaggert in the Danger Room hub");
-                return;
-            }
-
-            Vector3 moiraPosition = moira.RegionLocation.Position;
-            Orientation moiraOrientation = moira.RegionLocation.Orientation;
-
-            // Stand the vendor beside Moira rather than on top of her, same offset shape as SpawnShannaPortalGuide.
-            float yaw = moiraOrientation.Yaw;
-            Vector3 vendorPosition = new(moiraPosition.X + (MathF.Cos(yaw) * DangerRoomScenarioVendorSideOffset), moiraPosition.Y, moiraPosition.Z);
-
-            using EntitySettings entitySettings = ObjectPoolManager.Instance.Get<EntitySettings>();
-            entitySettings.EntityRef = DangerRoomScenarioVendorRef;
-            entitySettings.Position = vendorPosition;
-            entitySettings.Orientation = moiraOrientation;
-            entitySettings.RegionId = Id;
-
-            if (Game.EntityManager.CreateEntity(entitySettings) == null)
-                Logger.Warn("SpawnDangerRoomScenarioVendor(): Failed to create the Danger Room Scenario Vendor entity");
         }
 
         public bool TestStatus(RegionStatus status)
