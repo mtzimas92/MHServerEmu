@@ -7,6 +7,7 @@ using MHServerEmu.Core.Memory;
 using MHServerEmu.Core.VectorMath;
 using MHServerEmu.Games.Entities;
 using MHServerEmu.Games.Entities.Avatars;
+using MHServerEmu.Games.Entities.Inventories;
 using MHServerEmu.Games.Entities.Items;
 using MHServerEmu.Games.Events;
 using MHServerEmu.Games.GameData;
@@ -99,15 +100,19 @@ namespace MHServerEmu.Games.MythicRifts
         private const string RiftRewardChestPrototypeName = "Entity/Props/Chests/DangerRoomChestTutorialRewardEntity.prototype";
         private const string DefaultRiftAffixTablePrototypeName = "Regions/Affixes/RegionAffixTable.defaults";
         private const string RiftCompletionVendorPrototypeName = "Entity/Characters/Vendors/Prototypes/Endgame/DangerRoomRewardsVendor.prototype";
+        private const string RiftCompletionArtifactVendorTypePrototypeName = "Entity/Characters/Vendors/VendorTypes/VendorDangerRoomRewards.prototype";
         private const string RiftCompletionCrafterTypePrototypeName = "Entity/Characters/Vendors/VendorTypes/TestVendorCrafter.prototype";
         private static readonly PrototypeId RiftCompletionCrafterRecipePrototypeRef = (PrototypeId)9691334961261451315UL;
         private const string RiftCompletionCrafterCosmicRecipePrototypeName = "Entity/Items/Crafting/Recipes/Tab3Gear/RerollCosmicReplacement.prototype";
+        private static readonly PrototypeId RiftSigilCurrencyItemPrototypeRef = (PrototypeId)2470498557584809493UL;
+        private const string RiftSigilCurrencyPrototypeName = "Entity/Items/CurrencyItems/CurrencyPrototypes/TestCurrency.prototype";
         private const int RiftCompletionCrafterAttemptsPerRun = 3;
         private const float RiftCompletionCrafterUpgradeChance = 0.30f;
         private const int RiftCompletionCrafterMinimumItemLevel = 69;
         private const int RiftCompletionCrafterCosmicMinimumItemLevel = 63;
         private const int RiftCompletionCrafterMaximumItemLevel = 75;
         private const string RiftCompletionCrafterCurrencyPrototypeName = "Entity/Items/CurrencyItems/CurrencyPrototypes/GenoshaRaidCurrency.prototype";
+        private const float RiftCompletionArtifactVendorSpawnOffset = -260f;
         private const float RiftCompletionCrafterSpawnOffset = 390f;
         private const string BossGauntletArenaContentId = "boss-gauntlet-tutorial-arena";
         private const float SpecialRandomMapChance = 0.05f;
@@ -999,6 +1004,7 @@ namespace MHServerEmu.Games.MythicRifts
         public IReadOnlyList<MythicRiftContentEntry> RandomBossEligibleContentPool => _contentPool.Where(entry => entry.RandomBossEligible && entry.HasValidBossSource).ToList();
         public IReadOnlyCollection<MythicRiftRunState> ActiveRuns => _activeRuns.Values;
         public MythicRiftRewardTuning RewardTuning => _rewardTuning;
+        public IReadOnlyList<MythicRiftRewardShopOfferTuning> RewardShopOffers => (_rewardTuning ?? MythicRiftRewardTuning.CreateDefault()).RewardShopOffers;
         public string RewardTuningLastLoadMessage => _rewardTuningLastLoadMessage;
         public MythicRiftHazardTuning HazardTuning => _hazardTuning;
         public string HazardTuningLastLoadMessage => _hazardTuningLastLoadMessage;
@@ -1613,6 +1619,18 @@ namespace MHServerEmu.Games.MythicRifts
                 run.Status == MythicRiftRunStatus.Success);
         }
 
+        public bool IsCompletionArtifactVendor(WorldEntity vendor)
+        {
+            if (vendor == null)
+                return false;
+
+            return _activeRuns.Values.Any(run =>
+                run != null &&
+                run.CompletionVendorEntityId != 0 &&
+                run.CompletionVendorEntityId == vendor.Id &&
+                run.Status == MythicRiftRunStatus.Success);
+        }
+
         public bool IsCompletionCrafterType(PrototypeId vendorTypeProtoRef)
         {
             if (vendorTypeProtoRef == PrototypeId.Invalid)
@@ -1620,6 +1638,15 @@ namespace MHServerEmu.Games.MythicRifts
 
             PrototypeId completionCrafterTypeProtoRef = ResolvePrototype(RiftCompletionCrafterTypePrototypeName);
             return completionCrafterTypeProtoRef != PrototypeId.Invalid && vendorTypeProtoRef == completionCrafterTypeProtoRef;
+        }
+
+        public bool IsCompletionArtifactVendorType(PrototypeId vendorTypeProtoRef)
+        {
+            if (vendorTypeProtoRef == PrototypeId.Invalid)
+                return false;
+
+            PrototypeId completionVendorTypeProtoRef = ResolveVendorTypePrototype(RiftCompletionArtifactVendorTypePrototypeName, "VendorDangerRoomRewards");
+            return completionVendorTypeProtoRef != PrototypeId.Invalid && vendorTypeProtoRef == completionVendorTypeProtoRef;
         }
 
         public bool IsCompletionCrafterRecipe(PrototypeId recipeProtoRef)
@@ -1661,6 +1688,202 @@ namespace MHServerEmu.Games.MythicRifts
 
                 runState = candidate;
                 return true;
+            }
+
+            return false;
+        }
+
+        public bool TryPurchaseCompletionArtifactVendorItem(
+            Player player,
+            WorldEntity vendor,
+            string offerId,
+            PrototypeId rewardItemProtoRef,
+            out MythicRiftRewardShopPurchaseResult result)
+        {
+            result = MythicRiftRewardShopPurchaseResult.Failed("This vendor is not a Rift artifact vendor.");
+            if (player == null || IsCompletionArtifactVendor(vendor) == false)
+                return false;
+
+            MythicRiftRewardShopOfferTuning offer = GetRewardShopOffer(offerId);
+            if (offer == null)
+            {
+                result = MythicRiftRewardShopPurchaseResult.Failed($"Unknown or disabled Rift artifact offer: {offerId}");
+                return false;
+            }
+
+            if (rewardItemProtoRef == PrototypeId.Invalid || rewardItemProtoRef.As<ItemPrototype>() == null)
+            {
+                result = MythicRiftRewardShopPurchaseResult.Failed($"Offer {offer.Id} has no concrete reward item.");
+                return false;
+            }
+
+            int cost = GetCompletionArtifactVendorStockCost(offer);
+            int availableSigils = GetRiftSigilCount(player);
+            if (availableSigils < cost)
+            {
+                result = MythicRiftRewardShopPurchaseResult.Failed($"Not enough Rift Sigils. Required={cost}, available={availableSigils}.");
+                return false;
+            }
+
+            if (SpendRiftSigils(player, cost) == false)
+            {
+                result = MythicRiftRewardShopPurchaseResult.Failed($"Failed to spend Rift Sigils for offer {offer.Id}.");
+                return false;
+            }
+
+            Avatar avatar = player.CurrentAvatar;
+            GrantRewardItem(
+                new MythicRiftRewardGuaranteedItem
+                {
+                    Id = offer.Id,
+                    ItemProtoRef = rewardItemProtoRef,
+                    Quantity = 1,
+                    ItemLevel = offer.ItemLevel,
+                    Delivery = offer.Delivery
+                },
+                player,
+                avatar,
+                vendor,
+                null,
+                offer.Delivery);
+
+            int remainingSigils = GetRiftSigilCount(player);
+            result = new()
+            {
+                Success = true,
+                OfferId = offer.Id,
+                DisplayName = offer.DisplayName,
+                SigilCost = cost,
+                RemainingSigils = remainingSigils,
+                GrantedItems = new[] { rewardItemProtoRef }
+            };
+
+            Game.ChatManager?.SendChatFromCustomSystem(
+                player,
+                $"[Mythic Rift] Spent {cost} Rift Sigils on {rewardItemProtoRef.GetNameFormatted()}. Remaining={remainingSigils}.",
+                showSender: false);
+            return true;
+        }
+
+        private MythicRiftRewardShopOfferTuning GetRewardShopOffer(string offerId)
+        {
+            if (string.IsNullOrWhiteSpace(offerId))
+                return null;
+
+            MythicRiftRewardTuning tuning = _rewardTuning ?? MythicRiftRewardTuning.CreateDefault();
+            return tuning.RewardShopOffers.FirstOrDefault(entry =>
+                entry != null &&
+                entry.Enabled &&
+                string.Equals(entry.Id, offerId, StringComparison.OrdinalIgnoreCase));
+        }
+
+        public bool TryResolveRewardShopOfferVendorStockItemPrototype(MythicRiftRewardShopOfferTuning offer, out PrototypeId itemProtoRef)
+        {
+            itemProtoRef = PrototypeId.Invalid;
+            if (offer == null || offer.SigilCost <= 0 || offer.ItemRolls <= 0)
+                return false;
+
+            IReadOnlyList<PrototypeId> candidates = ResolveShopOfferItemCandidates(offer, _rewardTuning ?? MythicRiftRewardTuning.CreateDefault());
+            if (candidates.Count == 0)
+                return false;
+
+            itemProtoRef = candidates[Game.Random.Next(0, candidates.Count)];
+            return itemProtoRef.As<ItemPrototype>() != null;
+        }
+
+        public int GetCompletionArtifactVendorStockCost(MythicRiftRewardShopOfferTuning offer)
+        {
+            if (offer == null)
+                return 0;
+
+            int itemRolls = Math.Max(offer.ItemRolls, 1);
+            return Math.Max(1, (offer.SigilCost + itemRolls - 1) / itemRolls);
+        }
+
+        private IReadOnlyList<PrototypeId> ResolveShopOfferItemCandidates(MythicRiftRewardShopOfferTuning offer, MythicRiftRewardTuning tuning)
+        {
+            if (offer == null)
+                return Array.Empty<PrototypeId>();
+
+            if (string.IsNullOrWhiteSpace(offer.RandomItemPoolId) == false && tuning?.RandomItemPools != null)
+            {
+                MythicRiftRandomItemPoolTuning configuredPool = tuning.RandomItemPools.FirstOrDefault(pool =>
+                    pool != null &&
+                    string.Equals(pool.Id, offer.RandomItemPoolId, StringComparison.OrdinalIgnoreCase));
+
+                if (configuredPool != null)
+                    return ResolveRewardItemPool(configuredPool);
+            }
+
+            MythicRiftRandomItemPoolTuning inlinePool = new()
+            {
+                Id = offer.Id,
+                ItemPrototypePaths = offer.ItemPrototypePaths,
+                PrototypeDirectoryPrefix = offer.PrototypeDirectoryPrefix
+            };
+            inlinePool.Normalize(offer.Delivery);
+            return ResolveRewardItemPool(inlinePool);
+        }
+
+        public int GetRiftSigilCount(Player player)
+        {
+            if (player == null)
+                return 0;
+
+            PrototypeId currencyProtoRef = ResolvePrototype(RiftSigilCurrencyPrototypeName);
+            int count = currencyProtoRef != PrototypeId.Invalid
+                ? player.Properties[PropertyEnum.Currency, currencyProtoRef]
+                : 0;
+
+            InventoryIterationFlags flags = InventoryIterationFlags.PlayerGeneral | InventoryIterationFlags.PlayerGeneralExtra | InventoryIterationFlags.PlayerStashGeneral;
+            count += InventoryIterator.GetMatchingContained(player, RiftSigilCurrencyItemPrototypeRef, flags);
+            return Math.Max(count, 0);
+        }
+
+        private bool SpendRiftSigils(Player player, int amount)
+        {
+            if (player == null || amount <= 0)
+                return false;
+
+            int available = GetRiftSigilCount(player);
+            if (available < amount)
+                return false;
+
+            int remaining = amount;
+            PrototypeId currencyProtoRef = ResolvePrototype(RiftSigilCurrencyPrototypeName);
+            if (currencyProtoRef != PrototypeId.Invalid)
+            {
+                PropertyId currencyPropertyId = new(PropertyEnum.Currency, currencyProtoRef);
+                int propertyCurrency = player.Properties[currencyPropertyId];
+                int propertySpend = Math.Min(propertyCurrency, remaining);
+                if (propertySpend > 0)
+                {
+                    player.Properties.AdjustProperty(-propertySpend, currencyPropertyId);
+                    remaining -= propertySpend;
+                }
+            }
+
+            if (remaining <= 0)
+                return true;
+
+            using var currencyItemListHandle = ListPool<ulong>.Instance.Get(out List<ulong> currencyItemIds);
+            InventoryIterationFlags flags = InventoryIterationFlags.PlayerGeneral | InventoryIterationFlags.PlayerGeneralExtra | InventoryIterationFlags.PlayerStashGeneral;
+            InventoryIterator.GetMatchingContained(player, RiftSigilCurrencyItemPrototypeRef, flags, currencyItemIds);
+
+            foreach (ulong currencyItemId in currencyItemIds)
+            {
+                Item currencyItem = Game.EntityManager.GetEntity<Item>(currencyItemId);
+                if (currencyItem == null)
+                    continue;
+
+                int spend = Math.Min(remaining, currencyItem.CurrentStackSize);
+                if (spend <= 0)
+                    continue;
+
+                currencyItem.DecrementStack(spend);
+                remaining -= spend;
+                if (remaining <= 0)
+                    return true;
             }
 
             return false;
@@ -2326,7 +2549,7 @@ namespace MHServerEmu.Games.MythicRifts
             _rewardTuning = loadedTuning.Enabled ? loadedTuning : MythicRiftRewardTuning.CreateDefault();
             _rewardItemPoolsByDirectory.Clear();
             message = loadedTuning.Enabled
-                ? $"Loaded reward tuning profile '{_rewardTuning.ProfileName}' from {FileHelper.GetRelativePath(configPath)}. primaryOverrides={_rewardTuning.PrimaryLootTableOverrides.Count} extraLootTables={_rewardTuning.ExtraLootTables.Count} rewardRecipes={_rewardTuning.RewardRecipes.Count} randomItemPools={_rewardTuning.RandomItemPools.Count} guaranteedItems={_rewardTuning.GuaranteedItems.Count}"
+                ? $"Loaded reward tuning profile '{_rewardTuning.ProfileName}' from {FileHelper.GetRelativePath(configPath)}. primaryOverrides={_rewardTuning.PrimaryLootTableOverrides.Count} extraLootTables={_rewardTuning.ExtraLootTables.Count} rewardRecipes={_rewardTuning.RewardRecipes.Count} randomItemPools={_rewardTuning.RandomItemPools.Count} guaranteedItems={_rewardTuning.GuaranteedItems.Count} rewardShopOffers={_rewardTuning.RewardShopOffers.Count}"
                 : $"Reward tuning file loaded but disabled; using built-in defaults. path={FileHelper.GetRelativePath(configPath)}";
             _rewardTuningLastLoadMessage = message;
             return true;
@@ -2346,7 +2569,7 @@ namespace MHServerEmu.Games.MythicRifts
                 $"timedSuccessBonusRIF={tuning.TimedSuccessBonusRarityPct:P0} | timedSuccessBonusSIF={tuning.TimedSuccessBonusSpecialPct:P0}",
                 $"checkpointBonusRIF={tuning.CheckpointSuccessBonusRarityPct:P0} | checkpointBonusSIF={tuning.CheckpointSuccessBonusSpecialPct:P0}",
                 $"failureBonusRIF={tuning.FailureBonusRarityPct:P0} | failureBonusSIF={tuning.FailureBonusSpecialPct:P0}",
-                $"extraLootTables={tuning.ExtraLootTables.Count} | rewardRecipes={tuning.RewardRecipes.Count} | randomItemPools={tuning.RandomItemPools.Count} | guaranteedItems={tuning.GuaranteedItems.Count} | lootTableAliases={tuning.LootTableAliases.Count}"
+                $"extraLootTables={tuning.ExtraLootTables.Count} | rewardRecipes={tuning.RewardRecipes.Count} | randomItemPools={tuning.RandomItemPools.Count} | guaranteedItems={tuning.GuaranteedItems.Count} | rewardShopOffers={tuning.RewardShopOffers.Count} | lootTableAliases={tuning.LootTableAliases.Count}"
             };
 
             foreach (MythicRiftPrimaryLootTableTuning entry in tuning.PrimaryLootTableOverrides.Take(20))
@@ -2400,6 +2623,15 @@ namespace MHServerEmu.Games.MythicRifts
 
             if (tuning.GuaranteedItems.Count > 20)
                 lines.Add($"... {tuning.GuaranteedItems.Count - 20} more guaranteed item entries omitted.");
+
+            foreach (MythicRiftRewardShopOfferTuning offer in tuning.RewardShopOffers.Take(20))
+            {
+                lines.Add(
+                    $"shopOffer id={offer.Id} | enabled={offer.Enabled} | name={offer.DisplayName} | sigilCost={offer.SigilCost} | delivery={offer.Delivery} | randomPool={offer.RandomItemPoolId} | inlineItems={offer.ItemPrototypePaths.Count} | directory={offer.PrototypeDirectoryPrefix} | itemRolls={offer.ItemRolls} | itemLevel={offer.ItemLevel}");
+            }
+
+            if (tuning.RewardShopOffers.Count > 20)
+                lines.Add($"... {tuning.RewardShopOffers.Count - 20} more reward shop offers omitted.");
 
             return lines;
         }
@@ -4435,6 +4667,7 @@ namespace MHServerEmu.Games.MythicRifts
                     ItemProtoRef = itemProtoRef,
                     IsAgentReward = isAgentReward,
                     Quantity = GetGuaranteedRewardQuantity(entry, runState),
+                    ItemLevel = entry.ItemLevel,
                     Delivery = MythicRiftRewardTuning.NormalizeDelivery(entry.Delivery)
                 });
             }
@@ -6384,6 +6617,7 @@ namespace MHServerEmu.Games.MythicRifts
             TrySendRiftClearedBanner(runState);
             NotifyRunCompleted(runState, success: true, successMessage);
             TrySpawnReturnPortal(runState);
+            TrySpawnCompletionArtifactVendor(runState);
             TrySpawnCompletionCrafter(runState);
             return true;
         }
@@ -6794,7 +7028,7 @@ namespace MHServerEmu.Games.MythicRifts
             if (region == null)
                 return false;
 
-            if (TryGetCompletionCrafterSpawnLocation(runState, region, vendorProto, out Vector3 spawnPosition, out Orientation spawnOrientation, out Cell spawnCell) == false)
+            if (TryGetCompletionVendorSpawnLocation(runState, region, vendorProto, RiftCompletionCrafterSpawnOffset, out Vector3 spawnPosition, out Orientation spawnOrientation, out Cell spawnCell) == false)
                 return false;
 
             using EntitySettings settings = ObjectPoolManager.Instance.Get<EntitySettings>();
@@ -6825,10 +7059,66 @@ namespace MHServerEmu.Games.MythicRifts
             return true;
         }
 
-        private bool TryGetCompletionCrafterSpawnLocation(
+        private bool TrySpawnCompletionArtifactVendor(MythicRiftRunState runState)
+        {
+            if (runState == null || runState.RegionId == 0)
+                return false;
+
+            if (runState.CompletionVendorEntityId != 0 && Game.EntityManager.GetEntity<WorldEntity>(runState.CompletionVendorEntityId) != null)
+                return true;
+
+            if (RewardShopOffers.Any(offer => offer?.Enabled == true && offer.HasAnyReward && offer.SigilCost > 0) == false)
+                return false;
+
+            PrototypeId vendorProtoRef = ResolvePrototype(RiftCompletionVendorPrototypeName);
+            WorldEntityPrototype vendorProto = vendorProtoRef.As<WorldEntityPrototype>();
+            if (vendorProtoRef == PrototypeId.Invalid || vendorProto == null)
+                return Logger.WarnReturn(false, $"TrySpawnCompletionArtifactVendor(): Failed to resolve {RiftCompletionVendorPrototypeName}");
+
+            PrototypeId vendorTypeProtoRef = ResolveVendorTypePrototype(RiftCompletionArtifactVendorTypePrototypeName, "VendorDangerRoomRewards");
+            VendorTypePrototype vendorTypeProto = vendorTypeProtoRef.As<VendorTypePrototype>();
+            if (vendorTypeProtoRef == PrototypeId.Invalid || vendorTypeProto == null || vendorTypeProto.IsCrafter)
+                return Logger.WarnReturn(false, $"TrySpawnCompletionArtifactVendor(): Failed to resolve vendor type {RiftCompletionArtifactVendorTypePrototypeName}");
+
+            Region region = Game.RegionManager.GetRegion(runState.RegionId);
+            if (region == null)
+                return false;
+
+            if (TryGetCompletionVendorSpawnLocation(runState, region, vendorProto, RiftCompletionArtifactVendorSpawnOffset, out Vector3 spawnPosition, out Orientation spawnOrientation, out Cell spawnCell) == false)
+                return false;
+
+            using EntitySettings settings = ObjectPoolManager.Instance.Get<EntitySettings>();
+            settings.EntityRef = vendorProtoRef;
+            settings.RegionId = region.Id;
+            settings.Position = spawnPosition;
+            settings.Orientation = spawnOrientation;
+            settings.Cell = spawnCell;
+            settings.Lifespan = CompletedRunRetention;
+            settings.SourceEntityId = GetFirstRunAvatarId(region);
+
+            using PropertyCollection settingsProperties = ObjectPoolManager.Instance.Get<PropertyCollection>();
+            settingsProperties[PropertyEnum.Interactable] = (int)TriBool.True;
+            settingsProperties[PropertyEnum.InteractableUsesLeft] = -1;
+            settingsProperties[PropertyEnum.Visible] = true;
+            settingsProperties[PropertyEnum.VendorType] = vendorTypeProtoRef;
+            settings.Properties = settingsProperties;
+
+            WorldEntity vendor = Game.EntityManager.CreateEntity(settings) as WorldEntity;
+            if (vendor == null)
+                return Logger.WarnReturn(false, "TrySpawnCompletionArtifactVendor(): Failed to create completion artifact vendor entity.");
+
+            vendor.Properties[PropertyEnum.VendorType] = vendorTypeProtoRef;
+            runState.AttachCompletionVendor(vendor.Id);
+            NotifyRunPlayers(runState, "[Mythic Rift] Rift artifact vendor spawned. Spend Rift Sigils here for targeted artifact offers.");
+            Logger.Info($"Mythic Rift run {runState.Config.RunId} spawned completion artifact vendor {vendor.PrototypeName} (0x{vendor.Id:X}) vendorType={vendorTypeProtoRef.GetNameFormatted()}.");
+            return true;
+        }
+
+        private bool TryGetCompletionVendorSpawnLocation(
             MythicRiftRunState runState,
             Region region,
             WorldEntityPrototype vendorProto,
+            float spawnOffset,
             out Vector3 position,
             out Orientation orientation,
             out Cell cell)
@@ -6855,7 +7145,7 @@ namespace MHServerEmu.Games.MythicRifts
                 }
             }
 
-            Vector3 preferredPosition = anchorPosition + right * RiftCompletionCrafterSpawnOffset;
+            Vector3 preferredPosition = anchorPosition + right * spawnOffset;
             cell = anchorCell ?? region.GetCellAtPosition(anchorPosition);
             if (vendorProto.Bounds != null && cell != null)
             {
@@ -6865,7 +7155,7 @@ namespace MHServerEmu.Games.MythicRifts
                     Region.GetPathFlagsForEntity(vendorProto),
                     PositionCheckFlags.CanBeBlockedEntity | PositionCheckFlags.PreferNoEntity,
                     BlockingCheckFlags.None,
-                    RiftCompletionCrafterSpawnOffset,
+                    Math.Abs(spawnOffset),
                     out Vector3 resolvedPosition,
                     maxPositionTests: 64))
                 {
@@ -7562,6 +7852,24 @@ namespace MHServerEmu.Games.MythicRifts
                 Logger.Warn($"ResolvePrototype(): failed to resolve {prototypeName}");
 
             return prototypeRef;
+        }
+
+        private static PrototypeId ResolveVendorTypePrototype(string prototypeName, string fallbackShortName)
+        {
+            PrototypeId prototypeRef = string.IsNullOrWhiteSpace(prototypeName)
+                ? PrototypeId.Invalid
+                : GameDatabase.GetPrototypeRefByName(prototypeName);
+            if (prototypeRef != PrototypeId.Invalid)
+                return prototypeRef;
+
+            foreach (PrototypeId vendorTypeProtoRef in DataDirectory.Instance.IteratePrototypesInHierarchy<VendorTypePrototype>(PrototypeIterateFlags.NoAbstract))
+            {
+                if (string.Equals(vendorTypeProtoRef.GetName(), fallbackShortName, StringComparison.OrdinalIgnoreCase))
+                    return vendorTypeProtoRef;
+            }
+
+            Logger.Warn($"ResolveVendorTypePrototype(): failed to resolve {prototypeName} or fallback {fallbackShortName}");
+            return PrototypeId.Invalid;
         }
 
         private static PrototypeId ResolveStartTarget(string regionPrototypeName)

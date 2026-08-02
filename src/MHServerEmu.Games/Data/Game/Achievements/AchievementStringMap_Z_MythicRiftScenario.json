@@ -64,5 +64,8 @@
   },
   "18000000000000080101": {
     "en_us": "Earned from Rift modes. Spend at the Rift vendor for targeted upgrade caches and progression rewards."
+  },
+  "18000000000000080102": {
+    "en_us": "Rift Sigils"
   }
 }

@@ -36,6 +36,7 @@ namespace MHServerEmu.Games.MythicRifts
         public List<MythicRiftRewardRecipeTuning> RewardRecipes { get; set; } = new();
         public List<MythicRiftRandomItemPoolTuning> RandomItemPools { get; set; } = new();
         public List<MythicRiftGuaranteedItemTuning> GuaranteedItems { get; set; } = new();
+        public List<MythicRiftRewardShopOfferTuning> RewardShopOffers { get; set; } = new();
 
         public static string ConfigPath => Path.Combine(FileHelper.DataDirectory, RelativeConfigPath);
 
@@ -68,6 +69,7 @@ namespace MHServerEmu.Games.MythicRifts
             RewardRecipes ??= new();
             RandomItemPools ??= new();
             GuaranteedItems ??= new();
+            RewardShopOffers ??= new();
 
             foreach (MythicRiftPrimaryLootTableTuning entry in PrimaryLootTableOverrides)
                 entry?.Normalize(DefaultDelivery);
@@ -83,6 +85,9 @@ namespace MHServerEmu.Games.MythicRifts
 
             foreach (MythicRiftGuaranteedItemTuning item in GuaranteedItems)
                 item?.Normalize(DefaultDelivery);
+
+            foreach (MythicRiftRewardShopOfferTuning offer in RewardShopOffers)
+                offer?.Normalize(DefaultDelivery);
         }
 
         public string ResolveLootTableReference(string lootTableReference)
@@ -394,6 +399,7 @@ namespace MHServerEmu.Games.MythicRifts
         public bool QuantityMatchesRewardWave { get; set; }
         public bool CumulativeWaveQuantity { get; set; }
         public int QuantityCap { get; set; }
+        public int ItemLevel { get; set; }
         public int MinRiftLevel { get; set; } = 1;
         public int MaxRiftLevel { get; set; }
         public int MinWave { get; set; } = 1;
@@ -416,6 +422,7 @@ namespace MHServerEmu.Games.MythicRifts
             ItemPrototypeName = ItemPrototypeName?.Trim() ?? string.Empty;
             Quantity = Math.Max(Quantity, 1);
             QuantityCap = Math.Max(QuantityCap, 0);
+            ItemLevel = Math.Max(ItemLevel, 0);
             MinRiftLevel = Math.Max(MinRiftLevel, 1);
             MaxRiftLevel = Math.Max(MaxRiftLevel, 0);
             MinWave = Math.Max(MinWave, 1);
@@ -552,5 +559,57 @@ namespace MHServerEmu.Games.MythicRifts
 
             return MythicRiftRewardTuning.MatchesBossSourceIds(runState, BossSourceIds);
         }
+    }
+
+    public sealed class MythicRiftRewardShopOfferTuning
+    {
+        public string Id { get; set; }
+        public string DisplayName { get; set; }
+        public string Description { get; set; }
+        public bool Enabled { get; set; } = true;
+        public int SigilCost { get; set; }
+        public string VendorItemPrototypePath { get; set; }
+        public string RandomItemPoolId { get; set; }
+        public string PrototypeDirectoryPrefix { get; set; }
+        public List<string> ItemPrototypePaths { get; set; } = new();
+        public int ItemRolls { get; set; } = 1;
+        public int ItemLevel { get; set; } = 1;
+        public string Delivery { get; set; }
+
+        public void Normalize(string defaultDelivery)
+        {
+            if (string.IsNullOrWhiteSpace(Id))
+                Id = string.IsNullOrWhiteSpace(DisplayName)
+                    ? "unnamed-rift-shop-offer"
+                    : DisplayName.Trim().ToLowerInvariant().Replace(' ', '-');
+
+            DisplayName = string.IsNullOrWhiteSpace(DisplayName) ? Id : DisplayName.Trim();
+            Description = Description?.Trim() ?? string.Empty;
+            SigilCost = Math.Max(SigilCost, 0);
+            VendorItemPrototypePath = VendorItemPrototypePath?.Trim().Replace('\\', '/') ?? string.Empty;
+            RandomItemPoolId = RandomItemPoolId?.Trim() ?? string.Empty;
+            PrototypeDirectoryPrefix = PrototypeDirectoryPrefix?.Trim().Replace('\\', '/') ?? string.Empty;
+            if (PrototypeDirectoryPrefix.Length > 0 && PrototypeDirectoryPrefix.EndsWith('/') == false)
+                PrototypeDirectoryPrefix += "/";
+
+            ItemPrototypePaths = ItemPrototypePaths == null
+                ? new()
+                : ItemPrototypePaths
+                    .Where(path => string.IsNullOrWhiteSpace(path) == false)
+                    .Select(path => path.Trim().Replace('\\', '/'))
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .ToList();
+
+            ItemRolls = Math.Max(ItemRolls, 0);
+            ItemLevel = Math.Max(ItemLevel, 1);
+            Delivery = string.IsNullOrWhiteSpace(Delivery)
+                ? MythicRiftRewardTuning.NormalizeDelivery(defaultDelivery)
+                : MythicRiftRewardTuning.NormalizeDelivery(Delivery);
+        }
+
+        public bool HasAnyReward => ItemRolls > 0 &&
+                                    (string.IsNullOrWhiteSpace(RandomItemPoolId) == false ||
+                                     string.IsNullOrWhiteSpace(PrototypeDirectoryPrefix) == false ||
+                                     ItemPrototypePaths.Count > 0);
     }
 }

@@ -78,17 +78,31 @@ namespace MHServerEmu.Games.Entities
         private const string BossGauntletRiftPurchaseHint =
             "[Mythic Rift] Boss Gauntlet Scenario purchased. Use it from the Danger Room Hub to enter endless boss-only waves.";
 
+        private sealed class MythicRiftCompletionVendorStockEntry
+        {
+            public string OfferId { get; init; } = string.Empty;
+            public PrototypeId RewardItemProtoRef { get; init; }
+            public int Cost { get; init; }
+            public int ItemLevel { get; init; }
+        }
+
         private static readonly Item DummyItem = new(null);     // Dummy item instance to calculate character unlock ES costs
 
         private readonly HashSet<PrototypeId> _initializedVendorTypeProtoRefs = new();
         private readonly Dictionary<PrototypeId, VendorPurchaseData> _vendorPurchaseDataDict = new();   // InventoryPrototype key
         private readonly HashSet<ulong> _mythicRiftVendorItemIds = new();
+        private readonly Dictionary<ulong, MythicRiftCompletionVendorStockEntry> _mythicRiftCompletionVendorOfferItemIds = new();
         private readonly HashSet<ulong> _mythicRiftCompletionCrafterRecipeItemIds = new();
+        private ulong _mythicRiftCompletionVendorEntityId;
+        private bool _mythicRiftCompletionVendorInventoriesFiltered;
         private bool _mythicRiftCompletionCrafterInventoriesFiltered;
         private bool _mythicRiftVendorHintSent;
 
         public void InitializeVendorInventory(PrototypeId inventoryProtoRef)
         {
+            if (TryInitializeMythicRiftCompletionVendorInventory(inventoryProtoRef))
+                return;
+
             if (TryInitializeMythicRiftCompletionCrafterInventory(inventoryProtoRef))
                 return;
 
@@ -160,6 +174,9 @@ namespace MHServerEmu.Games.Entities
 
             WorldEntity vendor = entityManager.GetEntity<WorldEntity>(vendorId);
             if (!Verify.IsNotNull(vendor)) return false;
+
+            if (TryBuyMythicRiftCompletionVendorOffer(item, vendor))
+                return true;
 
             if (IsMythicRiftVendorItem(item, vendor))
                 return BuyMythicRiftVendorItem(avatarIndex, item);
@@ -246,6 +263,9 @@ namespace MHServerEmu.Games.Entities
         public void EnsureMythicRiftVendorStock(WorldEntity vendor)
         {
             if (vendor == null)
+                return;
+
+            if (EnsureMythicRiftCompletionVendorStock(vendor))
                 return;
 
             if (EnsureMythicRiftCompletionCrafterStock(vendor))
@@ -745,6 +765,9 @@ namespace MHServerEmu.Games.Entities
             if (TryBlockMythicRiftCompletionCrafterReroll(vendorTypeProtoRef, isInitializing))
                 return true;
 
+            if (TryBlockMythicRiftCompletionVendorReroll(vendorTypeProtoRef, isInitializing))
+                return true;
+
             // Get roll settings from properties
             int rollSeed = Properties[PropertyEnum.VendorRollSeed, vendorTypeProtoRef];
             if (!Verify.IsTrue(rollSeed != 0)) return false;
@@ -982,6 +1005,7 @@ namespace MHServerEmu.Games.Entities
             WorldEntity vendor = Game.EntityManager.GetEntity<WorldEntity>(vendorId);
             if (vendor == null) return Logger.WarnReturn(VendorResult.BuyFailure, "CanBuyItemFromVendor(): vendor == null");
             if (vendor.IsVendor == false) return Logger.WarnReturn(VendorResult.BuyFailure, "CanBuyItemFromVendor(): vendor.IsVendor == false");
+            bool isMythicRiftCompletionVendorOfferItem = IsMythicRiftCompletionVendorOfferItem(item, vendor);
 
             if (avatar.InInteractRange(vendor, InteractionMethod.Buy) == false)
                 return VendorResult.BuyOutOfRange;
@@ -990,7 +1014,10 @@ namespace MHServerEmu.Games.Entities
                 return VendorResult.BuyDialogTargetIdMismatch;
 
             // Check if the player has enough stuff to afford this item
-            if (IsMythicRiftVendorItem(item, vendor) == false && itemProto.Cost != null && itemProto.Cost.CanAffordItem(this, item) == false)
+            if (isMythicRiftCompletionVendorOfferItem == false &&
+                IsMythicRiftVendorItem(item, vendor) == false &&
+                itemProto.Cost != null &&
+                itemProto.Cost.CanAffordItem(this, item) == false)
                 return VendorResult.BuyCannotAffordItem;
 
             // Check if the player is a cool enough person to have this item
@@ -1135,6 +1162,284 @@ namespace MHServerEmu.Games.Entities
             return false;
         }
 
+        private bool TryInitializeMythicRiftCompletionVendorInventory(PrototypeId inventoryProtoRef)
+        {
+            if (inventoryProtoRef == PrototypeId.Invalid || Game?.MythicRiftManager == null)
+                return false;
+
+            WorldEntity dialogTarget = GetDialogTarget(false);
+            if (dialogTarget == null || Game.MythicRiftManager.IsCompletionArtifactVendor(dialogTarget) == false)
+                return false;
+
+            PrototypeId vendorTypeProtoRef = dialogTarget.Properties[PropertyEnum.VendorType];
+            VendorTypePrototype vendorTypeProto = vendorTypeProtoRef.As<VendorTypePrototype>();
+            if (vendorTypeProto?.ContainsInventory(inventoryProtoRef) != true)
+                return false;
+
+            EnsureMythicRiftCompletionVendorStock(dialogTarget);
+            return true;
+        }
+
+        private bool EnsureMythicRiftCompletionVendorStock(WorldEntity vendor)
+        {
+            if (vendor == null || Game?.MythicRiftManager?.IsCompletionArtifactVendor(vendor) != true)
+                return false;
+
+            PrototypeId vendorTypeProtoRef = vendor.Properties[PropertyEnum.VendorType];
+            VendorTypePrototype vendorTypeProto = vendorTypeProtoRef.As<VendorTypePrototype>();
+            if (vendorTypeProto == null)
+                return true;
+
+            if (_mythicRiftCompletionVendorEntityId != vendor.Id)
+            {
+                _mythicRiftCompletionVendorEntityId = vendor.Id;
+                _mythicRiftCompletionVendorOfferItemIds.Clear();
+                _mythicRiftCompletionVendorInventoriesFiltered = false;
+                _initializedVendorTypeProtoRefs.Remove(vendorTypeProtoRef);
+            }
+
+            bool stocked = TryAddMythicRiftCompletionVendorOffers(vendorTypeProto, vendorTypeProtoRef);
+            if (stocked)
+                SendMessage(NetMessageVendorRefresh.CreateBuilder().SetVendorTypeProtoId((ulong)vendorTypeProtoRef).Build());
+
+            return true;
+        }
+
+        private bool TryAddMythicRiftCompletionVendorOffers(VendorTypePrototype vendorTypeProto, PrototypeId vendorTypeProtoRef)
+        {
+            if (vendorTypeProto == null || Game?.MythicRiftManager == null)
+                return false;
+
+            using var inventoryListHandle = ListPool<PrototypeId>.Instance.Get(out List<PrototypeId> inventoryList);
+            if (vendorTypeProto.GetInventories(inventoryList) == false)
+                return false;
+
+            CleanupTrackedMythicRiftCompletionVendorOffers();
+            FilterMythicRiftCompletionVendorInventories(vendorTypeProto, inventoryList);
+
+            bool addedAny = false;
+            foreach (MythicRiftRewardShopOfferTuning offer in Game.MythicRiftManager.RewardShopOffers)
+            {
+                if (offer?.Enabled != true || offer.HasAnyReward == false || offer.SigilCost <= 0)
+                    continue;
+
+                int desiredStockCount = Math.Clamp(Math.Max(offer.ItemRolls * 3, 3), 3, 8);
+                int existingStockCount = CountTrackedMythicRiftCompletionVendorOffer(inventoryList, offer.Id);
+                for (int stockIndex = existingStockCount; stockIndex < desiredStockCount; stockIndex++)
+                {
+                    if (Game.MythicRiftManager.TryResolveRewardShopOfferVendorStockItemPrototype(offer, out PrototypeId itemProtoRef) == false)
+                    {
+                        if (stockIndex == 0)
+                            Logger.Warn($"TryAddMythicRiftCompletionVendorOffers(): Failed to resolve concrete vendor item for offer {offer.Id}");
+
+                        break;
+                    }
+
+                    MythicRiftCompletionVendorStockEntry stockEntry = new()
+                    {
+                        OfferId = offer.Id,
+                        RewardItemProtoRef = itemProtoRef,
+                        Cost = Game.MythicRiftManager.GetCompletionArtifactVendorStockCost(offer),
+                        ItemLevel = offer.ItemLevel
+                    };
+
+                    if (TryAddMythicRiftCompletionVendorOfferItem(vendorTypeProto, inventoryList, stockEntry))
+                        addedAny = true;
+                }
+            }
+
+            if (addedAny)
+            {
+                _initializedVendorTypeProtoRefs.Remove(vendorTypeProtoRef);
+                Game.ChatManager?.SendChatFromCustomSystem(
+                    this,
+                    $"[Mythic Rift] Rift artifact vendor loaded. Rift Sigils={Game.MythicRiftManager.GetRiftSigilCount(this)}.",
+                    showSender: false);
+            }
+
+            return addedAny || _mythicRiftCompletionVendorInventoriesFiltered;
+        }
+
+        private bool TryAddMythicRiftCompletionVendorOfferItem(
+            VendorTypePrototype vendorTypeProto,
+            List<PrototypeId> inventoryList,
+            MythicRiftCompletionVendorStockEntry stockEntry)
+        {
+            if (inventoryList == null || stockEntry == null)
+                return false;
+
+            foreach (PrototypeId inventoryProtoRef in inventoryList)
+            {
+                Inventory inventory = GetInventoryByRef(inventoryProtoRef);
+                if (inventory == null)
+                    continue;
+
+                uint slot = inventory.GetFreeSlot(null, false);
+                if (slot == Inventory.InvalidSlot)
+                    continue;
+
+                PrototypeId itemProtoRef = stockEntry.RewardItemProtoRef;
+                ItemSpec itemSpec = Game.LootManager.CreateItemSpec(itemProtoRef, LootContext.Vendor, this, Math.Max(stockEntry.ItemLevel, 1));
+                if (itemSpec == null)
+                    return Logger.WarnReturn(false, $"TryAddMythicRiftCompletionVendorOfferItem(): Failed to create ItemSpec for {itemProtoRef.GetNameFormatted()}");
+
+                using EntitySettings settings = ObjectPoolManager.Instance.Get<EntitySettings>();
+                settings.EntityRef = itemSpec.ItemProtoRef;
+                settings.ItemSpec = itemSpec;
+
+                if (IsInGame == false)
+                    settings.OptionFlags &= ~EntitySettingsOptionFlags.EnterGame;
+
+                Item item = Game.EntityManager.CreateEntity(settings) as Item;
+                if (item == null)
+                    return Logger.WarnReturn(false, "TryAddMythicRiftCompletionVendorOfferItem(): item == null");
+
+                InventoryResult inventoryResult = item.ChangeInventoryLocation(inventory, slot);
+                if (inventoryResult != InventoryResult.Success)
+                {
+                    item.Destroy();
+                    return Logger.WarnReturn(false, $"TryAddMythicRiftCompletionVendorOfferItem(): Failed to add {itemProtoRef.GetNameFormatted()} to {inventory} for reason {inventoryResult}");
+                }
+
+                _mythicRiftCompletionVendorOfferItemIds[item.Id] = stockEntry;
+                Logger.Info($"[MythicRiftCompletionVendor] Added offer={stockEntry.OfferId} item={itemProtoRef.GetNameFormatted()} cost={stockEntry.Cost} vendorType={vendorTypeProto.DataRef.GetNameFormatted()} inventory={inventory.PrototypeDataRef.GetNameFormatted()} itemId=0x{item.Id:X}");
+                return true;
+            }
+
+            Logger.Warn($"TryAddMythicRiftCompletionVendorOfferItem(): No free completion vendor slot for offer {stockEntry.OfferId}");
+            return false;
+        }
+
+        private void FilterMythicRiftCompletionVendorInventories(VendorTypePrototype vendorTypeProto, List<PrototypeId> inventoryList)
+        {
+            if (_mythicRiftCompletionVendorInventoriesFiltered && IsMythicRiftCompletionVendorAlreadyIsolated(inventoryList))
+                return;
+
+            int clearedInventories = 0;
+            foreach (PrototypeId inventoryProtoRef in inventoryList)
+            {
+                Inventory inventory = GetInventoryByRef(inventoryProtoRef);
+                if (inventory == null)
+                    continue;
+
+                inventory.DestroyContained();
+                clearedInventories++;
+            }
+
+            _mythicRiftCompletionVendorOfferItemIds.Clear();
+            _mythicRiftCompletionVendorInventoriesFiltered = true;
+            _initializedVendorTypeProtoRefs.Remove(vendorTypeProto.DataRef);
+            Logger.Trace($"[MythicRiftCompletionVendor] Isolated completion vendor inventories playerDbId={DatabaseUniqueId} vendorType={vendorTypeProto.DataRef.GetNameFormatted()} clearedInventories={clearedInventories}.");
+        }
+
+        private bool IsMythicRiftCompletionVendorAlreadyIsolated(List<PrototypeId> inventoryList)
+        {
+            bool foundTrackedOffer = false;
+            foreach (PrototypeId inventoryProtoRef in inventoryList)
+            {
+                Inventory inventory = GetInventoryByRef(inventoryProtoRef);
+                if (inventory == null)
+                    continue;
+
+                foreach (var entry in inventory)
+                {
+                    Item item = Game.EntityManager.GetEntity<Item>(entry.Id);
+                    if (item == null || item.IsScheduledToDestroy)
+                        continue;
+
+                    if (_mythicRiftCompletionVendorOfferItemIds.ContainsKey(item.Id))
+                    {
+                        foundTrackedOffer = true;
+                        continue;
+                    }
+
+                    return false;
+                }
+            }
+
+            return foundTrackedOffer;
+        }
+
+        private int CountTrackedMythicRiftCompletionVendorOffer(List<PrototypeId> inventoryList, string offerId)
+        {
+            if (inventoryList == null || string.IsNullOrWhiteSpace(offerId))
+                return 0;
+
+            int count = 0;
+            foreach (PrototypeId inventoryProtoRef in inventoryList)
+            {
+                Inventory inventory = GetInventoryByRef(inventoryProtoRef);
+                if (inventory == null)
+                    continue;
+
+                foreach (var entry in inventory)
+                {
+                    Item item = Game.EntityManager.GetEntity<Item>(entry.Id);
+                    if (item != null &&
+                        _mythicRiftCompletionVendorOfferItemIds.TryGetValue(item.Id, out MythicRiftCompletionVendorStockEntry existingEntry) &&
+                        string.Equals(existingEntry.OfferId, offerId, StringComparison.OrdinalIgnoreCase))
+                    {
+                        count++;
+                    }
+                }
+            }
+
+            return count;
+        }
+
+        private bool IsMythicRiftCompletionVendorOfferItem(Item item, WorldEntity vendor)
+        {
+            if (item == null || vendor == null || Game?.MythicRiftManager?.IsCompletionArtifactVendor(vendor) != true)
+                return false;
+
+            CleanupTrackedMythicRiftCompletionVendorOffers();
+            return _mythicRiftCompletionVendorOfferItemIds.ContainsKey(item.Id);
+        }
+
+        private bool TryBuyMythicRiftCompletionVendorOffer(Item item, WorldEntity vendor)
+        {
+            if (IsMythicRiftCompletionVendorOfferItem(item, vendor) == false)
+                return false;
+
+            if (_mythicRiftCompletionVendorOfferItemIds.TryGetValue(item.Id, out MythicRiftCompletionVendorStockEntry stockEntry) == false)
+            {
+                Game.ChatManager?.SendChatFromCustomSystem(
+                    this,
+                    "[Mythic Rift] Rift artifact vendor purchase failed: this offer is no longer available.",
+                    showSender: false);
+                return true;
+            }
+
+            if (Game.MythicRiftManager.TryPurchaseCompletionArtifactVendorItem(this, vendor, stockEntry.OfferId, stockEntry.RewardItemProtoRef, out MythicRiftRewardShopPurchaseResult result))
+                return true;
+
+            Game.ChatManager?.SendChatFromCustomSystem(
+                this,
+                $"[Mythic Rift] Rift artifact vendor purchase failed: {result.ErrorMessage}",
+                showSender: false);
+            return true;
+        }
+
+        private void CleanupTrackedMythicRiftCompletionVendorOffers()
+        {
+            if (_mythicRiftCompletionVendorOfferItemIds.Count == 0)
+                return;
+
+            List<ulong> staleItemIds = null;
+            foreach (ulong itemId in _mythicRiftCompletionVendorOfferItemIds.Keys)
+            {
+                Item item = Game?.EntityManager.GetEntity<Item>(itemId);
+                if (item == null || item.IsScheduledToDestroy)
+                    (staleItemIds ??= new()).Add(itemId);
+            }
+
+            if (staleItemIds == null)
+                return;
+
+            foreach (ulong itemId in staleItemIds)
+                _mythicRiftCompletionVendorOfferItemIds.Remove(itemId);
+        }
+
         private bool TryInitializeMythicRiftCompletionCrafterInventory(PrototypeId inventoryProtoRef)
         {
             if (inventoryProtoRef == PrototypeId.Invalid || Game?.MythicRiftManager == null)
@@ -1250,6 +1555,20 @@ namespace MHServerEmu.Games.Entities
                 return false;
 
             if (Game.MythicRiftManager.IsCompletionCrafter(GetDialogTarget(false)) == false)
+                return false;
+
+            if (isInitializing == false)
+                SendMessage(NetMessageVendorRefresh.CreateBuilder().SetVendorTypeProtoId((ulong)vendorTypeProtoRef).Build());
+
+            return true;
+        }
+
+        private bool TryBlockMythicRiftCompletionVendorReroll(PrototypeId vendorTypeProtoRef, bool isInitializing)
+        {
+            if (Game?.MythicRiftManager?.IsCompletionArtifactVendorType(vendorTypeProtoRef) != true)
+                return false;
+
+            if (Game.MythicRiftManager.IsCompletionArtifactVendor(GetDialogTarget(false)) == false)
                 return false;
 
             if (isInitializing == false)
