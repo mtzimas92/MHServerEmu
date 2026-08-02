@@ -177,35 +177,35 @@
   },
   {
     "Enabled": true,
-    "Prototype": "Entity/Items/CurrencyItems/VacuumingCurrencies/TestCurrencyItem.prototype",
+    "Prototype": "Entity/Items/CurrencyItems/RaidCurrency/GenoshaRaidToken.prototype",
     "Path": "DesignState",
-    "Description": "Enable the unused test currency item as the Rift Sigil deterministic reward currency.",
+    "Description": "Enable the unused Genosha raid token as the Rift Champion Commendation reward item.",
     "ValueType": "Enum",
     "Value": "Live"
   },
   {
     "Enabled": true,
-    "Prototype": "Entity/Items/CurrencyItems/VacuumingCurrencies/TestCurrencyItem.prototype",
-    "Path": "DisplayName",
-    "Description": "Rename the unused test currency item to Rift Sigil.",
-    "ValueType": "LocaleStringId",
-    "Value": 18000000000000080100
+    "Prototype": "Entity/Items/CurrencyItems/RaidCurrency/GenoshaRaidToken.prototype",
+    "Path": "DesignStatePS4",
+    "Description": "Keep the Rift Champion Commendation reward item live for console-design-state checks.",
+    "ValueType": "Enum",
+    "Value": "Live"
   },
   {
     "Enabled": true,
-    "Prototype": "Entity/Items/CurrencyItems/VacuumingCurrencies/TestCurrencyItem.prototype",
-    "Path": "TooltipDescription",
-    "Description": "Describe Rift Sigils as the deterministic Rift reward currency.",
-    "ValueType": "LocaleStringId",
-    "Value": 18000000000000080101
+    "Prototype": "Entity/Items/CurrencyItems/RaidCurrency/GenoshaRaidToken.prototype",
+    "Path": "DesignStateXboxOne",
+    "Description": "Keep the Rift Champion Commendation reward item live for console-design-state checks.",
+    "ValueType": "Enum",
+    "Value": "Live"
   },
   {
     "Enabled": true,
-    "Prototype": "Entity/Items/CurrencyItems/VacuumingCurrencies/TestCurrencyItem.prototype",
-    "Path": "IconPath",
-    "Description": "Give Rift Sigils the Cosmic Rift icon until a dedicated currency icon is selected.",
-    "ValueType": "AssetId",
-    "Value": 18109230673074853238
+    "Prototype": "Entity/Items/CurrencyItems/CurrencyPrototypes/GenoshaRaidCurrency.prototype",
+    "Path": "MaxAmount",
+    "Description": "Allow Rift Champion Commendations to accumulate as a long-term reward currency.",
+    "ValueType": "Integer",
+    "Value": 1000000
   },
   {
     "Enabled": true,
@@ -219,7 +219,7 @@
     "Enabled": true,
     "Prototype": "Entity/Items/Crafting/Recipes/Tab3Gear/RerollCosmicReplacement.prototype",
     "Path": "CraftingCost.CostEvalCredits.Value",
-    "Description": "This recipe's native 75,000-credit CraftingCost is purely a client-side display value - the server never reads it (see TryHandleMythicRiftCompletionCraft() in Player.Crafting.cs, which intercepts this recipe entirely before the native cost-eval code is ever reached) and it was misleadingly showing 75,000 credits in the crafting UI when the real cost is 100 Protector's Commendations on a successful upgrade. Zeroed to the same CostEvalCredits=0 baseline every no-cost recipe in the game already uses (confirmed via Entity/Items/Crafting/ZAbstract/CraftingCost.defaults), so the UI shows no cost pill instead of a wrong one.",
+    "Description": "This recipe's native 75,000-credit CraftingCost is purely a client-side display value - the server never reads it (see TryHandleMythicRiftCompletionCraft() in Player.Crafting.cs, which intercepts this recipe entirely before the native cost-eval code is ever reached) and it was misleadingly showing 75,000 credits in the crafting UI when the real cost is 100 Champion's Commendations on a successful upgrade. Zeroed to the same CostEvalCredits=0 baseline every no-cost recipe in the game already uses (confirmed via Entity/Items/Crafting/ZAbstract/CraftingCost.defaults), so the UI shows no cost pill instead of a wrong one.",
     "ValueType": "Integer",
     "Value": 0
   },

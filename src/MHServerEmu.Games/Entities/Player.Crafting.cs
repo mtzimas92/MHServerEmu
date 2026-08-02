@@ -254,10 +254,11 @@ namespace MHServerEmu.Games.Entities
             // it doesn't burn one of their 3 attempts for nothing.
             PrototypeId currencyProtoRef = Game.MythicRiftManager.CompletionCrafterCurrencyProtoRef;
             uint currencyCost = Game.MythicRiftManager.GetCompletionCrafterCurrencyCost(recipeItem.PrototypeDataRef);
-            if (currencyProtoRef != PrototypeId.Invalid && currencyCost > 0 && Properties[PropertyEnum.Currency, currencyProtoRef] < currencyCost)
+            int availableCurrency = currencyProtoRef != PrototypeId.Invalid ? Properties[PropertyEnum.Currency, currencyProtoRef] : 0;
+            if (currencyProtoRef != PrototypeId.Invalid && currencyCost > 0 && availableCurrency < currencyCost)
             {
                 craftingResult = CraftingResult.InsufficientIngredients;   // generic error code, same as the native "other currencies" fallback in Item.cs
-                Game.ChatManager?.SendChatFromCustomSystem(this, $"[Mythic Rift] Not enough Champion's Commendations. A successful upgrade costs {currencyCost}.", showSender: false);
+                Game.ChatManager?.SendChatFromCustomSystem(this, $"[Mythic Rift] Not enough Champion's Commendations. A successful upgrade costs {currencyCost}; available={availableCurrency}.", showSender: false);
                 return true;
             }
 

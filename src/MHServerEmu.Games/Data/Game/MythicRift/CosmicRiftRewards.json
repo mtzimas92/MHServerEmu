@@ -2456,9 +2456,9 @@
                                 "delivery":  "ground"
                             },
                             {
-                                "id":  "rift-sigils-cosmic-levels-1-19",
+                                "id":  "champion-commendations-cosmic-levels-1-19",
                                 "enabled":  true,
-                                "itemPrototypeRuntimeId":  2470498557584809493,
+                                "itemPrototypeRuntimeId":  2852929430040615658,
                                 "quantity":  2,
                                 "quantityMatchesRewardWave":  false,
                                 "cumulativeWaveQuantity":  false,
@@ -2482,9 +2482,9 @@
                                 "delivery":  "ground"
                             },
                             {
-                                "id":  "rift-sigils-cosmic-levels-20-49",
+                                "id":  "champion-commendations-cosmic-levels-20-49",
                                 "enabled":  true,
-                                "itemPrototypeRuntimeId":  2470498557584809493,
+                                "itemPrototypeRuntimeId":  2852929430040615658,
                                 "quantity":  5,
                                 "quantityMatchesRewardWave":  false,
                                 "cumulativeWaveQuantity":  false,
@@ -2508,9 +2508,9 @@
                                 "delivery":  "ground"
                             },
                             {
-                                "id":  "rift-sigils-cosmic-levels-50-69",
+                                "id":  "champion-commendations-cosmic-levels-50-69",
                                 "enabled":  true,
-                                "itemPrototypeRuntimeId":  2470498557584809493,
+                                "itemPrototypeRuntimeId":  2852929430040615658,
                                 "quantity":  8,
                                 "quantityMatchesRewardWave":  false,
                                 "cumulativeWaveQuantity":  false,
@@ -2534,9 +2534,9 @@
                                 "delivery":  "ground"
                             },
                             {
-                                "id":  "rift-sigils-cosmic-levels-70-plus",
+                                "id":  "champion-commendations-cosmic-levels-70-plus",
                                 "enabled":  true,
-                                "itemPrototypeRuntimeId":  2470498557584809493,
+                                "itemPrototypeRuntimeId":  2852929430040615658,
                                 "quantity":  12,
                                 "quantityMatchesRewardWave":  false,
                                 "cumulativeWaveQuantity":  false,
@@ -2560,9 +2560,9 @@
                                 "delivery":  "ground"
                             },
                             {
-                                "id":  "rift-sigils-rift-gauntlet-wave-5",
+                                "id":  "champion-commendations-rift-gauntlet-wave-5",
                                 "enabled":  true,
-                                "itemPrototypeRuntimeId":  2470498557584809493,
+                                "itemPrototypeRuntimeId":  2852929430040615658,
                                 "quantity":  2,
                                 "quantityMatchesRewardWave":  false,
                                 "cumulativeWaveQuantity":  false,
@@ -2586,9 +2586,9 @@
                                 "delivery":  "ground"
                             },
                             {
-                                "id":  "rift-sigils-rift-gauntlet-wave-10",
+                                "id":  "champion-commendations-rift-gauntlet-wave-10",
                                 "enabled":  true,
-                                "itemPrototypeRuntimeId":  2470498557584809493,
+                                "itemPrototypeRuntimeId":  2852929430040615658,
                                 "quantity":  4,
                                 "quantityMatchesRewardWave":  false,
                                 "cumulativeWaveQuantity":  false,
@@ -2612,9 +2612,9 @@
                                 "delivery":  "ground"
                             },
                             {
-                                "id":  "rift-sigils-rift-gauntlet-wave-15",
+                                "id":  "champion-commendations-rift-gauntlet-wave-15",
                                 "enabled":  true,
-                                "itemPrototypeRuntimeId":  2470498557584809493,
+                                "itemPrototypeRuntimeId":  2852929430040615658,
                                 "quantity":  6,
                                 "quantityMatchesRewardWave":  false,
                                 "cumulativeWaveQuantity":  false,
@@ -2638,9 +2638,9 @@
                                 "delivery":  "ground"
                             },
                             {
-                                "id":  "rift-sigils-rift-gauntlet-wave-20",
+                                "id":  "champion-commendations-rift-gauntlet-wave-20",
                                 "enabled":  true,
-                                "itemPrototypeRuntimeId":  2470498557584809493,
+                                "itemPrototypeRuntimeId":  2852929430040615658,
                                 "quantity":  8,
                                 "quantityMatchesRewardWave":  false,
                                 "cumulativeWaveQuantity":  false,
@@ -2664,9 +2664,9 @@
                                 "delivery":  "ground"
                             },
                             {
-                                "id":  "rift-sigils-rift-gauntlet-wave-25",
+                                "id":  "champion-commendations-rift-gauntlet-wave-25",
                                 "enabled":  true,
-                                "itemPrototypeRuntimeId":  2470498557584809493,
+                                "itemPrototypeRuntimeId":  2852929430040615658,
                                 "quantity":  10,
                                 "quantityMatchesRewardWave":  false,
                                 "cumulativeWaveQuantity":  false,
@@ -2690,9 +2690,9 @@
                                 "delivery":  "ground"
                             },
                             {
-                                "id":  "rift-sigils-rift-gauntlet-wave-30",
+                                "id":  "champion-commendations-rift-gauntlet-wave-30",
                                 "enabled":  true,
-                                "itemPrototypeRuntimeId":  2470498557584809493,
+                                "itemPrototypeRuntimeId":  2852929430040615658,
                                 "quantity":  15,
                                 "quantityMatchesRewardWave":  false,
                                 "cumulativeWaveQuantity":  false,
@@ -2716,9 +2716,9 @@
                                 "delivery":  "ground"
                             },
                             {
-                                "id":  "rift-sigils-boss-gauntlet-survival",
+                                "id":  "champion-commendations-boss-gauntlet-survival",
                                 "enabled":  true,
-                                "itemPrototypeRuntimeId":  2470498557584809493,
+                                "itemPrototypeRuntimeId":  2852929430040615658,
                                 "quantity":  1,
                                 "quantityMatchesRewardWave":  true,
                                 "cumulativeWaveQuantity":  false,
