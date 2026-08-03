@@ -91,6 +91,9 @@ namespace MHServerEmu.Games.MythicRifts
         private const ulong RiftReadyCheckWaitButtonLocale = 18000000000000040008UL;
         private const ulong RiftModifierDialogLocale = 18000000000000040009UL;
         private const ulong RiftModifierButtonLocale = 18000000000000040010UL;
+        private const ulong RiftStatusLocaleCosmicRewardTrack = 18000000000000040011UL;
+        private const ulong RiftStatusLocaleGauntletRewardTrack = 18000000000000040012UL;
+        private const ulong RiftStatusLocaleBossGauntletRewardTrack = 18000000000000040013UL;
         private const ulong RiftDangerRoomLevelLocaleStringBase = 18000000000000010000UL;
         private const int RiftDangerRoomLevelLocalizedLevelLimit = 10000;
         private static readonly PrototypeId RiftDangerRoomLevelWidgetPrototypeRef = (PrototypeId)7164846210465729875UL;
@@ -3596,27 +3599,8 @@ namespace MHServerEmu.Games.MythicRifts
             RefreshRiftReadyCheckWidget(uiDataProvider, runState, contextRef, currentTime);
             RefreshRiftBossIconWidget(uiDataProvider, runState, contextRef);
             RefreshRiftModifierButtonWidget(uiDataProvider, runState, contextRef);
-
-            if (runState.Config.Content.BossOnlyCheckpointEligible)
-            {
-                uiDataProvider.DeleteWidget(GetRiftDangerRoomQuotaWidgetPrototypeRef(), contextRef);
-            }
-            else
-            {
-                int requiredCount = Math.Max(runState.Config.KillQuota, 1);
-                int currentCount = Math.Clamp(runState.CurrentKillCount, 0, requiredCount);
-
-                UIWidgetGenericFraction quotaWidget = GetRiftGenericFractionWidget(
-                    uiDataProvider,
-                    GetRiftDangerRoomQuotaWidgetPrototypeRef(),
-                    contextRef);
-
-                if (quotaWidget != null)
-                {
-                    quotaWidget.SetAreaContext(contextRef);
-                    quotaWidget.SetCount(currentCount, requiredCount);
-                }
-            }
+            RefreshRiftObjectiveProgressWidget(uiDataProvider, runState, contextRef);
+            RefreshRiftRewardTrackWidget(uiDataProvider, runState, contextRef);
 
             TimeSpan remaining = runState.GetTimeRemaining(currentTime);
             if (remaining <= TimeSpan.Zero)
@@ -3650,6 +3634,52 @@ namespace MHServerEmu.Games.MythicRifts
 
             levelWidget.SetAreaContext(contextRef);
             levelWidget.SetText(levelText, GetRiftStatusLocaleStringId(runState, currentTime));
+        }
+
+        private static void RefreshRiftObjectiveProgressWidget(UIDataProvider uiDataProvider, MythicRiftRunState runState, PrototypeId contextRef)
+        {
+            (int currentCount, int requiredCount) = GetRiftObjectiveProgress(runState);
+            if (requiredCount <= 0)
+            {
+                uiDataProvider.DeleteWidget(GetRiftDangerRoomQuotaWidgetPrototypeRef(), contextRef);
+                return;
+            }
+
+            UIWidgetGenericFraction objectiveWidget = GetRiftGenericFractionWidget(
+                uiDataProvider,
+                GetRiftDangerRoomQuotaWidgetPrototypeRef(),
+                contextRef);
+
+            if (objectiveWidget == null)
+                return;
+
+            objectiveWidget.SetAreaContext(contextRef);
+            objectiveWidget.SetCount(Math.Clamp(currentCount, 0, requiredCount), requiredCount);
+        }
+
+        private static void RefreshRiftRewardTrackWidget(UIDataProvider uiDataProvider, MythicRiftRunState runState, PrototypeId areaContextRef)
+        {
+            PrototypeId rewardContextRef = GetRiftRewardTrackWidgetContextRef(runState);
+            if (rewardContextRef == PrototypeId.Invalid)
+                return;
+
+            (int currentCount, int requiredCount) = GetRiftRewardTrackProgress(runState);
+            if (requiredCount <= 0)
+            {
+                uiDataProvider.DeleteWidget(GetRiftDangerRoomQuotaWidgetPrototypeRef(), rewardContextRef);
+                return;
+            }
+
+            UIWidgetGenericFraction rewardWidget = GetRiftGenericFractionWidget(
+                uiDataProvider,
+                GetRiftDangerRoomQuotaWidgetPrototypeRef(),
+                rewardContextRef);
+
+            if (rewardWidget == null)
+                return;
+
+            rewardWidget.SetAreaContext(areaContextRef);
+            rewardWidget.SetCount(Math.Clamp(currentCount, 0, requiredCount), requiredCount);
         }
 
         private void RefreshRiftReadyCheckWidget(UIDataProvider uiDataProvider, MythicRiftRunState runState, PrototypeId contextRef, TimeSpan currentTime)
@@ -3723,6 +3753,9 @@ namespace MHServerEmu.Games.MythicRifts
             uiDataProvider.DeleteWidget(GetRiftDangerRoomLevelWidgetPrototypeRef(), contextRef);
             uiDataProvider.DeleteWidget(GetRiftDangerRoomQuotaWidgetPrototypeRef(), contextRef);
             uiDataProvider.DeleteWidget(GetRiftDangerRoomTimerWidgetPrototypeRef(), contextRef);
+            PrototypeId rewardContextRef = GetRiftRewardTrackWidgetContextRef(runState);
+            if (rewardContextRef != PrototypeId.Invalid)
+                uiDataProvider.DeleteWidget(GetRiftDangerRoomQuotaWidgetPrototypeRef(), rewardContextRef);
             PrototypeId readyCheckWidgetRef = GetRiftReadyCheckWidgetPrototypeRef();
             if (readyCheckWidgetRef != PrototypeId.Invalid)
                 uiDataProvider.DeleteWidget(readyCheckWidgetRef, contextRef);
@@ -3750,6 +3783,20 @@ namespace MHServerEmu.Games.MythicRifts
                 return PrototypeId.Invalid;
 
             return runState.Config.RegionProtoRef;
+        }
+
+        private static PrototypeId GetRiftRewardTrackWidgetContextRef(MythicRiftRunState runState)
+        {
+            if (runState?.Config == null)
+                return PrototypeId.Invalid;
+
+            if (runState.Config.MissionProtoRef != PrototypeId.Invalid)
+                return runState.Config.MissionProtoRef;
+
+            if (runState.Config.StartTargetProtoRef != PrototypeId.Invalid)
+                return runState.Config.StartTargetProtoRef;
+
+            return runState.Config.BossProtoRef;
         }
 
         private static PrototypeId GetRiftDangerRoomLevelWidgetPrototypeRef()
@@ -3857,7 +3904,50 @@ namespace MHServerEmu.Games.MythicRifts
             if (runState.Config.RegionAffixes != null && runState.Config.RegionAffixes.Count > 0)
                 return (LocaleStringId)RiftStatusLocaleRegionModifiers;
 
-            return LocaleStringId.Blank;
+            return runState.Config.Mode switch
+            {
+                MythicRiftMode.BossGauntlet => (LocaleStringId)RiftStatusLocaleBossGauntletRewardTrack,
+                MythicRiftMode.Endless => (LocaleStringId)RiftStatusLocaleGauntletRewardTrack,
+                _ => (LocaleStringId)RiftStatusLocaleCosmicRewardTrack
+            };
+        }
+
+        private static (int CurrentCount, int RequiredCount) GetRiftObjectiveProgress(MythicRiftRunState runState)
+        {
+            if (runState?.Config == null)
+                return (0, 0);
+
+            bool trackBossKills =
+                runState.Config.UseBossGauntletMode ||
+                runState.Config.Content.BossOnlyCheckpointEligible ||
+                runState.BossUnlocked ||
+                runState.ActiveBossEntityIds.Count > 0;
+
+            if (trackBossKills)
+                return (runState.BossKillCount, Math.Max(runState.Config.RequiredBossKillCount, 1));
+
+            return (runState.CurrentKillCount, Math.Max(runState.Config.KillQuota, 1));
+        }
+
+        private static (int CurrentCount, int RequiredCount) GetRiftRewardTrackProgress(MythicRiftRunState runState)
+        {
+            if (runState?.Config == null)
+                return (0, 0);
+
+            if (runState.Config.UseBossGauntletMode)
+            {
+                int currentWave = Math.Max(runState.Config.WaveNumber, Math.Max(runState.BossGauntletCompletedWaves, 1));
+                return (currentWave, Math.Max(currentWave, 40));
+            }
+
+            if (runState.Config.UseThirtyWaveMode)
+            {
+                int currentWave = Math.Clamp(runState.Config.WaveNumber, 1, 30);
+                return (currentWave, 30);
+            }
+
+            int rewardLevel = Math.Max(runState.Config.RiftLevel, 1);
+            return (Math.Min(rewardLevel, 70), 70);
         }
 
         private static void AppendDangerRoomRiftWidgetDiagnostics(List<string> lines, UIDataProvider uiDataProvider, MythicRiftRunState runState)
@@ -3866,9 +3956,12 @@ namespace MHServerEmu.Games.MythicRifts
                 return;
 
             PrototypeId contextRef = GetRiftWidgetContextRef(runState);
+            PrototypeId rewardContextRef = GetRiftRewardTrackWidgetContextRef(runState);
             lines.Add($"riftUi.context={contextRef.GetNameFormatted()}");
+            lines.Add($"riftUi.rewardContext={rewardContextRef.GetNameFormatted()}");
             AppendRiftWidgetPrototypeDiagnostic(lines, "level", RiftDangerRoomLevelWidgetPrototypeName, GetRiftDangerRoomLevelWidgetPrototypeRef(), typeof(UIWidgetMissionTextPrototype));
             AppendRiftWidgetPrototypeDiagnostic(lines, "quota", RiftDangerRoomQuotaWidgetPrototypeName, GetRiftDangerRoomQuotaWidgetPrototypeRef(), typeof(UIWidgetGenericFractionPrototype));
+            AppendRiftWidgetPrototypeDiagnostic(lines, "reward", RiftDangerRoomQuotaWidgetPrototypeName, GetRiftDangerRoomQuotaWidgetPrototypeRef(), typeof(UIWidgetGenericFractionPrototype));
             AppendRiftWidgetPrototypeDiagnostic(lines, "timer", RiftDangerRoomTimerWidgetPrototypeName, GetRiftDangerRoomTimerWidgetPrototypeRef(), typeof(UIWidgetGenericFractionPrototype));
 
             string uiDump = uiDataProvider?.ToString() ?? string.Empty;

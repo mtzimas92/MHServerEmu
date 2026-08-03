@@ -88,5 +88,14 @@
   },
   "18000000000000040010": {
     "en_us": "Modifiers"
+  },
+  "18000000000000040011": {
+    "en_us": "Reward tier rises with Rift level"
+  },
+  "18000000000000040012": {
+    "en_us": "Reward milestones advance each wave"
+  },
+  "18000000000000040013": {
+    "en_us": "Rewards bank until the gauntlet ends"
   }
 }
