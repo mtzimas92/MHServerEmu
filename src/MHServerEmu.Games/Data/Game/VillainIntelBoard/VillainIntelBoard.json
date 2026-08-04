@@ -10,9 +10,7 @@
   "maxHealthMultiplier": 5.0,
   "maxDamageBonusPct": 0.75,
   "npcPrototypeNames": [
-    "Entity/Characters/NPCs/AgentCoulson.prototype",
-    "Entity/Characters/NPCs/MariaHill.prototype",
-    "Entity/Characters/NPCs/ShannaA.prototype"
+    "Entity/Characters/NPCs/Mordo.prototype"
   ],
   "regions": [
     {

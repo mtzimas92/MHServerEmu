@@ -1,6 +1,14 @@
 [
   {
     "Enabled": true,
+    "Prototype": "Entity/Characters/NPCs/Mordo.prototype",
+    "Path": "DesignState",
+    "Description": "Enable Mordo so the native Avengers Tower NPC can serve as the Villain Intel Board contact.",
+    "ValueType": "Enum",
+    "Value": "Live"
+  },
+  {
+    "Enabled": true,
     "Prototype": "Entity/Items/Consumables/Prototypes/DangerRoom/PortalToRandomMaxAffixDungeon.prototype",
     "Path": "DesignState",
     "Description": "Enable the unused PortalToRandomMaxAffixDungeon launcher base for the infinite-level Cosmic Rift mode.",

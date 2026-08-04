@@ -36,11 +36,6 @@ namespace MHServerEmu.Games.VillainIntelBoard
         private static readonly LocaleStringId InvalidBoardBannerRef = (LocaleStringId)18000000000000080326;
         private static readonly LocaleStringId GenericBountyTargetButtonRef = (LocaleStringId)18000000000000080330;
 
-        private static readonly PrototypeId AvengersTowerHubRegionRef = (PrototypeId)9142075282174842340;
-        private static readonly PrototypeId AvengersTowerLandingMarkerRef = (PrototypeId)6460789910415087113;
-        private const float BoardNpcSideOffset = 360f;
-        private const float BoardNpcY = 570f;
-
         private static VillainIntelBoardTuning _tuning = VillainIntelBoardTuning.CreateDefault();
         private static string _lastLoadMessage = "Villain Intel Board has not loaded tuning yet.";
         private static readonly Dictionary<ulong, VillainIntelBoardState> BoardsByPlayerDbId = new();
@@ -83,44 +78,9 @@ namespace MHServerEmu.Games.VillainIntelBoard
 
         public static void SpawnBoardNpc(Region region)
         {
-            if (region == null || region.PrototypeDataRef != AvengersTowerHubRegionRef)
-                return;
-
+            // Mordo is patched Live and spawned by native region population, so the board
+            // only needs its tuning available when the hub comes online.
             TryReloadTuningIfNeeded();
-            PrototypeId npcRef = ResolveBoardNpcRef();
-            if (npcRef == PrototypeId.Invalid)
-            {
-                Logger.Warn("SpawnBoardNpc(): Unable to resolve any Villain Intel Board NPC prototype.");
-                return;
-            }
-
-            Vector3 landingPosition = Vector3.Zero;
-            Orientation landingOrientation = Orientation.Zero;
-            if (region.FindTargetLocation(ref landingPosition, ref landingOrientation, PrototypeId.Invalid, PrototypeId.Invalid, AvengersTowerLandingMarkerRef) == false)
-            {
-                Logger.Warn("SpawnBoardNpc(): Failed to find Avengers Tower landing marker.");
-                return;
-            }
-
-            float yaw = landingOrientation.Yaw;
-            Vector3 npcPosition = new(landingPosition.X + (MathF.Cos(yaw) * BoardNpcSideOffset), BoardNpcY, landingPosition.Z);
-            Orientation npcOrientation = Orientation.FromDeltaVector(landingPosition - npcPosition);
-
-            using EntitySettings settings = ObjectPoolManager.Instance.Get<EntitySettings>();
-            settings.EntityRef = npcRef;
-            settings.Position = npcPosition;
-            settings.Orientation = npcOrientation;
-            settings.RegionId = region.Id;
-
-            WorldEntity npc = region.Game.EntityManager.CreateEntity(settings) as WorldEntity;
-            if (npc == null)
-            {
-                Logger.Warn($"SpawnBoardNpc(): Failed to create Villain Intel Board NPC {npcRef.GetNameFormatted()}.");
-                return;
-            }
-
-            npc.Properties[PropertyEnum.Interactable] = (int)TriBool.True;
-            Logger.Info($"SpawnBoardNpc(): spawned Villain Intel Board NPC {npcRef.GetNameFormatted()} id=0x{npc.Id:X}.");
         }
 
         public static bool TryUseBoardNpc(Player player, WorldEntity interactableObject)
@@ -220,6 +180,14 @@ namespace MHServerEmu.Games.VillainIntelBoard
             if (avatar == null)
                 return "No active avatar.";
 
+            RegionPrototype regionProto = entry.RegionProtoRef.As<RegionPrototype>();
+            if (regionProto == null || regionProto.StartTarget == PrototypeId.Invalid)
+            {
+                entry.Status = VillainIntelBoardEntryStatus.Failed;
+                PendingHuntsByPlayerDbId.Remove(player.DatabaseUniqueId);
+                return $"Bounty region {entry.RegionName} has no valid start target.";
+            }
+
             using (Teleporter teleporter = ObjectPoolManager.Instance.Get<Teleporter>())
             {
                 teleporter.Initialize(player, TeleportContextEnum.TeleportContext_Debug);
@@ -228,7 +196,7 @@ namespace MHServerEmu.Games.VillainIntelBoard
                 if (teleporter.DifficultyTierRef == PrototypeId.Invalid)
                     teleporter.DifficultyTierRef = GameDatabase.GlobalsPrototype.DifficultyTierDefault;
 
-                if (teleporter.TeleportToTarget(entry.RegionProtoRef) == false)
+                if (teleporter.TeleportToTarget(regionProto.StartTarget) == false)
                 {
                     entry.Status = VillainIntelBoardEntryStatus.Failed;
                     PendingHuntsByPlayerDbId.Remove(player.DatabaseUniqueId);

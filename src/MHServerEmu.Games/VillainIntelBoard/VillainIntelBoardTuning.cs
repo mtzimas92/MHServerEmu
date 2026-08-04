@@ -40,9 +40,7 @@ namespace MHServerEmu.Games.VillainIntelBoard
             {
                 NpcPrototypeNames =
                 {
-                    "Entity/Characters/NPCs/AgentCoulson.prototype",
-                    "Entity/Characters/NPCs/MariaHill.prototype",
-                    "Entity/Characters/NPCs/ShannaA.prototype"
+                    "Entity/Characters/NPCs/Mordo.prototype"
                 }
             };
         }
