@@ -2873,6 +2873,7 @@ namespace MHServerEmu.Games.MythicRifts
                 return;
 
             RefreshDangerRoomRiftWidgets(region.UIDataProvider, runState, currentTime);
+            RemoveNativeRegionWidgets(region.UIDataProvider, runState);
         }
 
         private void ClearRiftObjectiveWidgets(MythicRiftRunState runState)
@@ -2946,7 +2947,7 @@ namespace MHServerEmu.Games.MythicRifts
             RefreshRiftBossIconWidget(uiDataProvider, runState, contextRef);
             RefreshRiftModifierButtonWidget(uiDataProvider, runState, contextRef);
             RefreshRiftObjectiveProgressWidget(uiDataProvider, runState, contextRef);
-            RefreshRiftRewardTrackWidget(uiDataProvider, runState, contextRef);
+            SuppressRiftRewardTrackWidget(uiDataProvider, runState);
 
             TimeSpan remaining = runState.GetTimeRemaining(currentTime);
             if (remaining <= TimeSpan.Zero)
@@ -3003,29 +3004,16 @@ namespace MHServerEmu.Games.MythicRifts
             objectiveWidget.SetCount(Math.Clamp(currentCount, 0, requiredCount), requiredCount);
         }
 
-        private static void RefreshRiftRewardTrackWidget(UIDataProvider uiDataProvider, MythicRiftRunState runState, PrototypeId areaContextRef)
+        private static void SuppressRiftRewardTrackWidget(UIDataProvider uiDataProvider, MythicRiftRunState runState)
         {
             PrototypeId rewardContextRef = GetRiftRewardTrackWidgetContextRef(runState);
             if (rewardContextRef == PrototypeId.Invalid)
                 return;
 
-            (int currentCount, int requiredCount) = GetRiftRewardTrackProgress(runState);
-            if (requiredCount <= 0)
-            {
-                uiDataProvider.DeleteWidget(GetRiftDangerRoomQuotaWidgetPrototypeRef(), rewardContextRef);
-                return;
-            }
-
-            UIWidgetGenericFraction rewardWidget = GetRiftGenericFractionWidget(
-                uiDataProvider,
-                GetRiftDangerRoomQuotaWidgetPrototypeRef(),
-                rewardContextRef);
-
-            if (rewardWidget == null)
+            if (rewardContextRef == GetRiftWidgetContextRef(runState))
                 return;
 
-            rewardWidget.SetAreaContext(areaContextRef);
-            rewardWidget.SetCount(Math.Clamp(currentCount, 0, requiredCount), requiredCount);
+            uiDataProvider.DeleteWidget(GetRiftDangerRoomQuotaWidgetPrototypeRef(), rewardContextRef);
         }
 
         private void RefreshRiftReadyCheckWidget(UIDataProvider uiDataProvider, MythicRiftRunState runState, PrototypeId contextRef, TimeSpan currentTime)

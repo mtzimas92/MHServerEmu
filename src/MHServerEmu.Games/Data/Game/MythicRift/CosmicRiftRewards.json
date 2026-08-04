@@ -2375,7 +2375,7 @@
                                 "bossSourceIds":  [
 
                                                   ],
-                                "delivery":  "ground"
+                                "delivery":  "inventory"
                             },
                             {
                                 "id":  "cosmic-rift-xp-orbs-levels-5-30",
