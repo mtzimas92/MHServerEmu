@@ -22,7 +22,7 @@
     {
       "id": "aim-weapon-facility",
       "displayName": "A.I.M. Weapon Facility",
-      "regionPrototypeName": "Regions/EndGame/Terminals/Green/AIMWeaponFacility/AltRegions/DailyGAIMWeaponFacilityRegionL60.prototype",
+      "regionPrototypeName": "Regions/EndGame/Terminals/Green/AIMFacility/AltRegions/DailyGAIMFacilityRegionL60.prototype",
       "tags": ["aim", "tech", "shield"]
     },
     {
@@ -32,15 +32,15 @@
       "tags": ["hydra", "secret-invasion", "shield"]
     },
     {
-      "id": "midtown",
-      "displayName": "Midtown Manhattan",
-      "regionPrototypeName": "Regions/EndGame/TierX/PatrolMidtown/AltRegions/XManhattanRegion60Cosmic.prototype",
+      "id": "hoods-ship",
+      "displayName": "Hood's Ship",
+      "regionPrototypeName": "Regions/EndGame/Terminals/Green/HoodsShip/AltRegions/DailyGHoodsShipRegionL60.prototype",
       "tags": ["street", "sinister-six", "civil-war", "secret-invasion"]
     },
     {
-      "id": "hightown",
-      "displayName": "Hightown Patrol",
-      "regionPrototypeName": "Regions/EndGame/TierX/PatrolHightown/AltRegions/UpperMadripoorRegionL60Cosmic.prototype",
+      "id": "hightown-invasion",
+      "displayName": "Hightown Invasion",
+      "regionPrototypeName": "Regions/EndGame/Terminals/Green/HighTownInvasion/AltRegions/DailyGHighTownInvasionRegionL60.prototype",
       "tags": ["secret-invasion", "cosmic", "street"]
     },
     {
