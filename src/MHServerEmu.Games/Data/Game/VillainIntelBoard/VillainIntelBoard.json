@@ -1,0 +1,278 @@
+{
+  "profileName": "initial-villain-intel-board",
+  "enabled": true,
+  "boardSize": 6,
+  "rankBands": [1, 3, 1, 3, 4, 6, 4, 6, 7, 10, 7, 10],
+  "rerollCostCredits": 25000,
+  "acceptCostCreditsPerRank": 2500,
+  "healthMultiplierPerRank": 0.35,
+  "damageBonusPctPerRank": 0.08,
+  "maxHealthMultiplier": 5.0,
+  "maxDamageBonusPct": 0.75,
+  "npcPrototypeNames": [
+    "Entity/Characters/NPCs/AgentCoulson.prototype",
+    "Entity/Characters/NPCs/MariaHill.prototype",
+    "Entity/Characters/NPCs/ShannaA.prototype"
+  ],
+  "regions": [
+    {
+      "id": "fisk-tower",
+      "displayName": "Fisk Tower",
+      "regionPrototypeName": "Regions/EndGame/Terminals/Green/FiskTower/AltRegions/DailyGFiskTowerRegionL60.prototype",
+      "tags": ["street", "sinister-six", "civil-war"]
+    },
+    {
+      "id": "aim-weapon-facility",
+      "displayName": "A.I.M. Weapon Facility",
+      "regionPrototypeName": "Regions/EndGame/Terminals/Green/AIMWeaponFacility/AltRegions/DailyGAIMWeaponFacilityRegionL60.prototype",
+      "tags": ["aim", "tech", "shield"]
+    },
+    {
+      "id": "hydra-island",
+      "displayName": "Hydra Island",
+      "regionPrototypeName": "Regions/EndGame/Terminals/Green/HYDRAIsland/AltRegions/DailyGHYDRAIslandRegionL60.prototype",
+      "tags": ["hydra", "secret-invasion", "shield"]
+    },
+    {
+      "id": "midtown",
+      "displayName": "Midtown Manhattan",
+      "regionPrototypeName": "Regions/EndGame/TierX/PatrolMidtown/AltRegions/XManhattanRegion60Cosmic.prototype",
+      "tags": ["street", "sinister-six", "civil-war", "secret-invasion"]
+    },
+    {
+      "id": "hightown",
+      "displayName": "Hightown Patrol",
+      "regionPrototypeName": "Regions/EndGame/TierX/PatrolHightown/AltRegions/UpperMadripoorRegionL60Cosmic.prototype",
+      "tags": ["secret-invasion", "cosmic", "street"]
+    },
+    {
+      "id": "asgard-estate",
+      "displayName": "Asgardian Estate",
+      "regionPrototypeName": "Regions/StoryRevamp/CH09Asgard/TreasureRooms/TRAsgardEstate/TREstateRegion.prototype",
+      "tags": ["asgard", "cosmic"]
+    }
+  ],
+  "themes": [
+    {
+      "id": "sinister-six",
+      "displayName": "Sinister Six",
+      "regionTags": ["sinister-six", "street"],
+      "targets": [
+        {
+          "id": "doctor-octopus",
+          "displayName": "Doctor Octopus",
+          "prototypeName": "Entity/Characters/Bosses/DangerRoom/DangerRoomDoctorOctopus.prototype",
+          "rewardTags": ["sinister-six", "artifact"]
+        },
+        {
+          "id": "electro",
+          "displayName": "Electro",
+          "prototypeName": "Entity/Characters/Bosses/DangerRoom/DangerRoomElectro.prototype",
+          "rewardTags": ["sinister-six", "artifact"]
+        },
+        {
+          "id": "vulture",
+          "displayName": "Vulture",
+          "prototypeName": "Entity/Characters/Bosses/PVEDailies/Green/EGD15GVulture.prototype",
+          "rewardTags": ["sinister-six", "artifact"]
+        },
+        {
+          "id": "venom",
+          "displayName": "Venom",
+          "prototypeName": "Entity/Characters/Bosses/DangerRoom/DangerRoomVenom.prototype",
+          "heroBased": true,
+          "rewardTags": ["sinister-six", "artifact", "hero-based"]
+        }
+      ]
+    },
+    {
+      "id": "hydra-aim",
+      "displayName": "HYDRA / A.I.M.",
+      "regionTags": ["hydra", "aim", "shield"],
+      "targets": [
+        {
+          "id": "madame-hydra",
+          "displayName": "Madame Hydra",
+          "prototypeName": "Entity/Characters/Bosses/DangerRoom/DangerRoomMadameHydra.prototype",
+          "rewardTags": ["hydra", "artifact"]
+        },
+        {
+          "id": "modok",
+          "displayName": "M.O.D.O.K.",
+          "prototypeName": "Entity/Characters/Bosses/DangerRoom/DangerRoomMODOK.prototype",
+          "rewardTags": ["aim", "artifact"]
+        },
+        {
+          "id": "living-laser",
+          "displayName": "Living Laser",
+          "prototypeName": "Entity/Characters/Bosses/DangerRoom/DangerRoomLivingLaser.prototype",
+          "rewardTags": ["aim", "artifact"]
+        },
+        {
+          "id": "crossbones",
+          "displayName": "Crossbones",
+          "prototypeName": "Entity/Characters/Bosses/CivilWar/CrossbonesCosmic.prototype",
+          "rewardTags": ["hydra", "artifact"]
+        }
+      ]
+    },
+    {
+      "id": "secret-invasion",
+      "displayName": "Secret Invasion",
+      "regionTags": ["secret-invasion"],
+      "targets": [
+        {
+          "id": "skrull-thor",
+          "displayName": "Skrull Thor",
+          "prototypeName": "Entity/Characters/Bosses/PatrolHightown/HightownEventSkrullThor.prototype",
+          "heroBased": true,
+          "rewardTags": ["secret-invasion", "hero-based", "cosmic"]
+        },
+        {
+          "id": "skrull-nick-fury",
+          "displayName": "Skrull Nick Fury",
+          "prototypeName": "Entity/Characters/Bosses/SecretInvasion/SkrullNickFury.prototype",
+          "heroBased": true,
+          "rewardTags": ["secret-invasion", "hero-based"]
+        },
+        {
+          "id": "avengers-war-skrull",
+          "displayName": "Avengers War Skrull",
+          "prototypeName": "Entity/Characters/Bosses/PatrolHightown/HightownEventAvengersWarskrull.prototype",
+          "heroBased": true,
+          "rewardTags": ["secret-invasion", "hero-based"]
+        },
+        {
+          "id": "cosmic-war-skrull",
+          "displayName": "Cosmic War Skrull",
+          "prototypeName": "Entity/Characters/Bosses/PatrolHightown/HightownEventCosmicWarskrull.prototype",
+          "heroBased": true,
+          "rewardTags": ["secret-invasion", "hero-based", "cosmic"]
+        }
+      ]
+    },
+    {
+      "id": "civil-war",
+      "displayName": "Civil War",
+      "regionTags": ["civil-war", "street"],
+      "targets": [
+        {
+          "id": "captain-america",
+          "displayName": "Captain America",
+          "prototypeName": "Entity/Characters/Bosses/CivilWar/CaptainAmerica.prototype",
+          "heroBased": true,
+          "rewardTags": ["civil-war", "hero-based"]
+        },
+        {
+          "id": "iron-man",
+          "displayName": "Iron Man",
+          "prototypeName": "Entity/Characters/Bosses/CivilWar/IronMan.prototype",
+          "heroBased": true,
+          "rewardTags": ["civil-war", "hero-based"]
+        },
+        {
+          "id": "taskmaster",
+          "displayName": "Taskmaster",
+          "prototypeName": "Entity/Characters/Bosses/DangerRoom/DangerRoomTaskmaster.prototype",
+          "rewardTags": ["civil-war", "artifact"]
+        }
+      ]
+    },
+    {
+      "id": "cosmic-asgard",
+      "displayName": "Cosmic / Asgard",
+      "regionTags": ["cosmic", "asgard"],
+      "targets": [
+        {
+          "id": "kurse",
+          "displayName": "Kurse",
+          "prototypeName": "Entity/Characters/Bosses/DangerRoom/DangerRoomKurse.prototype",
+          "rewardTags": ["asgard", "cosmic", "artifact"]
+        },
+        {
+          "id": "malekith-midtown",
+          "displayName": "Malekith",
+          "prototypeName": "Entity/Characters/Bosses/PatrolMidtown/MidtownEventMalekith.prototype",
+          "rewardTags": ["asgard", "cosmic", "artifact"]
+        },
+        {
+          "id": "mindless-titan",
+          "displayName": "Mindless Titan",
+          "prototypeName": "Entity/Characters/Bosses/PatrolHightown/HightownEventIncursionMindlessTitan.prototype",
+          "rewardTags": ["cosmic", "artifact"]
+        }
+      ]
+    }
+  ],
+  "rewards": [
+    {
+      "id": "baseline-boss-haul",
+      "minRank": 1,
+      "lootTablePrototypeNames": [
+        "Loot/Tables/Mob/Bosses/EndgameDailies/Subtables/SharedEndgameDailiesCosmicBUFFED.prototype"
+      ],
+      "guaranteedItems": [
+        {
+          "itemPrototypeRuntimeId": 5912986280991070161,
+          "quantity": 2,
+          "minRank": 1
+        }
+      ]
+    },
+    {
+      "id": "mid-rank-commendations",
+      "minRank": 4,
+      "guaranteedItems": [
+        {
+          "itemPrototypeRuntimeId": 2852929430040615658,
+          "quantity": 1,
+          "minRank": 4
+        },
+        {
+          "itemPrototypeRuntimeId": 5912986280991070161,
+          "quantity": 2,
+          "minRank": 4
+        }
+      ]
+    },
+    {
+      "id": "high-rank-cosmic-artifact-chase",
+      "minRank": 7,
+      "tags": ["artifact", "cosmic", "hero-based"],
+      "lootTablePrototypeNames": [
+        "Loot/Tables/Mob/Bosses/CosmicArtifactsTable.prototype"
+      ],
+      "guaranteedItems": [
+        {
+          "itemPrototypeRuntimeId": 2852929430040615658,
+          "quantity": 2,
+          "minRank": 7
+        },
+        {
+          "itemPrototypeRuntimeId": 5912986280991070161,
+          "quantity": 4,
+          "minRank": 7
+        }
+      ]
+    },
+    {
+      "id": "top-rank-boss-box",
+      "minRank": 9,
+      "lootTablePrototypeNames": [
+        "Loot/Tables/Mob/Bosses/EndgameDailies/Subtables/XDEFChestBuffed.prototype"
+      ],
+      "guaranteedItems": [
+        {
+          "itemPrototypeRuntimeId": 2852929430040615658,
+          "quantity": 3,
+          "minRank": 9
+        },
+        {
+          "itemPrototypeRuntimeId": 12632728816580106976,
+          "quantity": 5,
+          "minRank": 9
+        }
+      ]
+    }
+  ]
+}

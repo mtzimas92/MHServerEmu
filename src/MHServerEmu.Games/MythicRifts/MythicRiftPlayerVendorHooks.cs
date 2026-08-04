@@ -233,7 +233,7 @@ namespace MHServerEmu.Games.Entities
                 _initializedVendorTypeProtoRefs.Remove(vendorTypeProtoRef);
                 Game.ChatManager?.SendChatFromCustomSystem(
                     this,
-                    $"[Mythic Rift] Rift artifact vendor loaded. Rift Sigils={Game.MythicRiftManager.GetRiftSigilCount(this)}.",
+                    $"[Mythic Rift] Rift artifact vendor loaded. Champion's Commendations={Game.MythicRiftManager.GetRiftSigilCount(this)}.",
                     showSender: false);
             }
 

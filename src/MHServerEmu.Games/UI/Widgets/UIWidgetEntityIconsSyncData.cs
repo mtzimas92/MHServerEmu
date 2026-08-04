@@ -236,6 +236,44 @@ namespace MHServerEmu.Games.UI.Widgets
             if (update) UpdateUI();
         }
 
+        public bool TrackEntity(WorldEntity worldEntity, int entryIndex = 0)
+        {
+            if (worldEntity == null || Prototype?.Entities.IsNullOrEmpty() != false)
+                return false;
+
+            entryIndex = Math.Clamp(entryIndex, 0, Prototype.Entities.Length - 1);
+            UIWidgetEntityIconsEntryPrototype entryProto = GetEntryPrototypeByIndex(entryIndex);
+            if (entryProto == null)
+                return false;
+
+            FilterEntry filterEntry = _filterList.FirstOrDefault(filter => filter.Index == entryIndex);
+            if (filterEntry == null)
+            {
+                filterEntry = new()
+                {
+                    Index = entryIndex,
+                    KnownEntityDict = new()
+                };
+                _filterList.Add(filterEntry);
+            }
+
+            filterEntry.KnownEntityDict ??= new();
+            if (filterEntry.KnownEntityDict.TryGetValue(worldEntity.Id, out KnownEntityEntry entityEntry) == false)
+            {
+                entityEntry = new()
+                {
+                    EntityId = worldEntity.Id
+                };
+                filterEntry.KnownEntityDict.Add(worldEntity.Id, entityEntry);
+            }
+
+            entityEntry.State = worldEntity.IsDead ? UIWidgetEntityState.Dead : UIWidgetEntityState.Alive;
+            entityEntry.AttachWatcher(this, worldEntity);
+            UpdateKnownEntityTrackedProperties(worldEntity.Id, entityEntry, entryProto, PropertyId.Invalid);
+            UpdateUI();
+            return true;
+        }
+
         public override void OnKnownEntityPropertyChanged(PropertyId id)
         {
             UpdateKnownEntitiesTrackedProperties(id);

@@ -11,6 +11,10 @@
     "checkpointSuccessBonusSpecialPct":  0.15,
     "failureBonusRarityPct":  0,
     "failureBonusSpecialPct":  0,
+    "endlessCycleBonusRarityPctPerCycle":  0.015,
+    "endlessCycleBonusRarityPctCap":  0.15,
+    "endlessCycleBonusSpecialPctPerCycle":  0.015,
+    "endlessCycleBonusSpecialPctCap":  0.15,
     "defaultDelivery":  "ground",
     "completionCrafterUniqueRecipeCost":  100,
     "completionCrafterCosmicRecipeCost":  100,
@@ -2219,18 +2223,18 @@
 
                         ],
     "rewardShopOffers":  [
-                             {
-                                 "id":  "cosmic-artifact-sigil-vendor",
-                                 "displayName":  "Cosmic Artifact",
-                                 "description":  "Rotating concrete cosmic artifact stock for players who want targeted Rift progress instead of pure drop RNG.",
-                                 "enabled":  true,
-                                 "sigilCost":  450,
-                                 "prototypeDirectoryPrefix":  "Entity/Items/Artifacts/Prototypes/SpecialArtifacts/CosmicArtifacts",
-                                 "itemRolls":  3,
-                                 "itemLevel":  69,
-                                 "delivery":  "inventory"
-                             }
-                         ],
+                              {
+                                  "id":  "cosmic-artifact-commendation-vendor",
+                                  "displayName":  "Cosmic Artifact",
+                                  "description":  "Rotating concrete cosmic artifact stock for players who want targeted Rift progress instead of pure drop RNG.",
+                                  "enabled":  true,
+                                  "sigilCost":  450,
+                                  "prototypeDirectoryPrefix":  "Entity/Items/Artifacts/Prototypes/SpecialArtifacts/CosmicArtifacts",
+                                  "itemRolls":  3,
+                                  "itemLevel":  69,
+                                  "delivery":  "ground"
+                              }
+                          ],
     "guaranteedItems":  [
                             {
                                 "id":  "cube-shards-cosmic-rift-every-clear",
@@ -2466,293 +2470,7 @@
                                 "bossSourceIds":  [
 
                                                   ],
-                                "delivery":  "ground"
-                            },
-                            {
-                                "id":  "rift-sigils-cosmic-levels-1-19",
-                                "enabled":  true,
-                                "itemPrototypeRuntimeId":  2470498557584809493,
-                                "quantity":  4,
-                                "quantityMatchesRewardWave":  false,
-                                "cumulativeWaveQuantity":  false,
-                                "quantityCap":  0,
-                                "minRiftLevel":  1,
-                                "maxRiftLevel":  19,
-                                "minWave":  1,
-                                "maxWave":  0,
-                                "successOnly":  true,
-                                "checkpointOnly":  false,
-                                "classicOnly":  false,
-                                "modes":  [
-                                              "standard"
-                                          ],
-                                "contentIds":  [
-
-                                               ],
-                                "bossSourceIds":  [
-
-                                                  ],
-                                "delivery":  "ground"
-                            },
-                            {
-                                "id":  "rift-sigils-cosmic-levels-20-49",
-                                "enabled":  true,
-                                "itemPrototypeRuntimeId":  2470498557584809493,
-                                "quantity":  8,
-                                "quantityMatchesRewardWave":  false,
-                                "cumulativeWaveQuantity":  false,
-                                "quantityCap":  0,
-                                "minRiftLevel":  20,
-                                "maxRiftLevel":  49,
-                                "minWave":  1,
-                                "maxWave":  0,
-                                "successOnly":  true,
-                                "checkpointOnly":  false,
-                                "classicOnly":  false,
-                                "modes":  [
-                                              "standard"
-                                          ],
-                                "contentIds":  [
-
-                                               ],
-                                "bossSourceIds":  [
-
-                                                  ],
-                                "delivery":  "ground"
-                            },
-                            {
-                                "id":  "rift-sigils-cosmic-levels-50-69",
-                                "enabled":  true,
-                                "itemPrototypeRuntimeId":  2470498557584809493,
-                                "quantity":  12,
-                                "quantityMatchesRewardWave":  false,
-                                "cumulativeWaveQuantity":  false,
-                                "quantityCap":  0,
-                                "minRiftLevel":  50,
-                                "maxRiftLevel":  69,
-                                "minWave":  1,
-                                "maxWave":  0,
-                                "successOnly":  true,
-                                "checkpointOnly":  false,
-                                "classicOnly":  false,
-                                "modes":  [
-                                              "standard"
-                                          ],
-                                "contentIds":  [
-
-                                               ],
-                                "bossSourceIds":  [
-
-                                                  ],
-                                "delivery":  "ground"
-                            },
-                            {
-                                "id":  "rift-sigils-cosmic-levels-70-plus",
-                                "enabled":  true,
-                                "itemPrototypeRuntimeId":  2470498557584809493,
-                                "quantity":  16,
-                                "quantityMatchesRewardWave":  false,
-                                "cumulativeWaveQuantity":  false,
-                                "quantityCap":  0,
-                                "minRiftLevel":  70,
-                                "maxRiftLevel":  0,
-                                "minWave":  1,
-                                "maxWave":  0,
-                                "successOnly":  true,
-                                "checkpointOnly":  false,
-                                "classicOnly":  false,
-                                "modes":  [
-                                              "standard"
-                                          ],
-                                "contentIds":  [
-
-                                               ],
-                                "bossSourceIds":  [
-
-                                                  ],
-                                "delivery":  "ground"
-                            },
-                            {
-                                "id":  "rift-sigils-rift-gauntlet-wave-5",
-                                "enabled":  true,
-                                "itemPrototypeRuntimeId":  2470498557584809493,
-                                "quantity":  2,
-                                "quantityMatchesRewardWave":  false,
-                                "cumulativeWaveQuantity":  false,
-                                "quantityCap":  0,
-                                "minRiftLevel":  1,
-                                "maxRiftLevel":  0,
-                                "minWave":  5,
-                                "maxWave":  5,
-                                "successOnly":  true,
-                                "checkpointOnly":  false,
-                                "classicOnly":  false,
-                                "modes":  [
-                                              "rift-gauntlet"
-                                          ],
-                                "contentIds":  [
-
-                                               ],
-                                "bossSourceIds":  [
-
-                                                  ],
-                                "delivery":  "ground"
-                            },
-                            {
-                                "id":  "rift-sigils-rift-gauntlet-wave-10",
-                                "enabled":  true,
-                                "itemPrototypeRuntimeId":  2470498557584809493,
-                                "quantity":  4,
-                                "quantityMatchesRewardWave":  false,
-                                "cumulativeWaveQuantity":  false,
-                                "quantityCap":  0,
-                                "minRiftLevel":  1,
-                                "maxRiftLevel":  0,
-                                "minWave":  10,
-                                "maxWave":  10,
-                                "successOnly":  true,
-                                "checkpointOnly":  false,
-                                "classicOnly":  false,
-                                "modes":  [
-                                              "rift-gauntlet"
-                                          ],
-                                "contentIds":  [
-
-                                               ],
-                                "bossSourceIds":  [
-
-                                                  ],
-                                "delivery":  "ground"
-                            },
-                            {
-                                "id":  "rift-sigils-rift-gauntlet-wave-15",
-                                "enabled":  true,
-                                "itemPrototypeRuntimeId":  2470498557584809493,
-                                "quantity":  6,
-                                "quantityMatchesRewardWave":  false,
-                                "cumulativeWaveQuantity":  false,
-                                "quantityCap":  0,
-                                "minRiftLevel":  1,
-                                "maxRiftLevel":  0,
-                                "minWave":  15,
-                                "maxWave":  15,
-                                "successOnly":  true,
-                                "checkpointOnly":  false,
-                                "classicOnly":  false,
-                                "modes":  [
-                                              "rift-gauntlet"
-                                          ],
-                                "contentIds":  [
-
-                                               ],
-                                "bossSourceIds":  [
-
-                                                  ],
-                                "delivery":  "ground"
-                            },
-                            {
-                                "id":  "rift-sigils-rift-gauntlet-wave-20",
-                                "enabled":  true,
-                                "itemPrototypeRuntimeId":  2470498557584809493,
-                                "quantity":  8,
-                                "quantityMatchesRewardWave":  false,
-                                "cumulativeWaveQuantity":  false,
-                                "quantityCap":  0,
-                                "minRiftLevel":  1,
-                                "maxRiftLevel":  0,
-                                "minWave":  20,
-                                "maxWave":  20,
-                                "successOnly":  true,
-                                "checkpointOnly":  false,
-                                "classicOnly":  false,
-                                "modes":  [
-                                              "rift-gauntlet"
-                                          ],
-                                "contentIds":  [
-
-                                               ],
-                                "bossSourceIds":  [
-
-                                                  ],
-                                "delivery":  "ground"
-                            },
-                            {
-                                "id":  "rift-sigils-rift-gauntlet-wave-25",
-                                "enabled":  true,
-                                "itemPrototypeRuntimeId":  2470498557584809493,
-                                "quantity":  10,
-                                "quantityMatchesRewardWave":  false,
-                                "cumulativeWaveQuantity":  false,
-                                "quantityCap":  0,
-                                "minRiftLevel":  1,
-                                "maxRiftLevel":  0,
-                                "minWave":  25,
-                                "maxWave":  25,
-                                "successOnly":  true,
-                                "checkpointOnly":  false,
-                                "classicOnly":  false,
-                                "modes":  [
-                                              "rift-gauntlet"
-                                          ],
-                                "contentIds":  [
-
-                                               ],
-                                "bossSourceIds":  [
-
-                                                  ],
-                                "delivery":  "ground"
-                            },
-                            {
-                                "id":  "rift-sigils-rift-gauntlet-wave-30",
-                                "enabled":  true,
-                                "itemPrototypeRuntimeId":  2470498557584809493,
-                                "quantity":  15,
-                                "quantityMatchesRewardWave":  false,
-                                "cumulativeWaveQuantity":  false,
-                                "quantityCap":  0,
-                                "minRiftLevel":  1,
-                                "maxRiftLevel":  0,
-                                "minWave":  30,
-                                "maxWave":  30,
-                                "successOnly":  true,
-                                "checkpointOnly":  false,
-                                "classicOnly":  false,
-                                "modes":  [
-                                              "rift-gauntlet"
-                                          ],
-                                "contentIds":  [
-
-                                               ],
-                                "bossSourceIds":  [
-
-                                                  ],
-                                "delivery":  "ground"
-                            },
-                            {
-                                "id":  "rift-sigils-boss-gauntlet-survival",
-                                "enabled":  true,
-                                "itemPrototypeRuntimeId":  2470498557584809493,
-                                "quantity":  1,
-                                "quantityMatchesRewardWave":  true,
-                                "cumulativeWaveQuantity":  false,
-                                "quantityCap":  75,
-                                "minRiftLevel":  1,
-                                "maxRiftLevel":  0,
-                                "minWave":  5,
-                                "maxWave":  0,
-                                "successOnly":  false,
-                                "checkpointOnly":  false,
-                                "classicOnly":  false,
-                                "modes":  [
-                                              "boss-gauntlet"
-                                          ],
-                                "contentIds":  [
-
-                                               ],
-                                "bossSourceIds":  [
-
-                                                  ],
-                                "delivery":  "ground"
+                                "delivery":  "inventory"
                             },
                             {
                                 "id":  "champion-commendations-cosmic-levels-1-19",

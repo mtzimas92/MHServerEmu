@@ -1,0 +1,44 @@
+{
+  "18000000000000080300": {
+    "en_us": "S.H.I.E.L.D. Villain Intel Board: select a bounty, spend credits to post the contract, and intercept the target in the field."
+  },
+  "18000000000000080301": {
+    "en_us": "Reviewing active intel. Choose the target shown to post this bounty, or move to the next file."
+  },
+  "18000000000000080310": {
+    "en_us": "Review Bounties"
+  },
+  "18000000000000080311": {
+    "en_us": "Reroll Board"
+  },
+  "18000000000000080312": {
+    "en_us": "Next Bounty"
+  },
+  "18000000000000080313": {
+    "en_us": "Collect Rewards"
+  },
+  "18000000000000080320": {
+    "en_us": "Villain Intel Board rerolled."
+  },
+  "18000000000000080321": {
+    "en_us": "Bounty accepted. Deploying to target area."
+  },
+  "18000000000000080322": {
+    "en_us": "The bounty target has arrived."
+  },
+  "18000000000000080323": {
+    "en_us": "Bounty defeated. Rewards deployed."
+  },
+  "18000000000000080324": {
+    "en_us": "Villain Intel reward collected."
+  },
+  "18000000000000080325": {
+    "en_us": "Insufficient credits for this Villain Intel action."
+  },
+  "18000000000000080326": {
+    "en_us": "Villain Intel Board is unavailable."
+  },
+  "18000000000000080330": {
+    "en_us": "Post Bounty"
+  }
+}

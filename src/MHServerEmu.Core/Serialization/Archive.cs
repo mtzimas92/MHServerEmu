@@ -26,9 +26,10 @@ namespace MHServerEmu.Core.Serialization
         Initial = 9,
         AddedMissionEventInstance = 10,
         AddedEndlessRiftProgression = 11,
+        AddedEndlessRiftCycleCount = 12,
 
         // Update the current version if you add any    <---------
-        Current = AddedEndlessRiftProgression
+        Current = AddedEndlessRiftCycleCount
     }
 
     public enum GameBuildNumber : uint

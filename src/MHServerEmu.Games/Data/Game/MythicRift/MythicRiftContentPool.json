@@ -1,0 +1,713 @@
+{
+  "content": [
+    {
+      "id": "shocker",
+      "displayName": "Shocker Terminal",
+      "defaultKillQuota": 45,
+      "regionPrototypeName": "Regions/EndGame/Terminals/Green/ShockerSubway/AltRegions/DailyGShockerSubwayRegionL60.prototype",
+      "missionPrototypeName": "Missions/Prototypes/PVEEndgame/Dailies/Green/G01ShockerSubwayDailyEndgame.prototype",
+      "bossPrototypeName": "Entity/Characters/Bosses/PVEDailies/Green/EGD01GShocker.prototype",
+      "bossLootTablePrototypeName": "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/AbandonedSubway/ShockerTerminalLoot.prototype"
+    },
+    {
+      "id": "doctor-octopus",
+      "displayName": "Doctor Octopus Terminal",
+      "defaultKillQuota": 50,
+      "regionPrototypeName": "Regions/EndGame/Terminals/Green/KingpinsWarehouse/AltRegions/DailyGKPWarehouseRegionL60.prototype",
+      "missionPrototypeName": "Missions/Prototypes/PVEEndgame/Dailies/Green/G02DoctorOctopusDailyEndgame.prototype",
+      "bossPrototypeName": "Entity/Characters/Bosses/PVEDailies/Green/EGD02GDoctorOctopus.prototype",
+      "bossLootTablePrototypeName": "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/KingpinsWarehouse/DrOctopusTerminalLoot.prototype"
+    },
+    {
+      "id": "taskmaster",
+      "displayName": "Taskmaster Terminal",
+      "defaultKillQuota": 50,
+      "regionPrototypeName": "Regions/EndGame/Terminals/Green/Taskmaster/AltRegions/DailyGTaskmasterRegionL60.prototype",
+      "missionPrototypeName": "Missions/Prototypes/PVEEndgame/Dailies/Green/G03TaskmasterDailyEndgame.prototype",
+      "bossPrototypeName": "Entity/Characters/Bosses/PVEDailies/Green/EGD03GTaskmaster.prototype",
+      "bossLootTablePrototypeName": "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/TaskmasterInstitute/TaskmasterTerminalLoot.prototype"
+    },
+    {
+      "id": "hood",
+      "displayName": "Hood Terminal",
+      "defaultKillQuota": 55,
+      "regionPrototypeName": "Regions/EndGame/Terminals/Green/HoodsShip/AltRegions/DailyGHoodsShipRegionL60.prototype",
+      "missionPrototypeName": "Missions/Prototypes/PVEEndgame/Dailies/Green/G04HoodDailyEndgame.prototype",
+      "bossPrototypeName": "Entity/Characters/Bosses/PVEDailies/Green/EGD04GHood.prototype",
+      "bossLootTablePrototypeName": "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/HoodsHideout/HoodTerminalLoot.prototype"
+    },
+    {
+      "id": "magneto",
+      "displayName": "Magneto Terminal",
+      "defaultKillQuota": 60,
+      "regionPrototypeName": "Regions/EndGame/Terminals/Green/MagnetoBunker/AltRegions/DailyGStrykerBunkerRegionL60.prototype",
+      "missionPrototypeName": "Missions/Prototypes/PVEEndgame/Dailies/Green/G05MagnetoDailyEndgame.prototype",
+      "bossPrototypeName": "Entity/Characters/Bosses/PVEDailies/Green/EGD05GMagneto.prototype",
+      "bossLootTablePrototypeName": "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/StrykerCommandBunker/MagnetoTerminalLoot.prototype",
+      "randomMapEligible": false,
+      "randomBossEligible": false
+    },
+    {
+      "id": "sinister",
+      "displayName": "Mister Sinister Terminal",
+      "defaultKillQuota": 60,
+      "regionPrototypeName": "Regions/EndGame/Terminals/Green/SinistersLab/AltRegions/DailyGSinisterLabRegionL60.prototype",
+      "missionPrototypeName": "Missions/Prototypes/PVEEndgame/Dailies/Green/G06MisterSinisterDailyEndgame.prototype",
+      "bossPrototypeName": "Entity/Characters/Bosses/PVEDailies/Green/EGD06GMrSinister.prototype",
+      "bossLootTablePrototypeName": "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/SinisterLab/MisterSinisterTerminalLoot.prototype"
+    },
+    {
+      "id": "modok",
+      "displayName": "MODOK Terminal",
+      "defaultKillQuota": 60,
+      "regionPrototypeName": "Regions/EndGame/Terminals/Green/AIMFacility/AltRegions/DailyGAIMFacilityRegionL60.prototype",
+      "missionPrototypeName": "Missions/Prototypes/PVEEndgame/Dailies/Green/G07MODOKDailyEndgame.prototype",
+      "bossPrototypeName": "Entity/Characters/Bosses/PVEDailies/Green/EGD07GMODOK.prototype",
+      "bossLootTablePrototypeName": "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/AIMWeaponFacility/ModokTerminalLoot.prototype",
+      "randomMapEligible": true,
+      "randomBossEligible": false
+    },
+    {
+      "id": "mandarin",
+      "displayName": "Mandarin Terminal",
+      "defaultKillQuota": 65,
+      "regionPrototypeName": "Regions/EndGame/Terminals/Green/HYDRAIsland/AltRegions/DailyGHYDRAIslandRegionL60.prototype",
+      "missionPrototypeName": "Missions/Prototypes/PVEEndgame/Dailies/Green/G08MandarinDailyEndgame.prototype",
+      "bossPrototypeName": "Entity/Characters/Bosses/PVEDailies/Green/EGD08GMandarin.prototype",
+      "bossLootTablePrototypeName": "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/HydraIsland/MandarinTerminalLoot.prototype"
+    },
+    {
+      "id": "kingpin",
+      "displayName": "Kingpin Terminal",
+      "defaultKillQuota": 65,
+      "regionPrototypeName": "Regions/EndGame/Terminals/Green/FiskTower/AltRegions/DailyGFiskTowerRegionL60.prototype",
+      "missionPrototypeName": "Missions/Prototypes/PVEEndgame/Dailies/Green/G10FiskTowerDailyEndgame.prototype",
+      "bossPrototypeName": "Entity/Characters/Bosses/PVEDailies/Green/EGD10GKingpin.prototype",
+      "bossLootTablePrototypeName": "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/FiskTower/KingpinLTerminalLoot.prototype"
+    },
+    {
+      "id": "ultron",
+      "displayName": "Ultron Terminal",
+      "defaultKillQuota": 70,
+      "regionPrototypeName": "Regions/EndGame/Terminals/Green/TimesSquare/AltRegions/DailyGTimesSquareRegionL60.prototype",
+      "missionPrototypeName": "Missions/Prototypes/PVEEndgame/Dailies/Green/G14UltronDailyEndgame.prototype",
+      "bossPrototypeName": "Entity/Characters/Bosses/PVEDailies/Green/EGD14GUltronTerminal.prototype",
+      "bossLootTablePrototypeName": "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/TimesSquare/UltronTerminalLoot.prototype",
+      "randomMapEligible": false,
+      "randomBossEligible": false
+    },
+    {
+      "id": "boss-pyro",
+      "displayName": "Pyro",
+      "defaultKillQuota": 1,
+      "bossPrototypeName": "Entity/Characters/Bosses/PVEDailies/Green/EGD05GPyro.prototype",
+      "bossLootTablePrototypeName": "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/StrykerCommandBunker/MagnetoTerminalLoot.prototype",
+      "randomMapEligible": false
+    },
+    {
+      "id": "boss-aim-doctor-octopus",
+      "displayName": "A.I.M. Doctor Octopus",
+      "defaultKillQuota": 1,
+      "bossPrototypeName": "Entity/Characters/Bosses/PVEDailies/Green/EGD07GSBDoctorOctopus.prototype",
+      "bossLootTablePrototypeName": "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/AIMWeaponFacility/ModokTerminalLoot.prototype",
+      "randomMapEligible": false
+    },
+    {
+      "id": "boss-wizard",
+      "displayName": "Wizard",
+      "defaultKillQuota": 1,
+      "bossPrototypeName": "Entity/Characters/Bosses/PVEDailies/Green/EGD07GSBWizard.prototype",
+      "bossLootTablePrototypeName": "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/AIMWeaponFacility/ModokTerminalLoot.prototype",
+      "randomMapEligible": false
+    },
+    {
+      "id": "boss-bullseye",
+      "displayName": "Bullseye",
+      "defaultKillQuota": 1,
+      "bossPrototypeName": "Entity/Characters/Bosses/PVEDailies/Green/EGD10GSBBullseye.prototype",
+      "bossLootTablePrototypeName": "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/FiskTower/KingpinLTerminalLoot.prototype",
+      "randomMapEligible": false
+    },
+    {
+      "id": "boss-elektra",
+      "displayName": "Elektra",
+      "defaultKillQuota": 1,
+      "bossPrototypeName": "Entity/Characters/Bosses/PVEDailies/Green/EGD10GSBElektra.prototype",
+      "bossLootTablePrototypeName": "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/FiskTower/KingpinLTerminalLoot.prototype",
+      "randomMapEligible": false
+    },
+    {
+      "id": "boss-black-cat",
+      "displayName": "Black Cat",
+      "defaultKillQuota": 1,
+      "bossPrototypeName": "Entity/Characters/Bosses/PVEDailies/Green/EGDGSBBlackCat.prototype",
+      "bossLootTablePrototypeName": "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/KingpinsWarehouse/DrOctopusTerminalLoot.prototype",
+      "randomMapEligible": false
+    },
+    {
+      "id": "boss-blob",
+      "displayName": "Blob",
+      "defaultKillQuota": 1,
+      "bossPrototypeName": "Entity/Characters/Bosses/PVEDailies/Green/EGDGSBBlob.prototype",
+      "bossLootTablePrototypeName": "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/StrykerCommandBunker/MagnetoTerminalLoot.prototype",
+      "randomMapEligible": false
+    },
+    {
+      "id": "boss-green-goblin",
+      "displayName": "Green Goblin",
+      "defaultKillQuota": 1,
+      "bossPrototypeName": "Entity/Characters/Bosses/PVEDailies/Green/EGDGSBGreenGoblin.prototype",
+      "bossLootTablePrototypeName": "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/KingpinsWarehouse/DrOctopusTerminalLoot.prototype",
+      "randomMapEligible": false
+    },
+    {
+      "id": "boss-rhino",
+      "displayName": "Rhino",
+      "defaultKillQuota": 1,
+      "bossPrototypeName": "Entity/Characters/Bosses/PVEDailies/Green/EGDGSBRhino.prototype",
+      "bossLootTablePrototypeName": "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/AbandonedSubway/ShockerTerminalLoot.prototype",
+      "randomMapEligible": false
+    },
+    {
+      "id": "boss-venom",
+      "displayName": "Venom",
+      "defaultKillQuota": 1,
+      "bossPrototypeName": "Entity/Characters/Bosses/PVEDailies/Green/EGDGSBVenom.prototype",
+      "bossLootTablePrototypeName": "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/TaskmasterInstitute/TaskmasterTerminalLoot.prototype",
+      "randomMapEligible": false,
+      "randomBossEligible": false
+    },
+    {
+      "id": "boss-midtown-doctor-doom",
+      "displayName": "Doctor Doom",
+      "defaultKillQuota": 1,
+      "bossPrototypeName": "Entity/Characters/Bosses/PatrolMidtown/MidtownEventDoctorDoom.prototype",
+      "bossLootTablePrototypeName": "Loot/Tables/Mob/Bosses/PatrolMidtown/Subtable/SharedPatrolMidtownBossesCosmic.prototype",
+      "randomMapEligible": false
+    },
+    {
+      "id": "boss-midtown-electro",
+      "displayName": "Electro",
+      "defaultKillQuota": 1,
+      "bossPrototypeName": "Entity/Characters/Bosses/PatrolMidtown/MidtownEventElectro.prototype",
+      "bossLootTablePrototypeName": "Loot/Tables/Mob/Bosses/PatrolMidtown/Subtable/SharedPatrolMidtownBossesCosmic.prototype",
+      "randomMapEligible": false
+    },
+    {
+      "id": "boss-midtown-gorgon",
+      "displayName": "Gorgon",
+      "defaultKillQuota": 1,
+      "bossPrototypeName": "Entity/Characters/Bosses/PatrolMidtown/MidtownEventGorgon.prototype",
+      "bossLootTablePrototypeName": "Loot/Tables/Mob/Bosses/PatrolMidtown/Subtable/SharedPatrolMidtownBossesCosmic.prototype",
+      "randomMapEligible": false
+    },
+    {
+      "id": "boss-midtown-magneto",
+      "displayName": "Magneto",
+      "defaultKillQuota": 1,
+      "bossPrototypeName": "Entity/Characters/Bosses/PatrolMidtown/MidtownEventMagneto.prototype",
+      "bossLootTablePrototypeName": "Loot/Tables/Mob/Bosses/PatrolMidtown/Subtable/SharedPatrolMidtownBossesCosmic.prototype",
+      "randomMapEligible": false
+    },
+    {
+      "id": "boss-midtown-malekith",
+      "displayName": "Malekith",
+      "defaultKillQuota": 1,
+      "bossPrototypeName": "Entity/Characters/Bosses/PatrolMidtown/MidtownEventMalekith.prototype",
+      "bossLootTablePrototypeName": "Loot/Tables/Mob/Bosses/PatrolMidtown/Subtable/SharedPatrolMidtownBossesCosmic.prototype",
+      "randomMapEligible": false
+    },
+    {
+      "id": "boss-midtown-sentinel",
+      "displayName": "Sentinel",
+      "defaultKillQuota": 1,
+      "bossPrototypeName": "Entity/Characters/Bosses/PatrolMidtown/MidtownEventSentinel.prototype",
+      "bossLootTablePrototypeName": "Loot/Tables/Mob/Bosses/PatrolMidtown/Subtable/SharedPatrolMidtownBossesCosmic.prototype",
+      "randomMapEligible": false
+    },
+    {
+      "id": "boss-midtown-black-cat",
+      "displayName": "Black Cat",
+      "defaultKillQuota": 1,
+      "bossPrototypeName": "Entity/Characters/Bosses/PatrolMidtown/SideBosses/MidtownEventBlackCat.prototype",
+      "bossLootTablePrototypeName": "Loot/Tables/Mob/Bosses/PatrolMidtown/Subtable/SharedPatrolMidtownBossesCosmic.prototype",
+      "randomMapEligible": false
+    },
+    {
+      "id": "boss-midtown-mole-man",
+      "displayName": "Mole Man",
+      "defaultKillQuota": 1,
+      "bossPrototypeName": "Entity/Characters/Bosses/PatrolMidtown/SideBosses/MidtownEventMoleMan.prototype",
+      "bossLootTablePrototypeName": "Loot/Tables/Mob/Bosses/PatrolMidtown/Subtable/SharedPatrolMidtownBossesCosmic.prototype",
+      "randomMapEligible": false,
+      "randomBossEligible": false
+    },
+    {
+      "id": "boss-brooklyn-batroc",
+      "displayName": "Batroc",
+      "defaultKillQuota": 1,
+      "bossPrototypeName": "Entity/Characters/Bosses/PatrolBrooklyn/SideBosses/BrooklynEventBatroc.prototype",
+      "bossLootTablePrototypeName": "Loot/Tables/Mob/Bosses/PatrolBrooklyn/Subtable/SharedPatrolBrooklynBossesCosmic.prototype",
+      "randomMapEligible": false
+    },
+    {
+      "id": "boss-brooklyn-grim-reaper",
+      "displayName": "Grim Reaper",
+      "defaultKillQuota": 1,
+      "bossPrototypeName": "Entity/Characters/Bosses/PatrolBrooklyn/BrooklynEventGrimReaper.prototype",
+      "bossLootTablePrototypeName": "Loot/Tables/Mob/Bosses/PatrolBrooklyn/Subtable/SharedPatrolBrooklynBossesCosmic.prototype",
+      "randomMapEligible": false
+    },
+    {
+      "id": "boss-brooklyn-loki",
+      "displayName": "Loki",
+      "defaultKillQuota": 1,
+      "bossPrototypeName": "Entity/Characters/Bosses/PatrolBrooklyn/BrooklynEventLoki.prototype",
+      "bossLootTablePrototypeName": "Loot/Tables/Mob/Bosses/PatrolBrooklyn/Subtable/SharedPatrolBrooklynBossesCosmic.prototype",
+      "randomMapEligible": false,
+      "randomBossEligible": false
+    },
+    {
+      "id": "boss-brooklyn-mr-hyde",
+      "displayName": "Mister Hyde",
+      "defaultKillQuota": 1,
+      "bossPrototypeName": "Entity/Characters/Bosses/PatrolBrooklyn/SideBosses/BrooklynEventMrHyde.prototype",
+      "bossLootTablePrototypeName": "Loot/Tables/Mob/Bosses/PatrolBrooklyn/Subtable/SharedPatrolBrooklynBossesCosmic.prototype",
+      "randomMapEligible": false
+    },
+    {
+      "id": "boss-hightown-war-skrull",
+      "displayName": "War Skrull",
+      "defaultKillQuota": 1,
+      "bossPrototypeName": "Entity/Characters/Bosses/PatrolHightown/HightownEventAvengersWarskrull.prototype",
+      "bossLootTablePrototypeName": "Loot/Tables/Mob/Bosses/PatrolHightown/Subtable/SharedPatrolHightownBossesCosmic.prototype",
+      "randomMapEligible": false
+    },
+    {
+      "id": "boss-hightown-cosmic-war-skrull",
+      "displayName": "Cosmic War Skrull",
+      "defaultKillQuota": 1,
+      "bossPrototypeName": "Entity/Characters/Bosses/PatrolHightown/HightownEventCosmicWarskrull.prototype",
+      "bossLootTablePrototypeName": "Loot/Tables/Mob/Bosses/PatrolHightown/Subtable/SharedPatrolHightownBossesCosmic.prototype",
+      "randomMapEligible": false
+    },
+    {
+      "id": "boss-hightown-mindless-titan",
+      "displayName": "Mindless Titan",
+      "defaultKillQuota": 1,
+      "bossPrototypeName": "Entity/Characters/Bosses/PatrolHightown/HightownEventIncursionMindlessTitan.prototype",
+      "bossLootTablePrototypeName": "Loot/Tables/Mob/Bosses/PatrolHightown/Subtable/SharedPatrolHightownBossesCosmic.prototype",
+      "randomMapEligible": false
+    },
+    {
+      "id": "boss-hightown-skrull-kingpin",
+      "displayName": "Skrull Kingpin",
+      "defaultKillQuota": 1,
+      "bossPrototypeName": "Entity/Characters/Bosses/PatrolHightown/HightownEventIncursionSkrullKingpin.prototype",
+      "bossLootTablePrototypeName": "Loot/Tables/Mob/Bosses/PatrolHightown/Subtable/SharedPatrolHightownBossesCosmic.prototype",
+      "randomMapEligible": false
+    },
+    {
+      "id": "boss-hightown-skrull-thor",
+      "displayName": "Skrull Thor",
+      "defaultKillQuota": 1,
+      "bossPrototypeName": "Entity/Characters/Bosses/PatrolHightown/HightownEventSkrullThor.prototype",
+      "bossLootTablePrototypeName": "Loot/Tables/Mob/Bosses/PatrolHightown/Subtable/SharedPatrolHightownBossesCosmic.prototype",
+      "randomMapEligible": false
+    },
+    {
+      "id": "boss-dr-electro",
+      "displayName": "Electro",
+      "defaultKillQuota": 1,
+      "bossPrototypeName": "Entity/Characters/Bosses/DangerRoom/DangerRoomElectro.prototype",
+      "bossLootTablePrototypeName": "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/AIMWeaponFacility/ModokTerminalLoot.prototype",
+      "randomMapEligible": false
+    },
+    {
+      "id": "boss-dr-gorgon",
+      "displayName": "Gorgon",
+      "defaultKillQuota": 1,
+      "bossPrototypeName": "Entity/Characters/Bosses/DangerRoom/DangerRoomGorgon.prototype",
+      "bossLootTablePrototypeName": "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/HydraIsland/MandarinTerminalLoot.prototype",
+      "randomMapEligible": false
+    },
+    {
+      "id": "boss-dr-juggernaut",
+      "displayName": "Juggernaut",
+      "defaultKillQuota": 1,
+      "bossPrototypeName": "Entity/Characters/Bosses/DangerRoom/DangerRoomJuggernaut.prototype",
+      "bossLootTablePrototypeName": "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/StrykerCommandBunker/MagnetoTerminalLoot.prototype",
+      "randomMapEligible": false
+    },
+    {
+      "id": "boss-dr-kraven",
+      "displayName": "Kraven",
+      "defaultKillQuota": 1,
+      "bossPrototypeName": "Entity/Characters/Bosses/DangerRoom/DangerRoomKraven.prototype",
+      "bossLootTablePrototypeName": "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/TaskmasterInstitute/TaskmasterTerminalLoot.prototype",
+      "randomMapEligible": false
+    },
+    {
+      "id": "boss-dr-kurse",
+      "displayName": "Kurse",
+      "defaultKillQuota": 1,
+      "bossPrototypeName": "Entity/Characters/Bosses/DangerRoom/DangerRoomKurse.prototype",
+      "bossLootTablePrototypeName": "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/HydraIsland/MandarinTerminalLoot.prototype",
+      "randomMapEligible": false
+    },
+    {
+      "id": "boss-dr-living-laser",
+      "displayName": "Living Laser",
+      "defaultKillQuota": 1,
+      "bossPrototypeName": "Entity/Characters/Bosses/DangerRoom/DangerRoomLivingLaser.prototype",
+      "bossLootTablePrototypeName": "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/AIMWeaponFacility/ModokTerminalLoot.prototype",
+      "randomMapEligible": false
+    },
+    {
+      "id": "boss-dr-lizard",
+      "displayName": "Lizard",
+      "defaultKillQuota": 1,
+      "bossPrototypeName": "Entity/Characters/Bosses/DangerRoom/DangerRoomLizard.prototype",
+      "bossLootTablePrototypeName": "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/KingpinsWarehouse/DrOctopusTerminalLoot.prototype",
+      "randomMapEligible": false
+    },
+    {
+      "id": "boss-dr-madame-hydra",
+      "displayName": "Madame Hydra",
+      "defaultKillQuota": 1,
+      "bossPrototypeName": "Entity/Characters/Bosses/DangerRoom/DangerRoomMadameHydra.prototype",
+      "bossLootTablePrototypeName": "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/HydraIsland/MandarinTerminalLoot.prototype",
+      "randomMapEligible": false
+    },
+    {
+      "id": "boss-dr-magneto",
+      "displayName": "Magneto",
+      "defaultKillQuota": 1,
+      "bossPrototypeName": "Entity/Characters/Bosses/DangerRoom/DangerRoomMagneto.prototype",
+      "bossLootTablePrototypeName": "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/StrykerCommandBunker/MagnetoTerminalLoot.prototype",
+      "randomMapEligible": false
+    },
+    {
+      "id": "boss-dr-malekith",
+      "displayName": "Malekith",
+      "defaultKillQuota": 1,
+      "bossPrototypeName": "Entity/Characters/Bosses/DangerRoom/DangerRoomMalekith.prototype",
+      "bossLootTablePrototypeName": "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/HydraIsland/MandarinTerminalLoot.prototype",
+      "randomMapEligible": false,
+      "randomBossEligible": false
+    },
+    {
+      "id": "boss-dr-man-ape",
+      "displayName": "Man-Ape",
+      "defaultKillQuota": 1,
+      "bossPrototypeName": "Entity/Characters/Bosses/DangerRoom/DangerRoomManApe.prototype",
+      "bossLootTablePrototypeName": "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/HydraIsland/MandarinTerminalLoot.prototype",
+      "randomMapEligible": false
+    },
+    {
+      "id": "boss-dr-mega-sentinel",
+      "displayName": "Mega-Sentinel",
+      "defaultKillQuota": 1,
+      "bossPrototypeName": "Entity/Characters/Bosses/DangerRoom/DangerRoomMegaSentinel.prototype",
+      "bossLootTablePrototypeName": "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/AIMWeaponFacility/ModokTerminalLoot.prototype",
+      "randomMapEligible": false
+    },
+    {
+      "id": "boss-dr-mister-hyde",
+      "displayName": "Mister Hyde",
+      "defaultKillQuota": 1,
+      "bossPrototypeName": "Entity/Characters/Bosses/DangerRoom/DangerRoomMrHyde.prototype",
+      "bossLootTablePrototypeName": "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/KingpinsWarehouse/DrOctopusTerminalLoot.prototype",
+      "randomMapEligible": false
+    },
+    {
+      "id": "boss-dr-sabretooth",
+      "displayName": "Sabretooth",
+      "defaultKillQuota": 1,
+      "bossPrototypeName": "Entity/Characters/Bosses/DangerRoom/DangerRoomSabertooth.prototype",
+      "bossLootTablePrototypeName": "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/StrykerCommandBunker/MagnetoTerminalLoot.prototype",
+      "randomMapEligible": false
+    },
+    {
+      "id": "boss-dr-sauron",
+      "displayName": "Sauron",
+      "defaultKillQuota": 1,
+      "bossPrototypeName": "Entity/Characters/Bosses/DangerRoom/DangerRoomSauron.prototype",
+      "bossLootTablePrototypeName": "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/StrykerCommandBunker/MagnetoTerminalLoot.prototype",
+      "randomMapEligible": false
+    },
+    {
+      "id": "boss-dr-tombstone",
+      "displayName": "Tombstone",
+      "defaultKillQuota": 1,
+      "bossPrototypeName": "Entity/Characters/Bosses/DangerRoom/DangerRoomTombstone.prototype",
+      "bossLootTablePrototypeName": "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/FiskTower/KingpinLTerminalLoot.prototype",
+      "randomMapEligible": false
+    },
+    {
+      "id": "bronx-zoo",
+      "displayName": "Bronx Zoo",
+      "defaultKillQuota": 80,
+      "regionPrototypeName": "Regions/EndGame/OneShotMissions/NonChapterBound/BronxZoo/AltRegions/BronxZooRegionL60.prototype",
+      "randomBossEligible": false
+    },
+    {
+      "id": "wakanda-jungle",
+      "displayName": "Wakanda Jungle",
+      "defaultKillQuota": 65,
+      "regionPrototypeName": "Regions/EndGame/OneShotMissions/NonChapterBound/WakandaPart1/AltRegions/WakandaP1RegionL60.prototype",
+      "randomBossEligible": false
+    },
+    {
+      "id": "hydra-island-one-shot",
+      "displayName": "HYDRA Island One-Shot",
+      "defaultKillQuota": 65,
+      "regionPrototypeName": "Regions/EndGame/OneShotMissions/NonChapterBound/HydraIslandPartDeux/AltRegions/HYDRAIslandPartDeuxRegionL60.prototype",
+      "randomBossEligible": false
+    },
+    {
+      "id": "midtown-patrol",
+      "displayName": "Midtown Manhattan Patrol",
+      "defaultKillQuota": 75,
+      "regionPrototypeName": "Regions/EndGame/TierX/PatrolMidtown/AltRegions/XManhattanRegion60Cosmic.prototype",
+      "randomMapEligible": false,
+      "randomBossEligible": false,
+      "useCustomPopulation": true
+    },
+    {
+      "id": "brooklyn-patrol",
+      "displayName": "Industry City Patrol",
+      "defaultKillQuota": 75,
+      "regionPrototypeName": "Regions/EndGame/TierX/PatrolBrooklyn/AltRegions/BrooklynPatrolRegionL60Cosmic.prototype",
+      "randomMapEligible": false,
+      "randomBossEligible": false,
+      "useCustomPopulation": true
+    },
+    {
+      "id": "hightown-patrol",
+      "displayName": "Hightown Patrol",
+      "defaultKillQuota": 75,
+      "regionPrototypeName": "Regions/EndGame/TierX/PatrolHightown/AltRegions/UpperMadripoorRegionL60Cosmic.prototype",
+      "randomMapEligible": false,
+      "randomBossEligible": false,
+      "useCustomPopulation": true
+    },
+    {
+      "id": "savage-land-patrol",
+      "displayName": "Savage Land Patrol",
+      "defaultKillQuota": 75,
+      "regionPrototypeName": "Regions/EndGame/TierX/PatrolSavage/PatrolSavageRegion.prototype",
+      "randomMapEligible": false,
+      "randomBossEligible": false,
+      "useCustomPopulation": true
+    },
+    {
+      "id": "brooklyn-docks-story",
+      "displayName": "Brooklyn Docks",
+      "defaultKillQuota": 60,
+      "regionPrototypeName": "Regions/Story/CH02JerseyDocks/BrooklynRegion.prototype",
+      "randomMapEligible": false,
+      "randomBossEligible": false,
+      "useCustomPopulation": true
+    },
+    {
+      "id": "brooklyn-shipping-yard",
+      "displayName": "Brooklyn Shipping Yard",
+      "defaultKillQuota": 55,
+      "regionPrototypeName": "Regions/StoryRevamp/CH02JerseyDocks/CH0201ShippingYardRegion.prototype",
+      "randomMapEligible": false,
+      "randomBossEligible": false,
+      "useCustomPopulation": true
+    },
+    {
+      "id": "brooklyn-construction",
+      "displayName": "Brooklyn Construction Site",
+      "defaultKillQuota": 55,
+      "regionPrototypeName": "Regions/StoryRevamp/CH02JerseyDocks/CH0205ConstructionRegion.prototype",
+      "randomMapEligible": false,
+      "randomBossEligible": false,
+      "useCustomPopulation": true
+    },
+    {
+      "id": "brooklyn-cannery",
+      "displayName": "Brooklyn Cannery",
+      "defaultKillQuota": 55,
+      "regionPrototypeName": "Regions/StoryRevamp/CH02JerseyDocks/CH0208CanneryRegion.prototype",
+      "randomMapEligible": false,
+      "randomBossEligible": false,
+      "useCustomPopulation": true
+    },
+    {
+      "id": "upper-madripoor-story",
+      "displayName": "Upper Madripoor",
+      "defaultKillQuota": 75,
+      "regionPrototypeName": "Regions/Story/CH10SecretInvasion/UpperMadripoor/UpperMadripoorRegionL60.prototype",
+      "randomMapEligible": false,
+      "randomBossEligible": false,
+      "useCustomPopulation": true
+    },
+    {
+      "id": "holiday-midtown",
+      "displayName": "Holiday Midtown",
+      "defaultKillQuota": 75,
+      "regionPrototypeName": "Regions/EndGame/TierX/Seasonal/Christmas/Midtown/AVeryXManhattanXMasRegion01.prototype",
+      "randomMapEligible": false,
+      "randomBossEligible": false,
+      "isSpecialRandomMap": true,
+      "useCustomPopulation": true
+    },
+    {
+      "id": "holiday-industry-city",
+      "displayName": "Holiday Industry City",
+      "defaultKillQuota": 75,
+      "regionPrototypeName": "Regions/EndGame/TierX/Seasonal/Christmas/IndustryCity/BrooklynPatrolRegionWinterTest.prototype",
+      "randomMapEligible": false,
+      "randomBossEligible": false,
+      "isSpecialRandomMap": true,
+      "useCustomPopulation": true
+    },
+    {
+      "id": "dr-strange-times-square",
+      "displayName": "Doctor Strange Times Square",
+      "defaultKillQuota": 45,
+      "regionPrototypeName": "Regions/EndGame/StaticScenarios/DrStrangeEvent/Cosmic/DrStrangeTimesSquareRegionCosmic.prototype",
+      "randomBossEligible": false,
+      "isSpecialRandomMap": true,
+      "useCustomPopulation": true
+    },
+    {
+      "id": "march-to-axis",
+      "displayName": "March to Axis",
+      "defaultKillQuota": 75,
+      "regionPrototypeName": "Regions/RAIDS/AxisRaid/AxisRaidRegionGreen.prototype",
+      "randomMapEligible": false,
+      "randomBossEligible": false,
+      "isSpecialRandomMap": true,
+      "useCustomPopulation": true,
+      "minRandomRiftLevel": 15
+    },
+    {
+      "id": "muspelheim-raid",
+      "displayName": "Muspelheim Raid",
+      "defaultKillQuota": 75,
+      "regionPrototypeName": "Regions/RAIDS/MuspelheimRaid/SurturRaidRegionGreen.prototype",
+      "randomMapEligible": false,
+      "randomBossEligible": false,
+      "isSpecialRandomMap": true,
+      "useCustomPopulation": true,
+      "minRandomRiftLevel": 15
+    },
+    {
+      "id": "cosmic-doop-sector",
+      "displayName": "Cosmic Doop Sector",
+      "defaultKillQuota": 100,
+      "regionPrototypeName": "Regions/EndGame/Special/CosmicDoopSectorSpace/CosmicDoopSectorSpaceRegion.prototype",
+      "missionPrototypeName": "Missions/Prototypes/BonusMissions/OMDoopZone.prototype",
+      "bossPrototypeName": "Entity/Characters/Mobs/DoopAllChapters/CosmicDoop/CosmicDoopOverlord.prototype",
+      "bossLootTablePrototypeName": "Loot/Tables/Mob/NormalMobs/CosmicDoopOverlordTable.prototype",
+      "randomBossEligible": false,
+      "isSpecialRandomMap": true,
+      "useOwnBossSourceWhenSelected": true,
+      "minRandomRiftLevel": 25
+    },
+    {
+      "id": "boss-gauntlet-tutorial-arena",
+      "displayName": "Danger Room Tutorial Arena",
+      "defaultKillQuota": 1,
+      "regionPrototypeName": "Regions/EndGame/DangerRoomMode/UniqueScenarios/Tutorial/DRRegionUniqueTutorialFight.prototype",
+      "randomMapEligible": false,
+      "randomBossEligible": false,
+      "bossOnlyCheckpointEligible": true
+    },
+    {
+      "id": "sabretooth-showdown",
+      "displayName": "Sabretooth Showdown",
+      "defaultKillQuota": 45,
+      "regionPrototypeName": "Regions/StoryRevamp/CH07SavageLand/CH0705SabretoothShowdownRegion.prototype",
+      "randomMapEligible": false,
+      "randomBossEligible": false,
+      "bossOnlyCheckpointEligible": true
+    },
+    {
+      "id": "supervillain-rec-center",
+      "displayName": "Supervillain Rec Center",
+      "defaultKillQuota": 45,
+      "regionPrototypeName": "Regions/StoryRevamp/CH05MutantTown/CH0503SupervillainRecCenterRegion.prototype",
+      "randomMapEligible": false,
+      "randomBossEligible": false,
+      "bossOnlyCheckpointEligible": true
+    },
+    {
+      "id": "sc-kill-house",
+      "displayName": "Stryker Kill House",
+      "defaultKillQuota": 50,
+      "regionPrototypeName": "Regions/StoryRevamp/CH06FortStryker/TreasureRooms/TRKillHouse/SCKillHouseRegion.prototype",
+      "randomMapEligible": false,
+      "randomBossEligible": false,
+      "bossOnlyCheckpointEligible": true
+    },
+    {
+      "id": "sc-missile-silo",
+      "displayName": "Stryker Missile Silo",
+      "defaultKillQuota": 50,
+      "regionPrototypeName": "Regions/StoryRevamp/CH06FortStryker/TreasureRooms/TRMissileSilo/SCMissileSiloRegion.prototype",
+      "randomMapEligible": false,
+      "randomBossEligible": false,
+      "bossOnlyCheckpointEligible": true
+    },
+    {
+      "id": "sc-mineshaft",
+      "displayName": "Stryker Mineshaft",
+      "defaultKillQuota": 45,
+      "regionPrototypeName": "Regions/StoryRevamp/CH06FortStryker/TreasureRooms/TRMineshaft/SCMineshaftRegion.prototype",
+      "randomMapEligible": false,
+      "randomBossEligible": false,
+      "bossOnlyCheckpointEligible": true
+    },
+    {
+      "id": "sc-dino-graveyard",
+      "displayName": "Dino Graveyard",
+      "defaultKillQuota": 55,
+      "regionPrototypeName": "Regions/StoryRevamp/CH07SavageLand/TreasureRooms/TRDinoGraveyard/SCDinoGraveyardRegion.prototype",
+      "randomMapEligible": false,
+      "randomBossEligible": false,
+      "bossOnlyCheckpointEligible": true
+    },
+    {
+      "id": "sc-fire-swamp",
+      "displayName": "Fire Swamp",
+      "defaultKillQuota": 55,
+      "regionPrototypeName": "Regions/StoryRevamp/CH07SavageLand/TreasureRooms/TRFireSwamp/SCFireSwampRegion.prototype",
+      "randomMapEligible": false,
+      "randomBossEligible": false,
+      "bossOnlyCheckpointEligible": true
+    },
+    {
+      "id": "tr-asgard-estate",
+      "displayName": "Asgard Estate",
+      "defaultKillQuota": 45,
+      "regionPrototypeName": "Regions/StoryRevamp/CH09Asgard/TreasureRooms/TRAsgardEstate/TREstateRegion.prototype",
+      "randomMapEligible": false,
+      "randomBossEligible": false,
+      "bossOnlyCheckpointEligible": true
+    },
+    {
+      "id": "tr-norway-tomb",
+      "displayName": "Norway Tomb",
+      "defaultKillQuota": 45,
+      "regionPrototypeName": "Regions/StoryRevamp/CH09Asgard/TreasureRooms/TRNorwayTomb/TRTombRegion.prototype",
+      "randomMapEligible": false,
+      "randomBossEligible": false,
+      "bossOnlyCheckpointEligible": true
+    },
+    {
+      "id": "tr-sacred-dojo",
+      "displayName": "Sacred Dojo",
+      "defaultKillQuota": 40,
+      "regionPrototypeName": "Regions/StoryRevamp/CH03Madripoor/TreasureRooms/BambooForest/SacredDojo/TRSacredDojoRegion.prototype",
+      "randomMapEligible": false,
+      "randomBossEligible": false,
+      "bossOnlyCheckpointEligible": true
+    }
+  ]
+}

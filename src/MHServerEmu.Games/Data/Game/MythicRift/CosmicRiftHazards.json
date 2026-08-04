@@ -1,7 +1,7 @@
 {
   "profileName": "safe-keyword-hotspots-v2-lightweight",
   "enabled": true,
-  "useKeywordDiscovery": true,
+  "useKeywordDiscovery": false,
   "maxActiveHazards": 2,
   "spawnIntervalSeconds": 20,
   "durationSeconds": 6,

@@ -27,6 +27,10 @@ namespace MHServerEmu.Games.MythicRifts
         public float CheckpointSuccessBonusSpecialPct { get; set; } = 0.10f;
         public float FailureBonusRarityPct { get; set; } = 0f;
         public float FailureBonusSpecialPct { get; set; } = 0f;
+        public float EndlessCycleBonusRarityPctPerCycle { get; set; } = 0.015f;
+        public float EndlessCycleBonusRarityPctCap { get; set; } = 0.15f;
+        public float EndlessCycleBonusSpecialPctPerCycle { get; set; } = 0.015f;
+        public float EndlessCycleBonusSpecialPctCap { get; set; } = 0.15f;
         public string DefaultDelivery { get; set; } = "ground";
         public int CompletionCrafterUniqueRecipeCost { get; set; } = 100;
         public int CompletionCrafterCosmicRecipeCost { get; set; } = 100;
@@ -58,6 +62,10 @@ namespace MHServerEmu.Games.MythicRifts
             CheckpointSuccessBonusSpecialPct = Math.Max(CheckpointSuccessBonusSpecialPct, 0f);
             FailureBonusRarityPct = Math.Max(FailureBonusRarityPct, 0f);
             FailureBonusSpecialPct = Math.Max(FailureBonusSpecialPct, 0f);
+            EndlessCycleBonusRarityPctPerCycle = Math.Max(EndlessCycleBonusRarityPctPerCycle, 0f);
+            EndlessCycleBonusRarityPctCap = Math.Max(EndlessCycleBonusRarityPctCap, 0f);
+            EndlessCycleBonusSpecialPctPerCycle = Math.Max(EndlessCycleBonusSpecialPctPerCycle, 0f);
+            EndlessCycleBonusSpecialPctCap = Math.Max(EndlessCycleBonusSpecialPctCap, 0f);
             DefaultDelivery = NormalizeDelivery(DefaultDelivery);
             CompletionCrafterUniqueRecipeCost = Math.Max(CompletionCrafterUniqueRecipeCost, 0);
             CompletionCrafterCosmicRecipeCost = Math.Max(CompletionCrafterCosmicRecipeCost, 0);

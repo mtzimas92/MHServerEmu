@@ -25,6 +25,7 @@ using MHServerEmu.Games.Loot;
 using MHServerEmu.Games.MetaGames;
 using MHServerEmu.Games.Missions;
 using MHServerEmu.Games.MythicRifts;
+using MHServerEmu.Games.VillainIntelBoard;
 using MHServerEmu.Games.Navi;
 using MHServerEmu.Games.Network;
 using MHServerEmu.Games.Populations;
@@ -477,7 +478,10 @@ namespace MHServerEmu.Games.Regions
             CreatedTime = Clock.UnixTime;
 
             if (regionProto.DataRef == NPEAvengersTowerHUBRegionRef)
+            {
                 SpawnShannaPortalGuide();
+                VillainIntelBoardManager.SpawnBoardNpc(this);
+            }
 
             if (regionProto.DataRef == (PrototypeId)RegionPrototypeId.DangerRoomHubRegion)
                 MythicRiftScenarioVendorSpawner.SpawnDangerRoomScenarioVendor(this);

@@ -1,0 +1,9 @@
+{
+  "profileName": "default-affixes-v1",
+  "enabled": true,
+  "secondRegionAffixStartLevel": 30,
+  "thirdRegionAffixStartLevel": 70,
+  "secondBossAffixStartWave": 30,
+  "thirdBossAffixStartWave": 70,
+  "defaultAffixTablePrototypeName": "Regions/Affixes/RegionAffixTable.defaults"
+}

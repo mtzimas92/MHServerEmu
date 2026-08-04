@@ -17,7 +17,8 @@ namespace MHServerEmu.Games.MythicRifts
             PrototypeId riftContextRef,
             PrototypeId levelWidgetRef,
             PrototypeId quotaWidgetRef,
-            PrototypeId timerWidgetRef)
+            PrototypeId timerWidgetRef,
+            IReadOnlyCollection<(PrototypeId WidgetRef, PrototypeId ContextRef)> extraOwnedWidgets = null)
         {
             if (uiDataProvider == null || riftContextRef == PrototypeId.Invalid)
                 return 0;
@@ -45,7 +46,8 @@ namespace MHServerEmu.Games.MythicRifts
                     riftContextRef,
                     levelWidgetRef,
                     quotaWidgetRef,
-                    timerWidgetRef))
+                    timerWidgetRef) ||
+                    MythicRiftUiOwnership.IsRiftOwnedWidget(key.Item1, key.Item2, extraOwnedWidgets))
                 {
                     continue;
                 }

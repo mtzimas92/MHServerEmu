@@ -369,7 +369,7 @@ namespace MHServerEmu.Commands.Implementations
                 $"Rift Gauntlet: 30-wave boss milestone loop. Best for faster boss-focused farming; wave 30 resets this mode back to wave 1. Example wave 30 solo: bosses={MythicRiftScaling.GetThirtyWaveProfile(30).BossCount}, perBossHP x{gauntletWave30.HealthMultiplier:F2}, damage x{gauntletWave30.DamageMultiplier:F2}.",
                 $"Boss Gauntlet: single-arena endless survival. Bosses arrive sequentially with short rests; rewards pay out when the gauntlet ends. Example wave 30 solo: bosses={MythicRiftScaling.GetBossGauntletBossCount(30)}, HP x{bossWave30.HealthMultiplier:F2}, damage x{bossWave30.DamageMultiplier:F2}.",
                 $"Reward profile={game.MythicRiftManager.RewardTuning.ProfileName} | hazard profile={game.MythicRiftManager.HazardTuning.ProfileName} | randomMaps={game.MythicRiftManager.RandomMapEligibleContentPool.Count} | randomBossSources={game.MythicRiftManager.RandomBossEligibleContentPool.Count}",
-                "Useful checks: rift progression, rift level [mode], rift modifiers, rift rewardconfig, rift hazardconfig, rift rewardsim [mode] [start] [end] [players]."
+                "Useful checks: rift progression, rift level [mode], rift modifiers, rift contentpool, rift rewardconfig, rift affixconfig, rift hazardconfig, rift rewardsim [mode] [start] [end] [players]."
             };
 
             CommandHelper.SendMessages(client, lines);
@@ -1814,7 +1814,9 @@ namespace MHServerEmu.Commands.Implementations
                 int cosmicSelectedLevel = game.MythicRiftManager.GetPreferredLaunchRiftLevel(player.DatabaseUniqueId, MythicRiftMode.Standard);
                 int endlessUnlockedLevel = game.MythicRiftManager.GetHighestUnlockedRiftLevel(player.DatabaseUniqueId, MythicRiftMode.Endless);
                 int endlessSelectedLevel = game.MythicRiftManager.GetPreferredLaunchRiftLevel(player.DatabaseUniqueId, MythicRiftMode.Endless);
-                return $"No active Cosmic Rift run. Cosmic: highest={cosmicUnlockedLevel}, next={cosmicSelectedLevel}. Rift Gauntlet: highest={endlessUnlockedLevel}, next={endlessSelectedLevel}. Boss Gauntlet has no persisted progression. Use `rift level [level|max]` for Cosmic or `rift level gauntlet [level|max]` for Rift Gauntlet.";
+                int endlessCycles = game.MythicRiftManager.GetCompletedEndlessCycles(player.DatabaseUniqueId);
+                (float cycleBonusRarity, float cycleBonusSpecial) = game.MythicRiftManager.GetEndlessCycleBonus(player.DatabaseUniqueId);
+                return $"No active Cosmic Rift run. Cosmic: highest={cosmicUnlockedLevel}, next={cosmicSelectedLevel}. Rift Gauntlet: highest={endlessUnlockedLevel}, next={endlessSelectedLevel}, completedCycles={endlessCycles}, cycleBonus=RIF+{cycleBonusRarity:P1}/SIF+{cycleBonusSpecial:P1}. Boss Gauntlet has no persisted progression. Use `rift level [level|max]` for Cosmic or `rift level gauntlet [level|max]` for Rift Gauntlet.";
             }
 
             CommandHelper.SendMessages(client, BuildRunLines(runState, game.CurrentTime, includeResolvedRefs: false));
@@ -2162,6 +2164,35 @@ namespace MHServerEmu.Commands.Implementations
                 : $"Run not found: {runId}";
         }
 
+        [Command("contentpool")]
+        [CommandDescription("Displays or reloads the server-side Mythic Rift content pool file.")]
+        [CommandUsage("rift contentpool [reload]")]
+        [CommandUserLevel(AccountUserLevel.Admin)]
+        [CommandInvokerType(CommandInvokerType.Client)]
+        public string ContentPool(string[] @params, NetClient client)
+        {
+            PlayerConnection playerConnection = (PlayerConnection)client;
+            Game game = playerConnection?.Game;
+            if (game == null)
+                return "Game not found.";
+
+            if (@params.Length > 0)
+            {
+                string action = @params[0];
+                if (string.Equals(action, "reload", StringComparison.OrdinalIgnoreCase))
+                {
+                    bool loaded = game.MythicRiftManager.TryReloadContentPool(out string reloadMessage);
+                    return loaded
+                        ? $"Content pool reload OK: {reloadMessage}"
+                        : $"Content pool reload FAILED: {reloadMessage}";
+                }
+
+                return "Unknown contentpool action. Use `rift contentpool` or `rift contentpool reload`.";
+            }
+
+            return $"{game.MythicRiftManager.ContentPoolLastLoadMessage} entries={game.MythicRiftManager.ContentPool.Count}. Use `rift list` and `rift validatecontent` for entry details.";
+        }
+
         [Command("rewardconfig")]
         [CommandDescription("Displays or reloads the server-side Cosmic Rift reward tuning file.")]
         [CommandUsage("rift rewardconfig [reload]")]
@@ -2190,6 +2221,37 @@ namespace MHServerEmu.Commands.Implementations
             }
 
             CommandHelper.SendMessages(client, game.MythicRiftManager.BuildRewardTuningDiagnostics());
+            return string.Empty;
+        }
+
+        [Command("affixconfig")]
+        [CommandDescription("Displays or reloads the server-side Cosmic Rift affix tuning file.")]
+        [CommandUsage("rift affixconfig [reload]")]
+        [CommandUserLevel(AccountUserLevel.Admin)]
+        [CommandInvokerType(CommandInvokerType.Client)]
+        public string AffixConfig(string[] @params, NetClient client)
+        {
+            PlayerConnection playerConnection = (PlayerConnection)client;
+            Game game = playerConnection?.Game;
+            if (game == null)
+                return "Game not found.";
+
+            if (@params.Length > 0)
+            {
+                string action = @params[0];
+                if (string.Equals(action, "reload", StringComparison.OrdinalIgnoreCase))
+                {
+                    bool loaded = game.MythicRiftManager.TryReloadAffixTuning(out string reloadMessage);
+                    List<string> reloadLines = game.MythicRiftManager.BuildAffixTuningDiagnostics();
+                    reloadLines.Insert(0, loaded ? $"Affix tuning reload OK: {reloadMessage}" : $"Affix tuning reload FAILED: {reloadMessage}");
+                    CommandHelper.SendMessages(client, reloadLines);
+                    return string.Empty;
+                }
+
+                return "Unknown affixconfig action. Use `rift affixconfig` or `rift affixconfig reload`.";
+            }
+
+            CommandHelper.SendMessages(client, game.MythicRiftManager.BuildAffixTuningDiagnostics());
             return string.Empty;
         }
 

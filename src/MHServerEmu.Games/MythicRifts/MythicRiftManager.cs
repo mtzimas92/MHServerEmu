@@ -68,10 +68,6 @@ namespace MHServerEmu.Games.MythicRifts
         private const int RiftPopulationRespawnDelayMS = 20000;
         private const int RecentRandomMapHistoryLimit = 4;
         private const int RecentRandomBossFamilyHistoryLimit = 8;
-        private const int RiftSecondRegionAffixStartLevel = 30;
-        private const int RiftThirdRegionAffixStartLevel = 70;
-        private const int BossGauntletSecondBossAffixStartWave = 30;
-        private const int BossGauntletThirdBossAffixStartWave = 70;
         private const ulong RiftEntryBannerLocaleStringBase = 18000000000000000000UL;
         private const int RiftEntryBannerLocalizedLevelLimit = 10000;
         private const int RiftEntryBannerTimeToLiveMS = 5000;
@@ -101,14 +97,16 @@ namespace MHServerEmu.Games.MythicRifts
         private static readonly PrototypeId RiftDangerRoomTimerWidgetPrototypeRef = (PrototypeId)15369535438503023451UL;
         private const string RiftExitPortalPrototypeName = "Entity/Transitions/ReturnToLastBaseDR.prototype";
         private const string RiftRewardChestPrototypeName = "Entity/Props/Chests/DangerRoomChestTutorialRewardEntity.prototype";
-        private const string DefaultRiftAffixTablePrototypeName = "Regions/Affixes/RegionAffixTable.defaults";
         private const string RiftCompletionVendorPrototypeName = "Entity/Characters/Vendors/Prototypes/Endgame/DangerRoomRewardsVendor.prototype";
         private const string RiftCompletionArtifactVendorTypePrototypeName = "Entity/Characters/Vendors/VendorTypes/VendorDangerRoomRewards.prototype";
         private const string RiftCompletionCrafterTypePrototypeName = "Entity/Characters/Vendors/VendorTypes/TestVendorCrafter.prototype";
         private static readonly PrototypeId RiftCompletionCrafterRecipePrototypeRef = (PrototypeId)9691334961261451315UL;
         private const string RiftCompletionCrafterCosmicRecipePrototypeName = "Entity/Items/Crafting/Recipes/Tab3Gear/RerollCosmicReplacement.prototype";
-        private static readonly PrototypeId RiftSigilCurrencyItemPrototypeRef = (PrototypeId)2470498557584809493UL;
-        private const string RiftSigilCurrencyPrototypeName = "Entity/Items/CurrencyItems/CurrencyPrototypes/TestCurrency.prototype";
+        // One place to switch the post-run artifact vendor economy if we later decide to split it
+        // from the completion crafter. Currently both use Genosha/Champion's Commendations.
+        private static readonly PrototypeId RiftArtifactVendorCurrencyItemPrototypeRef = (PrototypeId)2852929430040615658UL;
+        private const string RiftArtifactVendorCurrencyPrototypeName = "Entity/Items/CurrencyItems/CurrencyPrototypes/GenoshaRaidCurrency.prototype";
+        private const string RiftArtifactVendorCurrencyDisplayName = "Champion's Commendations";
         private const int RiftCompletionCrafterAttemptsPerRun = 3;
         private const float RiftCompletionCrafterUpgradeChance = 0.30f;
         private const int RiftCompletionCrafterMinimumItemLevel = 69;
@@ -145,807 +143,6 @@ namespace MHServerEmu.Games.MythicRifts
             "Entity/Characters/Mobs/EndGameRandoms01/RaptorEG04.prototype",
             "Entity/Characters/Mobs/EndGameRandoms01/MoloidEG01.prototype"
         };
-        private static readonly MythicRiftContentDefinition[] DefaultContentDefinitions =
-        {
-            new(
-                "shocker",
-                "Shocker Terminal",
-                45,
-                "Regions/EndGame/Terminals/Green/ShockerSubway/AltRegions/DailyGShockerSubwayRegionL60.prototype",
-                "Missions/Prototypes/PVEEndgame/Dailies/Green/G01ShockerSubwayDailyEndgame.prototype",
-                "Entity/Characters/Bosses/PVEDailies/Green/EGD01GShocker.prototype",
-                "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/AbandonedSubway/ShockerTerminalLoot.prototype"),
-            new(
-                "doctor-octopus",
-                "Doctor Octopus Terminal",
-                50,
-                "Regions/EndGame/Terminals/Green/KingpinsWarehouse/AltRegions/DailyGKPWarehouseRegionL60.prototype",
-                "Missions/Prototypes/PVEEndgame/Dailies/Green/G02DoctorOctopusDailyEndgame.prototype",
-                "Entity/Characters/Bosses/PVEDailies/Green/EGD02GDoctorOctopus.prototype",
-                "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/KingpinsWarehouse/DrOctopusTerminalLoot.prototype"),
-            new(
-                "taskmaster",
-                "Taskmaster Terminal",
-                50,
-                "Regions/EndGame/Terminals/Green/Taskmaster/AltRegions/DailyGTaskmasterRegionL60.prototype",
-                "Missions/Prototypes/PVEEndgame/Dailies/Green/G03TaskmasterDailyEndgame.prototype",
-                "Entity/Characters/Bosses/PVEDailies/Green/EGD03GTaskmaster.prototype",
-                "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/TaskmasterInstitute/TaskmasterTerminalLoot.prototype"),
-            new(
-                "hood",
-                "Hood Terminal",
-                55,
-                "Regions/EndGame/Terminals/Green/HoodsShip/AltRegions/DailyGHoodsShipRegionL60.prototype",
-                "Missions/Prototypes/PVEEndgame/Dailies/Green/G04HoodDailyEndgame.prototype",
-                "Entity/Characters/Bosses/PVEDailies/Green/EGD04GHood.prototype",
-                "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/HoodsHideout/HoodTerminalLoot.prototype"),
-            new(
-                "magneto",
-                "Magneto Terminal",
-                60,
-                "Regions/EndGame/Terminals/Green/MagnetoBunker/AltRegions/DailyGStrykerBunkerRegionL60.prototype",
-                "Missions/Prototypes/PVEEndgame/Dailies/Green/G05MagnetoDailyEndgame.prototype",
-                "Entity/Characters/Bosses/PVEDailies/Green/EGD05GMagneto.prototype",
-                "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/StrykerCommandBunker/MagnetoTerminalLoot.prototype",
-                RandomMapEligible: false,
-                RandomBossEligible: false),
-            new(
-                "sinister",
-                "Mister Sinister Terminal",
-                60,
-                "Regions/EndGame/Terminals/Green/SinistersLab/AltRegions/DailyGSinisterLabRegionL60.prototype",
-                "Missions/Prototypes/PVEEndgame/Dailies/Green/G06MisterSinisterDailyEndgame.prototype",
-                "Entity/Characters/Bosses/PVEDailies/Green/EGD06GMrSinister.prototype",
-                "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/SinisterLab/MisterSinisterTerminalLoot.prototype"),
-            new(
-                "modok",
-                "MODOK Terminal",
-                60,
-                "Regions/EndGame/Terminals/Green/AIMFacility/AltRegions/DailyGAIMFacilityRegionL60.prototype",
-                "Missions/Prototypes/PVEEndgame/Dailies/Green/G07MODOKDailyEndgame.prototype",
-                "Entity/Characters/Bosses/PVEDailies/Green/EGD07GMODOK.prototype",
-                "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/AIMWeaponFacility/ModokTerminalLoot.prototype",
-                RandomMapEligible: true,
-                RandomBossEligible: false),
-            new(
-                "mandarin",
-                "Mandarin Terminal",
-                65,
-                "Regions/EndGame/Terminals/Green/HYDRAIsland/AltRegions/DailyGHYDRAIslandRegionL60.prototype",
-                "Missions/Prototypes/PVEEndgame/Dailies/Green/G08MandarinDailyEndgame.prototype",
-                "Entity/Characters/Bosses/PVEDailies/Green/EGD08GMandarin.prototype",
-                "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/HydraIsland/MandarinTerminalLoot.prototype"),
-            new(
-                "kingpin",
-                "Kingpin Terminal",
-                65,
-                "Regions/EndGame/Terminals/Green/FiskTower/AltRegions/DailyGFiskTowerRegionL60.prototype",
-                "Missions/Prototypes/PVEEndgame/Dailies/Green/G10FiskTowerDailyEndgame.prototype",
-                "Entity/Characters/Bosses/PVEDailies/Green/EGD10GKingpin.prototype",
-                "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/FiskTower/KingpinLTerminalLoot.prototype"),
-            new(
-                "ultron",
-                "Ultron Terminal",
-                70,
-                "Regions/EndGame/Terminals/Green/TimesSquare/AltRegions/DailyGTimesSquareRegionL60.prototype",
-                "Missions/Prototypes/PVEEndgame/Dailies/Green/G14UltronDailyEndgame.prototype",
-                "Entity/Characters/Bosses/PVEDailies/Green/EGD14GUltronTerminal.prototype",
-                "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/TimesSquare/UltronTerminalLoot.prototype",
-                RandomMapEligible: false,
-                RandomBossEligible: false),
-            new(
-                "boss-pyro",
-                "Pyro",
-                1,
-                null,
-                null,
-                "Entity/Characters/Bosses/PVEDailies/Green/EGD05GPyro.prototype",
-                "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/StrykerCommandBunker/MagnetoTerminalLoot.prototype",
-                RandomMapEligible: false),
-            new(
-                "boss-aim-doctor-octopus",
-                "A.I.M. Doctor Octopus",
-                1,
-                null,
-                null,
-                "Entity/Characters/Bosses/PVEDailies/Green/EGD07GSBDoctorOctopus.prototype",
-                "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/AIMWeaponFacility/ModokTerminalLoot.prototype",
-                RandomMapEligible: false),
-            new(
-                "boss-wizard",
-                "Wizard",
-                1,
-                null,
-                null,
-                "Entity/Characters/Bosses/PVEDailies/Green/EGD07GSBWizard.prototype",
-                "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/AIMWeaponFacility/ModokTerminalLoot.prototype",
-                RandomMapEligible: false),
-            new(
-                "boss-bullseye",
-                "Bullseye",
-                1,
-                null,
-                null,
-                "Entity/Characters/Bosses/PVEDailies/Green/EGD10GSBBullseye.prototype",
-                "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/FiskTower/KingpinLTerminalLoot.prototype",
-                RandomMapEligible: false),
-            new(
-                "boss-elektra",
-                "Elektra",
-                1,
-                null,
-                null,
-                "Entity/Characters/Bosses/PVEDailies/Green/EGD10GSBElektra.prototype",
-                "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/FiskTower/KingpinLTerminalLoot.prototype",
-                RandomMapEligible: false),
-            new(
-                "boss-black-cat",
-                "Black Cat",
-                1,
-                null,
-                null,
-                "Entity/Characters/Bosses/PVEDailies/Green/EGDGSBBlackCat.prototype",
-                "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/KingpinsWarehouse/DrOctopusTerminalLoot.prototype",
-                RandomMapEligible: false),
-            new(
-                "boss-blob",
-                "Blob",
-                1,
-                null,
-                null,
-                "Entity/Characters/Bosses/PVEDailies/Green/EGDGSBBlob.prototype",
-                "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/StrykerCommandBunker/MagnetoTerminalLoot.prototype",
-                RandomMapEligible: false),
-            new(
-                "boss-green-goblin",
-                "Green Goblin",
-                1,
-                null,
-                null,
-                "Entity/Characters/Bosses/PVEDailies/Green/EGDGSBGreenGoblin.prototype",
-                "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/KingpinsWarehouse/DrOctopusTerminalLoot.prototype",
-                RandomMapEligible: false),
-            new(
-                "boss-rhino",
-                "Rhino",
-                1,
-                null,
-                null,
-                "Entity/Characters/Bosses/PVEDailies/Green/EGDGSBRhino.prototype",
-                "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/AbandonedSubway/ShockerTerminalLoot.prototype",
-                RandomMapEligible: false),
-            new(
-                "boss-venom",
-                "Venom",
-                1,
-                null,
-                null,
-                "Entity/Characters/Bosses/PVEDailies/Green/EGDGSBVenom.prototype",
-                "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/TaskmasterInstitute/TaskmasterTerminalLoot.prototype",
-                RandomMapEligible: false,
-                RandomBossEligible: false),
-            new(
-                "boss-midtown-doctor-doom",
-                "Doctor Doom",
-                1,
-                null,
-                null,
-                "Entity/Characters/Bosses/PatrolMidtown/MidtownEventDoctorDoom.prototype",
-                "Loot/Tables/Mob/Bosses/PatrolMidtown/Subtable/SharedPatrolMidtownBossesCosmic.prototype",
-                RandomMapEligible: false),
-            new(
-                "boss-midtown-electro",
-                "Electro",
-                1,
-                null,
-                null,
-                "Entity/Characters/Bosses/PatrolMidtown/MidtownEventElectro.prototype",
-                "Loot/Tables/Mob/Bosses/PatrolMidtown/Subtable/SharedPatrolMidtownBossesCosmic.prototype",
-                RandomMapEligible: false),
-            new(
-                "boss-midtown-gorgon",
-                "Gorgon",
-                1,
-                null,
-                null,
-                "Entity/Characters/Bosses/PatrolMidtown/MidtownEventGorgon.prototype",
-                "Loot/Tables/Mob/Bosses/PatrolMidtown/Subtable/SharedPatrolMidtownBossesCosmic.prototype",
-                RandomMapEligible: false),
-            new(
-                "boss-midtown-magneto",
-                "Magneto",
-                1,
-                null,
-                null,
-                "Entity/Characters/Bosses/PatrolMidtown/MidtownEventMagneto.prototype",
-                "Loot/Tables/Mob/Bosses/PatrolMidtown/Subtable/SharedPatrolMidtownBossesCosmic.prototype",
-                RandomMapEligible: false),
-            new(
-                "boss-midtown-malekith",
-                "Malekith",
-                1,
-                null,
-                null,
-                "Entity/Characters/Bosses/PatrolMidtown/MidtownEventMalekith.prototype",
-                "Loot/Tables/Mob/Bosses/PatrolMidtown/Subtable/SharedPatrolMidtownBossesCosmic.prototype",
-                RandomMapEligible: false),
-            new(
-                "boss-midtown-sentinel",
-                "Sentinel",
-                1,
-                null,
-                null,
-                "Entity/Characters/Bosses/PatrolMidtown/MidtownEventSentinel.prototype",
-                "Loot/Tables/Mob/Bosses/PatrolMidtown/Subtable/SharedPatrolMidtownBossesCosmic.prototype",
-                RandomMapEligible: false),
-            new(
-                "boss-midtown-black-cat",
-                "Black Cat",
-                1,
-                null,
-                null,
-                "Entity/Characters/Bosses/PatrolMidtown/SideBosses/MidtownEventBlackCat.prototype",
-                "Loot/Tables/Mob/Bosses/PatrolMidtown/Subtable/SharedPatrolMidtownBossesCosmic.prototype",
-                RandomMapEligible: false),
-            new(
-                "boss-midtown-mole-man",
-                "Mole Man",
-                1,
-                null,
-                null,
-                "Entity/Characters/Bosses/PatrolMidtown/SideBosses/MidtownEventMoleMan.prototype",
-                "Loot/Tables/Mob/Bosses/PatrolMidtown/Subtable/SharedPatrolMidtownBossesCosmic.prototype",
-                RandomMapEligible: false,
-                RandomBossEligible: false),
-            new(
-                "boss-brooklyn-batroc",
-                "Batroc",
-                1,
-                null,
-                null,
-                "Entity/Characters/Bosses/PatrolBrooklyn/SideBosses/BrooklynEventBatroc.prototype",
-                "Loot/Tables/Mob/Bosses/PatrolBrooklyn/Subtable/SharedPatrolBrooklynBossesCosmic.prototype",
-                RandomMapEligible: false),
-            new(
-                "boss-brooklyn-grim-reaper",
-                "Grim Reaper",
-                1,
-                null,
-                null,
-                "Entity/Characters/Bosses/PatrolBrooklyn/BrooklynEventGrimReaper.prototype",
-                "Loot/Tables/Mob/Bosses/PatrolBrooklyn/Subtable/SharedPatrolBrooklynBossesCosmic.prototype",
-                RandomMapEligible: false),
-            new(
-                "boss-brooklyn-loki",
-                "Loki",
-                1,
-                null,
-                null,
-                "Entity/Characters/Bosses/PatrolBrooklyn/BrooklynEventLoki.prototype",
-                "Loot/Tables/Mob/Bosses/PatrolBrooklyn/Subtable/SharedPatrolBrooklynBossesCosmic.prototype",
-                RandomMapEligible: false,
-                RandomBossEligible: false),
-            new(
-                "boss-brooklyn-mr-hyde",
-                "Mister Hyde",
-                1,
-                null,
-                null,
-                "Entity/Characters/Bosses/PatrolBrooklyn/SideBosses/BrooklynEventMrHyde.prototype",
-                "Loot/Tables/Mob/Bosses/PatrolBrooklyn/Subtable/SharedPatrolBrooklynBossesCosmic.prototype",
-                RandomMapEligible: false),
-            new(
-                "boss-hightown-war-skrull",
-                "War Skrull",
-                1,
-                null,
-                null,
-                "Entity/Characters/Bosses/PatrolHightown/HightownEventAvengersWarskrull.prototype",
-                "Loot/Tables/Mob/Bosses/PatrolHightown/Subtable/SharedPatrolHightownBossesCosmic.prototype",
-                RandomMapEligible: false),
-            new(
-                "boss-hightown-cosmic-war-skrull",
-                "Cosmic War Skrull",
-                1,
-                null,
-                null,
-                "Entity/Characters/Bosses/PatrolHightown/HightownEventCosmicWarskrull.prototype",
-                "Loot/Tables/Mob/Bosses/PatrolHightown/Subtable/SharedPatrolHightownBossesCosmic.prototype",
-                RandomMapEligible: false),
-            new(
-                "boss-hightown-mindless-titan",
-                "Mindless Titan",
-                1,
-                null,
-                null,
-                "Entity/Characters/Bosses/PatrolHightown/HightownEventIncursionMindlessTitan.prototype",
-                "Loot/Tables/Mob/Bosses/PatrolHightown/Subtable/SharedPatrolHightownBossesCosmic.prototype",
-                RandomMapEligible: false),
-            new(
-                "boss-hightown-skrull-kingpin",
-                "Skrull Kingpin",
-                1,
-                null,
-                null,
-                "Entity/Characters/Bosses/PatrolHightown/HightownEventIncursionSkrullKingpin.prototype",
-                "Loot/Tables/Mob/Bosses/PatrolHightown/Subtable/SharedPatrolHightownBossesCosmic.prototype",
-                RandomMapEligible: false),
-            new(
-                "boss-hightown-skrull-thor",
-                "Skrull Thor",
-                1,
-                null,
-                null,
-                "Entity/Characters/Bosses/PatrolHightown/HightownEventSkrullThor.prototype",
-                "Loot/Tables/Mob/Bosses/PatrolHightown/Subtable/SharedPatrolHightownBossesCosmic.prototype",
-                RandomMapEligible: false),
-            new(
-                "boss-dr-electro",
-                "Electro",
-                1,
-                null,
-                null,
-                "Entity/Characters/Bosses/DangerRoom/DangerRoomElectro.prototype",
-                "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/AIMWeaponFacility/ModokTerminalLoot.prototype",
-                RandomMapEligible: false),
-            new(
-                "boss-dr-gorgon",
-                "Gorgon",
-                1,
-                null,
-                null,
-                "Entity/Characters/Bosses/DangerRoom/DangerRoomGorgon.prototype",
-                "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/HydraIsland/MandarinTerminalLoot.prototype",
-                RandomMapEligible: false),
-            new(
-                "boss-dr-juggernaut",
-                "Juggernaut",
-                1,
-                null,
-                null,
-                "Entity/Characters/Bosses/DangerRoom/DangerRoomJuggernaut.prototype",
-                "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/StrykerCommandBunker/MagnetoTerminalLoot.prototype",
-                RandomMapEligible: false),
-            new(
-                "boss-dr-kraven",
-                "Kraven",
-                1,
-                null,
-                null,
-                "Entity/Characters/Bosses/DangerRoom/DangerRoomKraven.prototype",
-                "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/TaskmasterInstitute/TaskmasterTerminalLoot.prototype",
-                RandomMapEligible: false),
-            new(
-                "boss-dr-kurse",
-                "Kurse",
-                1,
-                null,
-                null,
-                "Entity/Characters/Bosses/DangerRoom/DangerRoomKurse.prototype",
-                "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/HydraIsland/MandarinTerminalLoot.prototype",
-                RandomMapEligible: false),
-            new(
-                "boss-dr-living-laser",
-                "Living Laser",
-                1,
-                null,
-                null,
-                "Entity/Characters/Bosses/DangerRoom/DangerRoomLivingLaser.prototype",
-                "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/AIMWeaponFacility/ModokTerminalLoot.prototype",
-                RandomMapEligible: false),
-            new(
-                "boss-dr-lizard",
-                "Lizard",
-                1,
-                null,
-                null,
-                "Entity/Characters/Bosses/DangerRoom/DangerRoomLizard.prototype",
-                "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/KingpinsWarehouse/DrOctopusTerminalLoot.prototype",
-                RandomMapEligible: false),
-            new(
-                "boss-dr-madame-hydra",
-                "Madame Hydra",
-                1,
-                null,
-                null,
-                "Entity/Characters/Bosses/DangerRoom/DangerRoomMadameHydra.prototype",
-                "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/HydraIsland/MandarinTerminalLoot.prototype",
-                RandomMapEligible: false),
-            new(
-                "boss-dr-magneto",
-                "Magneto",
-                1,
-                null,
-                null,
-                "Entity/Characters/Bosses/DangerRoom/DangerRoomMagneto.prototype",
-                "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/StrykerCommandBunker/MagnetoTerminalLoot.prototype",
-                RandomMapEligible: false),
-            new(
-                "boss-dr-malekith",
-                "Malekith",
-                1,
-                null,
-                null,
-                "Entity/Characters/Bosses/DangerRoom/DangerRoomMalekith.prototype",
-                "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/HydraIsland/MandarinTerminalLoot.prototype",
-                RandomMapEligible: false,
-                RandomBossEligible: false),
-            new(
-                "boss-dr-man-ape",
-                "Man-Ape",
-                1,
-                null,
-                null,
-                "Entity/Characters/Bosses/DangerRoom/DangerRoomManApe.prototype",
-                "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/HydraIsland/MandarinTerminalLoot.prototype",
-                RandomMapEligible: false),
-            new(
-                "boss-dr-mega-sentinel",
-                "Mega-Sentinel",
-                1,
-                null,
-                null,
-                "Entity/Characters/Bosses/DangerRoom/DangerRoomMegaSentinel.prototype",
-                "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/AIMWeaponFacility/ModokTerminalLoot.prototype",
-                RandomMapEligible: false),
-            new(
-                "boss-dr-mister-hyde",
-                "Mister Hyde",
-                1,
-                null,
-                null,
-                "Entity/Characters/Bosses/DangerRoom/DangerRoomMrHyde.prototype",
-                "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/KingpinsWarehouse/DrOctopusTerminalLoot.prototype",
-                RandomMapEligible: false),
-            new(
-                "boss-dr-sabretooth",
-                "Sabretooth",
-                1,
-                null,
-                null,
-                "Entity/Characters/Bosses/DangerRoom/DangerRoomSabertooth.prototype",
-                "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/StrykerCommandBunker/MagnetoTerminalLoot.prototype",
-                RandomMapEligible: false),
-            new(
-                "boss-dr-sauron",
-                "Sauron",
-                1,
-                null,
-                null,
-                "Entity/Characters/Bosses/DangerRoom/DangerRoomSauron.prototype",
-                "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/StrykerCommandBunker/MagnetoTerminalLoot.prototype",
-                RandomMapEligible: false),
-            new(
-                "boss-dr-tombstone",
-                "Tombstone",
-                1,
-                null,
-                null,
-                "Entity/Characters/Bosses/DangerRoom/DangerRoomTombstone.prototype",
-                "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/FiskTower/KingpinLTerminalLoot.prototype",
-                RandomMapEligible: false),
-            new(
-                "bronx-zoo",
-                "Bronx Zoo",
-                80,
-                "Regions/EndGame/OneShotMissions/NonChapterBound/BronxZoo/AltRegions/BronxZooRegionL60.prototype",
-                null,
-                null,
-                null,
-                RandomBossEligible: false),
-            new(
-                "wakanda-jungle",
-                "Wakanda Jungle",
-                65,
-                "Regions/EndGame/OneShotMissions/NonChapterBound/WakandaPart1/AltRegions/WakandaP1RegionL60.prototype",
-                null,
-                null,
-                null,
-                RandomBossEligible: false),
-            new(
-                "hydra-island-one-shot",
-                "HYDRA Island One-Shot",
-                65,
-                "Regions/EndGame/OneShotMissions/NonChapterBound/HydraIslandPartDeux/AltRegions/HYDRAIslandPartDeuxRegionL60.prototype",
-                null,
-                null,
-                null,
-                RandomBossEligible: false),
-            new(
-                "midtown-patrol",
-                "Midtown Manhattan Patrol",
-                75,
-                "Regions/EndGame/TierX/PatrolMidtown/AltRegions/XManhattanRegion60Cosmic.prototype",
-                null,
-                null,
-                null,
-                RandomMapEligible: false,
-                RandomBossEligible: false,
-                UseCustomPopulation: true),
-            new(
-                "brooklyn-patrol",
-                "Industry City Patrol",
-                75,
-                "Regions/EndGame/TierX/PatrolBrooklyn/AltRegions/BrooklynPatrolRegionL60Cosmic.prototype",
-                null,
-                null,
-                null,
-                RandomMapEligible: false,
-                RandomBossEligible: false,
-                UseCustomPopulation: true),
-            new(
-                "hightown-patrol",
-                "Hightown Patrol",
-                75,
-                "Regions/EndGame/TierX/PatrolHightown/AltRegions/UpperMadripoorRegionL60Cosmic.prototype",
-                null,
-                null,
-                null,
-                RandomMapEligible: false,
-                RandomBossEligible: false,
-                UseCustomPopulation: true),
-            new(
-                "savage-land-patrol",
-                "Savage Land Patrol",
-                75,
-                "Regions/EndGame/TierX/PatrolSavage/PatrolSavageRegion.prototype",
-                null,
-                null,
-                null,
-                RandomMapEligible: false,
-                RandomBossEligible: false,
-                UseCustomPopulation: true),
-            new(
-                "brooklyn-docks-story",
-                "Brooklyn Docks",
-                60,
-                "Regions/Story/CH02JerseyDocks/BrooklynRegion.prototype",
-                null,
-                null,
-                null,
-                RandomMapEligible: false,
-                RandomBossEligible: false,
-                UseCustomPopulation: true),
-            new(
-                "brooklyn-shipping-yard",
-                "Brooklyn Shipping Yard",
-                55,
-                "Regions/StoryRevamp/CH02JerseyDocks/CH0201ShippingYardRegion.prototype",
-                null,
-                null,
-                null,
-                RandomMapEligible: false,
-                RandomBossEligible: false,
-                UseCustomPopulation: true),
-            new(
-                "brooklyn-construction",
-                "Brooklyn Construction Site",
-                55,
-                "Regions/StoryRevamp/CH02JerseyDocks/CH0205ConstructionRegion.prototype",
-                null,
-                null,
-                null,
-                RandomMapEligible: false,
-                RandomBossEligible: false,
-                UseCustomPopulation: true),
-            new(
-                "brooklyn-cannery",
-                "Brooklyn Cannery",
-                55,
-                "Regions/StoryRevamp/CH02JerseyDocks/CH0208CanneryRegion.prototype",
-                null,
-                null,
-                null,
-                RandomMapEligible: false,
-                RandomBossEligible: false,
-                UseCustomPopulation: true),
-            new(
-                "upper-madripoor-story",
-                "Upper Madripoor",
-                75,
-                "Regions/Story/CH10SecretInvasion/UpperMadripoor/UpperMadripoorRegionL60.prototype",
-                null,
-                null,
-                null,
-                RandomMapEligible: false,
-                RandomBossEligible: false,
-                UseCustomPopulation: true),
-            new(
-                "holiday-midtown",
-                "Holiday Midtown",
-                75,
-                "Regions/EndGame/TierX/Seasonal/Christmas/Midtown/AVeryXManhattanXMasRegion01.prototype",
-                null,
-                null,
-                null,
-                RandomMapEligible: false,
-                RandomBossEligible: false,
-                IsSpecialRandomMap: true,
-                UseCustomPopulation: true),
-            new(
-                "holiday-industry-city",
-                "Holiday Industry City",
-                75,
-                "Regions/EndGame/TierX/Seasonal/Christmas/IndustryCity/BrooklynPatrolRegionWinterTest.prototype",
-                null,
-                null,
-                null,
-                RandomMapEligible: false,
-                RandomBossEligible: false,
-                IsSpecialRandomMap: true,
-                UseCustomPopulation: true),
-            new(
-                "dr-strange-times-square",
-                "Doctor Strange Times Square",
-                45,
-                "Regions/EndGame/StaticScenarios/DrStrangeEvent/Cosmic/DrStrangeTimesSquareRegionCosmic.prototype",
-                null,
-                null,
-                null,
-                RandomBossEligible: false,
-                IsSpecialRandomMap: true,
-                UseCustomPopulation: true),
-            new(
-                "march-to-axis",
-                "March to Axis",
-                75,
-                "Regions/RAIDS/AxisRaid/AxisRaidRegionGreen.prototype",
-                null,
-                null,
-                null,
-                RandomMapEligible: false,
-                RandomBossEligible: false,
-                IsSpecialRandomMap: true,
-                UseCustomPopulation: true,
-                MinRandomRiftLevel: 15),
-            new(
-                "muspelheim-raid",
-                "Muspelheim Raid",
-                75,
-                "Regions/RAIDS/MuspelheimRaid/SurturRaidRegionGreen.prototype",
-                null,
-                null,
-                null,
-                RandomMapEligible: false,
-                RandomBossEligible: false,
-                IsSpecialRandomMap: true,
-                UseCustomPopulation: true,
-                MinRandomRiftLevel: 15),
-            new(
-                "cosmic-doop-sector",
-                "Cosmic Doop Sector",
-                100,
-                "Regions/EndGame/Special/CosmicDoopSectorSpace/CosmicDoopSectorSpaceRegion.prototype",
-                "Missions/Prototypes/BonusMissions/OMDoopZone.prototype",
-                "Entity/Characters/Mobs/DoopAllChapters/CosmicDoop/CosmicDoopOverlord.prototype",
-                "Loot/Tables/Mob/NormalMobs/CosmicDoopOverlordTable.prototype",
-                RandomBossEligible: false,
-                IsSpecialRandomMap: true,
-                UseOwnBossSourceWhenSelected: true,
-                MinRandomRiftLevel: 25),
-            new(
-                BossGauntletArenaContentId,
-                "Danger Room Tutorial Arena",
-                1,
-                "Regions/EndGame/DangerRoomMode/UniqueScenarios/Tutorial/DRRegionUniqueTutorialFight.prototype",
-                null,
-                null,
-                null,
-                RandomMapEligible: false,
-                RandomBossEligible: false,
-                BossOnlyCheckpointEligible: true),
-            new(
-                "sabretooth-showdown",
-                "Sabretooth Showdown",
-                45,
-                "Regions/StoryRevamp/CH07SavageLand/CH0705SabretoothShowdownRegion.prototype",
-                null,
-                null,
-                null,
-                RandomMapEligible: false,
-                RandomBossEligible: false,
-                BossOnlyCheckpointEligible: true),
-            new(
-                "supervillain-rec-center",
-                "Supervillain Rec Center",
-                45,
-                "Regions/StoryRevamp/CH05MutantTown/CH0503SupervillainRecCenterRegion.prototype",
-                null,
-                null,
-                null,
-                RandomMapEligible: false,
-                RandomBossEligible: false,
-                BossOnlyCheckpointEligible: true),
-            new(
-                "sc-kill-house",
-                "Stryker Kill House",
-                50,
-                "Regions/StoryRevamp/CH06FortStryker/TreasureRooms/TRKillHouse/SCKillHouseRegion.prototype",
-                null,
-                null,
-                null,
-                RandomMapEligible: false,
-                RandomBossEligible: false,
-                BossOnlyCheckpointEligible: true),
-            new(
-                "sc-missile-silo",
-                "Stryker Missile Silo",
-                50,
-                "Regions/StoryRevamp/CH06FortStryker/TreasureRooms/TRMissileSilo/SCMissileSiloRegion.prototype",
-                null,
-                null,
-                null,
-                RandomMapEligible: false,
-                RandomBossEligible: false,
-                BossOnlyCheckpointEligible: true),
-            new(
-                "sc-mineshaft",
-                "Stryker Mineshaft",
-                45,
-                "Regions/StoryRevamp/CH06FortStryker/TreasureRooms/TRMineshaft/SCMineshaftRegion.prototype",
-                null,
-                null,
-                null,
-                RandomMapEligible: false,
-                RandomBossEligible: false,
-                BossOnlyCheckpointEligible: true),
-            new(
-                "sc-dino-graveyard",
-                "Dino Graveyard",
-                55,
-                "Regions/StoryRevamp/CH07SavageLand/TreasureRooms/TRDinoGraveyard/SCDinoGraveyardRegion.prototype",
-                null,
-                null,
-                null,
-                RandomMapEligible: false,
-                RandomBossEligible: false,
-                BossOnlyCheckpointEligible: true),
-            new(
-                "sc-fire-swamp",
-                "Fire Swamp",
-                55,
-                "Regions/StoryRevamp/CH07SavageLand/TreasureRooms/TRFireSwamp/SCFireSwampRegion.prototype",
-                null,
-                null,
-                null,
-                RandomMapEligible: false,
-                RandomBossEligible: false,
-                BossOnlyCheckpointEligible: true),
-            new(
-                "tr-asgard-estate",
-                "Asgard Estate",
-                45,
-                "Regions/StoryRevamp/CH09Asgard/TreasureRooms/TRAsgardEstate/TREstateRegion.prototype",
-                null,
-                null,
-                null,
-                RandomMapEligible: false,
-                RandomBossEligible: false,
-                BossOnlyCheckpointEligible: true),
-            new(
-                "tr-norway-tomb",
-                "Norway Tomb",
-                45,
-                "Regions/StoryRevamp/CH09Asgard/TreasureRooms/TRNorwayTomb/TRTombRegion.prototype",
-                null,
-                null,
-                null,
-                RandomMapEligible: false,
-                RandomBossEligible: false,
-                BossOnlyCheckpointEligible: true),
-            new(
-                "tr-sacred-dojo",
-                "Sacred Dojo",
-                40,
-                "Regions/StoryRevamp/CH03Madripoor/TreasureRooms/BambooForest/SacredDojo/TRSacredDojoRegion.prototype",
-                null,
-                null,
-                null,
-                RandomMapEligible: false,
-                RandomBossEligible: false,
-                BossOnlyCheckpointEligible: true),
-        };
-
         private readonly List<MythicRiftContentEntry> _contentPool = new();
         private readonly Dictionary<ulong, MythicRiftRunState> _activeRuns = new();
         private readonly Dictionary<ulong, Event<EntityDeadGameEvent>.Action> _regionEntityDeadActions = new();
@@ -953,6 +150,7 @@ namespace MHServerEmu.Games.MythicRifts
         private readonly Dictionary<ulong, int> _highestUnlockedEndlessRiftLevelByPlayer = new();
         private readonly Dictionary<ulong, int> _preferredLaunchRiftLevelByPlayer = new();
         private readonly Dictionary<ulong, int> _preferredLaunchEndlessRiftLevelByPlayer = new();
+        private readonly Dictionary<ulong, int> _completedEndlessCyclesByPlayer = new();
         private readonly Dictionary<ulong, string> _lastCompletedMapContentIdByPlayer = new();
         private readonly Dictionary<ulong, List<string>> _recentRandomMapContentIdsByPlayer = new();
         private readonly Dictionary<ulong, List<string>> _recentRandomBossFamiliesByPlayer = new();
@@ -980,6 +178,9 @@ namespace MHServerEmu.Games.MythicRifts
         private string _rewardTuningLastLoadMessage = "Using built-in default Mythic Rift reward tuning.";
         private MythicRiftHazardTuning _hazardTuning = MythicRiftHazardTuning.CreateDefault();
         private string _hazardTuningLastLoadMessage = "Using built-in default Mythic Rift hazard tuning.";
+        private MythicRiftAffixTuning _affixTuning = MythicRiftAffixTuning.CreateDefault();
+        private string _affixTuningLastLoadMessage = "Using built-in default Mythic Rift affix tuning.";
+        private string _contentPoolLastLoadMessage = "Mythic Rift content pool has not been loaded.";
         private ulong _nextRunId = 1;
 
         private sealed class CompletionCrafterOpportunity
@@ -994,11 +195,14 @@ namespace MHServerEmu.Games.MythicRifts
         public MythicRiftManager(Game game)
         {
             Game = game;
-            RegisterDefaultContent();
+            TryReloadContentPool(out _contentPoolLastLoadMessage);
+            Logger.Info($"Mythic Rift content pool: {_contentPoolLastLoadMessage}");
             TryReloadRewardTuning(out _rewardTuningLastLoadMessage);
             Logger.Info($"Mythic Rift reward tuning: {_rewardTuningLastLoadMessage}");
             TryReloadHazardTuning(out _hazardTuningLastLoadMessage);
             Logger.Info($"Mythic Rift hazard tuning: {_hazardTuningLastLoadMessage}");
+            TryReloadAffixTuning(out _affixTuningLastLoadMessage);
+            Logger.Info($"Mythic Rift affix tuning: {_affixTuningLastLoadMessage}");
         }
 
         public IReadOnlyList<MythicRiftContentEntry> ContentPool => _contentPool;
@@ -1011,6 +215,9 @@ namespace MHServerEmu.Games.MythicRifts
         public string RewardTuningLastLoadMessage => _rewardTuningLastLoadMessage;
         public MythicRiftHazardTuning HazardTuning => _hazardTuning;
         public string HazardTuningLastLoadMessage => _hazardTuningLastLoadMessage;
+        public MythicRiftAffixTuning AffixTuning => _affixTuning;
+        public string AffixTuningLastLoadMessage => _affixTuningLastLoadMessage;
+        public string ContentPoolLastLoadMessage => _contentPoolLastLoadMessage;
 
         public bool TrySetReadyCheckForPlayer(ulong playerDbId, bool ready, out string message)
         {
@@ -1241,6 +448,17 @@ namespace MHServerEmu.Games.MythicRifts
                 ? MythicRiftProgression.ResolveNextEndlessCycleLevel(currentUnlockedLevel, completedLevel)
                 : MythicRiftProgression.ResolveNextUnlockedLevel(currentUnlockedLevel, completedLevel);
 
+            if (mode == MythicRiftMode.Endless &&
+                MythicRiftProgression.NormalizeEndlessCycleLevel(completedLevel) >= MythicRiftProgression.EndlessCycleLength)
+            {
+                int newCycleCount = GetCompletedEndlessCycles(playerDbId) + 1;
+                _completedEndlessCyclesByPlayer[playerDbId] = newCycleCount;
+
+                Player onlinePlayer = Game.EntityManager.GetEntityByDbGuid<Player>(playerDbId);
+                if (onlinePlayer != null)
+                    onlinePlayer.EndlessRiftCompletedCycles = newCycleCount;
+            }
+
             if (nextUnlockedLevel == currentUnlockedLevel)
                 return currentUnlockedLevel;
 
@@ -1282,6 +500,32 @@ namespace MHServerEmu.Games.MythicRifts
                 MythicRiftMode.BossGauntlet => 1,
                 _ => player.MythicRiftHighestUnlockedLevel
             };
+        }
+
+        public int GetCompletedEndlessCycles(ulong playerDbId)
+        {
+            if (playerDbId == 0)
+                return 0;
+
+            Player onlinePlayer = Game.EntityManager.GetEntityByDbGuid<Player>(playerDbId);
+            if (onlinePlayer != null)
+                return Math.Max(onlinePlayer.EndlessRiftCompletedCycles, 0);
+
+            return _completedEndlessCyclesByPlayer.TryGetValue(playerDbId, out int cycleCount)
+                ? Math.Max(cycleCount, 0)
+                : 0;
+        }
+
+        public (float BonusRarityPct, float BonusSpecialPct) GetEndlessCycleBonus(ulong playerDbId)
+        {
+            MythicRiftRewardTuning tuning = _rewardTuning ?? MythicRiftRewardTuning.CreateDefault();
+            int completedCycles = GetCompletedEndlessCycles(playerDbId);
+            if (completedCycles <= 0)
+                return (0f, 0f);
+
+            float bonusRarityPct = Math.Min(completedCycles * tuning.EndlessCycleBonusRarityPctPerCycle, tuning.EndlessCycleBonusRarityPctCap);
+            float bonusSpecialPct = Math.Min(completedCycles * tuning.EndlessCycleBonusSpecialPctPerCycle, tuning.EndlessCycleBonusSpecialPctCap);
+            return (bonusRarityPct, bonusSpecialPct);
         }
 
         public static string GetModeDisplayName(MythicRiftMode mode)
@@ -1721,16 +965,16 @@ namespace MHServerEmu.Games.MythicRifts
             }
 
             int cost = GetCompletionArtifactVendorStockCost(offer);
-            int availableSigils = GetRiftSigilCount(player);
-            if (availableSigils < cost)
+            int availableCurrency = GetRiftSigilCount(player);
+            if (availableCurrency < cost)
             {
-                result = MythicRiftRewardShopPurchaseResult.Failed($"Not enough Rift Sigils. Required={cost}, available={availableSigils}.");
+                result = MythicRiftRewardShopPurchaseResult.Failed($"Not enough {RiftArtifactVendorCurrencyDisplayName}. Required={cost}, available={availableCurrency}.");
                 return false;
             }
 
             if (SpendRiftSigils(player, cost) == false)
             {
-                result = MythicRiftRewardShopPurchaseResult.Failed($"Failed to spend Rift Sigils for offer {offer.Id}.");
+                result = MythicRiftRewardShopPurchaseResult.Failed($"Failed to spend {RiftArtifactVendorCurrencyDisplayName} for offer {offer.Id}.");
                 return false;
             }
 
@@ -1750,20 +994,20 @@ namespace MHServerEmu.Games.MythicRifts
                 null,
                 offer.Delivery);
 
-            int remainingSigils = GetRiftSigilCount(player);
+            int remainingCurrency = GetRiftSigilCount(player);
             result = new()
             {
                 Success = true,
                 OfferId = offer.Id,
                 DisplayName = offer.DisplayName,
                 SigilCost = cost,
-                RemainingSigils = remainingSigils,
+                RemainingSigils = remainingCurrency,
                 GrantedItems = new[] { rewardItemProtoRef }
             };
 
             Game.ChatManager?.SendChatFromCustomSystem(
                 player,
-                $"[Mythic Rift] Spent {cost} Rift Sigils on {rewardItemProtoRef.GetNameFormatted()}. Remaining={remainingSigils}.",
+                $"[Mythic Rift] Spent {cost} {RiftArtifactVendorCurrencyDisplayName} on {rewardItemProtoRef.GetNameFormatted()}. Remaining={remainingCurrency}.",
                 showSender: false);
             return true;
         }
@@ -1833,13 +1077,13 @@ namespace MHServerEmu.Games.MythicRifts
             if (player == null)
                 return 0;
 
-            PrototypeId currencyProtoRef = ResolvePrototype(RiftSigilCurrencyPrototypeName);
+            PrototypeId currencyProtoRef = ResolvePrototype(RiftArtifactVendorCurrencyPrototypeName);
             int count = currencyProtoRef != PrototypeId.Invalid
                 ? player.Properties[PropertyEnum.Currency, currencyProtoRef]
                 : 0;
 
             InventoryIterationFlags flags = InventoryIterationFlags.PlayerGeneral | InventoryIterationFlags.PlayerGeneralExtra | InventoryIterationFlags.PlayerStashGeneral;
-            count += InventoryIterator.GetMatchingContained(player, RiftSigilCurrencyItemPrototypeRef, flags);
+            count += InventoryIterator.GetMatchingContained(player, RiftArtifactVendorCurrencyItemPrototypeRef, flags);
             return Math.Max(count, 0);
         }
 
@@ -1853,7 +1097,7 @@ namespace MHServerEmu.Games.MythicRifts
                 return false;
 
             int remaining = amount;
-            PrototypeId currencyProtoRef = ResolvePrototype(RiftSigilCurrencyPrototypeName);
+            PrototypeId currencyProtoRef = ResolvePrototype(RiftArtifactVendorCurrencyPrototypeName);
             if (currencyProtoRef != PrototypeId.Invalid)
             {
                 PropertyId currencyPropertyId = new(PropertyEnum.Currency, currencyProtoRef);
@@ -1871,7 +1115,7 @@ namespace MHServerEmu.Games.MythicRifts
 
             using var currencyItemListHandle = ListPool<ulong>.Instance.Get(out List<ulong> currencyItemIds);
             InventoryIterationFlags flags = InventoryIterationFlags.PlayerGeneral | InventoryIterationFlags.PlayerGeneralExtra | InventoryIterationFlags.PlayerStashGeneral;
-            InventoryIterator.GetMatchingContained(player, RiftSigilCurrencyItemPrototypeRef, flags, currencyItemIds);
+            InventoryIterator.GetMatchingContained(player, RiftArtifactVendorCurrencyItemPrototypeRef, flags, currencyItemIds);
 
             foreach (ulong currencyItemId in currencyItemIds)
             {
@@ -2143,14 +1387,20 @@ namespace MHServerEmu.Games.MythicRifts
             float originalSpecial = avatar.Properties[PropertyEnum.LootBonusSpecialPct];
             bool hadRarityProperty = avatar.Properties.HasProperty(PropertyEnum.LootBonusRarityPct);
             bool hadSpecialProperty = avatar.Properties.HasProperty(PropertyEnum.LootBonusSpecialPct);
+            (float endlessCycleBonusRarityPct, float endlessCycleBonusSpecialPct) = runState.Config.Mode == MythicRiftMode.Endless
+                ? GetEndlessCycleBonus(player.DatabaseUniqueId)
+                : (0f, 0f);
 
             try
             {
-                if (rewardOutcome.BonusRarityPct > 0f)
-                    avatar.Properties.AdjustProperty(rewardOutcome.BonusRarityPct, rarityPropertyId);
+                float totalBonusRarityPct = rewardOutcome.BonusRarityPct + endlessCycleBonusRarityPct;
+                float totalBonusSpecialPct = rewardOutcome.BonusSpecialPct + endlessCycleBonusSpecialPct;
 
-                if (rewardOutcome.BonusSpecialPct > 0f)
-                    avatar.Properties.AdjustProperty(rewardOutcome.BonusSpecialPct, specialPropertyId);
+                if (totalBonusRarityPct > 0f)
+                    avatar.Properties.AdjustProperty(totalBonusRarityPct, rarityPropertyId);
+
+                if (totalBonusSpecialPct > 0f)
+                    avatar.Properties.AdjustProperty(totalBonusSpecialPct, specialPropertyId);
 
                 using LootInputSettings inputSettings = MHServerEmu.Core.Memory.ObjectPoolManager.Instance.Get<LootInputSettings>();
                 inputSettings.Initialize(LootContext.Drop, player, avatar);
@@ -2208,14 +1458,15 @@ namespace MHServerEmu.Games.MythicRifts
                 }
 
                 if (chestRewards.Count > 0 &&
-                    TrySpawnRewardChest(runState, player, avatar, chestRewards, rewardOutcome.BonusRarityPct, rewardOutcome.BonusSpecialPct) == false)
+                    TrySpawnRewardChest(runState, player, avatar, chestRewards, totalBonusRarityPct, totalBonusSpecialPct) == false)
                 {
                     Logger.Warn($"Mythic Rift run {runState.Config.RunId} failed to spawn reward chest for player {player}; falling back to ground delivery.");
                     GrantPendingRewardDrops(player, avatar, sourceEntity: avatar, chestRewards, bonusRarityPct: 0f, bonusSpecialPct: 0f);
                 }
 
                 runState.MarkRewardGrantedToPlayer(player.DatabaseUniqueId);
-                Logger.Info($"Mythic Rift run {runState.Config.RunId} granted rewards to player {player}. profile={rewardOutcome.RewardProfileName ?? "default"} bossLootSource={rewardOutcome.BossLootTableSourceId ?? "native-boss"} bossDelivery={rewardOutcome.BossLootDelivery ?? "inventory"} extraTables={rewardOutcome.ExtraLootTables.Count} guaranteedItems={rewardOutcome.GuaranteedItems.Count}");
+                Logger.Info($"Mythic Rift run {runState.Config.RunId} granted rewards to player {player}. profile={rewardOutcome.RewardProfileName ?? "default"} bossLootSource={rewardOutcome.BossLootTableSourceId ?? "native-boss"} bossDelivery={rewardOutcome.BossLootDelivery ?? "inventory"} extraTables={rewardOutcome.ExtraLootTables.Count} guaranteedItems={rewardOutcome.GuaranteedItems.Count}"
+                    + (endlessCycleBonusRarityPct > 0f || endlessCycleBonusSpecialPct > 0f ? $" endlessCycleBonus=RIF+{endlessCycleBonusRarityPct:P1}/SIF+{endlessCycleBonusSpecialPct:P1} (cycles={GetCompletedEndlessCycles(player.DatabaseUniqueId)})" : ""));
                 return true;
             }
             finally
@@ -2525,6 +1776,41 @@ namespace MHServerEmu.Games.MythicRifts
             return grantedCount;
         }
 
+        public bool TryReloadContentPool(out string message)
+        {
+            string configPath = MythicRiftContentPoolTuning.ConfigPath;
+
+            if (File.Exists(configPath) == false)
+            {
+                _contentPool.Clear();
+                message = $"Content pool file not found at {FileHelper.GetRelativePath(configPath)}; content pool is empty.";
+                _contentPoolLastLoadMessage = message;
+                return false;
+            }
+
+            MythicRiftContentPoolTuning loadedTuning = FileHelper.DeserializeJson<MythicRiftContentPoolTuning>(configPath, MythicRiftContentPoolTuning.JsonOptions);
+            if (loadedTuning == null)
+            {
+                message = $"Failed to load content pool from {FileHelper.GetRelativePath(configPath)}; keeping previous content pool ({_contentPool.Count} entries).";
+                _contentPoolLastLoadMessage = message;
+                return false;
+            }
+
+            _contentPool.Clear();
+
+            int failedCount = 0;
+            foreach (MythicRiftContentPoolEntryTuning entry in loadedTuning.Content ?? new())
+            {
+                if (RegisterContentEntry(entry) == false)
+                    failedCount++;
+            }
+
+            message = $"Loaded {_contentPool.Count} content pool entries from {FileHelper.GetRelativePath(configPath)}"
+                + (failedCount > 0 ? $" ({failedCount} entries failed to resolve, see warnings above)." : ".");
+            _contentPoolLastLoadMessage = message;
+            return failedCount == 0;
+        }
+
         public bool TryReloadRewardTuning(out string message)
         {
             string configPath = MythicRiftRewardTuning.ConfigPath;
@@ -2558,6 +1844,37 @@ namespace MHServerEmu.Games.MythicRifts
             return true;
         }
 
+        public bool TryReloadAffixTuning(out string message)
+        {
+            string configPath = MythicRiftAffixTuning.ConfigPath;
+            MythicRiftAffixTuning previousTuning = _affixTuning ?? MythicRiftAffixTuning.CreateDefault();
+
+            if (File.Exists(configPath) == false)
+            {
+                _affixTuning = MythicRiftAffixTuning.CreateDefault();
+                message = $"Affix tuning file not found at {FileHelper.GetRelativePath(configPath)}; using built-in defaults.";
+                _affixTuningLastLoadMessage = message;
+                return true;
+            }
+
+            MythicRiftAffixTuning loadedTuning = FileHelper.DeserializeJson<MythicRiftAffixTuning>(configPath, MythicRiftAffixTuning.JsonOptions);
+            if (loadedTuning == null)
+            {
+                _affixTuning = previousTuning;
+                message = $"Failed to load affix tuning from {FileHelper.GetRelativePath(configPath)}; keeping previous profile '{previousTuning.ProfileName}'.";
+                _affixTuningLastLoadMessage = message;
+                return false;
+            }
+
+            loadedTuning.Normalize();
+            _affixTuning = loadedTuning.Enabled ? loadedTuning : MythicRiftAffixTuning.CreateDefault();
+            message = loadedTuning.Enabled
+                ? $"Loaded affix tuning profile '{_affixTuning.ProfileName}' from {FileHelper.GetRelativePath(configPath)}. regionStarts={_affixTuning.SecondRegionAffixStartLevel}/{_affixTuning.ThirdRegionAffixStartLevel} bossStarts={_affixTuning.SecondBossAffixStartWave}/{_affixTuning.ThirdBossAffixStartWave}"
+                : $"Affix tuning file loaded but disabled; using built-in defaults. path={FileHelper.GetRelativePath(configPath)}";
+            _affixTuningLastLoadMessage = message;
+            return true;
+        }
+
         public List<string> BuildRewardTuningDiagnostics()
         {
             MythicRiftRewardTuning tuning = _rewardTuning ?? MythicRiftRewardTuning.CreateDefault();
@@ -2572,6 +1889,7 @@ namespace MHServerEmu.Games.MythicRifts
                 $"timedSuccessBonusRIF={tuning.TimedSuccessBonusRarityPct:P0} | timedSuccessBonusSIF={tuning.TimedSuccessBonusSpecialPct:P0}",
                 $"checkpointBonusRIF={tuning.CheckpointSuccessBonusRarityPct:P0} | checkpointBonusSIF={tuning.CheckpointSuccessBonusSpecialPct:P0}",
                 $"failureBonusRIF={tuning.FailureBonusRarityPct:P0} | failureBonusSIF={tuning.FailureBonusSpecialPct:P0}",
+                $"endlessCycleBonusRIF={tuning.EndlessCycleBonusRarityPctPerCycle:P1}/cycle cap={tuning.EndlessCycleBonusRarityPctCap:P0} | endlessCycleBonusSIF={tuning.EndlessCycleBonusSpecialPctPerCycle:P1}/cycle cap={tuning.EndlessCycleBonusSpecialPctCap:P0}",
                 $"extraLootTables={tuning.ExtraLootTables.Count} | rewardRecipes={tuning.RewardRecipes.Count} | randomItemPools={tuning.RandomItemPools.Count} | guaranteedItems={tuning.GuaranteedItems.Count} | rewardShopOffers={tuning.RewardShopOffers.Count} | lootTableAliases={tuning.LootTableAliases.Count}"
             };
 
@@ -2635,6 +1953,34 @@ namespace MHServerEmu.Games.MythicRifts
 
             if (tuning.RewardShopOffers.Count > 20)
                 lines.Add($"... {tuning.RewardShopOffers.Count - 20} more reward shop offers omitted.");
+
+            return lines;
+        }
+
+        public List<string> BuildAffixTuningDiagnostics()
+        {
+            MythicRiftAffixTuning tuning = _affixTuning ?? MythicRiftAffixTuning.CreateDefault();
+            RegionAffixTablePrototype affixTableProto = GameDatabase.GetPrototype<RegionAffixTablePrototype>(
+                GameDatabase.GetPrototypeRefByName(tuning.DefaultAffixTablePrototypeName));
+
+            List<string> lines = new()
+            {
+                $"affixTuningPath={FileHelper.GetRelativePath(MythicRiftAffixTuning.ConfigPath)}",
+                $"lastLoad={_affixTuningLastLoadMessage}",
+                $"profile={tuning.ProfileName} | enabled={tuning.Enabled}",
+                $"regionAffixStarts second={tuning.SecondRegionAffixStartLevel} third={tuning.ThirdRegionAffixStartLevel}",
+                $"bossAffixStarts second={tuning.SecondBossAffixStartWave} third={tuning.ThirdBossAffixStartWave}",
+                $"defaultAffixTable={tuning.DefaultAffixTablePrototypeName} | resolved={(affixTableProto != null)} | affixes={affixTableProto?.RegionAffixes?.Length ?? 0}"
+            };
+
+            if (affixTableProto?.RegionAffixes != null)
+            {
+                foreach (RegionAffixWeightedEntryPrototype entry in affixTableProto.RegionAffixes.Take(20))
+                    lines.Add($"affix weight={entry?.Weight ?? 0} | prototype={entry?.Affix.GetNameFormatted() ?? "invalid"}");
+
+                if (affixTableProto.RegionAffixes.Length > 20)
+                    lines.Add($"... {affixTableProto.RegionAffixes.Length - 20} more affixes omitted.");
+            }
 
             return lines;
         }
@@ -3718,7 +3064,7 @@ namespace MHServerEmu.Games.MythicRifts
             }
         }
 
-        private static void RefreshRiftBossIconWidget(UIDataProvider uiDataProvider, MythicRiftRunState runState, PrototypeId contextRef)
+        private void RefreshRiftBossIconWidget(UIDataProvider uiDataProvider, MythicRiftRunState runState, PrototypeId contextRef)
         {
             PrototypeId bossIconsWidgetRef = GetRiftBossIconsWidgetPrototypeRef();
             if (uiDataProvider == null || bossIconsWidgetRef == PrototypeId.Invalid)
@@ -3734,11 +3080,31 @@ namespace MHServerEmu.Games.MythicRifts
             if (bossIconsWidget == null)
                 return;
 
+            int trackedCount = 0;
             foreach (ulong bossEntityId in runState.ActiveBossEntityIds)
             {
                 WorldEntity boss = uiDataProvider.Game.EntityManager.GetEntity<WorldEntity>(bossEntityId);
-                boss?.ModifyTrackingContext(bossIconsWidgetRef, EntityTrackingFlag.HUD);
+                if (boss == null || boss.IsDestroyed)
+                    continue;
+
+                boss.ModifyTrackingContext(bossIconsWidgetRef, EntityTrackingFlag.HUD);
+                if (bossIconsWidget.TrackEntity(boss))
+                    trackedCount++;
             }
+
+            foreach (Player player in GetRunPlayers(runState))
+            {
+                Avatar avatar = player?.CurrentAvatar;
+                if (avatar == null || avatar.IsInWorld == false || avatar.Region?.Id != runState.RegionId)
+                    continue;
+
+                avatar.ModifyTrackingContext(bossIconsWidgetRef, EntityTrackingFlag.HUD);
+                if (bossIconsWidget.TrackEntity(avatar))
+                    trackedCount++;
+            }
+
+            if (trackedCount == 0)
+                uiDataProvider.DeleteWidget(bossIconsWidgetRef, contextRef);
         }
 
         private void ClearDangerRoomRiftWidgets(UIDataProvider uiDataProvider, MythicRiftRunState runState)
@@ -4046,12 +3412,23 @@ namespace MHServerEmu.Games.MythicRifts
             if (uiDataProvider == null || runState?.Config == null)
                 return 0;
 
+            PrototypeId contextRef = GetRiftWidgetContextRef(runState);
+            PrototypeId rewardContextRef = GetRiftRewardTrackWidgetContextRef(runState);
+            List<(PrototypeId WidgetRef, PrototypeId ContextRef)> extraOwnedWidgets = new()
+            {
+                (GetRiftDangerRoomQuotaWidgetPrototypeRef(), rewardContextRef),
+                (GetRiftReadyCheckWidgetPrototypeRef(), contextRef),
+                (GetRiftBossIconsWidgetPrototypeRef(), contextRef),
+                (GetRiftModifierButtonWidgetPrototypeRef(), contextRef)
+            };
+
             return MythicRiftUiController.RemoveNativeWidgets(
                 uiDataProvider,
-                GetRiftWidgetContextRef(runState),
+                contextRef,
                 GetRiftDangerRoomLevelWidgetPrototypeRef(),
                 GetRiftDangerRoomQuotaWidgetPrototypeRef(),
-                GetRiftDangerRoomTimerWidgetPrototypeRef());
+                GetRiftDangerRoomTimerWidgetPrototypeRef(),
+                extraOwnedWidgets.Where(widget => widget.WidgetRef != PrototypeId.Invalid && widget.ContextRef != PrototypeId.Invalid).ToArray());
         }
 
         private void TrySuspendNativeObjectiveMissionForRun(MythicRiftRunState runState, Mission mission)
@@ -4788,14 +4165,19 @@ namespace MHServerEmu.Games.MythicRifts
                 return Math.Max(entry.Quantity, 1);
 
             int rewardWave = Math.Max(MythicRiftRewardTuning.GetRewardWaveNumber(runState), entry.MinWave);
-            int waveQuantity = entry.QuantityCap > 0 ? Math.Min(rewardWave, entry.QuantityCap) : rewardWave;
 
             if (entry.CumulativeWaveQuantity == false)
+            {
+                int waveQuantity = entry.QuantityCap > 0 ? Math.Min(rewardWave, entry.QuantityCap) : rewardWave;
                 return Math.Max(waveQuantity, 1);
+            }
 
             int quantity = 0;
             for (int wave = entry.MinWave; wave <= rewardWave; wave++)
-                quantity += entry.QuantityCap > 0 ? Math.Min(wave, entry.QuantityCap) : wave;
+                quantity += wave;
+
+            if (entry.QuantityCap > 0)
+                quantity = Math.Min(quantity, entry.QuantityCap);
 
             return Math.Max(quantity, 1);
         }
@@ -5382,33 +4764,22 @@ namespace MHServerEmu.Games.MythicRifts
             return pickedAffixes;
         }
 
-        private static int GetRiftAffixCount(int levelOrWave, bool useBossScopedAffixes)
+        private int GetRiftAffixCount(int levelOrWave, bool useBossScopedAffixes)
         {
-            int secondAffixStart = useBossScopedAffixes
-                ? BossGauntletSecondBossAffixStartWave
-                : RiftSecondRegionAffixStartLevel;
-            int thirdAffixStart = useBossScopedAffixes
-                ? BossGauntletThirdBossAffixStartWave
-                : RiftThirdRegionAffixStartLevel;
-
-            int affixCount = 1;
-            if (levelOrWave >= secondAffixStart)
-                affixCount++;
-            if (levelOrWave >= thirdAffixStart)
-                affixCount++;
-
-            return affixCount;
+            MythicRiftAffixTuning tuning = _affixTuning ?? MythicRiftAffixTuning.CreateDefault();
+            return tuning.GetAffixCount(levelOrWave, useBossScopedAffixes);
         }
 
-        private static RegionAffixTablePrototype ResolveRiftAffixTable(MythicRiftContentEntry content)
+        private RegionAffixTablePrototype ResolveRiftAffixTable(MythicRiftContentEntry content)
         {
             RegionPrototype regionProto = content?.RegionProtoRef.As<RegionPrototype>();
             RegionAffixTablePrototype affixTableProto = regionProto?.AffixTable.As<RegionAffixTablePrototype>();
             if (affixTableProto?.RegionAffixes != null && affixTableProto.RegionAffixes.Length > 0)
                 return affixTableProto;
 
+            MythicRiftAffixTuning tuning = _affixTuning ?? MythicRiftAffixTuning.CreateDefault();
             return GameDatabase.GetPrototype<RegionAffixTablePrototype>(
-                GameDatabase.GetPrototypeRefByName(DefaultRiftAffixTablePrototypeName));
+                GameDatabase.GetPrototypeRefByName(tuning.DefaultAffixTablePrototypeName));
         }
 
         private static bool IsUsableRiftEnemyAffix(RegionAffixPrototype affixProto)
@@ -5990,9 +5361,13 @@ namespace MHServerEmu.Games.MythicRifts
                 return hazardRefs;
 
             MythicRiftHazardTuning tuning = _hazardTuning ?? MythicRiftHazardTuning.CreateDefault();
+            bool hasConfiguredHazards = tuning.Hazards.Any(hazard => hazard?.Enabled == true && string.IsNullOrWhiteSpace(hazard.Prototype) == false);
             List<MythicRiftHazardEntryTuning> configuredHazards = tuning.Hazards
                 .Where(hazard => hazard?.AppliesTo(runState) == true)
                 .ToList();
+            if (hasConfiguredHazards && configuredHazards.Count == 0)
+                return Array.Empty<PrototypeId>();
+
             if (configuredHazards.Count == 0)
                 return hazardRefs;
 
@@ -6677,7 +6052,7 @@ namespace MHServerEmu.Games.MythicRifts
                     MythicRiftRewardTuning tuning = _rewardTuning ?? MythicRiftRewardTuning.CreateDefault();
                     Game.ChatManager?.SendChatFromCustomSystem(
                         player,
-                        $"[Mythic Rift] Completion crafter unlocked: {RiftCompletionCrafterAttemptsPerRun} attempts, {RiftCompletionCrafterUpgradeChance:P0} chance to upgrade item level {RiftCompletionCrafterMinimumItemLevel}-{RiftCompletionCrafterMaximumItemLevel - 1} Unique or {RiftCompletionCrafterCosmicMinimumItemLevel}-{RiftCompletionCrafterMaximumItemLevel - 1} Cosmic gear slot 1-5 by +1. Costs {tuning.CompletionCrafterUniqueRecipeCost} (Unique) or {tuning.CompletionCrafterCosmicRecipeCost} (Cosmic) Champion's Commendations on a successful upgrade. A success ends this run's attempts.",
+                        $"[Mythic Rift] Completion crafter unlocked: {RiftCompletionCrafterAttemptsPerRun} attempts, {RiftCompletionCrafterUpgradeChance:P0} chance to upgrade item level {RiftCompletionCrafterMinimumItemLevel}-{RiftCompletionCrafterMaximumItemLevel - 1} Unique or {RiftCompletionCrafterCosmicMinimumItemLevel}-{RiftCompletionCrafterMaximumItemLevel - 1} Cosmic gear slot 1-5 by +1. Costs {FormatCompletionCrafterCostText(tuning.CompletionCrafterUniqueRecipeCost, tuning.CompletionCrafterCosmicRecipeCost)} on a successful upgrade. A success ends this run's attempts.",
                         showSender: false);
                 }
             }
@@ -7147,7 +6522,7 @@ namespace MHServerEmu.Games.MythicRifts
             crafter.Properties[PropertyEnum.VendorType] = vendorTypeProtoRef;
             runState.AttachCompletionCrafter(crafter.Id);
             MythicRiftRewardTuning spawnTuning = _rewardTuning ?? MythicRiftRewardTuning.CreateDefault();
-            NotifyRunPlayers(runState, $"[Mythic Rift] Completion crafter spawned. Use it for item level 69-74 unique or 63-74 cosmic upgrades; each eligible player has three attempts and one success per cleared Rift. Costs {spawnTuning.CompletionCrafterUniqueRecipeCost} (Unique) or {spawnTuning.CompletionCrafterCosmicRecipeCost} (Cosmic) Champion's Commendations on a successful upgrade.");
+            NotifyRunPlayers(runState, $"[Mythic Rift] Completion crafter spawned. Use it for item level 69-74 unique or 63-74 cosmic upgrades; each eligible player has three attempts and one success per cleared Rift. Costs {FormatCompletionCrafterCostText(spawnTuning.CompletionCrafterUniqueRecipeCost, spawnTuning.CompletionCrafterCosmicRecipeCost)} on a successful upgrade.");
             Logger.Info($"Mythic Rift run {runState.Config.RunId} spawned completion crafter {crafter.PrototypeName} (0x{crafter.Id:X}) vendorType={vendorTypeProtoRef.GetNameFormatted()}.");
             return true;
         }
@@ -7202,7 +6577,7 @@ namespace MHServerEmu.Games.MythicRifts
 
             vendor.Properties[PropertyEnum.VendorType] = vendorTypeProtoRef;
             runState.AttachCompletionVendor(vendor.Id);
-            NotifyRunPlayers(runState, "[Mythic Rift] Rift artifact vendor spawned. Spend Rift Sigils here for targeted artifact offers.");
+            NotifyRunPlayers(runState, $"[Mythic Rift] Rift artifact vendor spawned. Spend {RiftArtifactVendorCurrencyDisplayName} here for targeted artifact offers.");
             Logger.Info($"Mythic Rift run {runState.Config.RunId} spawned completion artifact vendor {vendor.PrototypeName} (0x{vendor.Id:X}) vendorType={vendorTypeProtoRef.GetNameFormatted()}.");
             return true;
         }
@@ -7473,6 +6848,13 @@ namespace MHServerEmu.Games.MythicRifts
             return config != null &&
                    ((config.RegionAffixes != null && config.RegionAffixes.Count > 0) ||
                     (config.BossAffixes != null && config.BossAffixes.Count > 0));
+        }
+
+        private static string FormatCompletionCrafterCostText(int uniqueCost, int cosmicCost)
+        {
+            return uniqueCost == cosmicCost
+                ? $"{uniqueCost} Champion's Commendations"
+                : $"{uniqueCost} (Unique) or {cosmicCost} (Cosmic) Champion's Commendations";
         }
 
         private static string FormatPrototypeNameList(IReadOnlyList<PrototypeId> prototypeRefs)
@@ -7802,50 +7184,45 @@ namespace MHServerEmu.Games.MythicRifts
             return true;
         }
 
-        private void RegisterDefaultContent()
+        private bool RegisterContentEntry(MythicRiftContentPoolEntryTuning entry)
         {
-            foreach (MythicRiftContentDefinition definition in DefaultContentDefinitions)
-                RegisterContent(definition);
-        }
-
-        private void RegisterContent(MythicRiftContentDefinition definition)
-        {
-            if (definition == null)
-                return;
+            if (entry == null)
+                return false;
 
             MythicRiftContentEntry content = new()
             {
-                Id = definition.Id,
-                DisplayName = definition.DisplayName,
-                DefaultKillQuota = definition.DefaultKillQuota,
-                RegionProtoRef = ResolvePrototype(definition.RegionPrototypeName),
-                StartTargetProtoRef = ResolveStartTarget(definition.RegionPrototypeName),
-                MissionProtoRef = ResolvePrototype(definition.MissionPrototypeName),
-                BossProtoRef = ResolvePrototype(definition.BossPrototypeName),
-                BossLootTableProtoRef = ResolvePrototype(definition.BossLootTablePrototypeName),
-                RandomMapEligible = definition.RandomMapEligible,
-                RandomBossEligible = definition.RandomBossEligible,
-                IsSpecialRandomMap = definition.IsSpecialRandomMap,
-                UseOwnBossSourceWhenSelected = definition.UseOwnBossSourceWhenSelected,
-                UseCustomPopulation = definition.UseCustomPopulation,
-                BossOnlyCheckpointEligible = definition.BossOnlyCheckpointEligible,
+                Id = entry.Id,
+                DisplayName = entry.DisplayName,
+                DefaultKillQuota = entry.DefaultKillQuota,
+                RegionProtoRef = ResolvePrototype(entry.RegionPrototypeName),
+                StartTargetProtoRef = ResolveStartTarget(entry.RegionPrototypeName),
+                MissionProtoRef = ResolvePrototype(entry.MissionPrototypeName),
+                BossProtoRef = ResolvePrototype(entry.BossPrototypeName),
+                BossLootTableProtoRef = ResolvePrototype(entry.BossLootTablePrototypeName),
+                RandomMapEligible = entry.RandomMapEligible,
+                RandomBossEligible = entry.RandomBossEligible,
+                IsSpecialRandomMap = entry.IsSpecialRandomMap,
+                UseOwnBossSourceWhenSelected = entry.UseOwnBossSourceWhenSelected,
+                UseCustomPopulation = entry.UseCustomPopulation,
+                BossOnlyCheckpointEligible = entry.BossOnlyCheckpointEligible,
                 BossFamily = ResolveBossFamily(
-                    definition.BossFamily,
-                    definition.Id,
-                    definition.DisplayName,
-                    definition.BossPrototypeName),
-                MinRandomRiftLevel = definition.MinRandomRiftLevel,
-                MaxRandomRiftLevel = definition.MaxRandomRiftLevel,
-                MaxPlayerCount = definition.MaxPlayerCount
+                    entry.BossFamily,
+                    entry.Id,
+                    entry.DisplayName,
+                    entry.BossPrototypeName),
+                MinRandomRiftLevel = entry.MinRandomRiftLevel,
+                MaxRandomRiftLevel = entry.MaxRandomRiftLevel,
+                MaxPlayerCount = entry.MaxPlayerCount
             };
 
             if (content.IsValid == false)
             {
-                Logger.Warn($"RegisterContent(): failed to resolve mythic rift content id={definition.Id}");
-                return;
+                Logger.Warn($"RegisterContentEntry(): failed to resolve mythic rift content id={entry.Id}");
+                return false;
             }
 
             RegisterContent(content);
+            return true;
         }
 
         private static string ResolveBossFamily(string explicitBossFamily, params string[] identityParts)
@@ -8062,23 +7439,5 @@ namespace MHServerEmu.Games.MythicRifts
             }
         }
 
-        private sealed record MythicRiftContentDefinition(
-            string Id,
-            string DisplayName,
-            int DefaultKillQuota,
-            string RegionPrototypeName,
-            string MissionPrototypeName,
-            string BossPrototypeName,
-            string BossLootTablePrototypeName,
-            bool RandomMapEligible = true,
-            bool RandomBossEligible = true,
-            bool IsSpecialRandomMap = false,
-            bool UseOwnBossSourceWhenSelected = false,
-            bool UseCustomPopulation = false,
-            bool BossOnlyCheckpointEligible = false,
-            int MinRandomRiftLevel = 1,
-            int MaxRandomRiftLevel = 0,
-            int MaxPlayerCount = 0,
-            string BossFamily = null);
     }
 }

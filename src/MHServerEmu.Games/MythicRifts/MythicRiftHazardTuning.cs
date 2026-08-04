@@ -9,7 +9,7 @@ namespace MHServerEmu.Games.MythicRifts
 
         public string ProfileName { get; set; } = "default-hazards";
         public bool Enabled { get; set; } = true;
-        public bool UseKeywordDiscovery { get; set; } = true;
+        public bool UseKeywordDiscovery { get; set; }
         public int MaxActiveHazards { get; set; } = 2;
         public float SpawnIntervalSeconds { get; set; } = 20f;
         public float DurationSeconds { get; set; } = 6f;
