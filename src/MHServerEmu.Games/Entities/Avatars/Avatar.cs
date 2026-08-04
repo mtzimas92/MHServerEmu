@@ -26,7 +26,6 @@ using MHServerEmu.Games.Loot;
 using MHServerEmu.Games.MetaGames;
 using MHServerEmu.Games.Missions;
 using MHServerEmu.Games.MythicRifts;
-using MHServerEmu.Games.VillainIntelBoard;
 using MHServerEmu.Games.Network;
 using MHServerEmu.Games.Powers;
 using MHServerEmu.Games.Powers.Conditions;
@@ -4339,9 +4338,6 @@ namespace MHServerEmu.Games.Entities.Avatars
                 transition.UseTransition(player);
             else if (interactableObject.PrototypeDataRef == ShannaPortalGuideRef)
                 UseShannaPortalGuide(player, interactableObject);
-            else if (VillainIntelBoardManager.TryUseBoardNpc(player, interactableObject))
-            {
-            }
             else
                 RiftAccessTeleportService.TryUseRiftAccessTeleporter(player, interactableObject);
 
@@ -7307,7 +7303,6 @@ namespace MHServerEmu.Games.Entities.Avatars
             ScheduleEntityEvent(_avatarEnteredRegionEvent, TimeSpan.Zero);
 
             player.TryDoVendorXPCapRollover();
-            VillainIntelBoardManager.OnAvatarEnteredWorld(player, this, region);
         }
 
         private void ApplyLiveTuneServerConditions()
