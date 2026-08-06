@@ -14,7 +14,7 @@ namespace MHServerEmu.Commands.Implementations
     {
         [DefaultCommand]
         [CommandDescription("Starts, stops, marks, or shows server-side power damage metrics logging.")]
-        [CommandUsage("damageprofile [start|stop|status|mark] [label]")]
+        [CommandUsage("damageprofile [start|stop|status|mark|deterministic] [label|on|off|status]")]
         [CommandInvokerType(CommandInvokerType.Client)]
         public string DamageProfile(string[] @params, NetClient client)
         {
@@ -46,13 +46,37 @@ namespace MHServerEmu.Commands.Implementations
 
                     return "Power damage profiling is not running.";
 
+                case "deterministic":
+                case "det":
+                    string mode = @params.Length > 1 ? @params[1].ToLowerInvariant() : "status";
+                    switch (mode)
+                    {
+                        case "on":
+                        case "true":
+                        case "1":
+                            PowerDamageMetricsLogger.SetDeterministicMode(true, playerName);
+                            return "Power damage deterministic mode enabled. Damage variance, crit/brutal, dodge, and block rolls are disabled.";
+
+                        case "off":
+                        case "false":
+                        case "0":
+                            PowerDamageMetricsLogger.SetDeterministicMode(false, playerName);
+                            return "Power damage deterministic mode disabled.";
+
+                        case "status":
+                            return $"Power damage deterministic mode is {(PowerDamageMetricsLogger.IsDeterministic ? "enabled" : "disabled")}.";
+
+                        default:
+                            return "Usage: damageprofile deterministic [on|off|status]";
+                    }
+
                 case "status":
                     return PowerDamageMetricsLogger.IsEnabled
-                        ? $"Power damage profiling is running: session={PowerDamageMetricsLogger.SessionId}, events={PowerDamageMetricsLogger.DamageEventCount}, path={PowerDamageMetricsLogger.OutputPath}"
-                        : "Power damage profiling is not running.";
+                        ? $"Power damage profiling is running: session={PowerDamageMetricsLogger.SessionId}, events={PowerDamageMetricsLogger.DamageEventCount}, deterministic={PowerDamageMetricsLogger.IsDeterministic}, path={PowerDamageMetricsLogger.OutputPath}"
+                        : $"Power damage profiling is not running. Deterministic={PowerDamageMetricsLogger.IsDeterministic}.";
 
                 default:
-                    return "Usage: damageprofile [start|stop|status|mark] [label]";
+                    return "Usage: damageprofile [start|stop|status|mark|deterministic] [label|on|off|status]";
             }
         }
     }

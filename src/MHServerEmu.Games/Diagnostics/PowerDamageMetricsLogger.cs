@@ -23,11 +23,28 @@ namespace MHServerEmu.Games.Diagnostics
         private static string _outputPath;
         private static DateTime _startedUtc;
         private static long _damageEventCount;
+        private static volatile bool _deterministicMode;
 
         public static bool IsEnabled { get; private set; }
+        public static bool IsDeterministic => _deterministicMode;
         public static string OutputPath { get { lock (Lock) return _outputPath; } }
         public static string SessionId { get { lock (Lock) return _sessionId; } }
         public static long DamageEventCount { get { lock (Lock) return _damageEventCount; } }
+
+        public static bool SetDeterministicMode(bool enabled, string actor)
+        {
+            bool changed = _deterministicMode != enabled;
+            _deterministicMode = enabled;
+
+            lock (Lock)
+            {
+                if (IsEnabled)
+                    WriteEvent(new MarkerEvent(_sessionId, DateTime.UtcNow, actor, $"deterministic={(enabled ? "on" : "off")}"));
+            }
+
+            Logger.Info($"Power damage deterministic mode {(enabled ? "enabled" : "disabled")} by {actor}.");
+            return changed;
+        }
 
         public static bool Start(string label, string startedBy, out string outputPath)
         {
@@ -53,7 +70,7 @@ namespace MHServerEmu.Games.Diagnostics
                 _damageEventCount = 0;
                 IsEnabled = true;
 
-                WriteEvent(new SessionEvent("session_start", _sessionId, _startedUtc, startedBy, label, null));
+                WriteEvent(new SessionEvent("session_start", _sessionId, _startedUtc, startedBy, label, _deterministicMode, null));
                 outputPath = _outputPath;
                 Logger.Info($"Power damage metrics logging started: {_outputPath}");
                 return true;
@@ -70,7 +87,7 @@ namespace MHServerEmu.Games.Diagnostics
                 if (IsEnabled == false)
                     return false;
 
-                WriteEvent(new SessionEvent("session_stop", _sessionId, DateTime.UtcNow, stoppedBy, null, _damageEventCount));
+                WriteEvent(new SessionEvent("session_stop", _sessionId, DateTime.UtcNow, stoppedBy, null, _deterministicMode, _damageEventCount));
 
                 _writer?.Dispose();
                 _writer = null;
@@ -155,6 +172,7 @@ namespace MHServerEmu.Games.Diagnostics
                 powerResults.TestFlag(PowerResultFlags.OverTime),
                 powerResults.TestFlag(PowerResultFlags.Proc),
                 powerResults.TestFlag(PowerResultFlags.InstantKill),
+                _deterministicMode,
                 actualHealthDamage,
                 rawServerDamage,
                 clientDamage,
@@ -204,6 +222,7 @@ namespace MHServerEmu.Games.Diagnostics
             DateTime TimestampUtc,
             string Actor,
             string Label,
+            bool DeterministicMode,
             long? DamageEventCount)
         {
             public string Schema { get; init; } = "mh_power_damage_v1";
@@ -253,6 +272,7 @@ namespace MHServerEmu.Games.Diagnostics
             bool OverTime,
             bool Proc,
             bool InstantKill,
+            bool DeterministicMode,
             long ActualHealthDamage,
             float RawServerDamage,
             float ClientDisplayDamage,
