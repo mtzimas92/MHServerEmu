@@ -39,6 +39,10 @@ namespace MHServerEmu.Games.MythicRifts
         public ulong ExitPortalEntityId { get; private set; }
         public ulong CompletionVendorEntityId { get; private set; }
         public ulong CompletionCrafterEntityId { get; private set; }
+        public ulong RewardRoomRegionId { get; private set; }
+        public bool RewardRoomTeleportOffered { get; private set; }
+        public bool RewardRoomTeleportResolved { get; private set; }
+        public ulong EffectiveRegionId => RewardRoomRegionId != 0 ? RewardRoomRegionId : RegionId;
         public int CurrentKillCount { get; private set; }
         public bool BossUnlocked { get; private set; }
         public bool RewardsGranted { get; private set; }
@@ -140,6 +144,17 @@ namespace MHServerEmu.Games.MythicRifts
         public void AttachCompletionCrafter(ulong completionCrafterEntityId)
         {
             CompletionCrafterEntityId = completionCrafterEntityId;
+        }
+
+        public void MarkRewardRoomTeleportOffered()
+        {
+            RewardRoomTeleportOffered = true;
+        }
+
+        public void AttachRewardRoomRegion(ulong regionId)
+        {
+            RewardRoomRegionId = regionId;
+            RewardRoomTeleportResolved = true;
         }
 
         public void CaptureRegionDifficultyScaling(float playerToMobDamageMultiplier, float mobToPlayerDamageMultiplier)

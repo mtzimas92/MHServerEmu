@@ -97,5 +97,11 @@
   },
   "18000000000000040013": {
     "en_us": "Rewards bank until the gauntlet ends"
+  },
+  "18000000000000040014": {
+    "en_us": "The Rift has cleared. Travel to the reward room to collect your loot."
+  },
+  "18000000000000040015": {
+    "en_us": "Travel to Rift Reward"
   }
 }
