@@ -18,7 +18,10 @@ namespace MHServerEmu.Games.GameData.PatchManager
 
         public JsonPrototype(JsonElement jsonElement)
         {
-            _parentRef = (PrototypeId)jsonElement.GetProperty("ParentDataRef").GetUInt64();
+            JsonElement parentDataRefElement = jsonElement.GetProperty("ParentDataRef");
+            _parentRef = parentDataRefElement.ValueKind == JsonValueKind.String
+                ? GameDatabase.GetPrototypeRefByName(parentDataRefElement.GetString())
+                : (PrototypeId)parentDataRefElement.GetUInt64();
 
             Type classType = GameDatabase.DataDirectory.GetPrototypeClassType(_parentRef);
             if (!Verify.IsNotNull(classType)) return;
@@ -27,7 +30,7 @@ namespace MHServerEmu.Games.GameData.PatchManager
             {
                 string fieldName = jsonProperty.Name;
 
-                if (fieldName == "ParentDataRef")
+                if (fieldName == "ParentDataRef" || fieldName == "Op")
                     continue;
 
                 System.Reflection.PropertyInfo fieldInfo = classType.GetProperty(fieldName);
@@ -75,6 +78,7 @@ namespace MHServerEmu.Games.GameData.PatchManager
                     }
                 }
 
+                instance.PostProcess();
                 _instance = instance;
             }
 

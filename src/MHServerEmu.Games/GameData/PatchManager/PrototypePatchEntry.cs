@@ -26,6 +26,12 @@ namespace MHServerEmu.Games.GameData.PatchManager
         public int ArrayIndex { get; }
         [JsonIgnore]
         public bool Patched { get; set; }
+        [JsonIgnore]
+        public string SourceFile { get; set; } = string.Empty;
+        [JsonIgnore]
+        public string LastError { get; set; } = string.Empty;
+        [JsonIgnore]
+        public int MatchAttempts { get; set; }
 
         [JsonConstructor]
         public PrototypePatchEntry(bool enabled, string prototype, string path, string description, ValueBase value)
@@ -233,6 +239,9 @@ namespace MHServerEmu.Games.GameData.PatchManager
             {
                 if (value.ValueKind == JsonValueKind.Number && value.TryGetUInt64(out ulong ulongValue))
                     return (PrototypeId)ulongValue;
+
+                if (value.ValueKind == JsonValueKind.String)
+                    return GameDatabase.GetPrototypeRefByName(value.GetString());
             }
 
             if (fieldType == typeof(AssetId))
@@ -251,6 +260,19 @@ namespace MHServerEmu.Games.GameData.PatchManager
             {
                 if (value.ValueKind == JsonValueKind.Number && value.TryGetUInt64(out ulong ulongValue))
                     return (LocaleStringId)ulongValue;
+            }
+
+            if (fieldType == typeof(PropertyId))
+            {
+                if (value.ValueKind == JsonValueKind.Number && value.TryGetUInt64(out ulong ulongValue))
+                    return new PropertyId(ulongValue);
+
+                if (value.ValueKind == JsonValueKind.Object)
+                    return ParseJsonPropertyIdObject(value);
+
+                if (value.ValueKind == JsonValueKind.String &&
+                    Enum.TryParse(value.GetString(), out PropertyEnum propertyEnum))
+                    return new PropertyId(propertyEnum);
             }
 
             switch (value.ValueKind)
@@ -277,6 +299,62 @@ namespace MHServerEmu.Games.GameData.PatchManager
         public override void Write(Utf8JsonWriter writer, PrototypePatchEntry value, JsonSerializerOptions options)
         {
             throw new NotImplementedException(); 
+        }
+
+        private static PropertyId ParseJsonPropertyIdObject(JsonElement jsonElement)
+        {
+            string propertyName = GetRequiredString(jsonElement, "Property", "Prop", "Name");
+            if (Enum.TryParse(propertyName, out PropertyEnum propEnum) == false)
+                throw new InvalidOperationException($"Unknown property enum [{propertyName}].");
+
+            PropertyInfo propInfo = GameDatabase.PropertyInfoTable.LookupPropertyInfo(propEnum);
+            if (propInfo.ParamCount == 0)
+                return new(propEnum);
+
+            Span<PropertyParam> paramValues = stackalloc PropertyParam[Property.MaxParamCount];
+            propInfo.DefaultParamValues.CopyTo(paramValues);
+
+            if (jsonElement.TryGetProperty("Params", out JsonElement paramsElement))
+            {
+                JsonElement[] paramsArray = paramsElement.EnumerateArray().ToArray();
+                for (int i = 0; i < propInfo.ParamCount && i < paramsArray.Length; i++)
+                    paramValues[i] = ParsePropertyParam(paramsArray[i], propEnum, propInfo, i);
+            }
+            else
+            {
+                for (int i = 0; i < propInfo.ParamCount; i++)
+                {
+                    if (jsonElement.TryGetProperty($"Param{i}", out JsonElement paramElement))
+                        paramValues[i] = ParsePropertyParam(paramElement, propEnum, propInfo, i);
+                }
+            }
+
+            return new(propEnum, paramValues);
+        }
+
+        private static string GetRequiredString(JsonElement jsonElement, params string[] fieldNames)
+        {
+            foreach (string fieldName in fieldNames)
+            {
+                if (jsonElement.TryGetProperty(fieldName, out JsonElement fieldValue) &&
+                    fieldValue.ValueKind == JsonValueKind.String)
+                {
+                    return fieldValue.GetString();
+                }
+            }
+
+            throw new InvalidOperationException($"PropertyId object must specify one of: {string.Join(", ", fieldNames)}.");
+        }
+
+        private static PropertyParam ParsePropertyParam(JsonElement paramValue, PropertyEnum propEnum, PropertyInfo propInfo, int paramIndex)
+        {
+            return propInfo.GetParamType(paramIndex) switch
+            {
+                PropertyParamType.Asset => Property.ToParam((AssetId)ParseJsonElement(paramValue, typeof(AssetId))),
+                PropertyParamType.Prototype => Property.ToParam(propEnum, paramIndex, (PrototypeId)ParseJsonElement(paramValue, typeof(PrototypeId))),
+                PropertyParamType.Integer => paramValue.TryGetInt64(out long decimalValue) ? (PropertyParam)(int)decimalValue : default,
+                _ => throw new InvalidOperationException("Encountered an unknown prop param type while parsing a PropertyId object.")
+            };
         }
     }
 

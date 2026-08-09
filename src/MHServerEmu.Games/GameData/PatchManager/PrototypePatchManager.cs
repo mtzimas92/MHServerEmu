@@ -4,6 +4,7 @@ using MHServerEmu.Core.VectorMath;
 using MHServerEmu.Games.GameData.Prototypes;
 using System.ComponentModel;
 using System.Reflection;
+using System.Text;
 using System.Text.Json;
 
 namespace MHServerEmu.Games.GameData.PatchManager
@@ -52,6 +53,7 @@ namespace MHServerEmu.Games.GameData.PatchManager
                     if (value.Enabled == false) continue;
                     PrototypeId prototypeId = GameDatabase.GetPrototypeRefByName(value.Prototype);
                     if (prototypeId == PrototypeId.Invalid) continue;
+                    value.SourceFile = fileName;
                     AddPatchValue(prototypeId, value);
                     count++;
                 }
@@ -141,19 +143,224 @@ namespace MHServerEmu.Games.GameData.PatchManager
         private static bool CheckAndUpdate(PrototypePatchEntry entry, Prototype prototype, string currentPath)
         {
             if (currentPath.StartsWith('.')) currentPath = currentPath[1..];
+
+            if (IsPropertyIdParamPath(entry, currentPath, out string propertyFieldName, out int paramIndex))
+            {
+                entry.MatchAttempts++;
+
+                if (UpdatePropertyIdParam(prototype, propertyFieldName, paramIndex, entry, out string propertyError) == false)
+                {
+                    entry.LastError = propertyError;
+                    Logger.Warn($"CheckAndUpdate: {entry.LastError} for {entry.Prototype}");
+                    return false;
+                }
+
+                entry.Patched = true;
+                entry.LastError = string.Empty;
+                Logger.Trace($"Patch Prototype: {entry.Prototype} {entry.Path} = {entry.Value.GetValue()}");
+
+                return true;
+            }
+
             if (entry.СlearPath != currentPath) return false;
+            entry.MatchAttempts++;
 
             var fieldInfo = prototype.GetType().GetProperty(entry.FieldName);
             if (fieldInfo == null)
             {
-                Logger.Warn($"CheckAndUpdate: {entry.FieldName} not found for {entry.Prototype}");
+                entry.LastError = $"{entry.FieldName} not found at {currentPath}";
+                Logger.Warn($"CheckAndUpdate: {entry.LastError} for {entry.Prototype}");
                 return false;
             }
 
-            UpdateValue(prototype, fieldInfo, entry);
+            if (UpdateValue(prototype, fieldInfo, entry, out string error) == false)
+            {
+                entry.LastError = error;
+                return false;
+            }
+
+            entry.LastError = string.Empty;
             Logger.Trace($"Patch Prototype: {entry.Prototype} {entry.Path} = {entry.Value.GetValue()}");
 
             return true;
+        }
+
+        private static bool IsPropertyIdParamPath(PrototypePatchEntry entry, string currentPath, out string propertyFieldName, out int paramIndex)
+        {
+            propertyFieldName = string.Empty;
+            paramIndex = -1;
+
+            if (entry.FieldName.StartsWith("Param", StringComparison.OrdinalIgnoreCase) == false ||
+                int.TryParse(entry.FieldName[5..], out paramIndex) == false)
+            {
+                return false;
+            }
+
+            int lastDotIndex = entry.СlearPath.LastIndexOf('.');
+            string parentPath;
+            if (lastDotIndex == -1)
+            {
+                parentPath = string.Empty;
+                propertyFieldName = entry.СlearPath;
+            }
+            else
+            {
+                parentPath = entry.СlearPath[..lastDotIndex];
+                propertyFieldName = entry.СlearPath[(lastDotIndex + 1)..];
+            }
+
+            return parentPath == currentPath;
+        }
+
+        private static bool UpdatePropertyIdParam(Prototype prototype, string propertyFieldName, int paramIndex, PrototypePatchEntry entry, out string error)
+        {
+            error = string.Empty;
+
+            System.Reflection.PropertyInfo propertyFieldInfo = prototype.GetType().GetProperty(propertyFieldName);
+            if (propertyFieldInfo == null)
+            {
+                error = $"{propertyFieldName} not found for virtual PropertyId param path";
+                return false;
+            }
+
+            if (propertyFieldInfo.PropertyType != typeof(MHServerEmu.Games.Properties.PropertyId))
+            {
+                error = $"{propertyFieldName} is {propertyFieldInfo.PropertyType.Name}, not PropertyId";
+                return false;
+            }
+
+            var propertyId = (MHServerEmu.Games.Properties.PropertyId)propertyFieldInfo.GetValue(prototype);
+            var propertyInfo = GameDatabase.PropertyInfoTable.LookupPropertyInfo(propertyId.Enum);
+            if (paramIndex < 0 || paramIndex >= propertyInfo.ParamCount)
+            {
+                error = $"{propertyFieldName}.{entry.FieldName} is invalid for {propertyId}; paramCount={propertyInfo.ParamCount}";
+                return false;
+            }
+
+            Span<MHServerEmu.Games.Properties.PropertyParam> paramValues = stackalloc MHServerEmu.Games.Properties.PropertyParam[MHServerEmu.Games.Properties.Property.MaxParamCount];
+            propertyId.GetParams(paramValues);
+            paramValues[paramIndex] = ConvertValueToPropertyParam(entry.Value.GetValue(), propertyId.Enum, propertyInfo, paramIndex);
+
+            var updatedPropertyId = new MHServerEmu.Games.Properties.PropertyId(propertyId.Enum, paramValues);
+            propertyFieldInfo.SetValue(prototype, updatedPropertyId);
+
+            return true;
+        }
+
+        private static MHServerEmu.Games.Properties.PropertyParam ConvertValueToPropertyParam(object rawValue,
+            MHServerEmu.Games.Properties.PropertyEnum propertyEnum,
+            MHServerEmu.Games.Properties.PropertyInfo propertyInfo,
+            int paramIndex)
+        {
+            switch (propertyInfo.GetParamType(paramIndex))
+            {
+                case MHServerEmu.Games.Properties.PropertyParamType.Asset:
+                    MHServerEmu.Games.GameData.AssetId assetId = rawValue switch
+                    {
+                        MHServerEmu.Games.GameData.AssetId value => value,
+                        ulong value => (MHServerEmu.Games.GameData.AssetId)value,
+                        long value when value >= 0 => (MHServerEmu.Games.GameData.AssetId)(ulong)value,
+                        _ => throw new InvalidOperationException($"Cannot convert {rawValue.GetType().Name} to AssetId for PropertyId parameter.")
+                    };
+                    return MHServerEmu.Games.Properties.Property.ToParam(assetId);
+
+                case MHServerEmu.Games.Properties.PropertyParamType.Prototype:
+                    PrototypeId prototypeId = rawValue switch
+                    {
+                        PrototypeId value => value,
+                        ulong value => (PrototypeId)value,
+                        long value when value >= 0 => (PrototypeId)(ulong)value,
+                        string value => GameDatabase.GetPrototypeRefByName(value),
+                        _ => throw new InvalidOperationException($"Cannot convert {rawValue.GetType().Name} to PrototypeId for PropertyId parameter.")
+                    };
+                    return MHServerEmu.Games.Properties.Property.ToParam(propertyEnum, paramIndex, prototypeId);
+
+                case MHServerEmu.Games.Properties.PropertyParamType.Integer:
+                    int intValue = rawValue switch
+                    {
+                        int value => value,
+                        uint value => (int)value,
+                        long value => (int)value,
+                        ulong value => (int)value,
+                        _ => Convert.ToInt32(rawValue)
+                    };
+                    return (MHServerEmu.Games.Properties.PropertyParam)intValue;
+
+                default:
+                    throw new InvalidOperationException($"Unsupported PropertyId parameter type {propertyInfo.GetParamType(paramIndex)}.");
+            }
+        }
+
+        public string BuildPatchStatusReport(string filter = "", bool forceLoad = true, int maxEntries = 120)
+        {
+            if (_initialized == false)
+                return "Prototype patch manager is not initialized.";
+
+            filter ??= string.Empty;
+            bool hasFilter = string.IsNullOrWhiteSpace(filter) == false;
+
+            List<(PrototypeId ProtoRef, PrototypePatchEntry Entry)> entries = new();
+            foreach ((PrototypeId protoRef, List<PrototypePatchEntry> patchList) in _patchDict)
+            {
+                foreach (PrototypePatchEntry entry in patchList)
+                {
+                    if (hasFilter &&
+                        entry.Prototype.Contains(filter, StringComparison.OrdinalIgnoreCase) == false &&
+                        entry.Path.Contains(filter, StringComparison.OrdinalIgnoreCase) == false &&
+                        entry.Description.Contains(filter, StringComparison.OrdinalIgnoreCase) == false &&
+                        entry.SourceFile.Contains(filter, StringComparison.OrdinalIgnoreCase) == false)
+                    {
+                        continue;
+                    }
+
+                    entries.Add((protoRef, entry));
+                }
+            }
+
+            if (forceLoad)
+            {
+                foreach (PrototypeId protoRef in entries.Select(entry => entry.ProtoRef).Distinct())
+                {
+                    try
+                    {
+                        GameDatabase.GetPrototype<Prototype>(protoRef);
+                    }
+                    catch (Exception ex)
+                    {
+                        foreach (PrototypePatchEntry entry in entries.Where(entry => entry.ProtoRef == protoRef).Select(entry => entry.Entry))
+                            entry.LastError = $"Prototype load failed: {ex.Message}";
+                    }
+                }
+            }
+
+            int applied = entries.Count(entry => entry.Entry.Patched);
+            int failed = entries.Count(entry => IsFailed(entry.Entry, forceLoad));
+            int pending = entries.Count - applied - failed;
+
+            StringBuilder sb = new();
+            sb.AppendLine($"Patch status: {applied}/{entries.Count} applied, {failed} failed/not applied, {pending} pending. ForceLoad={forceLoad} Filter=\"{filter}\"");
+
+            foreach ((PrototypeId _, PrototypePatchEntry entry) in entries
+                         .OrderBy(entry => GetPatchStateSort(entry.Entry, forceLoad))
+                         .ThenBy(entry => entry.Entry.SourceFile, StringComparer.OrdinalIgnoreCase)
+                         .ThenBy(entry => entry.Entry.Prototype, StringComparer.OrdinalIgnoreCase)
+                         .ThenBy(entry => entry.Entry.Path, StringComparer.OrdinalIgnoreCase)
+                         .Take(maxEntries))
+            {
+                string state = GetPatchState(entry, forceLoad);
+                string file = string.IsNullOrWhiteSpace(entry.SourceFile) ? "<unknown>" : entry.SourceFile;
+                sb.AppendLine($"{state}: {file} | {entry.Prototype} | {entry.Path}");
+
+                if (string.IsNullOrWhiteSpace(entry.LastError) == false)
+                    sb.AppendLine($"  {entry.LastError}");
+                else if (state == "NOT_APPLIED")
+                    sb.AppendLine("  Path was not reached after loading the target prototype.");
+            }
+
+            if (entries.Count > maxEntries)
+                sb.AppendLine($"... {entries.Count - maxEntries} more entries omitted. Add a filter to narrow the report.");
+
+            return sb.ToString();
         }
 
         public static object ConvertValue(object rawValue, Type targetType)
@@ -215,6 +422,21 @@ namespace MHServerEmu.Games.GameData.PatchManager
             if (targetType == typeof(Orientation) && rawValue is Vector3 vec)
                 return new Orientation(vec.X, vec.Y, vec.Z);
 
+            if (targetType == typeof(MHServerEmu.Games.Properties.PropertyId))
+            {
+                switch (rawValue)
+                {
+                    case MHServerEmu.Games.Properties.PropertyEnum propertyEnum:
+                        return new MHServerEmu.Games.Properties.PropertyId(propertyEnum);
+                    case string propertyName when Enum.TryParse(propertyName, out MHServerEmu.Games.Properties.PropertyEnum propertyEnum):
+                        return new MHServerEmu.Games.Properties.PropertyId(propertyEnum);
+                    case ulong rawPropertyId:
+                        return new MHServerEmu.Games.Properties.PropertyId(rawPropertyId);
+                    case long rawPropertyId when rawPropertyId >= 0:
+                        return new MHServerEmu.Games.Properties.PropertyId((ulong)rawPropertyId);
+                }
+            }
+
             TypeConverter converter = TypeDescriptor.GetConverter(targetType);
             if (converter != null && converter.CanConvertFrom(rawValue.GetType()))
                 return converter.ConvertFrom(rawValue);
@@ -222,8 +444,10 @@ namespace MHServerEmu.Games.GameData.PatchManager
             return Convert.ChangeType(rawValue, targetType);
         }
 
-        private static void UpdateValue(Prototype prototype, PropertyInfo fieldInfo, PrototypePatchEntry entry)
+        private static bool UpdateValue(Prototype prototype, PropertyInfo fieldInfo, PrototypePatchEntry entry, out string error)
         {
+            error = string.Empty;
+
             try
             {
                 Type fieldType = fieldInfo.PropertyType;
@@ -241,11 +465,45 @@ namespace MHServerEmu.Games.GameData.PatchManager
                     fieldInfo.SetValue(prototype, convertedValue);
                 }
                 entry.Patched = true;
+                return true;
             }
             catch (Exception ex)
             {
+                error = ex.Message;
                 Logger.WarnException(ex, $"Failed UpdateValue: [{entry.Prototype}] [{entry.Path}] {ex.Message}");
+                return false;
             }
+        }
+
+        private static bool IsFailed(PrototypePatchEntry entry, bool forceLoad)
+        {
+            if (entry.Patched)
+                return false;
+
+            return string.IsNullOrWhiteSpace(entry.LastError) == false || forceLoad;
+        }
+
+        private static string GetPatchState(PrototypePatchEntry entry, bool forceLoad)
+        {
+            if (entry.Patched)
+                return "APPLIED";
+
+            if (string.IsNullOrWhiteSpace(entry.LastError) == false)
+                return "FAILED";
+
+            return forceLoad ? "NOT_APPLIED" : "PENDING";
+        }
+
+        private static int GetPatchStateSort(PrototypePatchEntry entry, bool forceLoad)
+        {
+            string state = GetPatchState(entry, forceLoad);
+            return state switch
+            {
+                "FAILED" => 0,
+                "NOT_APPLIED" => 1,
+                "PENDING" => 2,
+                _ => 3
+            };
         }
 
         private static void SetIndexValue(Prototype prototype, PropertyInfo fieldInfo, int index, ValueBase value)
