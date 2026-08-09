@@ -41,7 +41,7 @@ namespace MHServerEmu.Commands.Implementations
             if (generalInventory == null) return "No general inventory found";
 
             var entityManager = player.Game.EntityManager;
-            List<Item> itemsToSort = ListPool<Item>.Instance.Get();
+	    List<Item> itemsToSort = ListPool<Item>.Get();
             int itemsCompacted = 0;
 
             foreach (var entry in generalInventory)
@@ -87,7 +87,7 @@ namespace MHServerEmu.Commands.Implementations
                 }
             }
 
-            ListPool<Item>.Instance.Return(itemsToSort);
+	    ListPool<Item>.Return(itemsToSort);
             return $"Compacted {itemsCompacted} items in your inventory.";
         }
         private string GetItemCategory(Item item)

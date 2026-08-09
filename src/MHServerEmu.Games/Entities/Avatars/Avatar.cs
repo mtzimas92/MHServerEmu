@@ -4513,16 +4513,16 @@ namespace MHServerEmu.Games.Entities.Avatars
             dialog.InteractorId = player.CurrentAvatar?.Id ?? InvalidId;
 	    dialog.AddButton(GameDialogResultEnum.eGDR_Option1, YesButtonRef, ButtonStyle.SecondaryPositive, false, true);
 	    dialog.AddButton(GameDialogResultEnum.eGDR_Option2, NoButtonRef, ButtonStyle.SecondaryNegative, false, true);
-	    game.GameDialogManager.ShowDialog(dialog);
-
-            void OnShannaPortalGuideDialogResponse(ulong playerGuid, DialogResponse response)
+	    game.GameDialogManager.PostDialogToClient(dialog);
+            
+	    void OnShannaPortalGuideDialogResponse(ulong playerGuid, DialogResponse response)
             {
                 if (response.ButtonIndex != GameDialogResultEnum.eGDR_Option1) return;
 
                 Player responsePlayer = game.EntityManager.GetEntityByDbGuid<Player>(playerGuid);
                 if (responsePlayer == null) return;
 
-                using Teleporter teleporter = ObjectPoolManager.Instance.Get<Teleporter>();
+		using var teleporterHandle = TeleporterPool.Get(out Teleporter teleporter);
                 teleporter.Initialize(responsePlayer, TeleportContextEnum.TeleportContext_Transition);
                 teleporter.DifficultyTierRef = UESvsDinosDifficultyTierRef;
                 teleporter.TeleportToTarget(UESvsDinosEntryTargetRef);

@@ -250,7 +250,7 @@ namespace MHServerEmu.Commands.Implementations
                 {
                     return "Error: Could not find 'Difficulty/Tiers/Tier4Cosmic.prototype'.";
                 }
-                using Teleporter teleporter = ObjectPoolManager.Instance.Get<Teleporter>();
+		using var teleporterHandle = TeleporterPool.Get(out Teleporter teleporter);
                 teleporter.Initialize(player, TeleportContextEnum.TeleportContext_Debug);
                 teleporter.DifficultyTierRef = omegaDifficulty;
 

@@ -510,8 +510,8 @@ namespace MHServerEmu.Games.Regions
             Vector3 shannaPosition = new(landingPosition.X + (MathF.Cos(yaw) * ShannaPortalGuideSideOffset), ShannaPortalGuideY, landingPosition.Z);
             Orientation shannaOrientation = Orientation.FromDeltaVector(landingPosition - shannaPosition);
 
-            using EntitySettings entitySettings = ObjectPoolManager.Instance.Get<EntitySettings>();
-            entitySettings.EntityRef = ShannaPortalGuideRef;
+            using var entitySettingsHandle = EntitySettingsPool.Get(out EntitySettings entitySettings);
+	    entitySettings.EntityRef = ShannaPortalGuideRef;
             entitySettings.Position = shannaPosition;
             entitySettings.Orientation = shannaOrientation;
             entitySettings.RegionId = Id;

@@ -295,13 +295,10 @@ namespace MHServerEmu.Commands.Implementations
                 }
             }
 
-            ulong requestingGameId = targetHandle.CurrentGame?.Id ?? 0;
-            bool success = targetHandle.BeginRegionTransferToPlayer(requestingGameId, adminDbId);
+	    ulong requestingGameId = targetHandle.CurrentGame?.Id ?? 0;
+	    targetHandle.BeginRegionTransferToPlayer(requestingGameId, adminDbId);
+	    return $"Bringing {targetPlayerName} to your location.";
 
-            if (success)
-                return $"Bringing {targetPlayerName} to your location.";
-            else
-                return $"Failed to bring {targetPlayerName}. The server rejected the transfer (they may be in a restricted state).";
         }
 
         [Command("goto")]
@@ -348,13 +345,9 @@ namespace MHServerEmu.Commands.Implementations
 
             }
 
-            ulong requestingGameId = adminHandle.CurrentGame?.Id ?? 0;
-            bool success = adminHandle.BeginRegionTransferToPlayer(requestingGameId, targetDbId);
-
-            if (success)
-                return $"Teleporting to {targetPlayerName}'s location.";
-            else
-                return $"Failed to teleport to {targetPlayerName}. The server rejected the transfer.";
+	    ulong requestingGameId = adminHandle.CurrentGame?.Id ?? 0;
+	    adminHandle.BeginRegionTransferToPlayer(requestingGameId, targetDbId);
+	    return $"Teleporting to {targetPlayerName}'s location.";
         }
 
         /// <summary>
