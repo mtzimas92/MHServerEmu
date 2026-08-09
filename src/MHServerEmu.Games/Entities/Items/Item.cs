@@ -224,6 +224,20 @@ namespace MHServerEmu.Games.Entities.Items
                         if (avatar != null && avatar.IsInWorld && avatar.CurrentTeamUpAgent == ownerAgent)
                             ApplyTeamUpAffixesToAvatar(avatar);
                     }
+
+                    // Show tip for equipped cosmic items
+                    if (owner is Avatar && ItemSpec.RarityProtoRef == GameDatabase.LootGlobalsPrototype.RarityCosmic)
+                    {
+                        Player playerOwner = owner?.GetOwnerOfType<Player>();
+                        if (playerOwner != null)
+                        {
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
+                            playerOwner.ShowHUDTutorial(GameDatabase.UIGlobalsPrototype.CosmicEquippedTutorialTip);
+#else
+                            TutorialSystem.ShowTip(playerOwner, GameDatabase.UIGlobalsPrototype.CosmicEquippedTutorialTip);
+#endif
+                        }
+                    }
                 }
             }
 
@@ -586,7 +600,7 @@ namespace MHServerEmu.Games.Entities.Items
 
             bool isInRecipeLibrary = false;
 
-            using var inventoryListHandle = ListPool<PrototypeId>.Instance.Get(out List<PrototypeId> inventoryList);
+            using var inventoryListHandle = ListPool<PrototypeId>.Get(out List<PrototypeId> inventoryList);
             if (vendorTypeProto.GetInventories(inventoryList))
             {
                 foreach (PrototypeId crafterVendorInvProtoRef in inventoryList)
@@ -624,7 +638,7 @@ namespace MHServerEmu.Games.Entities.Items
             // Validate cost
             CurrencyGlobalsPrototype currencyGlobals = GameDatabase.CurrencyGlobalsPrototype;
 
-            using PropertyCollection currencyCost = ObjectPoolManager.Instance.Get<PropertyCollection>();
+            using var currencyCostHandle = PropertyCollectionPool.Get(out PropertyCollection currencyCost);
             if (craftingRecipeProto.GetCraftingCost(player, ingredientIds, out uint creditsCost, out uint legendaryMarksCost, currencyCost) == false)
                 return CraftingResult.InsufficientIngredients;
 
@@ -749,7 +763,7 @@ namespace MHServerEmu.Games.Entities.Items
             if (!Verify.IsNotNull(player)) return 0;
 
             // This eval simply returns 1 even back in 1.10
-            using EvalContextData evalContext = ObjectPoolManager.Instance.Get<EvalContextData>();
+            using var evalContextHandle = EvalContextDataPool.Get(out EvalContextData evalContext);
             evalContext.SetReadOnlyVar_PropertyCollectionPtr(EvalContext.Other, Properties);
             evalContext.SetReadOnlyVar_PropertyCollectionPtr(EvalContext.Entity, vendor?.Properties);
             float xpMult = Eval.RunFloat(GameDatabase.AdvancementGlobalsPrototype.VendorLevelingEval, evalContext);
@@ -881,7 +895,7 @@ namespace MHServerEmu.Games.Entities.Items
             DecrementStack(count);
 
             // Create a new stack
-            using EntitySettings settings = ObjectPoolManager.Instance.Get<EntitySettings>();
+            using var settingsHandle = EntitySettingsPool.Get(out EntitySettings settings);
             settings.EntityRef = PrototypeDataRef;
             settings.ItemSpec = new(ItemSpec);
             settings.ItemSpec.StackCount = count;
@@ -974,7 +988,7 @@ namespace MHServerEmu.Games.Entities.Items
             int indexSeed = random.GetSeed();
 
             // Apply built-in affixes
-            using var detailsListHandle = ListPool<BuiltInAffixDetails>.Instance.Get(out List<BuiltInAffixDetails> detailsList);
+            using var detailsListHandle = ListPool<BuiltInAffixDetails>.Get(out List<BuiltInAffixDetails> detailsList);
             if (itemProto.GenerateBuiltInAffixDetails(_itemSpec, detailsList))
             {
                 foreach (BuiltInAffixDetails builtInAffixDetails in detailsList)
@@ -1537,7 +1551,7 @@ namespace MHServerEmu.Games.Entities.Items
             var itemProto = ItemPrototype;
             if (itemProto.EvalDisplayLevel == null) return 0;
 
-            using EvalContextData evalContext = ObjectPoolManager.Instance.Get<EvalContextData>();
+            using var evalContextHandle = EvalContextDataPool.Get(out EvalContextData evalContext);
             evalContext.Game = Game;
             evalContext.SetReadOnlyVar_EntityPtr(EvalContext.Default, this);
             return Eval.RunInt(itemProto.EvalDisplayLevel, evalContext);
@@ -1689,7 +1703,7 @@ namespace MHServerEmu.Games.Entities.Items
                 $"The following Item has a built-in pick-in-range PropertyEntry with a property that is not an int/float/bool prop, which doesn't work!\nItem: [{this}]\nProperty: [{propertyInfo.PropertyName}]"))
                 return false;
 
-            using EvalContextData evalContext = ObjectPoolManager.Instance.Get<EvalContextData>();
+            using var evalContextHandle = EvalContextDataPool.Get(out EvalContextData evalContext);
             evalContext.SetReadOnlyVar_PropertyCollectionPtr(EvalContext.Entity, Properties);
 
             float valueMin = 0f;
@@ -1729,7 +1743,7 @@ namespace MHServerEmu.Games.Entities.Items
                 $"The following Item has a built-in set PropertyEntry with a property that is not an int/float/asset prop, which doesn't work!\nItem: [{this}]\nProperty: [{propertyInfo.PropertyName}]"))
                 return false;
 
-            using EvalContextData evalContext = ObjectPoolManager.Instance.Get<EvalContextData>();
+            using var evalContextHandle = EvalContextDataPool.Get(out EvalContextData evalContext);
             evalContext.SetReadOnlyVar_PropertyCollectionPtr(EvalContext.Entity, Properties);
 
             switch (propDataType)
@@ -1813,7 +1827,7 @@ namespace MHServerEmu.Games.Entities.Items
                         return false;
                 }
 
-                using EvalContextData evalContext = ObjectPoolManager.Instance.Get<EvalContextData>();
+                using var evalContextHandle = EvalContextDataPool.Get(out EvalContextData evalContext);
                 evalContext.SetReadOnlyVar_PropertyCollectionPtr(EvalContext.Entity, Properties);
                 evalContext.SetVar_Int(EvalContext.Var1, (int)Properties[PropertyEnum.ItemLevel]);
                 evalContext.SetVar_Int(EvalContext.Var2, evalLevelVar);
@@ -1880,7 +1894,7 @@ namespace MHServerEmu.Games.Entities.Items
                         $"The following Affix has a built-in pick-in-range PropertyEntry with a property that is not an int/float/bool prop, which doesn't work!\nAffix: [{affixProto}]\nProperty: [{propertyInfo.PropertyName}]"))
                         continue;
 
-                    using EvalContextData evalContext = ObjectPoolManager.Instance.Get<EvalContextData>();
+                    using var evalContextHandle = EvalContextDataPool.Get(out EvalContextData evalContext);
                     evalContext.SetReadOnlyVar_PropertyCollectionPtr(EvalContext.Entity, Properties);
 
                     float valueMin = 0f;
@@ -1986,7 +2000,7 @@ namespace MHServerEmu.Games.Entities.Items
             if (relicProto.EvalOnStackCountChange == null)
                 return false;
 
-            using EvalContextData evalContext = ObjectPoolManager.Instance.Get<EvalContextData>();
+            using var evalContextHandle = EvalContextDataPool.Get(out EvalContextData evalContext);
             evalContext.SetVar_PropertyCollectionPtr(EvalContext.Default, Properties);
             return Eval.RunBool(relicProto.EvalOnStackCountChange, evalContext);
         }
@@ -1999,7 +2013,7 @@ namespace MHServerEmu.Games.Entities.Items
 
             // Use a temporary property collection to store proc properties
             // because we can't modify our collections while iterating.
-            using PropertyCollection procProperties = ObjectPoolManager.Instance.Get<PropertyCollection>();
+            using var procPropertiesHandle = PropertyCollectionPool.Get(out PropertyCollection procProperties);
             foreach (PropertyEnum procProperty in Property.ProcPropertyTypesAll)
                 procProperties.CopyPropertyRange(Properties, procProperty);
 
@@ -2299,7 +2313,7 @@ namespace MHServerEmu.Games.Entities.Items
 
             if (itemProto.EvalCanUse != null)
             {
-                using EvalContextData evalContext = ObjectPoolManager.Instance.Get<EvalContextData>();
+                using var evalContextHandle = EvalContextDataPool.Get(out EvalContextData evalContext);
                 evalContext.SetReadOnlyVar_EntityPtr(EvalContext.Default, this);
                 evalContext.SetReadOnlyVar_EntityPtr(EvalContext.Entity, avatar);
                 evalContext.SetVar_Int(EvalContext.Var1, player.GetLevelCapForCharacter(avatar.PrototypeDataRef));

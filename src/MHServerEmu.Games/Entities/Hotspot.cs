@@ -90,7 +90,7 @@ namespace MHServerEmu.Games.Entities
             EntityManager entityManager = Game.EntityManager;
             if (!Verify.IsNotNull(entityManager)) return;
 
-            using var overlappingEntitiesHandle = ListPool<ulong>.Instance.Get(out List<ulong> overlappingEntities);
+            using var overlappingEntitiesHandle = ListPool<ulong>.Get(out List<ulong> overlappingEntities);
             if (Physics.GetOverlappingEntities(overlappingEntities))
             {
                 Vector3 overlapPosition = RegionLocation.Position;
@@ -125,7 +125,7 @@ namespace MHServerEmu.Games.Entities
 
                 if (missilesData.EvalPropertiesToApply != null)
                 {
-                    using EvalContextData evalContext = ObjectPoolManager.Instance.Get<EvalContextData>();
+                    using var evalContextHandle = EvalContextDataPool.Get(out EvalContextData evalContext);
                     evalContext.Game = Game;
                     evalContext.SetVar_PropertyCollectionPtr(EvalContext.Default, _directApplyToMissileProperties);
                     evalContext.SetReadOnlyVar_PropertyCollectionPtr(EvalContext.Entity, Properties);
@@ -577,9 +577,13 @@ namespace MHServerEmu.Games.Entities
                 _notifiedPlayers.Add(player.Id);
             }
 
-            // V48_TODO?: This may need to use TutorialSystem::ShowTip() instead.
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
             if (hotspotProto.TutorialTip != null)
                 player.ShowHUDTutorial(hotspotProto.TutorialTip);
+#else
+            if (hotspotProto.TutorialTip != null)
+                TutorialSystem.ShowTip(player, hotspotProto.TutorialTip);
+#endif
 
             if (hotspotProto.KismetSeq != PrototypeId.Invalid)
                 player.PlayKismetSeq(hotspotProto.KismetSeq);
@@ -742,7 +746,7 @@ namespace MHServerEmu.Games.Entities
                     return;
 
                 // TODO: iterate _overlapPowerTargets keys and get refs using GetValueOrDefault() to remove this pooled dictionary?
-                using var changedHandle = ListPool<(ulong, PowerTargetMap)>.Instance.Get(out List<(ulong, PowerTargetMap)> changed);
+                using var changedHandle = ListPool<(ulong, PowerTargetMap)>.Get(out List<(ulong, PowerTargetMap)> changed);
 
                 foreach (var kvp in _overlapPowerTargets)
                 {
@@ -1036,7 +1040,7 @@ namespace MHServerEmu.Games.Entities
             var manager = Game.EntityManager;
 
             // TODO: same ref based optimization as in OnPowerEnded()
-            using var changedHandle = ListPool<(ulong, PowerTargetMap)>.Instance.Get(out List<(ulong, PowerTargetMap)> changed);
+            using var changedHandle = ListPool<(ulong, PowerTargetMap)>.Get(out List<(ulong, PowerTargetMap)> changed);
 
             foreach (var entry in _overlapPowerTargets)
             {

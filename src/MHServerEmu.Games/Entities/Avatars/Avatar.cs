@@ -117,6 +117,9 @@ namespace MHServerEmu.Games.Entities.Avatars
 
         public AvatarPrototype AvatarPrototype { get => Prototype as AvatarPrototype; }
         public int PrestigeLevel { get => Properties[PropertyEnum.AvatarPrestigeLevel]; }
+#if GAME_VERSION_1_53
+        public int OmegaPrestigeLevel { get => Properties[PropertyEnum.AvatarOmegaPrestigeLevel]; }
+#endif
         public override bool IsAtLevelCap { get => CharacterLevel >= GetAvatarLevelCap(); }
         public override int Throwability { get => GetThrowability(); }
 
@@ -266,7 +269,7 @@ namespace MHServerEmu.Games.Entities.Avatars
             // Restore persistent cooldowns
             if (archive.IsPersistent)
             {
-                using var setDictHandle = DictionaryPool<PropertyId, PropertyValue>.Instance.Get(out Dictionary<PropertyId, PropertyValue> setDict);
+                using var setDictHandle = DictionaryPool<PropertyId, PropertyValue>.Get(out Dictionary<PropertyId, PropertyValue> setDict);
 
                 foreach (var kvp in Properties.IteratePropertyRange(PropertyEnum.PowerCooldownDurationPersistent))
                 {
@@ -353,7 +356,7 @@ namespace MHServerEmu.Games.Entities.Avatars
                 // TODO: Add a helper function for applying mods? (pvp / infinity / omega)
 
                 // Apply PvP upgrade bonuses
-                using var pvpUpgradeListHandle = ListPool<(PrototypeId, int)>.Instance.Get(out List<(PrototypeId, int)> pvpUpgradeList);
+                using var pvpUpgradeListHandle = ListPool<(PrototypeId, int)>.Get(out List<(PrototypeId, int)> pvpUpgradeList);
 
                 foreach (var kvp in Properties.IteratePropertyRange(PropertyEnum.PvPUpgrades))
                 {
@@ -573,7 +576,7 @@ namespace MHServerEmu.Games.Entities.Avatars
 
                         Player player = GetOwnerOfType<Player>();
 
-                        using Teleporter teleporter = ObjectPoolManager.Instance.Get<Teleporter>();
+                        using var teleporterHandle = TeleporterPool.Get(out Teleporter teleporter);
                         teleporter.Initialize(player, TeleportContextEnum.TeleportContext_Resurrect);
                         return teleporter.TeleportToTarget(regionProtoRef, areaProtoRef, cellProtoRef, entityProtoRef);
                     }
@@ -841,7 +844,7 @@ namespace MHServerEmu.Games.Entities.Avatars
             PrototypeId bodyslideTargetRef = Bodyslider.GetBodyslideTargetRef(player);
             if (!Verify.IsTrue(bodyslideTargetRef != PrototypeId.Invalid)) return false;
 
-            using Teleporter teleporter = ObjectPoolManager.Instance.Get<Teleporter>();
+            using var teleporterHandle = TeleporterPool.Get(out Teleporter teleporter);
             teleporter.Initialize(player, TeleportContextEnum.TeleportContext_Bodyslide);
             return teleporter.TeleportToTarget(bodyslideTargetRef);
         }
@@ -855,7 +858,7 @@ namespace MHServerEmu.Games.Entities.Avatars
             Vector3 position = player.Properties[PropertyEnum.BodySliderRegionPos];
             player.RemoveBodysliderProperties();
 
-            using Teleporter teleporter = ObjectPoolManager.Instance.Get<Teleporter>();
+            using var teleporterHandle = TeleporterPool.Get(out Teleporter teleporter);
             teleporter.Initialize(player, TeleportContextEnum.TeleportContext_Bodyslide);
             return teleporter.TeleportToRegionLocation(regionId, position);
         }
@@ -865,7 +868,7 @@ namespace MHServerEmu.Games.Entities.Avatars
             Player player = GetOwnerOfType<Player>();
             if (!Verify.IsNotNull(player)) return false;
 
-            using Teleporter teleporter = ObjectPoolManager.Instance.Get<Teleporter>();
+            using var teleporterHandle = TeleporterPool.Get(out Teleporter teleporter);
             teleporter.Initialize(player, TeleportContextEnum.TeleportContext_Power);
             return teleporter.TeleportToTarget(targetProtoRef);
         }
@@ -1320,7 +1323,7 @@ namespace MHServerEmu.Games.Entities.Avatars
 
             // Notify clients
             PlayerConnectionManager networkManager = Game.NetworkManager;
-            using var interestedClientListHandle = ListPool<PlayerConnection>.Instance.Get(out List<PlayerConnection> interestedClientList);
+            using var interestedClientListHandle = ListPool<PlayerConnection>.Get(out List<PlayerConnection> interestedClientList);
             if (networkManager.GetInterestedClients(interestedClientList, this, AOINetworkPolicyValues.AOIChannelProximity, notifyOwner == false))
             {
                 var continuousPowerUpdateMessage = NetMessageContinuousPowerUpdateToClient.CreateBuilder()
@@ -1522,7 +1525,7 @@ namespace MHServerEmu.Games.Entities.Avatars
 
         public ulong FindAbilityItem(ItemPrototype itemProto, ulong skipItemId = InvalidId)
         {
-            using var inventoryListHandle = ListPool<Inventory>.Instance.Get(out List<Inventory> inventoryList);
+            using var inventoryListHandle = ListPool<Inventory>.Get(out List<Inventory> inventoryList);
 
             // Add equipment inventories
             foreach (Inventory inventory in new InventoryIterator(this, InventoryIterationFlags.Equipment))
@@ -1661,7 +1664,7 @@ namespace MHServerEmu.Games.Entities.Avatars
             Player playerOwner = GetOwnerOfType<Player>();
             if (!Verify.IsNotNull(playerOwner)) return false;
 
-            using var inventoryListHandle = ListPool<Inventory>.Instance.Get(out List<Inventory> inventoryList);
+            using var inventoryListHandle = ListPool<Inventory>.Get(out List<Inventory> inventoryList);
 
             // Add equipment inventories
             foreach (Inventory inventory in new InventoryIterator(this, InventoryIterationFlags.Equipment))
@@ -1822,7 +1825,7 @@ namespace MHServerEmu.Games.Entities.Avatars
             ConditionCollection conditionCollection = ConditionCollection;
             if (!Verify.IsNotNull(conditionCollection)) return false;
 
-            using var conditionCleanupListHandle = ListPool<ulong>.Instance.Get(out List<ulong> conditionCleanupList);
+            using var conditionCleanupListHandle = ListPool<ulong>.Get(out List<ulong> conditionCleanupList);
 
             // Try to restore condition connections for self-applied powers
             foreach (Condition condition in ConditionCollection.IterateConditions(false))
@@ -1871,7 +1874,7 @@ namespace MHServerEmu.Games.Entities.Avatars
 
         private int GetThrowability()
         {
-            using EvalContextData evalContext = ObjectPoolManager.Instance.Get<EvalContextData>();
+            using var evalContextHandle = EvalContextDataPool.Get(out EvalContextData evalContext);
             evalContext.SetReadOnlyVar_PropertyCollectionPtr(EvalContext.Default, Properties);
             evalContext.SetReadOnlyVar_ProtoRefVectorPtr(EvalContext.Var1, Keywords);
 
@@ -2025,6 +2028,14 @@ namespace MHServerEmu.Games.Entities.Avatars
 #if GAME_VERSION_1_52 || GAME_VERSION_1_53
             if (powerInfo.IsInPowerProgression)
             {
+#if GAME_VERSION_1_53
+                if (powerInfo.PassesCostumeRequirement(GetCurrentCostumePrototypeRef()) == false)
+                    return PowerProgressionInfo.RankLocked;
+
+                if (powerInfo.IsOmegaTrait() && (IsOmegaPrestigeEnabled() == false || OmegaPrestigeLevel <= 0))
+                    return PowerProgressionInfo.RankLocked;
+#endif
+
                 // Talents
                 if (powerInfo.IsTalent)
                 {
@@ -2231,7 +2242,7 @@ namespace MHServerEmu.Games.Entities.Avatars
 
 #if GAME_VERSION_1_52 || GAME_VERSION_1_53
             // Unassign talents
-            using var talentPowerListHandle = ListPool<PrototypeId>.Instance.Get(out List<PrototypeId> talentPowerList);
+            using var talentPowerListHandle = ListPool<PrototypeId>.Get(out List<PrototypeId> talentPowerList);
             GetTalentPowersForSpec(currentSpecIndex, talentPowerList);
 
             foreach (PrototypeId talentPowerRef in talentPowerList)
@@ -2280,7 +2291,7 @@ namespace MHServerEmu.Games.Entities.Avatars
 
 #if GAME_VERSION_1_52 || GAME_VERSION_1_53
             // Unassign talents
-            using var talentPowerListHandle = ListPool<PrototypeId>.Instance.Get(out List<PrototypeId> talentPowerList);
+            using var talentPowerListHandle = ListPool<PrototypeId>.Get(out List<PrototypeId> talentPowerList);
             GetTalentPowersForSpec(specIndex, talentPowerList);
 
             foreach (PrototypeId talentPowerRef in talentPowerList)
@@ -2353,7 +2364,7 @@ namespace MHServerEmu.Games.Entities.Avatars
                     uint talentGroupIndex = powerOwnerTable.GetTalentGroupIndex(PrototypeDataRef, talentPowerRef);
                     if (!Verify.IsTrue(talentGroupIndex != TalentGroupIndexInvalid)) return false;
 
-                    using var talentPowerListHandle = ListPool<PrototypeId>.Instance.Get(out List<PrototypeId> talentPowerList);
+                    using var talentPowerListHandle = ListPool<PrototypeId>.Get(out List<PrototypeId> talentPowerList);
                     GetTalentPowersForSpec(specIndex, talentPowerList);
 
                     foreach (PrototypeId talentPowerRefToCheck in talentPowerList)
@@ -2405,7 +2416,7 @@ namespace MHServerEmu.Games.Entities.Avatars
             {
                 foreach (EvalPrototype evalProto in talentPowerProto.EvalCanEnable)
                 {
-                    using EvalContextData evalContext = ObjectPoolManager.Instance.Get<EvalContextData>();
+                    using var evalContextHandle = EvalContextDataPool.Get(out EvalContextData evalContext);
                     evalContext.SetReadOnlyVar_PropertyCollectionPtr(EvalContext.Default, null);
                     evalContext.SetReadOnlyVar_EntityPtr(EvalContext.Entity, this);
                     evalContext.SetReadOnlyVar_ConditionCollectionPtr(EvalContext.Var1, ConditionCollection);
@@ -2476,7 +2487,7 @@ namespace MHServerEmu.Games.Entities.Avatars
         {
             int specIndex = GetPowerSpecIndexActive();
 
-            using var talentPowerListHandle = ListPool<PrototypeId>.Instance.Get(out List<PrototypeId> talentPowerList);
+            using var talentPowerListHandle = ListPool<PrototypeId>.Get(out List<PrototypeId> talentPowerList);
             GetTalentPowersForSpec(specIndex, talentPowerList);
 
             foreach (PrototypeId talentPowerRef in talentPowerList)
@@ -2559,7 +2570,7 @@ namespace MHServerEmu.Games.Entities.Avatars
             // Replace the slotted original power if it was usable
             if (GetPowerRank(originalPowerRef) > 0)
             {
-                using var slotListHandle = ListPool<AbilitySlot>.Instance.Get(out List<AbilitySlot> slotList);
+                using var slotListHandle = ListPool<AbilitySlot>.Get(out List<AbilitySlot> slotList);
                 int specIndex = GetPowerSpecIndexActive();
 
                 foreach (AbilityKeyMapping keyMapping in _abilityKeyMappings)
@@ -2601,7 +2612,7 @@ namespace MHServerEmu.Games.Entities.Avatars
             if (!Verify.IsNotNull(originalPowerProto)) return false;
 
             // Restore the original power in key mappings
-            using var slotListHandle = ListPool<AbilitySlot>.Instance.Get(out List<AbilitySlot> slotList);
+            using var slotListHandle = ListPool<AbilitySlot>.Get(out List<AbilitySlot> slotList);
             int specIndex = GetPowerSpecIndexActive();
 
             foreach (AbilityKeyMapping keyMapping in _abilityKeyMappings)
@@ -2741,7 +2752,7 @@ namespace MHServerEmu.Games.Entities.Avatars
                 return;
 
             // Key mappings should have already been cleaned up by respec, so just remove the powers
-            using var mappedPowerListHandle = ListPool<PrototypeId>.Instance.Get(out List<PrototypeId> mappedPowerList);
+            using var mappedPowerListHandle = ListPool<PrototypeId>.Get(out List<PrototypeId> mappedPowerList);
             foreach (var kvp in Properties.IteratePropertyRange(PropertyEnum.AvatarMappedPower))
                 mappedPowerList.Add(kvp.Value);
 
@@ -3097,7 +3108,7 @@ namespace MHServerEmu.Games.Entities.Avatars
             if (!Verify.IsNotNull(avatarProto)) return false;
 
             // Look for powers that are not allowed in the new transform mode
-            using var powerRemoveListHandle = ListPool<PrototypeId>.Instance.Get(out List<PrototypeId> powerRemoveList);
+            using var powerRemoveListHandle = ListPool<PrototypeId>.Get(out List<PrototypeId> powerRemoveList);
             
             // Power collection
             foreach (var kvp in PowerCollection)
@@ -3207,7 +3218,7 @@ namespace MHServerEmu.Games.Entities.Avatars
             if (!Verify.IsNotNull(keyMapping, $"No current keyMapping when calling GetPowerSlot [{powerProtoRef.GetName()}]"))
                 return AbilitySlot.Invalid;
 
-            using var abilitySlotListHandle = ListPool<AbilitySlot>.Instance.Get(out List<AbilitySlot> abilitySlotList);
+            using var abilitySlotListHandle = ListPool<AbilitySlot>.Get(out List<AbilitySlot> abilitySlotList);
             keyMapping.GetActiveAbilitySlotsContainingProtoRef(powerProtoRef, abilitySlotList);
             AbilitySlot result = abilitySlotList.Count > 0 ? abilitySlotList[0] : AbilitySlot.Invalid;
 
@@ -3469,7 +3480,7 @@ namespace MHServerEmu.Games.Entities.Avatars
             // because this is probably happening in combat and the 1.52 client is stupid,
             // we can't do the full SlotAbility() call here that does validation and events.
             // See CAvatar::autoSlotPowers() for reference.
-            using var hotkeyDataListHandle = ListPool<HotkeyData>.Instance.Get(out List<HotkeyData> hotkeyDataList);
+            using var hotkeyDataListHandle = ListPool<HotkeyData>.Get(out List<HotkeyData> hotkeyDataList);
             if (keyMapping.GetDefaultAbilities(hotkeyDataList, this))
             {
                 foreach (HotkeyData hotkeyData in hotkeyDataList)
@@ -4039,7 +4050,7 @@ namespace MHServerEmu.Games.Entities.Avatars
             EvalPrototype evalProto = primaryManaBehaviorProto.EvalOnEnduranceUpdate;
             if (CanGainOrRegenEndurance(manaType) && evalProto != null)
             {
-                using EvalContextData evalContext = ObjectPoolManager.Instance.Get<EvalContextData>();
+                using var evalContextHandle = EvalContextDataPool.Get(out EvalContextData evalContext);
                 evalContext.SetVar_PropertyCollectionPtr(EvalContext.Default, Properties);
                 evalContext.SetVar_PropertyCollectionPtr(EvalContext.Entity, Properties);
 
@@ -4638,7 +4649,7 @@ namespace MHServerEmu.Games.Entities.Avatars
             if (toInvLoc.IsArtifactInventory == false || fromInvLoc.IsArtifactInventory)
                 return InventoryResult.Success;
 
-            using var otherArtifactInvsHandle = ListPool<Inventory>.Instance.Get(out List<Inventory> otherArtifactInvs);
+            using var otherArtifactInvsHandle = ListPool<Inventory>.Get(out List<Inventory> otherArtifactInvs);
 
             switch (toInvLoc.InventoryConvenienceLabel)
             {
@@ -4881,6 +4892,10 @@ namespace MHServerEmu.Games.Entities.Avatars
             // NOTE: Avatar mode is hardcoded to 0 since hardcore and ladder avatars never got implemented
             owner.Properties[PropertyEnum.AvatarLibraryCostume, 0, PrototypeDataRef] = costumeProtoRef;
 
+#if GAME_VERSION_1_53
+            UpdatePowerProgressionPowers(false);
+#endif
+
             return true;
         }
 
@@ -4916,7 +4931,7 @@ namespace MHServerEmu.Games.Entities.Avatars
 
             ItemSpec itemSpec = Game.LootManager.CreateItemSpec(startingCostumeProtoRef, LootContext.CashShop, player);
 
-            using EntitySettings entitySettings = ObjectPoolManager.Instance.Get<EntitySettings>();
+            using var entitySettingsHandle = EntitySettingsPool.Get(out EntitySettings entitySettings);
             entitySettings.EntityRef = itemSpec.ItemProtoRef;
             entitySettings.ItemSpec = itemSpec;
 
@@ -5381,15 +5396,17 @@ namespace MHServerEmu.Games.Entities.Avatars
 
         private void RestoreMissionRewardProperties(Player player)
         {
+            using var rewardPropsHandle = ListPool<PropertyId>.Get(out List<PropertyId> rewardProps);
+
             foreach (var kvp in Properties.IteratePropertyRange(PropertyEnum.MissionRewardReceived))
-            {
-                Property.FromParam(kvp.Key, 0, out PrototypeId missionProtoRef);
-                RestoreMissionRewardProperties(player, missionProtoRef);
-            }
+                rewardProps.Add(kvp.Key);
 
             foreach (var kvp in player.Properties.IteratePropertyRange(PropertyEnum.MissionRewardReceived))
+                rewardProps.Add(kvp.Key);
+
+            foreach (PropertyId propId in rewardProps)
             {
-                Property.FromParam(kvp.Key, 0, out PrototypeId missionProtoRef);
+                Property.FromParam(propId, 0, out PrototypeId missionProtoRef);
                 RestoreMissionRewardProperties(player, missionProtoRef);
             }
         }
@@ -5406,7 +5423,7 @@ namespace MHServerEmu.Games.Entities.Avatars
 
             bool result = false;
 
-            using LootResultSummary lootSummary = ObjectPoolManager.Instance.Get<LootResultSummary>();
+            using var lootSummaryHandle = LootResultSummaryPool.Get(out LootResultSummary lootSummary);
 
             if (Mission.RollLootSummaryForPrototype(player, this, missionProto, missionProto.Rewards, (int)missionProto.Level, 1, lootSummary, true))
             {
@@ -5849,7 +5866,7 @@ namespace MHServerEmu.Games.Entities.Avatars
 
         private void RemoveControlledAgentsFromInventory()
         {
-            using var destroyListHandle = ListPool<Agent>.Instance.Get(out List<Agent> destroyList);
+            using var destroyListHandle = ListPool<Agent>.Get(out List<Agent> destroyList);
 
             var manager = Game.EntityManager;
             foreach (var entry in ControlledInventory)
@@ -5970,7 +5987,7 @@ namespace MHServerEmu.Games.Entities.Avatars
         {
             int removed = 0;
 
-            using var summonsHandle = ListPool<WorldEntity>.Instance.Get(out List<WorldEntity> summons);
+            using var summonsHandle = ListPool<WorldEntity>.Get(out List<WorldEntity> summons);
 
             foreach (var summoned in new SummonedEntityIterator(this))
             {
@@ -6009,7 +6026,7 @@ namespace MHServerEmu.Games.Entities.Avatars
             Player player = GetOwnerOfType<Player>();
             if (!Verify.IsNotNull(player)) return false;
 
-            using PropertyCollection avatarSynergyProperties = ObjectPoolManager.Instance.Get<PropertyCollection>();
+            using var avatarSynergyPropertiesHandle = PropertyCollectionPool.Get(out PropertyCollection avatarSynergyProperties);
 
             // Ignoring avatar mode here
             foreach (var kvp in player.Properties.IteratePropertyRange(PropertyEnum.AvatarLibraryLevel, (int)AvatarMode.Normal))
@@ -6039,7 +6056,7 @@ namespace MHServerEmu.Games.Entities.Avatars
                     if (evalSynergyProto.SynergyEval == null)
                         continue;
 
-                    using EvalContextData evalContext = ObjectPoolManager.Instance.Get<EvalContextData>();
+                    using var evalContextHandle = EvalContextDataPool.Get(out EvalContextData evalContext);
                     evalContext.SetVar_PropertyCollectionPtr(EvalContext.Default, avatarSynergyProperties);
                     evalContext.SetReadOnlyVar_PropertyCollectionPtr(EvalContext.Entity, Properties);
 
@@ -6196,7 +6213,7 @@ namespace MHServerEmu.Games.Entities.Avatars
 
             player.ResetMapDiscoveryForStoryWarp();
 
-            using Teleporter teleporter = ObjectPoolManager.Instance.Get<Teleporter>();
+            using var teleporterHandle = TeleporterPool.Get(out Teleporter teleporter);
 #if GAME_VERSION_1_52 || GAME_VERSION_1_53
             teleporter.DifficultyTierRef = GameDatabase.GlobalsPrototype.DifficultyTierDefault;
 #endif
@@ -6359,10 +6376,10 @@ namespace MHServerEmu.Games.Entities.Avatars
                 PrototypeId prestigeLootTableProtoRef = prestigeLevelProto.Reward;
                 if (prestigeLootTableProtoRef != PrototypeId.Invalid)
                 {
-                    using LootInputSettings settings = ObjectPoolManager.Instance.Get<LootInputSettings>();
+                    using var settingsHandle = LootInputSettingsPool.Get(out LootInputSettings settings);
                     settings.Initialize(LootContext.Initialization, player, null, 1);
 
-                    using var tablesHandle = ListPool<(PrototypeId, LootActionType)>.Instance.Get(out List<(PrototypeId, LootActionType)> tables);
+                    using var tablesHandle = ListPool<(PrototypeId, LootActionType)>.Get(out List<(PrototypeId, LootActionType)> tables);
                     tables.Add((prestigeLootTableProtoRef, LootActionType.Give));
 
                     Game.LootManager.AwardLootFromTables(tables, settings, 1);
@@ -6408,7 +6425,17 @@ namespace MHServerEmu.Games.Entities.Avatars
         }
 #endif
 
-#endregion
+#if GAME_VERSION_1_53
+        public bool IsOmegaPrestigeEnabled()
+        {
+            AvatarPrototype avatarProto = AvatarPrototype;
+            if (!Verify.IsNotNull(avatarProto)) return false;
+
+            return avatarProto.IsOmegaPrestigeEnabled();
+        }
+#endif
+
+        #endregion
 
         #region Alternate Advancement
 
@@ -6495,7 +6522,7 @@ namespace MHServerEmu.Games.Entities.Avatars
 
             Verify.IsTrue(OmegaPointAllocationClearTemporary() == false, $"[{this}] already had a pending allocation");
 
-            using var setDictHandle = DictionaryPool<PropertyId, PropertyValue>.Instance.Get(out Dictionary<PropertyId, PropertyValue> setDict);
+            using var setDictHandle = DictionaryPool<PropertyId, PropertyValue>.Get(out Dictionary<PropertyId, PropertyValue> setDict);
 
             // Set temp properties received from the client
             long pointsSpent = 0;
@@ -6572,7 +6599,7 @@ namespace MHServerEmu.Games.Entities.Avatars
 
         public void ApplyOmegaBonuses()
         {
-            using var bonusListHandle = ListPool<(PrototypeId, int)>.Instance.Get(out List<(PrototypeId, int)> bonusList);
+            using var bonusListHandle = ListPool<(PrototypeId, int)>.Get(out List<(PrototypeId, int)> bonusList);
 
             foreach (var kvp in Properties.IteratePropertyRange(PropertyEnum.OmegaRank))
             {
@@ -6593,7 +6620,7 @@ namespace MHServerEmu.Games.Entities.Avatars
 
         private void InitializeOmegaBonuses()
         {
-            using var setDictHandle = DictionaryPool<PropertyId, PropertyValue>.Instance.Get(out Dictionary<PropertyId, PropertyValue> setDict);
+            using var setDictHandle = DictionaryPool<PropertyId, PropertyValue>.Get(out Dictionary<PropertyId, PropertyValue> setDict);
 
             // Omega bonus ranks are not persistent, so they need to be recalculated
 
@@ -6711,7 +6738,7 @@ namespace MHServerEmu.Games.Entities.Avatars
 
             Verify.IsTrue(InfinityPointAllocationClearTemporary() == false, $"[{this}] already had a pending allocation");
 
-            using var setDictHandle = DictionaryPool<PropertyId, PropertyValue>.Instance.Get(out Dictionary<PropertyId, PropertyValue> setDict);
+            using var setDictHandle = DictionaryPool<PropertyId, PropertyValue>.Get(out Dictionary<PropertyId, PropertyValue> setDict);
 
             // Set temp properties received from the client
             long pointsSpent = 0;
@@ -6788,7 +6815,7 @@ namespace MHServerEmu.Games.Entities.Avatars
 
             // Find the bonuses to respec that  match the tab (gem)
             InfinityGemBonusTable bonusTable = GameDataTables.Instance.InfinityGemBonusTable;
-            using var removeListHandle = ListPool<PropertyId>.Instance.Get(out List<PropertyId> removeList);
+            using var removeListHandle = ListPool<PropertyId>.Get(out List<PropertyId> removeList);
 
             foreach (var kvp in Properties.IteratePropertyRange(PropertyEnum.InfinityPointsSpent))
             {
@@ -6810,7 +6837,7 @@ namespace MHServerEmu.Games.Entities.Avatars
 
         public void ApplyInfinityBonuses()
         {
-            using var bonusListHandle = ListPool<(PrototypeId, int)>.Instance.Get(out List<(PrototypeId, int)> bonusList);
+            using var bonusListHandle = ListPool<(PrototypeId, int)>.Get(out List<(PrototypeId, int)> bonusList);
 
             foreach (var kvp in Properties.IteratePropertyRange(PropertyEnum.InfinityGemBonusRank))
             {
@@ -6831,7 +6858,7 @@ namespace MHServerEmu.Games.Entities.Avatars
 
         private void InitializeInfinityBonuses()
         {
-            using var setDictHandle = DictionaryPool<PropertyId, PropertyValue>.Instance.Get(out Dictionary<PropertyId, PropertyValue> setDict);
+            using var setDictHandle = DictionaryPool<PropertyId, PropertyValue>.Get(out Dictionary<PropertyId, PropertyValue> setDict);
 
             // Infinity bonus ranks are not persistent, so they need to be recalculated
 
@@ -7179,7 +7206,7 @@ namespace MHServerEmu.Games.Entities.Avatars
                     Property.FromParam(id, 0, out PrototypeId keywordProtoRef);
 
                     // Apply bonus to power progression powers
-                    using var powerInfoListHandle = ListPool<PowerProgressionInfo>.Instance.Get(out List<PowerProgressionInfo> powerInfoList);
+                    using var powerInfoListHandle = ListPool<PowerProgressionInfo>.Get(out List<PowerProgressionInfo> powerInfoList);
                     GetPowerProgressionInfos(powerInfoList);
 
                     foreach (PowerProgressionInfo powerInfo in powerInfoList)
@@ -7195,7 +7222,7 @@ namespace MHServerEmu.Games.Entities.Avatars
                     }
 
                     // Apply bonus to mapped powers
-                    using var mappedPowerDictHandle = DictionaryPool<PropertyId, PropertyValue>.Instance.Get(out Dictionary<PropertyId, PropertyValue> mappedPowerDict);
+                    using var mappedPowerDictHandle = DictionaryPool<PropertyId, PropertyValue>.Get(out Dictionary<PropertyId, PropertyValue> mappedPowerDict);
 
                     foreach (var kvp in Properties.IteratePropertyRange(PropertyEnum.AvatarMappedPower))
                         mappedPowerDict.Add(kvp.Key, kvp.Value);
