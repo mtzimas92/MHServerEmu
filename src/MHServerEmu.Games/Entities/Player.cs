@@ -494,7 +494,7 @@ namespace MHServerEmu.Games.Entities
                 .SetGamestarttime((ulong)Game.StartTime.TotalMilliseconds)
                 .Build());
 
-            SendMessage(NetMessageServerVersion.CreateBuilder().SetVersion(Game.Version).Build());
+            SendMessage(Game.ServerVersion);
             SendMessage(Game.LiveTuningData.GetLiveTuningUpdate());
 
             SendMessage(NetMessageLocalPlayer.CreateBuilder()
@@ -2718,9 +2718,8 @@ namespace MHServerEmu.Games.Entities
         {
             IsOnLoadingScreen = true;
 
-            SendMessage(NetMessageQueueLoadingScreen.CreateBuilder()
-                .SetRegionPrototypeId((ulong)regionProtoRef)
-                .Build());
+            using var builderHandle = ProtobufBuilderPool<NetMessageQueueLoadingScreen.Builder>.Get(out var builder);
+            SendMessage(builder.SetRegionPrototypeId((ulong)regionProtoRef).Build());
         }
 
         public void QueueLoadingScreen(ulong regionId)
