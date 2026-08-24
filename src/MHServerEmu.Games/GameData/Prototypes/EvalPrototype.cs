@@ -76,8 +76,16 @@ namespace MHServerEmu.Games.GameData.Prototypes
             if (propertyEnum == PropertyEnum.Invalid)
                 return $"!PropError! = {(Eval != null ? Eval.ExpressionString() : "NULL")}";
 
-            PropertyInfo info = GameDatabase.PropertyInfoTable.LookupPropertyInfo(propertyEnum);
-            string propertyName = info.BuildPropertyName(Prop);
+            string propertyName;
+            try
+            {
+                PropertyInfo info = GameDatabase.PropertyInfoTable.LookupPropertyInfo(propertyEnum);
+                propertyName = info.BuildPropertyName(Prop);
+            }
+            catch (Exception ex)
+            {
+                propertyName = $"!PropError:{propertyEnum}:{Prop.Raw}:{ex.GetType().Name}!";
+            }
 
             return string.Format("{0} = {1}",
                 string.IsNullOrWhiteSpace(propertyName) == false ? propertyName : "!PropError!",
@@ -1423,3 +1431,4 @@ namespace MHServerEmu.Games.GameData.Prototypes
     }
 #endif
 }
+

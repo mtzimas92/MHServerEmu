@@ -19,6 +19,8 @@ namespace MHServerEmu.Games.Properties.Evals
 {        
     public class Eval
     {
+        private static readonly Logger Logger = LogManager.CreateLogger();
+
         public static bool ValidateEvalContextsForField(EvalPrototype[] evals, HashSet<EvalContext> validContexts, string contextName)
         {
             using var contextsHandle = HashSetPool<EvalContext>.Instance.Get(out HashSet<EvalContext> contexts);
@@ -2337,83 +2339,103 @@ namespace MHServerEmu.Games.Properties.Evals
                 return evalVar;
 
             PropertyId propId = assignPropProto.Prop;
-            PropertyEnum propEnum = propId.Enum;
-            PropertyInfo propInfo = GameDatabase.PropertyInfoTable.LookupPropertyInfo(propEnum);
-            PropertyDataType propertyType = propInfo.DataType;
-
-            switch (propertyType)
+            try
             {
-                case PropertyDataType.Integer:
-                    if (Verify.IsTrue(FromValue(assignVar, out long intValue), $"Unable to convert TYPE to Int, Property: [{propInfo.PropertyName}]"))
-                    {
-                        // HACK: Fix for Health = Health * 0.999f evals potentially resulting in 0 assignment without going through the death codepath.
-                        if (!Verify.IsTrue(propEnum != PropertyEnum.Health || intValue > 0))
-                            intValue = 1;
+                PropertyEnum propEnum = propId.Enum;
+                PropertyInfo propInfo = GameDatabase.PropertyInfoTable.LookupPropertyInfo(propEnum);
+                PropertyDataType propertyType = propInfo.DataType;
 
-                        collection[propId] = intValue;
-                    }
-                    else
-                    {
+                switch (propertyType)
+                {
+                    case PropertyDataType.Integer:
+                        if (Verify.IsTrue(FromValue(assignVar, out long intValue), $"Unable to convert TYPE to Int, Property: [{propInfo.PropertyName}]"))
+                        {
+                            // HACK: Fix for Health = Health * 0.999f evals potentially resulting in 0 assignment without going through the death codepath.
+                            if (!Verify.IsTrue(propEnum != PropertyEnum.Health || intValue > 0))
+                                intValue = 1;
+
+                            collection[propId] = intValue;
+                        }
+                        else
+                        {
+                            return evalVar;
+                        }
+                        break;
+
+                    case PropertyDataType.Real:
+                        if (Verify.IsTrue(FromValue(assignVar, out float floatValue), $"Unable to convert TYPE to Float, Property: [{propInfo.PropertyName}]"))
+                            collection[propId] = floatValue;
+                        else
+                            return evalVar;
+                        break;
+
+                    case PropertyDataType.Boolean:
+                        if (Verify.IsTrue(FromValue(assignVar, out bool boolValue), $"Unable to convert TYPE to Bool, Property: [{propInfo.PropertyName}]"))
+                            collection[propId] = boolValue;
+                        else
+                            return evalVar;
+                        break;
+
+                    case PropertyDataType.EntityId:
+                        if (Verify.IsTrue(FromValue(assignVar, out ulong entityIdValue), $"Unable to convert TYPE to EntityId, Property: [{propInfo.PropertyName}]"))
+                            collection[propId] = entityIdValue;
+                        else
+                            return evalVar;
+                        break;
+
+                    case PropertyDataType.RegionId:
+                        if (Verify.IsTrue(FromValue(assignVar, out ulong regionIdValue), $"Unable to convert TYPE to RegionId, Property: [{propInfo.PropertyName}]"))
+                            collection[propId] = regionIdValue;
+                        else
+                            return evalVar;
+                        break;
+
+                    case PropertyDataType.Prototype:
+                        if (Verify.IsTrue(FromValue(assignVar, out PrototypeId protoRefValue), $"Unable to convert TYPE to Prototype, Property: [{propInfo.PropertyName}]"))
+                            collection[propId] = protoRefValue;
+                        else
+                            return evalVar;
+                        break;
+
+                    case PropertyDataType.Asset:
+                        if (Verify.IsTrue(FromValue(assignVar, out AssetId assetValue), $"Unable to convert TYPE to Asset, Property: [{propInfo.PropertyName}]"))
+                            collection[propId] = assetValue;
+                        else
+                            return evalVar;
+                        break;
+
+                    case PropertyDataType.Time:
+                        if (Verify.IsTrue(FromValue(assignVar, out long timeSpanValue), $"Unable to convert TYPE to Int, Property: [{propInfo.PropertyName}]"))
+                            collection[propId] = TimeSpan.FromMilliseconds(timeSpanValue);
+                        else
+                            return evalVar;
+                        break;
+
+                    default:
+                        Verify.IsTrue(false, $"Assignment into invalid property (property type is not int/float/bool)! Property: [{propInfo.PropertyName}]");
                         return evalVar;
-                    }
-                    break;
-
-                case PropertyDataType.Real:
-                    if (Verify.IsTrue(FromValue(assignVar, out float floatValue), $"Unable to convert TYPE to Float, Property: [{propInfo.PropertyName}]"))
-                        collection[propId] = floatValue;
-                    else
-                        return evalVar;
-                    break;
-
-                case PropertyDataType.Boolean:
-                    if (Verify.IsTrue(FromValue(assignVar, out bool boolValue), $"Unable to convert TYPE to Bool, Property: [{propInfo.PropertyName}]"))
-                        collection[propId] = boolValue;
-                    else
-                        return evalVar;
-                    break;
-
-                case PropertyDataType.EntityId:
-                    if (Verify.IsTrue(FromValue(assignVar, out ulong entityIdValue), $"Unable to convert TYPE to EntityId, Property: [{propInfo.PropertyName}]"))
-                        collection[propId] = entityIdValue;
-                    else
-                        return evalVar;
-                    break;
-
-                case PropertyDataType.RegionId:
-                    if (Verify.IsTrue(FromValue(assignVar, out ulong regionIdValue), $"Unable to convert TYPE to RegionId, Property: [{propInfo.PropertyName}]"))
-                        collection[propId] = regionIdValue;
-                    else
-                        return evalVar;
-                    break;
-
-                case PropertyDataType.Prototype:
-                    if (Verify.IsTrue(FromValue(assignVar, out PrototypeId protoRefValue), $"Unable to convert TYPE to Prototype, Property: [{propInfo.PropertyName}]"))
-                        collection[propId] = protoRefValue;
-                    else
-                        return evalVar;
-                    break;
-
-                case PropertyDataType.Asset:
-                    if (Verify.IsTrue(FromValue(assignVar, out AssetId assetValue), $"Unable to convert TYPE to Asset, Property: [{propInfo.PropertyName}]"))
-                        collection[propId] = assetValue;
-                    else
-                        return evalVar;
-                    break;
-
-                case PropertyDataType.Time:
-                    if (Verify.IsTrue(FromValue(assignVar, out long timeSpanValue), $"Unable to convert TYPE to Int, Property: [{propInfo.PropertyName}]"))
-                        collection[propId] = TimeSpan.FromMilliseconds(timeSpanValue);
-                    else
-                        return evalVar;
-                    break;
-
-                default:
-                    Verify.IsTrue(false, $"Assignment into invalid property (property type is not int/float/bool)! Property: [{propInfo.PropertyName}]");
-                    return evalVar;
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"[PatchEvalDiagnostic] AssignProp crashed propRaw={propId.Raw} propEnum={(int)propId.Enum} propName={GetPropertyNameForDiagnostic(propId)} context={assignPropProto.Context} assignValueType={assignVar.Type} eval=[{assignPropProto.ExpressionString()}] - {ex}");
+                throw;
             }
 
             evalVar.SetUndefined();
             return evalVar;
+        }
+
+        private static string GetPropertyNameForDiagnostic(PropertyId propId)
+        {
+            try
+            {
+                return GameDatabase.PropertyInfoTable.LookupPropertyInfo(propId.Enum)?.PropertyName ?? "<null>";
+            }
+            catch
+            {
+                return "<invalid>";
+            }
         }
 
         private static EvalVar RunAssignPropEvalParams(AssignPropEvalParamsPrototype assignPropEvalParamsProto, EvalContextData data)
@@ -3153,3 +3175,4 @@ namespace MHServerEmu.Games.Properties.Evals
         }
     }
 }
+
