@@ -19,7 +19,9 @@ namespace MHServerEmu.Commands.Implementations
         public string DamageProfile(string[] @params, NetClient client)
         {
             PlayerConnection playerConnection = (PlayerConnection)client;
-            string playerName = playerConnection?.Player?.GetName() ?? "server";
+            var player = playerConnection?.Player;
+            string playerName = player?.GetName() ?? "server";
+            ulong playerDbId = player?.DatabaseUniqueId ?? 0;
 
             string action = @params.Length > 0 ? @params[0].ToLowerInvariant() : "status";
             string label = @params.Length > 1 ? string.Join("_", @params.Skip(1)) : playerName;
@@ -28,9 +30,9 @@ namespace MHServerEmu.Commands.Implementations
             {
                 case "start":
                 case "on":
-                    bool started = PowerDamageMetricsLogger.Start(label, playerName, out string startPath);
+                    bool started = PowerDamageMetricsLogger.Start(label, playerName, playerDbId, out string startPath);
                     return started
-                        ? $"Power damage profiling started: {startPath}"
+                        ? $"Power damage profiling started for {playerName}: {startPath}"
                         : $"Power damage profiling is already running: {startPath}";
 
                 case "stop":
@@ -72,7 +74,7 @@ namespace MHServerEmu.Commands.Implementations
 
                 case "status":
                     return PowerDamageMetricsLogger.IsEnabled
-                        ? $"Power damage profiling is running: session={PowerDamageMetricsLogger.SessionId}, events={PowerDamageMetricsLogger.DamageEventCount}, deterministic={PowerDamageMetricsLogger.IsDeterministic}, path={PowerDamageMetricsLogger.OutputPath}"
+                        ? $"Power damage profiling is running: session={PowerDamageMetricsLogger.SessionId}, filter={PowerDamageMetricsLogger.SourcePlayerFilterDescription}, events={PowerDamageMetricsLogger.DamageEventCount}, deterministic={PowerDamageMetricsLogger.IsDeterministic}, path={PowerDamageMetricsLogger.OutputPath}"
                         : $"Power damage profiling is not running. Deterministic={PowerDamageMetricsLogger.IsDeterministic}.";
 
                 default:

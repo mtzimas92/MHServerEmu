@@ -8,6 +8,8 @@ import csv
 import glob
 import html
 import json
+import re
+import tempfile
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -15,14 +17,36 @@ from pathlib import Path
 from typing import Any
 
 
+ISO_TIMESTAMP_RE = re.compile(
+    r"^(?P<date>\d{4}-\d{2}-\d{2})T"
+    r"(?P<time>\d{2}:\d{2}:\d{2})"
+    r"(?:\.(?P<fraction>\d+))?"
+    r"(?P<tz>Z|[+-]\d{2}:?\d{2})?$"
+)
+
+
 def parse_time(value: str) -> datetime:
     if not value:
         return datetime.now(timezone.utc)
 
-    if value.endswith("Z"):
-        value = value[:-1] + "+00:00"
+    value = value.strip()
+    match = ISO_TIMESTAMP_RE.match(value)
+    if match:
+        fraction = ((match.group("fraction") or "0")[:6]).ljust(6, "0")
+        tz = match.group("tz") or "+00:00"
+        if tz == "Z":
+            tz = "+0000"
+        else:
+            tz = tz.replace(":", "")
 
-    dt = datetime.fromisoformat(value)
+        dt = datetime.strptime(
+            f"{match.group('date')}T{match.group('time')}.{fraction}{tz}",
+            "%Y-%m-%dT%H:%M:%S.%f%z",
+        )
+    else:
+        if value.endswith("Z"):
+            value = value[:-1] + "+00:00"
+        dt = datetime.fromisoformat(value)
     if dt.tzinfo is None:
         dt = dt.replace(tzinfo=timezone.utc)
     return dt.astimezone(timezone.utc)
@@ -301,8 +325,18 @@ def write_compare_csv(path: Path, rows: list[CompareStats]) -> None:
             ])
 
 
-def write_html(path: Path, rows: list[PowerStats], top: int) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
+def write_text_with_fallback(path: Path, content: str) -> Path:
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(content, encoding="utf-8")
+        return path
+    except PermissionError:
+        fallback = Path(tempfile.gettempdir()) / path.name
+        fallback.write_text(content, encoding="utf-8")
+        return fallback
+
+
+def write_html(path: Path, rows: list[PowerStats], top: int) -> Path:
     shown = rows[:top]
     max_damage = max((row.actual_damage for row in shown), default=1.0)
     body_rows = []
@@ -351,11 +385,10 @@ th {{ color: #9db3c3; font-weight: 600; position: sticky; top: 0; background: #1
 </body>
 </html>
 """
-    path.write_text(content, encoding="utf-8")
+    return write_text_with_fallback(path, content)
 
 
-def write_compare_html(path: Path, rows: list[CompareStats], top: int) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
+def write_compare_html(path: Path, rows: list[CompareStats], top: int) -> Path:
     shown = rows[:top]
     body_rows = []
     for row in shown:
@@ -405,7 +438,7 @@ th {{ color: #9db3c3; font-weight: 600; position: sticky; top: 0; background: #1
 </body>
 </html>
 """
-    path.write_text(content, encoding="utf-8")
+    return write_text_with_fallback(path, content)
 
 
 def short_name(path: str) -> str:
@@ -435,6 +468,12 @@ def print_compare_summary(rows: list[CompareStats], top: int) -> None:
         )
 
 
+def default_html_path(log_paths: list[Path], suffix: str = "dashboard") -> Path:
+    if log_paths:
+        return log_paths[0].with_name(f"{log_paths[0].stem}_{suffix}.html")
+    return Path(f"power_damage_{suffix}.html")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Aggregate MHServerEmu power damage JSONL logs.")
     parser.add_argument("logs", nargs="*", help="PowerDamage_*.jsonl file(s)")
@@ -449,8 +488,10 @@ def main() -> None:
         if not args.compare_before or not args.compare_after:
             raise SystemExit("--compare-before and --compare-after must be used together.")
 
-        before_rows = aggregate(load_events(expand_log_paths(args.compare_before)))
-        after_rows = aggregate(load_events(expand_log_paths(args.compare_after)))
+        before_paths = expand_log_paths(args.compare_before)
+        after_paths = expand_log_paths(args.compare_after)
+        before_rows = aggregate(load_events(before_paths))
+        after_rows = aggregate(load_events(after_paths))
         compare_rows = compare_aggregates(before_rows, after_rows)
         print_compare_summary(compare_rows, args.top)
 
@@ -458,16 +499,20 @@ def main() -> None:
             write_compare_csv(args.csv, compare_rows)
             print(f"\nCompare CSV written: {args.csv}")
 
+        if args.html is None and args.csv is None:
+            args.html = default_html_path(after_paths, "compare_dashboard")
+
         if args.html:
-            write_compare_html(args.html, compare_rows, args.top)
-            print(f"Compare HTML written: {args.html}")
+            html_path = write_compare_html(args.html, compare_rows, args.top)
+            print(f"Compare HTML written: {html_path}")
 
         return
 
     if not args.logs:
         raise SystemExit("Provide log file(s), or use --compare-before and --compare-after.")
 
-    events = load_events(expand_log_paths(args.logs))
+    log_paths = expand_log_paths(args.logs)
+    events = load_events(log_paths)
     rows = aggregate(events)
     print_summary(rows, args.top)
 
@@ -475,9 +520,12 @@ def main() -> None:
         write_csv(args.csv, rows)
         print(f"\nCSV written: {args.csv}")
 
+    if args.html is None and args.csv is None:
+        args.html = default_html_path(log_paths)
+
     if args.html:
-        write_html(args.html, rows, args.top)
-        print(f"HTML written: {args.html}")
+        html_path = write_html(args.html, rows, args.top)
+        print(f"HTML written: {html_path}")
 
 
 if __name__ == "__main__":

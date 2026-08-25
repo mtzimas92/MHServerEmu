@@ -23,6 +23,8 @@ namespace MHServerEmu.Games.Diagnostics
         private static string _outputPath;
         private static DateTime _startedUtc;
         private static long _damageEventCount;
+        private static ulong _sourcePlayerDbId;
+        private static string _sourcePlayerName;
         private static volatile bool _deterministicMode;
 
         public static bool IsEnabled { get; private set; }
@@ -30,6 +32,16 @@ namespace MHServerEmu.Games.Diagnostics
         public static string OutputPath { get { lock (Lock) return _outputPath; } }
         public static string SessionId { get { lock (Lock) return _sessionId; } }
         public static long DamageEventCount { get { lock (Lock) return _damageEventCount; } }
+        public static string SourcePlayerFilterDescription
+        {
+            get
+            {
+                lock (Lock)
+                    return _sourcePlayerDbId != 0
+                        ? $"{_sourcePlayerName} (0x{_sourcePlayerDbId:X})"
+                        : "all players";
+            }
+        }
 
         public static bool SetDeterministicMode(bool enabled, string actor)
         {
@@ -46,7 +58,7 @@ namespace MHServerEmu.Games.Diagnostics
             return changed;
         }
 
-        public static bool Start(string label, string startedBy, out string outputPath)
+        public static bool Start(string label, string startedBy, ulong sourcePlayerDbId, out string outputPath)
         {
             lock (Lock)
             {
@@ -68,11 +80,13 @@ namespace MHServerEmu.Games.Diagnostics
                 };
 
                 _damageEventCount = 0;
+                _sourcePlayerDbId = sourcePlayerDbId;
+                _sourcePlayerName = startedBy;
                 IsEnabled = true;
 
-                WriteEvent(new SessionEvent("session_start", _sessionId, _startedUtc, startedBy, label, _deterministicMode, null));
+                WriteEvent(new SessionEvent("session_start", _sessionId, _startedUtc, startedBy, label, _deterministicMode, _sourcePlayerDbId, _sourcePlayerName, null));
                 outputPath = _outputPath;
-                Logger.Info($"Power damage metrics logging started: {_outputPath}");
+                Logger.Info($"Power damage metrics logging started: {_outputPath} filter={SourcePlayerFilterDescription}");
                 return true;
             }
         }
@@ -87,11 +101,13 @@ namespace MHServerEmu.Games.Diagnostics
                 if (IsEnabled == false)
                     return false;
 
-                WriteEvent(new SessionEvent("session_stop", _sessionId, DateTime.UtcNow, stoppedBy, null, _deterministicMode, _damageEventCount));
+                WriteEvent(new SessionEvent("session_stop", _sessionId, DateTime.UtcNow, stoppedBy, null, _deterministicMode, _sourcePlayerDbId, _sourcePlayerName, _damageEventCount));
 
                 _writer?.Dispose();
                 _writer = null;
                 IsEnabled = false;
+                _sourcePlayerDbId = 0;
+                _sourcePlayerName = null;
 
                 Logger.Info($"Power damage metrics logging stopped: {outputPath} ({damageEventCount} damage events)");
                 return true;
@@ -120,6 +136,13 @@ namespace MHServerEmu.Games.Diagnostics
                 ?? powerOwner?.GetMostResponsiblePowerUser<Avatar>(true);
             Player sourcePlayer = sourceAvatar?.GetOwnerOfType<Player>();
             if (sourcePlayer == null)
+                return;
+
+            ulong sourceFilter;
+            lock (Lock)
+                sourceFilter = _sourcePlayerDbId;
+
+            if (sourceFilter != 0 && sourcePlayer.DatabaseUniqueId != sourceFilter)
                 return;
 
             float rawPhysical = powerResults.Properties[PropertyEnum.Damage, DamageType.Physical];
@@ -223,6 +246,8 @@ namespace MHServerEmu.Games.Diagnostics
             string Actor,
             string Label,
             bool DeterministicMode,
+            ulong SourcePlayerDbId,
+            string SourcePlayerName,
             long? DamageEventCount)
         {
             public string Schema { get; init; } = "mh_power_damage_v1";
