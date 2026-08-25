@@ -82,13 +82,18 @@ namespace MHServerEmu.Games.Loot
                     return 0f;
 
                 // Cooldowns can be per-account or per-avatar
-                bool cooldownActive = settings.DropChanceModifiers.HasFlag(LootDropChanceModifiers.PerAccount)
-                    ? _cooldownData.ActiveOnPlayer
-                    : _cooldownData.ActiveOnAvatar;
-
+                //bool cooldownActive = settings.DropChanceModifiers.HasFlag(LootDropChanceModifiers.PerAccount)
+                //    ? _cooldownData.ActiveOnPlayer
+                //    : _cooldownData.ActiveOnAvatar;
+		//    Next 2 are for Dino Logging. Identical to above but two bool entries. 
+                bool perAccount = settings.DropChanceModifiers.HasFlag(LootDropChanceModifiers.PerAccount);
+                bool cooldownActive = perAccount ? _cooldownData.ActiveOnPlayer : _cooldownData.ActiveOnAvatar;
                 // Do not drop anything for this roll if the cooldown is active
                 if (cooldownActive)
+		{
+                    LogDinosOnceDailyLockoutIfApplicable(perAccount);
                     return 0f;
+                }
 
                 // Set the cooldown
                 SetDropChanceCooldown(settings);
@@ -170,7 +175,7 @@ namespace MHServerEmu.Games.Loot
             return (int)scaledAmount;
         }
 
-        public bool IsOnCooldown(PrototypeId dropProtoRef, int count)
+	public bool IsOnCooldown(PrototypeId dropProtoRef, int count)
         {
             // Check if cooldowns are applicable in this loot context (e.g. crafting should not have any cooldowns)
             if (LootContext != LootContext.Drop && LootContext != LootContext.MissionReward)
@@ -196,37 +201,67 @@ namespace MHServerEmu.Games.Loot
                 cooldownChannelProto.SetCooldown(Player, count);
                 _allowedCooldownDrops.Add(dropProtoRef);    // Do not check this drop's cooldown again for this context
             }
-	    
-	    // Dino Cooldown Log
-	    if (isOnCooldown)
+
+            if (isOnCooldown)
                 LogDinosLootLockoutIfApplicable(dropProtoRef);
-	    //
-            
-	    //Logger.Debug($"IsOnCooldown(): {dropProtoRef.GetName()} x{count} = {isOnCooldown}");
+
+            //Logger.Debug($"IsOnCooldown(): {dropProtoRef.GetName()} x{count} = {isOnCooldown}");
             return isOnCooldown;
         }
 
-        // Cooldown channels are a generic mechanism used by every loot table in the game, not just
+        // Cooldown blocks are a generic mechanism used by every loot table in the game, not just
         // Dinos Invade Manhattan's Cosmic Artifact - gated the same way LootManager.LogDinosBossLootIfApplicable
         // gates its own boss-loot logging (DinosWaveBattleLoggingEnable + an active wave-battle region),
         // so this stays a no-op everywhere else instead of adding global cooldown-check log spam.
         // Added because "the Cosmic Artifact isn't dropping" reports were previously indistinguishable
         // from "it dropped and something else ate it" without digging through client packets - a lockout
         // hit now leaves a plain record in that player's own run log.
-        private void LogDinosLootLockoutIfApplicable(PrototypeId dropProtoRef)
+        private bool TryGetDinosLoggingContext(out ulong gameId, out ulong metaGameId, out ulong playerId, out string playerLabel)
         {
-            if (Player?.Game?.CustomGameOptions?.DinosWaveBattleLoggingEnable != true) return;
+            gameId = 0;
+            metaGameId = 0;
+            playerId = 0;
+            playerLabel = null;
+
+            if (Player?.Game?.CustomGameOptions?.DinosWaveBattleLoggingEnable != true) return false;
 
             Region region = Player.GetRegion();
-            if (region == null || region.MetaGames.Count == 0) return;
+            if (region == null || region.MetaGames.Count == 0) return false;
 
-            ulong metaGameId = region.MetaGames[0];
-            string playerLabel = $"{Player.GetName()}_L{Player.CurrentAvatar?.CharacterLevel ?? 0}";
-            DinosWaveBattleLogCollator.WriteLine(Player.Game.Id, metaGameId,
-                $"LOOT_LOCKOUT recipient={Player.GetName()} drop={dropProtoRef.GetNameFormatted()} - cooldown channel active, no roll for this drop.");
-            DinosWaveBattleLogCollator.AddParticipant(Player.Game.Id, metaGameId, playerLabel);
+            gameId = Player.Game.Id;
+            metaGameId = region.MetaGames[0];
+            playerId = Player.DatabaseUniqueId;
+            playerLabel = $"{Player.GetName()}_L{Player.CurrentAvatar?.CharacterLevel ?? 0}";
+            return true;
         }
 
+        private void LogDinosLootLockoutIfApplicable(PrototypeId dropProtoRef)
+        {
+            if (TryGetDinosLoggingContext(out ulong gameId, out ulong metaGameId, out ulong playerId, out string playerLabel) == false) return;
+
+            DinosWaveBattleLogCollator.WriteLine(gameId, metaGameId,
+                $"LOOT_LOCKOUT recipient={Player.GetName()} drop={dropProtoRef.GetNameFormatted()} - cooldown channel active, no roll for this drop.");
+            DinosWaveBattleLogCollator.AddParticipant(gameId, metaGameId, playerId, playerLabel);
+        }
+
+        // GetDropChance()'s cooldownActive branch is a SEPARATE mechanism from IsOnCooldown() above -
+        // a per-account/per-avatar time-based "OnceDaily" gate (LootCooldownTimeHours/RolloverWallTime),
+        // used for the 4 OnceDaily slots on Dinos' King Lizard boss table (Cosmic Artifact, both comm
+        // boxes, Costume/Card/Pet). It previously returned 0% drop chance with NO log line at all,
+        // making a OnceDaily miss indistinguishable from "never had a chance to roll in the first
+        // place" - confirmed live as the actual reason a player's Cosmic Artifact roll was missing
+        // with nothing in the log to explain it, while channel-cooldown misses (relics, etc.) were
+        // already visible via LogDinosLootLockoutIfApplicable above.
+        private void LogDinosOnceDailyLockoutIfApplicable(bool perAccount)
+        {
+            if (TryGetDinosLoggingContext(out ulong gameId, out ulong metaGameId, out ulong playerId, out string playerLabel) == false) return;
+
+            string scope = perAccount ? "account" : "avatar";
+            DinosWaveBattleLogCollator.WriteLine(gameId, metaGameId,
+                $"LOOT_LOCKOUT (OnceDaily) recipient={Player.GetName()} origin={_cooldownData.OriginProtoRef.GetNameFormatted()} " +
+                $"scope={scope} - once-daily cooldown active, no roll for this loot node.");
+            DinosWaveBattleLogCollator.AddParticipant(gameId, metaGameId, playerId, playerLabel);
+        }
 
         private void SetInternal(LootContext lootContext, Player player, WorldEntity sourceEntity, Mission mission)
         {

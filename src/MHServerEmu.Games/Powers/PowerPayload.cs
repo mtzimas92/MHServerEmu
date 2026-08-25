@@ -520,6 +520,46 @@ namespace MHServerEmu.Games.Powers
                 }
             }
 
+#if GAME_VERSION_1_53
+            // This is similar to DamageMultPowerCdKwd above, but it applies only to powers that have a specific keyword.
+            // i.e. increase damage of all powers that have keyword A for every power with keyword B that is on cooldown.
+            if (ownerProperties.HasProperty(PropertyEnum.DamageMultPowerCdKwdForKwd))
+            {
+                // Get the number of cooldowns from the most responsible power user because
+                // this may be a missile / hotspot / summon power.
+                WorldEntity mostResponsiblePowerUser = powerOwner.GetMostResponsiblePowerUser<WorldEntity>();
+
+                foreach (var kvp in ownerProperties.IteratePropertyRange(PropertyEnum.DamageMultPowerCdKwdForKwd))
+                {
+                    Property.FromParam(kvp.Key, 1, out PrototypeId targetPowerKeywordRef);
+                    if (!Verify.IsTrue(targetPowerKeywordRef != PrototypeId.Invalid))
+                        continue;
+
+                    KeywordPrototype targetPowerKeywordProto = targetPowerKeywordRef.As<KeywordPrototype>();
+                    if (KeywordsMask.HasKeyword(targetPowerKeywordProto) == false)
+                        continue;
+
+                    Property.FromParam(kvp.Key, 0, out PrototypeId sourcePowerKeywordRef);
+                    if (!Verify.IsTrue(sourcePowerKeywordRef != PrototypeId.Invalid))
+                        continue;
+
+                    KeywordPrototype sourcePowerKeywordProto = sourcePowerKeywordRef.As<KeywordPrototype>();
+
+                    int numPowersOnCooldown = 0;
+
+                    foreach (var recordKvp in mostResponsiblePowerUser.PowerCollection)
+                    {
+                        Power recordPower = recordKvp.Value.Power;
+                        if (recordPower.HasKeyword(sourcePowerKeywordProto) && recordPower.IsOnCooldown())
+                            numPowersOnCooldown++;
+                    }
+
+                    if (numPowersOnCooldown > 0)
+                        damageMult += (float)kvp.Value * numPowersOnCooldown;
+                }
+            }
+#endif
+
             // Set all damage bonus properties
             Properties[PropertyEnum.PayloadDamageMultTotal, DamageType.Any] = damageMult;
             Properties[PropertyEnum.PayloadDamagePctModifierTotal, DamageType.Any] = damagePct;
@@ -1746,7 +1786,7 @@ namespace MHServerEmu.Games.Powers
             if (conditionCollection == null)
                 return;
 
-            using var conditionCheckListHandle = ListPool<ulong>.Instance.Get(out List<ulong> conditionCheckList);
+            using var conditionCheckListHandle = ListPool<ulong>.Get(out List<ulong> conditionCheckList);
 
             foreach (Condition condition in conditionCollection.IterateConditions(true))
             {
@@ -1928,7 +1968,7 @@ namespace MHServerEmu.Games.Powers
             transferredDamageTotal.Clear();
 
             // Apply damage transfer from conditions
-            using var damageTransferConditionsHandle = ListPool<(ulong, Condition)>.Instance.Get(out List<(ulong, Condition)> damageTransferConditions);
+            using var damageTransferConditionsHandle = ListPool<(ulong, Condition)>.Get(out List<(ulong, Condition)> damageTransferConditions);
             
             // Applying damage transfer can cause a chain reaction that will modify conditions on the target,
             // so put damage transfer conditions into a temporary list for iteration.
@@ -2204,7 +2244,7 @@ namespace MHServerEmu.Games.Powers
                 return;
 
             // Calculate conditions properties (these will be shared by all stacks)
-            using PropertyCollection conditionProperties = ObjectPoolManager.Instance.Get<PropertyCollection>();
+            using var conditionPropertiesHandle = PropertyCollectionPool.Get(out PropertyCollection conditionProperties);
             Condition.GenerateConditionProperties(conditionProperties, conditionProto, Properties, owner ?? ultimateOwner, target, Game);
 
             // Calculate duration
@@ -2226,7 +2266,7 @@ namespace MHServerEmu.Games.Powers
 
         private void CalculateResultNegativeStatusRemoval(PowerResults results, WorldEntity target)
         {
-            using var negativeStatusConditionsToRemoveHandle = ListPool<ulong>.Instance.Get(out List<ulong> negativeStatusConditionsToRemove);
+            using var negativeStatusConditionsToRemoveHandle = ListPool<ulong>.Get(out List<ulong> negativeStatusConditionsToRemove);
             ConditionCollection conditionCollection = target.ConditionCollection;
 
             float negStatusClearChancePctAll = Properties[PropertyEnum.PowerClearsNegStatusChancePctAll];
@@ -2320,7 +2360,7 @@ namespace MHServerEmu.Games.Powers
                 {
                     bool canApply = true;
 
-                    using var negativeStatusListHandle = ListPool<PrototypeId>.Instance.Get(out List<PrototypeId> negativeStatusList);
+                    using var negativeStatusListHandle = ListPool<PrototypeId>.Get(out List<PrototypeId> negativeStatusList);
                     if (Condition.IsANegativeStatusEffect(conditionProperties, negativeStatusList))
                     {
                         if (CanApplyConditionToTarget(target, conditionProperties, negativeStatusList) == false)
@@ -2479,7 +2519,7 @@ namespace MHServerEmu.Games.Powers
         private void CalculateResultConditionProcProperties(PowerResults results, WorldEntity target, PropertyCollection conditionProperties)
         {
             // Store properties to set in a temporary dictionary to avoid modifying property collections during iteration
-            using var propertiesToSetHandle = DictionaryPool<PropertyId, PropertyValue>.Instance.Get(out Dictionary<PropertyId, PropertyValue> propertiesToSet);
+            using var propertiesToSetHandle = DictionaryPool<PropertyId, PropertyValue>.Get(out Dictionary<PropertyId, PropertyValue> propertiesToSet);
 
             // Triggering refs and ranks
             int rank = conditionProperties[PropertyEnum.PowerRank];
@@ -2529,7 +2569,7 @@ namespace MHServerEmu.Games.Powers
                 Property.FromParam(kvp.Key, 0, out PrototypeId powerProtoRef);
                 Property.FromParam(kvp.Key, 1, out int maxStacksToRemove);
 
-                removedAny |= CalculateResultConditionsToRemoveHelper(results, conditionCollection, ConditionFilter.IsConditionOfPowerFunc, powerProtoRef, maxStacksToRemove);
+                removedAny |= CalculateResultConditionsToRemoveHelper(results, conditionCollection, ConditionFilter.IsConditionOfPower, powerProtoRef, maxStacksToRemove);
             }
 
             // Remove conditions with specified keywords
@@ -2540,7 +2580,7 @@ namespace MHServerEmu.Games.Powers
 
                 KeywordPrototype keywordProto = keywordProtoRef.As<KeywordPrototype>();
 
-                removedAny |= CalculateResultConditionsToRemoveHelper(results, conditionCollection, ConditionFilter.IsConditionWithKeywordFunc, keywordProto, maxStacksToRemove);
+                removedAny |= CalculateResultConditionsToRemoveHelper(results, conditionCollection, ConditionFilter.IsConditionWithKeyword, keywordProto, maxStacksToRemove);
             }
 
             // Remove conditions that have specified properties
@@ -2553,7 +2593,7 @@ namespace MHServerEmu.Games.Powers
 
                 PropertyEnum propertyEnum = propertyInfoTable.GetPropertyEnumFromPrototype(propertyProtoRef);
 
-                removedAny |= CalculateResultConditionsToRemoveHelper(results, conditionCollection, ConditionFilter.IsConditionWithPropertyOfTypeFunc, propertyEnum, maxStacksToRemove);
+                removedAny |= CalculateResultConditionsToRemoveHelper(results, conditionCollection, ConditionFilter.IsConditionWithPropertyOfType, propertyEnum, maxStacksToRemove);
             }
 
             // Remove conditions of the specified type (no params here)
@@ -2562,7 +2602,7 @@ namespace MHServerEmu.Games.Powers
             {
                 ConditionType conditionType = (ConditionType)AssetDirectory.Instance.GetEnumValue(conditionTypeAssetRef);
                 if (conditionType != ConditionType.Neither)
-                    removedAny |= CalculateResultConditionsToRemoveHelper(results, conditionCollection, ConditionFilter.IsConditionOfTypeFunc, conditionType, 0);
+                    removedAny |= CalculateResultConditionsToRemoveHelper(results, conditionCollection, ConditionFilter.IsConditionOfType, conditionType, 0);
             }
 
             return removedAny;
@@ -2679,9 +2719,9 @@ namespace MHServerEmu.Games.Powers
                 return;
 
             // Check eval
-            EvalPrototype interruptChanceFormula = GameDatabase.CombatGlobalsPrototype.EvalInterruptChanceFormula; 
+            EvalPrototype interruptChanceFormula = GameDatabase.CombatGlobalsPrototype.EvalInterruptChanceFormula;
 
-            using EvalContextData evalContext = ObjectPoolManager.Instance.Get<EvalContextData>();
+            using var evalContextHandle = EvalContextDataPool.Get(out EvalContextData evalContext);
             evalContext.SetReadOnlyVar_PropertyCollectionPtr(EvalContext.Default, Properties);
             evalContext.SetReadOnlyVar_PropertyCollectionPtr(EvalContext.Entity, target.Properties);
             evalContext.SetReadOnlyVar_ProtoRefVectorPtr(EvalContext.Var1, powerProto.Keywords);
@@ -2703,7 +2743,7 @@ namespace MHServerEmu.Games.Powers
             // Generate condition data
             TimeSpan duration = conditionProto.GetDuration(Properties, ultimateOwner);
 
-            using PropertyCollection conditionProperties = ObjectPoolManager.Instance.Get<PropertyCollection>();
+            using var conditionPropertiesHandle = PropertyCollectionPool.Get(out PropertyCollection conditionProperties);
             Condition.GenerateConditionProperties(conditionProperties, conditionProto, Properties, owner, target, Game);
 
             // Create, initialize, and add the condition
@@ -3048,7 +3088,7 @@ namespace MHServerEmu.Games.Powers
             PropertyCollection targetProperties = target.Properties;
 
             // Do not resist conditions without negative status effects
-            using var negativeStatusListHandle = ListPool<PrototypeId>.Instance.Get(out List<PrototypeId> negativeStatusList);
+            using var negativeStatusListHandle = ListPool<PrototypeId>.Get(out List<PrototypeId> negativeStatusList);
             if (Condition.IsANegativeStatusEffect(conditionProperties, negativeStatusList) == false)
                 return;
 
@@ -3240,8 +3280,8 @@ namespace MHServerEmu.Games.Powers
 
             if (!Verify.IsTrue(stackId.PrototypeRef != PrototypeId.Invalid)) return 0;
 
-            using var refreshListHandle = ListPool<ulong>.Instance.Get(out List<ulong> refreshList);
-            using var removeListHandle = ListPool<ulong>.Instance.Get(out List<ulong> removeList);
+            using var refreshListHandle = ListPool<ulong>.Get(out List<ulong> refreshList);
+            using var removeListHandle = ListPool<ulong>.Get(out List<ulong> removeList);
 
             int numStacksToApply = conditionCollection.GetStackApplicationData(stackId, stackingBehaviorProto,
                 Properties[PropertyEnum.PowerRank], out TimeSpan longestTimeRemaining, removeList, refreshList);
@@ -3355,7 +3395,7 @@ namespace MHServerEmu.Games.Powers
         /// </summary>
         private static long CalculateTargetHealthMaxForCombatLevel(WorldEntity target, int combatLevel)
         {
-            using PropertyCollection healthMaxProperties = ObjectPoolManager.Instance.Get<PropertyCollection>();
+            using var healthMaxPropertiesHandle = PropertyCollectionPool.Get(out PropertyCollection healthMaxProperties);
 
             // Copy all properties involved in calculating HealthMax from the target
             PropertyInfo healthMaxPropertyInfo = GameDatabase.PropertyInfoTable.LookupPropertyInfo(PropertyEnum.HealthMax);
@@ -3374,7 +3414,7 @@ namespace MHServerEmu.Games.Powers
                 healthBasePropertyInfo, SetPropertyFlags.None, true);
 
             // Calculate the eval
-            using EvalContextData evalContext = ObjectPoolManager.Instance.Get<EvalContextData>();
+            using var evalContextHandle = EvalContextDataPool.Get(out EvalContextData evalContext);
             evalContext.SetReadOnlyVar_PropertyCollectionPtr(EvalContext.Default, healthMaxProperties);
 
             return Eval.RunLong(healthMaxPropertyInfo.Eval, evalContext);

@@ -97,7 +97,7 @@ namespace MHServerEmu.Games.GameData
             PropertyInfoTable = new();
             PropertyInfoTable.Initialize();
 
-            // Load prototype patches before globals so Globals can be patched without a separate PrePatchData phase.
+            // Load prototype patches
             PrototypePatchManager.Instance.Initialize(config.EnablePatchManager);
 
             // Load globals

@@ -339,7 +339,7 @@ namespace MHServerEmu.Games.GameData.Prototypes
             int numEntities = group.Random.Next(Min, Max + 1);
 
             // V53_TODO: Unique flag support (use PickRemove instead of Pick and validate available choice count to be <= rolled number).
-            Picker<PopulationObjectPrototype> picker = new(group.Random);
+            using var pickerHandle = PickerPool<PopulationObjectPrototype>.Get(group.Random, out Picker<PopulationObjectPrototype> picker);
             foreach (PopulationObjectPrototype objectProto in Choices)
                 picker.Add(objectProto);
 
@@ -411,7 +411,7 @@ namespace MHServerEmu.Games.GameData.Prototypes
 
             if (Henchmen.HasValue())
             {
-                Picker<PopulationObjectPrototype> picker = new(group.Random);
+                using var pickerHandle = PickerPool<PopulationObjectPrototype>.Get(group.Random, out Picker<PopulationObjectPrototype> picker);
                 foreach (PopulationObjectPrototype objectProto in Henchmen)
                     picker.Add(objectProto);
 
@@ -686,7 +686,7 @@ namespace MHServerEmu.Games.GameData.Prototypes
 
             if (EvalSpawnProperties != null)
             {
-                using EvalContextData evalContext = ObjectPoolManager.Instance.Get<EvalContextData>();
+                using var evalContextHandle = EvalContextDataPool.Get(out EvalContextData evalContext);
                 evalContext.Game = region?.Game;
                 evalContext.SetVar_PropertyCollectionPtr(EvalContext.Default, properties);
                 evalContext.SetReadOnlyVar_PropertyCollectionPtr(EvalContext.Other, region.Properties);

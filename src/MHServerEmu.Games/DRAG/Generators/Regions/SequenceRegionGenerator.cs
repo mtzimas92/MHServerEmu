@@ -276,7 +276,7 @@ namespace MHServerEmu.Games.DRAG.Generators.Regions
                     {
                         if (!PickAreaPlacement(random, entry, false, origin))
                         {
-                            using var areasHandle = ListPool<PrototypeId>.Instance.Get(out List<PrototypeId> areas);
+                            using var areasHandle = ListPool<PrototypeId>.Get(out List<PrototypeId> areas);
                             entry.GetAreaSequence(areas);
                             if (Log) Logger.Error("Area couldn't place next to previous.");
                             break;
@@ -308,7 +308,7 @@ namespace MHServerEmu.Games.DRAG.Generators.Regions
                             Area area = entry.Area;
                             if (area != null)
                             {
-                                using var areasHandle = ListPool<PrototypeId>.Instance.Get(out List<PrototypeId> areas);
+                                using var areasHandle = ListPool<PrototypeId>.Get(out List<PrototypeId> areas);
                                 entry.GetAreaSequence(areas);
                                 success &= area.Generate(Generator, areas, GenerateFlag.Background);
                                 if (success == false)
@@ -468,7 +468,7 @@ namespace MHServerEmu.Games.DRAG.Generators.Regions
 
                             if (report && picker == null)
                             {
-                                using var areasHandle = ListPool<PrototypeId>.Instance.Get(out List<PrototypeId> areas);
+                                using var areasHandle = ListPool<PrototypeId>.Get(out List<PrototypeId> areas);
                                 entry.GetAreaSequence(areas);
                                 if (Log) Logger.Error("Area couldn't build any shared edges with previous area.");
                             }
@@ -495,7 +495,7 @@ namespace MHServerEmu.Games.DRAG.Generators.Regions
 
                                     if (report)
                                     {
-                                        using var areasHandle = ListPool<PrototypeId>.Instance.Get(out List<PrototypeId> areas);
+                                        using var areasHandle = ListPool<PrototypeId>.Get(out List<PrototypeId> areas);
                                         entry.GetAreaSequence(areas);
                                         if (Log) Logger.Error("Area collided with AREA");
                                     }
@@ -514,7 +514,7 @@ namespace MHServerEmu.Games.DRAG.Generators.Regions
                                 {
                                     if (report)
                                     {
-                                        using var areasHandle = ListPool<PrototypeId>.Instance.Get(out List<PrototypeId> areas);
+                                        using var areasHandle = ListPool<PrototypeId>.Get(out List<PrototypeId> areas);
                                         entry.GetAreaSequence(areas);
                                         if (Log) Logger.Error("Area's SharedEdgeMinimum prevented placement.");
                                     }
@@ -564,7 +564,7 @@ namespace MHServerEmu.Games.DRAG.Generators.Regions
             List<WeightedAreaPrototype> weightedAreas = entry.WeightedAreas;
             if (areaChoices.Length <= weightedAreas.Count) return false;
 
-            Picker<WeightedAreaPrototype> picker = new(random);
+            using var pickerHandle = PickerPool<WeightedAreaPrototype>.Get(random, out Picker<WeightedAreaPrototype> picker);
             foreach (var areaChoice in areaChoices)
             {
                 if (areaChoice == null || areaChoice.Area == 0) continue;
@@ -607,7 +607,7 @@ namespace MHServerEmu.Games.DRAG.Generators.Regions
 
             if (areaInfos.Length <= selectedAreaSequenceInfos.Count) return false;
 
-            Picker<AreaSequenceInfoPrototype> picker = new(random);
+            using var pickerHandle = PickerPool<AreaSequenceInfoPrototype>.Get(random, out Picker<AreaSequenceInfoPrototype> picker);
             foreach (var info in areaInfos)
             {
                 if (info == null || info.AreaChoices.IsNullOrEmpty()) continue;

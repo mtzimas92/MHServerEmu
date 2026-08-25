@@ -106,17 +106,25 @@ namespace MHServerEmu.Games.MetaGames.MetaStates
                 dialog.Message.LocaleString = dialogProto.Text;
                 dialog.Options = DialogOptionEnum.ScreenBottom;
 
+#if GAME_VERSION_1_53
+                bool button1Hold = dialogProto.Button1Hold;
+                bool button2Hold = dialogProto.Button2Hold;
+#else
+                bool button1Hold = false;
+                bool button2Hold = false;
+#endif
+
                 if (dialogProto.Button1 != LocaleStringId.Blank)
-                    dialog.AddButton(GameDialogResultEnum.eGDR_Option1, dialogProto.Button1, dialogProto.Button1Style);
+                    dialog.AddButton(GameDialogResultEnum.eGDR_Option1, dialogProto.Button1, dialogProto.Button1Style, button1Hold);
 
                 if (dialogProto.Button2 != LocaleStringId.Blank)
-                    dialog.AddButton(GameDialogResultEnum.eGDR_Option2, dialogProto.Button2, dialogProto.Button2Style);
+                    dialog.AddButton(GameDialogResultEnum.eGDR_Option2, dialogProto.Button2, dialogProto.Button2Style, button2Hold);
 
                 _dialogs.Add(playerGuid, dialog);
             }
 
             if (dialog != null)
-                Game.GameDialogManager.ShowDialog(dialog);
+                Game.GameDialogManager.PostDialogToClient(dialog);
         }
 
         private void OnResponse(ulong playerGuid, DialogResponse response)
@@ -144,7 +152,7 @@ namespace MHServerEmu.Games.MetaGames.MetaStates
         private void RemoveDialog(ulong playerGuid)
         {
             if (_dialogs.TryGetValue(playerGuid, out var dialog))
-                Game.GameDialogManager.RemoveDialog(dialog);
+                Game.GameDialogManager.RemoveDialogFromClient(dialog);
         }
 
         private void SetReadyCheckWidget()
@@ -235,7 +243,7 @@ namespace MHServerEmu.Games.MetaGames.MetaStates
                     targetRef = region.Prototype.StartTarget;
             }
 
-            using var playersHandle = ListPool<Player>.Instance.Get(out List<Player> players);
+            using var playersHandle = ListPool<Player>.Get(out List<Player> players);
             foreach (Player player in MetaGame.Players)
                 players.Add(player);
 
@@ -250,7 +258,7 @@ namespace MHServerEmu.Games.MetaGames.MetaStates
             {
                 if (status == PlayerState.Fallback)
                 {
-                    using Teleporter teleporter = ObjectPoolManager.Instance.Get<Teleporter>();
+                    using var teleporterHandle = TeleporterPool.Get(out Teleporter teleporter);
                     teleporter.Initialize(player, TeleportContextEnum.TeleportContext_MetaGame);
                     teleporter.TeleportToLastTown();
                 }
@@ -259,7 +267,7 @@ namespace MHServerEmu.Games.MetaGames.MetaStates
                     var region = Region;
                     if (targetRef == PrototypeId.Invalid || region == null) return;
 
-                    using Teleporter teleporter = ObjectPoolManager.Instance.Get<Teleporter>();
+                    using var teleporterHandle = TeleporterPool.Get(out Teleporter teleporter);
                     teleporter.Initialize(player, TeleportContextEnum.TeleportContext_MetaGame);
 
                     RegionPrototype regionProto;

@@ -2,6 +2,7 @@
 using Gazillion;
 using MHServerEmu.Core.Extensions;
 using MHServerEmu.Core.Logging;
+using MHServerEmu.Core.Memory;
 using MHServerEmu.Core.Serialization;
 using MHServerEmu.Core.System.Time;
 using MHServerEmu.Games.Common;
@@ -16,8 +17,6 @@ namespace MHServerEmu.Games.Achievements
     /// </summary>
     public class AchievementState : ISerialize
     {
-        private static readonly Logger Logger = LogManager.CreateLogger();
-
         private bool _scoreCached;
         private CategoryStats _totalStats;
         private Dictionary<LocaleStringId, CategoryStats> _categoryStats = new();
@@ -126,13 +125,12 @@ namespace MHServerEmu.Games.Achievements
 
         public NetMessageAchievementStateUpdate.Types.AchievementState ToProtobuf(uint id)
         {
-            var progress = AchievementProgressMap[id];
-            return NetMessageAchievementStateUpdate.Types.AchievementState
-                    .CreateBuilder()
-                    .SetId(id)
-                    .SetCount(progress.Count)
-                    .SetCompleteddate((ulong)(progress.CompletedDate.Ticks / 10))
-                    .Build();
+            AchievementProgress progress = AchievementProgressMap[id];
+            using var builderHandle = ProtobufBuilderPool<NetMessageAchievementStateUpdate.Types.AchievementState.Builder>.Get(out var builder);
+            return builder.SetId(id)
+                .SetCount(progress.Count)
+                .SetCompleteddate((ulong)(progress.CompletedDate.Ticks / 10))   // microseconds
+                .Build();
         }
 
         public override string ToString()
@@ -164,11 +162,8 @@ namespace MHServerEmu.Games.Achievements
                 if (kvp.Value.IsComplete == false) continue;
 
                 var info = AchievementDatabase.Instance.GetAchievementInfoById(kvp.Key);
-                if (info == null)
-                {
-                    Logger.Warn($"RebuildScoreCache() failed to get AchievementInfo for AchievementId {kvp.Key}");
+                if (!Verify.IsNotNull(info, $"RebuildScoreCache() failed to get AchievementInfo for AchievementId {kvp.Key}"))
                     continue;
-                }
 
                 uint completed = info.IsTopLevelAchievement ? 1u : 0u;
                 _totalStats.Score += info.Score;
@@ -198,7 +193,6 @@ namespace MHServerEmu.Games.Achievements
                 case AchievementEvaluationType.Available: return true;
                 case AchievementEvaluationType.Disabled:  return false;
                 case AchievementEvaluationType.Children:
-
                     foreach(var child in info.Children)
                         if (GetAchievementProgress(child.Id).IsComplete == false) 
                             return false;
@@ -206,12 +200,14 @@ namespace MHServerEmu.Games.Achievements
                     return true;
 
                 case AchievementEvaluationType.Parent:
+                    if (!Verify.IsTrue(info.ParentId != 0, $"No parent for achievement id {info.Id}"))
+                        return false;
 
-                    if (info.ParentId == 0) return Logger.WarnReturn(false, $"Achievement[{info.Id}] ParentId = 0");
                     return GetAchievementProgress(info.ParentId).IsComplete;
 
                 default:
-                    return Logger.WarnReturn(false, $"Achievement[{info.Id}] EvaluationType = {info.EvaluationType}");
+                    Verify.IsTrue(false, $"Unknown evaluation type {info.EvaluationType} for achievement id {info.Id}");
+                    return false;
             }
         }
 

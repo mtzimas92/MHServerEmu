@@ -4,6 +4,7 @@ using MHServerEmu.Core.Extensions;
 using MHServerEmu.Core.Helpers;
 using MHServerEmu.Core.Logging;
 using MHServerEmu.Games.Entities;
+using MHServerEmu.Games.Entities.Avatars;
 using MHServerEmu.Games.GameData;
 using MHServerEmu.Games.GameData.Prototypes;
 using MHServerEmu.Games.Loot;
@@ -88,8 +89,8 @@ namespace MHServerEmu.Games.MTXStore
 
         public bool OnBuyItemFromCatalog(Player player, NetMessageBuyItemFromCatalog buyItemFromCatalog)
         {
-            if (buyItemFromCatalog.HasSkuId == false)
-                return Logger.WarnReturn(false, $"OnBuyItemFromCatalog(): No SkuId received from player [{player}]");
+            if (!Verify.IsTrue(buyItemFromCatalog.HasSkuId, $"No SkuId received from player [{player}]"))
+                return false;
 
             long skuId = buyItemFromCatalog.SkuId;
             long clientPrice = buyItemFromCatalog.ItemUnitPrice;
@@ -114,8 +115,8 @@ namespace MHServerEmu.Games.MTXStore
 
         public bool OnBuyGiftForOtherPlayer(Player buyer, NetMessageBuyGiftForOtherPlayer buyGiftForOtherPlayer)
         {
-            if (buyGiftForOtherPlayer.HasSkuId == false)
-                return Logger.WarnReturn(false, $"OnBuyGiftForOtherPlayer(): No SkuId received from player [{buyer}]");
+            if (!Verify.IsTrue(buyGiftForOtherPlayer.HasSkuId, $"No SkuId received from player [{buyer}]"))
+                return false;
 
             long skuId = buyGiftForOtherPlayer.SkuId;
             long clientPrice = buyGiftForOtherPlayer.ItemUnitPrice;
@@ -288,7 +289,7 @@ namespace MHServerEmu.Games.MTXStore
         private static BuyItemResultErrorCodes AcquireCatalogGuid(Player player, CatalogGuidEntry guidEntry, bool allowTokenReplacements)
         {
             Prototype proto = guidEntry.ItemPrototypeRuntimeIdForClient.As<Prototype>();
-            if (proto == null) return Logger.WarnReturn(BuyItemResultErrorCodes.BUY_RESULT_ERROR_UNKNOWN, "AcquireCatalogItem(): proto == null");
+            if (!Verify.IsNotNull(proto)) return BuyItemResultErrorCodes.BUY_RESULT_ERROR_UNKNOWN;
 
             for (int i = 0; i < guidEntry.Quantity; i++)
             {
@@ -317,7 +318,7 @@ namespace MHServerEmu.Games.MTXStore
                         break;
 
                     default:
-                        Logger.Warn($"AcquireCatalogItem(): Unimplemented catalog item type {proto.GetType().Name} for {proto}", LogCategory.MTXStore);
+                        Verify.IsTrue(false, $"Unimplemented catalog item type {proto.GetType().Name} for {proto}");
                         result = BuyItemResultErrorCodes.BUY_RESULT_ERROR_UNKNOWN;
                         break;
                 }
@@ -331,11 +332,44 @@ namespace MHServerEmu.Games.MTXStore
 
         private static BuyItemResultErrorCodes AcquireItem(Player player, ItemPrototype itemProto)
         {
+#if GAME_VERSION_1_53
+            if (itemProto is CostumePrototype costumeProto)
+                return AcquireCostume(player, costumeProto);
+#endif
+
             if (player.Game.LootManager.GiveItem(itemProto.DataRef, LootContext.CashShop, player) == false)
                 return BuyItemResultErrorCodes.BUY_RESULT_ERROR_UNKNOWN;
 
             return BuyItemResultErrorCodes.BUY_RESULT_ERROR_SUCCESS;
         }
+
+#if GAME_VERSION_1_53
+        private static BuyItemResultErrorCodes AcquireCostume(Player player, CostumePrototype costumeProto)
+        {
+            PrototypeId costumeProtoRef = costumeProto.DataRef;
+
+            if (player.HasCostumeUnlocked(costumeProtoRef) == false)
+            {
+                player.UnlockCostume(costumeProtoRef);
+                if (player.HasCostumeUnlocked(costumeProtoRef) == false)
+                    return BuyItemResultErrorCodes.BUY_RESULT_ERROR_SOLD_OUT;
+
+                return BuyItemResultErrorCodes.BUY_RESULT_ERROR_SUCCESS;
+            }
+
+            // V53_TODO: consoles?
+            PrototypeId duplicateItemProtoRef = costumeProto.FulfillmentDuplicateItemPC;
+            if (!Verify.IsTrue(duplicateItemProtoRef != PrototypeId.Invalid)) return BuyItemResultErrorCodes.BUY_RESULT_ERROR_UNKNOWN;
+
+            ItemPrototype duplicateItemProto = duplicateItemProtoRef.As<ItemPrototype>();
+            if (!Verify.IsNotNull(duplicateItemProto)) return BuyItemResultErrorCodes.BUY_RESULT_ERROR_UNKNOWN;
+
+            // Falling back from costume to costume can potentially create an infinite loop
+            if (!Verify.IsTrue(duplicateItemProto != costumeProto)) return BuyItemResultErrorCodes.BUY_RESULT_ERROR_UNKNOWN;
+
+            return AcquireItem(player, duplicateItemProto);
+        }
+#endif
 
         private static BuyItemResultErrorCodes AcquirePlayerStashInventory(Player player, PlayerStashInventoryPrototype playerStashInventoryProto)
         {
@@ -374,7 +408,7 @@ namespace MHServerEmu.Games.MTXStore
             }
 
             // Unlock the avatar.
-            if (player.UnlockAvatar(avatarProtoRef, true) == false)
+            if (player.UnlockAvatar(avatarProtoRef, AvatarUnlockType.Default, true) == false)
                 return BuyItemResultErrorCodes.BUY_RESULT_ERROR_UNKNOWN;
 
             return BuyItemResultErrorCodes.BUY_RESULT_ERROR_SUCCESS;

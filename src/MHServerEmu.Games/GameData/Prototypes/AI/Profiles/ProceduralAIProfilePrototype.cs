@@ -274,7 +274,7 @@ namespace MHServerEmu.Games.GameData.Prototypes
             int availableSubscriptions = Math.Min(MaxSubscriptionsPerActivation, MaxSubscriptions - subscriptions);
             int subscribed = 0;
 
-            using var potentialTargetsHandle = ListPool<WorldEntity>.Instance.Get(out List<WorldEntity> potentialTargets);
+            using var potentialTargetsHandle = ListPool<WorldEntity>.Get(out List<WorldEntity> potentialTargets);
             Combat.GetTargetsInRange(agent, potentialTargets, Radius, 0.0f, CombatTargetType.Ally, CombatTargetFlags.IgnoreHostile, EnticeeAttributes);
             foreach (WorldEntity potentialTarget in potentialTargets)
             {
@@ -1007,7 +1007,7 @@ namespace MHServerEmu.Games.GameData.Prototypes
             }
 
             GRandom random = game.Random;
-            Picker<ProceduralUsePowerContextPrototype> powerPicker = new(random);
+            using var powerPickerHandle = PickerPool<ProceduralUsePowerContextPrototype>.Get(random, out Picker<ProceduralUsePowerContextPrototype> powerPicker);
             PopulatePowerPicker(ownerController, powerPicker);
             if (HandleProceduralPower(ownerController, proceduralAI, random, currentTime, powerPicker, true) == StaticBehaviorReturnType.Running) return;
 
@@ -1253,7 +1253,7 @@ namespace MHServerEmu.Games.GameData.Prototypes
             }
 
             GRandom random = game.Random;
-            Picker<ProceduralUsePowerContextPrototype> powerPicker = new(random);
+            using var powerPickerHandle = PickerPool<ProceduralUsePowerContextPrototype>.Get(random, out Picker<ProceduralUsePowerContextPrototype> powerPicker);
             PopulatePowerPicker(ownerController, powerPicker);
             if (HandleProceduralPower(ownerController, proceduralAI, random, currentTime, powerPicker, true) == StaticBehaviorReturnType.Running) return;
 
@@ -1388,7 +1388,7 @@ namespace MHServerEmu.Games.GameData.Prototypes
                 && proceduralAI.PartialOverrideBehavior == null) return;
 
             GRandom random = game.Random;
-            Picker<ProceduralUsePowerContextPrototype> powerPicker = new(random);
+            using var powerPickerHandle = PickerPool<ProceduralUsePowerContextPrototype>.Get(random, out Picker<ProceduralUsePowerContextPrototype> powerPicker);
             PopulatePowerPicker(ownerController, powerPicker);
             if (HandleProceduralPower(ownerController, proceduralAI, random, currentTime, powerPicker, true) == StaticBehaviorReturnType.Running) return;
 
@@ -1425,6 +1425,9 @@ namespace MHServerEmu.Games.GameData.Prototypes
             BehaviorBlackboard ownerBlackboard = ownerController.Blackboard;
 
             int syncAttackIndex = GetRandomSyncAttackIndex(ownerBlackboard, game);
+            if (syncAttackIndex == -1)
+                return;
+
             if (!Verify.IsTrue(syncAttackIndex >= 0 && syncAttackIndex < IDPropertiesLength)) return;
 
             ulong targetId = ownerBlackboard.PropertyCollection[IDProperties[syncAttackIndex]];            
@@ -1463,7 +1466,7 @@ namespace MHServerEmu.Games.GameData.Prototypes
                 return -1;
 
             EntityManager entityManager = game.EntityManager;
-            using var syncAttackIndicesHandle = ListPool<int>.Instance.Get(out List<int> syncAttackIndices);
+            using var syncAttackIndicesHandle = ListPool<int>.Get(out List<int> syncAttackIndices);
 
             for (int i = 0; i < IDPropertiesLength && i < SyncAttacks.Length; i++)
             {
@@ -1674,7 +1677,7 @@ namespace MHServerEmu.Games.GameData.Prototypes
 
             PropertyCollection properties = ownerController.Blackboard.PropertyCollection;
             State state = (State)(int)properties[PropertyEnum.AICustomStateVal1];
-            using var targetsHandle = ListPool<Agent>.Instance.Get(out List<Agent> targets);
+            using var targetsHandle = ListPool<Agent>.Get(out List<Agent> targets);
 
             if (state == State.SpikeDance)
             {
@@ -1715,8 +1718,8 @@ namespace MHServerEmu.Games.GameData.Prototypes
             Game game = ownerController.Game;
             if (!Verify.IsNotNull(game)) return;
 
-            Picker<Agent> targetPicker = new(game.Random);
-            Sphere volume = new (agent.RegionLocation.Position, SpikeDanceMobSearchRadius);
+            using var targetPickerHandle = PickerPool<Agent>.Get(game.Random, out Picker<Agent> targetPicker);
+            Sphere volume = new(agent.RegionLocation.Position, SpikeDanceMobSearchRadius);
             foreach (WorldEntity entity in region.IterateEntitiesInVolume(volume, new(EntityRegionSPContextFlags.UnrestrictedPartitions)))
             {
                 if (entity is not Agent entityAgent)

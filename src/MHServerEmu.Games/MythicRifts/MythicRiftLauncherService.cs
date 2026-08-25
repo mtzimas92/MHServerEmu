@@ -630,7 +630,7 @@ namespace MHServerEmu.Games.MythicRifts
         private bool CanUseLauncherFromCurrentRegion(Player player)
         {
             Region region = player?.GetRegion();
-            if (region?.PrototypeDataRef == (PrototypeId)RegionPrototypeId.DangerRoomHubRegion)
+            if (region?.PrototypeDataRef == (PrototypeId)13296910602616641976UL)
                 return true;
 
             return Game.MythicRiftManager.CanLaunchFromCompletedRiftRegion(player);
@@ -856,7 +856,7 @@ namespace MHServerEmu.Games.MythicRifts
                 return false;
             }
 
-            using Teleporter teleporter = ObjectPoolManager.Instance.Get<Teleporter>();
+            using var teleporterHandle = TeleporterPool.Get(out Teleporter teleporter);
             teleporter.Initialize(
                 player,
                 usePartyTeleportContext ? TeleportContextEnum.TeleportContext_Party : TeleportContextEnum.TeleportContext_Debug);
@@ -1205,7 +1205,7 @@ namespace MHServerEmu.Games.MythicRifts
             if (presentedSpec == null)
                 return false;
 
-            using LootResultSummary lootResultSummary = ObjectPoolManager.Instance.Get<LootResultSummary>();
+            using var lootResultSummaryHandle = LootResultSummaryPool.Get(out LootResultSummary lootResultSummary);
             lootResultSummary.Add(new LootResult(presentedSpec));
 
             if (Game.LootManager.GiveLootFromSummary(lootResultSummary, player, PrototypeId.Invalid) == false)

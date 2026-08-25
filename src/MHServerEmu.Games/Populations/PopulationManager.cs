@@ -254,7 +254,7 @@ namespace MHServerEmu.Games.Populations
         private void ScheduleLocationObject()
         {
             var currentTime = Game.CurrentTime;
-            Picker<SpawnScheduler> schedulerPicker = new(Game.Random);
+            using var schedulerPickerHandle = PickerPool<SpawnScheduler>.Get(Game.Random, out Picker<SpawnScheduler> schedulerPicker);
 
             foreach (bool critical in Priority)
             {
@@ -289,7 +289,7 @@ namespace MHServerEmu.Games.Populations
 
                 if (markerEventScheduler.MissionSchedulers.Count > 0)
                 {
-                    using var missionSchedulersHandle = ListPool<SpawnMissionScheduler>.Instance.Get(out List<SpawnMissionScheduler> missionSchedulers);
+                    using var missionSchedulersHandle = ListPool<SpawnMissionScheduler>.Get(out List<SpawnMissionScheduler> missionSchedulers);
                     markerEventScheduler.GetSortedMissionSchedulers(missionSchedulers);
 
                     foreach (bool critical in Priority)

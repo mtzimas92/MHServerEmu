@@ -254,7 +254,7 @@ namespace MHServerEmu.Games.MythicRifts
 
             if (_readyCheckDialogs.TryGetValue((runState.Config.RunId, playerDbId), out GameDialogInstance dialog))
             {
-                Game.GameDialogManager.RemoveDialog(dialog);
+                Game.GameDialogManager.RemoveDialogFromClient(dialog);
                 _readyCheckDialogs.Remove((runState.Config.RunId, playerDbId));
             }
 
@@ -1126,7 +1126,7 @@ namespace MHServerEmu.Games.MythicRifts
             if (remaining <= 0)
                 return true;
 
-            using var currencyItemListHandle = ListPool<ulong>.Instance.Get(out List<ulong> currencyItemIds);
+            using var currencyItemListHandle = ListPool<ulong>.Get(out List<ulong> currencyItemIds);
             InventoryIterationFlags flags = InventoryIterationFlags.PlayerGeneral | InventoryIterationFlags.PlayerGeneralExtra | InventoryIterationFlags.PlayerStashGeneral;
             InventoryIterator.GetMatchingContained(player, RiftArtifactVendorCurrencyItemPrototypeRef, flags, currencyItemIds);
 
@@ -1334,7 +1334,7 @@ namespace MHServerEmu.Games.MythicRifts
                 if (EnsurePlayerAvatarAliveForRiftExit(player, runState, "return-to-hub") == false)
                     continue;
 
-                using Teleporter teleporter = ObjectPoolManager.Instance.Get<Teleporter>();
+                using var teleporterHandle = TeleporterPool.Get(out Teleporter teleporter);
                 teleporter.Initialize(player, TeleportContextEnum.TeleportContext_Resurrect);
                 teleporter.DifficultyTierRef = GameDatabase.GlobalsPrototype.DifficultyTierDefault;
                 if (teleporter.TeleportToTarget(dangerRoomHubStartTarget))
@@ -1419,7 +1419,7 @@ namespace MHServerEmu.Games.MythicRifts
                     ? BossGauntletRewardRoomCenterPosition
                     : null;
 
-                using LootInputSettings inputSettings = MHServerEmu.Core.Memory.ObjectPoolManager.Instance.Get<LootInputSettings>();
+                using var inputSettingsHandle = LootInputSettingsPool.Get(out LootInputSettings inputSettings);
                 inputSettings.Initialize(LootContext.Drop, player, avatar, groundLootPositionOverride);
 
                 int groundRecipientId = 1;
@@ -1558,12 +1558,12 @@ namespace MHServerEmu.Games.MythicRifts
 
             if (guaranteedItem.IsAgentReward)
             {
-                using LootResultSummary lootResultSummary = ObjectPoolManager.Instance.Get<LootResultSummary>();
+                using var lootResultSummaryHandle = LootResultSummaryPool.Get(out LootResultSummary lootResultSummary);
                 lootResultSummary.Add(new LootResult(new AgentSpec(itemProtoRef, Math.Max(itemLevel, 1), 0)));
 
                 if (MythicRiftRewardTuning.IsGroundDelivery(delivery))
                 {
-                    using LootInputSettings inputSettings = ObjectPoolManager.Instance.Get<LootInputSettings>();
+                    using var inputSettingsHandle = LootInputSettingsPool.Get(out LootInputSettings inputSettings);
                     inputSettings.Initialize(LootContext.Drop, player, rewardSourceEntity, Math.Max(itemLevel, 1), positionOverride);
                     Game.LootManager.SpawnLootFromSummary(lootResultSummary, inputSettings);
                     return;
@@ -1582,12 +1582,12 @@ namespace MHServerEmu.Games.MythicRifts
                     return;
                 }
 
-                using LootResultSummary lootResultSummary = ObjectPoolManager.Instance.Get<LootResultSummary>();
+                using var lootResultSummaryHandle = LootResultSummaryPool.Get(out LootResultSummary lootResultSummary);
                 lootResultSummary.Add(new LootResult(itemSpec));
 
                 if (MythicRiftRewardTuning.IsGroundDelivery(delivery))
                 {
-                    using LootInputSettings inputSettings = ObjectPoolManager.Instance.Get<LootInputSettings>();
+                    using var inputSettingsHandle = LootInputSettingsPool.Get(out LootInputSettings inputSettings);
                     inputSettings.Initialize(LootContext.Drop, player, rewardSourceEntity, itemLevel, positionOverride);
                     Game.LootManager.SpawnLootFromSummary(lootResultSummary, inputSettings);
                 }
@@ -1626,7 +1626,10 @@ namespace MHServerEmu.Games.MythicRifts
             PrototypeId chestProtoRef = ResolvePrototype(RiftRewardChestPrototypeName);
             WorldEntityPrototype chestProto = chestProtoRef.As<WorldEntityPrototype>();
             if (chestProtoRef == PrototypeId.Invalid || chestProto == null)
-                return Logger.WarnReturn(false, $"TrySpawnRewardChest(): failed to resolve reward chest prototype {RiftRewardChestPrototypeName}.");
+                {
+                    Logger.Warn($"TrySpawnRewardChest(): failed to resolve reward chest prototype {RiftRewardChestPrototypeName}.");
+                    return false;
+                }
 
             Vector3 position;
             if (UsesFixedRewardRoom(runState))
@@ -1652,21 +1655,24 @@ namespace MHServerEmu.Games.MythicRifts
 
             position = RegionLocation.ProjectToFloor(region, position);
 
-            using EntitySettings settings = ObjectPoolManager.Instance.Get<EntitySettings>();
+            using var settingsHandle = EntitySettingsPool.Get(out EntitySettings settings);
             settings.EntityRef = chestProtoRef;
             settings.Position = position;
             settings.Orientation = avatar.RegionLocation.Orientation;
             settings.RegionId = region.Id;
             settings.Lifespan = CompletedRunRetention;
 
-            using PropertyCollection settingsProperties = ObjectPoolManager.Instance.Get<PropertyCollection>();
+            using var settingsPropertiesHandle = PropertyCollectionPool.Get(out PropertyCollection settingsProperties);
             settingsProperties[PropertyEnum.Interactable] = (int)TriBool.True;
             settingsProperties[PropertyEnum.InteractableUsesLeft] = 1;
             settings.Properties = settingsProperties;
 
             WorldEntity chest = Game.EntityManager.CreateEntity(settings) as WorldEntity;
             if (chest == null)
-                return Logger.WarnReturn(false, $"TrySpawnRewardChest(): failed to create reward chest for Mythic Rift run {runState.Config.RunId}.");
+                {
+                    Logger.Warn($"TrySpawnRewardChest(): failed to create reward chest for Mythic Rift run {runState.Config.RunId}.");
+                    return false;
+                }
 
             _pendingRewardChestsByEntityId[chest.Id] = new PendingRewardChest(
                 runState.Config.RunId,
@@ -1762,7 +1768,7 @@ namespace MHServerEmu.Games.MythicRifts
 
                     if (rewardDrop.LootTableProtoRef != PrototypeId.Invalid)
                     {
-                        using LootInputSettings inputSettings = ObjectPoolManager.Instance.Get<LootInputSettings>();
+                        using var inputSettingsHandle = LootInputSettingsPool.Get(out LootInputSettings inputSettings);
                         inputSettings.Initialize(LootContext.Drop, player, sourceEntity ?? avatar, positionOverride);
                         GrantRewardLootTable(rewardDrop.LootTableProtoRef, inputSettings, "ground", ref groundRecipientId, rewardDrop.ItemLevel);
                         continue;
@@ -2121,7 +2127,7 @@ namespace MHServerEmu.Games.MythicRifts
 
             position = RegionLocation.ProjectToFloor(region, position);
 
-            using Teleporter teleporter = ObjectPoolManager.Instance.Get<Teleporter>();
+            using var teleporterHandle = TeleporterPool.Get(out Teleporter teleporter);
             teleporter.Initialize(player, TeleportContextEnum.TeleportContext_Resurrect);
             teleporter.DifficultyTierRef = region.DifficultyTierRef;
 
@@ -2948,7 +2954,7 @@ namespace MHServerEmu.Games.MythicRifts
             RemoveNativeRegionWidgets(region.UIDataProvider, runState);
             RefreshDangerRoomRiftWidgets(region.UIDataProvider, runState, currentTime);
 
-            using var missionHandle = HashSetPool<Mission>.Instance.Get(out HashSet<Mission> missions);
+            using var missionHandle = HashSetPool<Mission>.Get(out HashSet<Mission> missions);
             AddNativeTerminalMission(missions, region.MissionManager, runState.Config.MissionProtoRef);
             AddActiveMissions(missions, region.MissionManager);
 
@@ -2992,7 +2998,7 @@ namespace MHServerEmu.Games.MythicRifts
 
             ClearDangerRoomRiftWidgets(region.UIDataProvider, runState);
 
-            using var missionHandle = HashSetPool<Mission>.Instance.Get(out HashSet<Mission> missions);
+            using var missionHandle = HashSetPool<Mission>.Get(out HashSet<Mission> missions);
             AddNativeTerminalMission(missions, region.MissionManager, runState.Config.MissionProtoRef);
             AddActiveMissions(missions, region.MissionManager);
 
@@ -4957,24 +4963,24 @@ namespace MHServerEmu.Games.MythicRifts
 
             (ulong RunId, ulong PlayerDbId) key = (runState.Config.RunId, playerDbId);
             if (_readyCheckDialogs.TryGetValue(key, out GameDialogInstance existingDialog))
-                Game.GameDialogManager.RemoveDialog(existingDialog);
+                Game.GameDialogManager.RemoveDialogFromClient(existingDialog);
 
             GameDialogInstance dialog = Game.GameDialogManager.CreateInstance(playerDbId);
             dialog.Message.LocaleString = (LocaleStringId)RiftReadyCheckDialogLocale;
             dialog.Options = DialogOptionEnum.ScreenBottom | DialogOptionEnum.WorldClick;
             dialog.OnResponse = (responsePlayerDbId, response) => OnReadyCheckDialogResponse(runState.Config.RunId, responsePlayerDbId, response);
-            dialog.AddButton(GameDialogResultEnum.eGDR_Option1, (LocaleStringId)RiftReadyCheckReadyButtonLocale, ButtonStyle.SecondaryPositive);
-            dialog.AddButton(GameDialogResultEnum.eGDR_Option2, (LocaleStringId)RiftReadyCheckWaitButtonLocale, ButtonStyle.SecondaryNegative);
+            dialog.AddButton(GameDialogResultEnum.eGDR_Option1, (LocaleStringId)RiftReadyCheckReadyButtonLocale, ButtonStyle.SecondaryPositive, false);
+            dialog.AddButton(GameDialogResultEnum.eGDR_Option2, (LocaleStringId)RiftReadyCheckWaitButtonLocale, ButtonStyle.SecondaryNegative, false);
 
             _readyCheckDialogs[key] = dialog;
-            Game.GameDialogManager.ShowDialog(dialog);
+            Game.GameDialogManager.PostDialogToClient(dialog);
         }
 
         private void OnReadyCheckDialogResponse(ulong runId, ulong playerDbId, DialogResponse response)
         {
             if (_readyCheckDialogs.TryGetValue((runId, playerDbId), out GameDialogInstance dialog))
             {
-                Game.GameDialogManager.RemoveDialog(dialog);
+                Game.GameDialogManager.RemoveDialogFromClient(dialog);
                 _readyCheckDialogs.Remove((runId, playerDbId));
             }
 
@@ -4997,7 +5003,7 @@ namespace MHServerEmu.Games.MythicRifts
             ulong runId = runState.Config.RunId;
             foreach (var kvp in _readyCheckDialogs.Where(kvp => kvp.Key.RunId == runId).ToList())
             {
-                Game.GameDialogManager.RemoveDialog(kvp.Value);
+                Game.GameDialogManager.RemoveDialogFromClient(kvp.Value);
                 _readyCheckDialogs.Remove(kvp.Key);
             }
         }
@@ -5023,16 +5029,16 @@ namespace MHServerEmu.Games.MythicRifts
             ulong playerDbId = player.DatabaseUniqueId;
             (ulong RunId, ulong PlayerDbId) key = (runState.Config.RunId, playerDbId);
             if (_rewardRoomDialogs.TryGetValue(key, out GameDialogInstance existingDialog))
-                Game.GameDialogManager.RemoveDialog(existingDialog);
+                Game.GameDialogManager.RemoveDialogFromClient(existingDialog);
 
             GameDialogInstance dialog = Game.GameDialogManager.CreateInstance(playerDbId);
             dialog.Message.LocaleString = (LocaleStringId)RiftRewardRoomDialogLocale;
             dialog.Options = DialogOptionEnum.WorldClick;
             dialog.OnResponse = (responsePlayerDbId, response) => OnRewardRoomDialogResponse(runState.Config.RunId, responsePlayerDbId, response);
-            dialog.AddButton(GameDialogResultEnum.eGDR_Option1, (LocaleStringId)RiftRewardRoomTravelButtonLocale, ButtonStyle.SecondaryPositive);
+            dialog.AddButton(GameDialogResultEnum.eGDR_Option1, (LocaleStringId)RiftRewardRoomTravelButtonLocale, ButtonStyle.SecondaryPositive, false);
 
             _rewardRoomDialogs[key] = dialog;
-            Game.GameDialogManager.ShowDialog(dialog);
+            Game.GameDialogManager.PostDialogToClient(dialog);
         }
 
         private void OnRewardRoomDialogResponse(ulong runId, ulong playerDbId, DialogResponse response)
@@ -5061,7 +5067,7 @@ namespace MHServerEmu.Games.MythicRifts
             ulong runId = runState.Config.RunId;
             foreach (var kvp in _rewardRoomDialogs.Where(kvp => kvp.Key.RunId == runId).ToList())
             {
-                Game.GameDialogManager.RemoveDialog(kvp.Value);
+                Game.GameDialogManager.RemoveDialogFromClient(kvp.Value);
                 _rewardRoomDialogs.Remove(kvp.Key);
             }
         }
@@ -5073,11 +5079,17 @@ namespace MHServerEmu.Games.MythicRifts
 
             MythicRiftContentEntry arenaContent = GetContent(BossGauntletArenaContentId);
             if (arenaContent?.HasValidMap != true)
-                return Logger.WarnReturn(false, $"TryTeleportPartyToRewardRoom(): reward room content '{BossGauntletArenaContentId}' has no valid map.");
+                {
+                    Logger.Warn($"TryTeleportPartyToRewardRoom(): reward room content '{BossGauntletArenaContentId}' has no valid map.");
+                    return false;
+                }
 
             RegionConnectionTargetPrototype startTargetProto = arenaContent.StartTargetProtoRef.As<RegionConnectionTargetPrototype>();
             if (startTargetProto == null)
-                return Logger.WarnReturn(false, "TryTeleportPartyToRewardRoom(): failed to resolve reward room start target.");
+                {
+                    Logger.Warn("TryTeleportPartyToRewardRoom(): failed to resolve reward room start target.");
+                    return false;
+                }
 
             PrototypeId regionProtoRef = arenaContent.RegionProtoRef;
             PrototypeId areaProtoRef = startTargetProto.Area;
@@ -5118,7 +5130,7 @@ namespace MHServerEmu.Games.MythicRifts
             if (player == null)
                 return false;
 
-            using Teleporter teleporter = ObjectPoolManager.Instance.Get<Teleporter>();
+            using var teleporterHandle = TeleporterPool.Get(out Teleporter teleporter);
             teleporter.Initialize(
                 player,
                 usePartyTeleportContext ? TeleportContextEnum.TeleportContext_Party : TeleportContextEnum.TeleportContext_Debug);
@@ -5544,7 +5556,7 @@ namespace MHServerEmu.Games.MythicRifts
                 spawnPosition = RegionLocation.ProjectToFloor(region, spawnPosition);
                 spawnPosition.Z += hazardProto.Bounds.GetBoundHalfHeight();
 
-                using EntitySettings settings = ObjectPoolManager.Instance.Get<EntitySettings>();
+                using var settingsHandle = EntitySettingsPool.Get(out EntitySettings settings);
                 settings.EntityRef = hazardRef;
                 settings.Position = spawnPosition;
                 settings.Orientation = anchorAvatar.RegionLocation.Orientation;
@@ -5554,7 +5566,7 @@ namespace MHServerEmu.Games.MythicRifts
                 settings.HotspotSkipCollide = false;
                 settings.Lifespan = TimeSpan.FromSeconds(tuning.DurationSeconds);
 
-                using PropertyCollection settingsProperties = ObjectPoolManager.Instance.Get<PropertyCollection>();
+                using var settingsPropertiesHandle = PropertyCollectionPool.Get(out PropertyCollection settingsProperties);
                 int level = spawnCell.Area.GetCharacterLevel(hazardProto);
                 settingsProperties[PropertyEnum.CharacterLevel] = level;
                 settingsProperties[PropertyEnum.CombatLevel] = level;
@@ -5733,7 +5745,7 @@ namespace MHServerEmu.Games.MythicRifts
             spawnPosition = RegionLocation.ProjectToFloor(region, spawnPosition);
             spawnPosition.Z += mobProto.Bounds.GetBoundHalfHeight();
 
-            using EntitySettings settings = ObjectPoolManager.Instance.Get<EntitySettings>();
+            using var settingsHandle = EntitySettingsPool.Get(out EntitySettings settings);
             settings.EntityRef = mobProto.DataRef;
             settings.Position = spawnPosition;
             settings.Orientation = anchorAvatar.RegionLocation.Orientation;
@@ -5741,7 +5753,7 @@ namespace MHServerEmu.Games.MythicRifts
             settings.Cell = spawnCell;
             settings.IsPopulation = true;
 
-            using PropertyCollection settingsProperties = ObjectPoolManager.Instance.Get<PropertyCollection>();
+            using var settingsPropertiesHandle = PropertyCollectionPool.Get(out PropertyCollection settingsProperties);
             int level = spawnCell.Area.GetCharacterLevel(mobProto);
             settingsProperties[PropertyEnum.CharacterLevel] = level;
             settingsProperties[PropertyEnum.CombatLevel] = level;
@@ -5980,7 +5992,7 @@ namespace MHServerEmu.Games.MythicRifts
                 if (TryResolveBossSpawnLocation(runState, region, bossProto, spawnIndex, out Vector3 spawnPosition, out Orientation spawnOrientation, out Cell spawnCell) == false)
                     break;
 
-                using EntitySettings settings = ObjectPoolManager.Instance.Get<EntitySettings>();
+                using var settingsHandle = EntitySettingsPool.Get(out EntitySettings settings);
                 settings.EntityRef = bossProto.DataRef;
                 settings.Position = spawnPosition;
                 settings.Orientation = spawnOrientation;
@@ -5988,7 +6000,7 @@ namespace MHServerEmu.Games.MythicRifts
                 settings.Cell = spawnCell;
                 settings.IsPopulation = true;
 
-                using PropertyCollection settingsProperties = ObjectPoolManager.Instance.Get<PropertyCollection>();
+                using var settingsPropertiesHandle = PropertyCollectionPool.Get(out PropertyCollection settingsProperties);
                 int level = spawnCell.Area.GetCharacterLevel(bossProto);
                 settingsProperties[PropertyEnum.CharacterLevel] = level;
                 settingsProperties[PropertyEnum.CombatLevel] = level;
@@ -6135,7 +6147,7 @@ namespace MHServerEmu.Games.MythicRifts
 
             RankPrototype rankProto = GameDatabase.PopulationGlobalsPrototype?.GetRankByEnum(rank);
 
-            using EntitySettings settings = ObjectPoolManager.Instance.Get<EntitySettings>();
+            using var settingsHandle = EntitySettingsPool.Get(out EntitySettings settings);
             settings.EntityRef = agentProto.DataRef;
             settings.Position = spawnPosition;
             settings.Orientation = spawnOrientation;
@@ -6143,7 +6155,7 @@ namespace MHServerEmu.Games.MythicRifts
             settings.Cell = spawnCell;
             settings.IsPopulation = true;
 
-            using PropertyCollection settingsProperties = ObjectPoolManager.Instance.Get<PropertyCollection>();
+            using var settingsPropertiesHandle = PropertyCollectionPool.Get(out PropertyCollection settingsProperties);
             int level = spawnCell.Area.GetCharacterLevel(agentProto);
             PrototypeId rankRef = rankProto?.DataRef ?? agentProto.Rank?.DataRef ?? PrototypeId.Invalid;
             settingsProperties[PropertyEnum.CharacterLevel] = level;
@@ -6490,7 +6502,7 @@ namespace MHServerEmu.Games.MythicRifts
                 bool teleported = false;
                 if (region != null && hasRevivePosition && avatar.Region?.Id == runState.RegionId)
                 {
-                    using Teleporter teleporter = ObjectPoolManager.Instance.Get<Teleporter>();
+                    using var teleporterHandle = TeleporterPool.Get(out Teleporter teleporter);
                     teleporter.Initialize(player, TeleportContextEnum.TeleportContext_Resurrect);
                     teleporter.DifficultyTierRef = region.DifficultyTierRef;
                     teleported = teleporter.TeleportToRegionLocation(region.Id, revivePosition);
@@ -6722,7 +6734,10 @@ namespace MHServerEmu.Games.MythicRifts
 
             PrototypeId exitPortalProtoRef = GameDatabase.GetPrototypeRefByName(RiftExitPortalPrototypeName);
             if (exitPortalProtoRef == PrototypeId.Invalid)
-                return Logger.WarnReturn(false, $"TrySpawnReturnPortal(): Failed to resolve {RiftExitPortalPrototypeName}");
+                {
+                    Logger.Warn($"TrySpawnReturnPortal(): Failed to resolve {RiftExitPortalPrototypeName}");
+                    return false;
+                }
 
             Region region = Game.RegionManager.GetRegion(runState.EffectiveRegionId);
             if (region == null)
@@ -6731,7 +6746,7 @@ namespace MHServerEmu.Games.MythicRifts
             if (TryGetReturnPortalSpawnLocation(runState, region, out Vector3 spawnPosition, out Orientation spawnOrientation, out Cell spawnCell) == false)
                 return false;
 
-            using EntitySettings settings = ObjectPoolManager.Instance.Get<EntitySettings>();
+            using var settingsHandle = EntitySettingsPool.Get(out EntitySettings settings);
             settings.EntityRef = exitPortalProtoRef;
             settings.RegionId = region.Id;
             settings.Position = spawnPosition;
@@ -6740,7 +6755,7 @@ namespace MHServerEmu.Games.MythicRifts
             settings.Lifespan = CompletedRunRetention;
             settings.SourceEntityId = GetFirstRunAvatarId(region);
 
-            using PropertyCollection settingsProperties = ObjectPoolManager.Instance.Get<PropertyCollection>();
+            using var settingsPropertiesHandle = PropertyCollectionPool.Get(out PropertyCollection settingsProperties);
             settingsProperties[PropertyEnum.Interactable] = (int)TriBool.True;
             settingsProperties[PropertyEnum.InteractableUsesLeft] = -1;
             settingsProperties[PropertyEnum.Visible] = true;
@@ -6748,7 +6763,10 @@ namespace MHServerEmu.Games.MythicRifts
 
             Transition exitPortal = Game.EntityManager.CreateEntity(settings) as Transition;
             if (exitPortal == null)
-                return Logger.WarnReturn(false, "TrySpawnReturnPortal(): Failed to create return portal entity.");
+                {
+                    Logger.Warn("TrySpawnReturnPortal(): Failed to create return portal entity.");
+                    return false;
+                }
 
             if (exitPortal.ConfigureDirectTarget(dangerRoomHubStartTarget) == false)
             {
@@ -6772,12 +6790,18 @@ namespace MHServerEmu.Games.MythicRifts
             PrototypeId vendorProtoRef = ResolvePrototype(RiftCompletionVendorPrototypeName);
             WorldEntityPrototype vendorProto = vendorProtoRef.As<WorldEntityPrototype>();
             if (vendorProtoRef == PrototypeId.Invalid || vendorProto == null)
-                return Logger.WarnReturn(false, $"TrySpawnCompletionCrafter(): Failed to resolve {RiftCompletionVendorPrototypeName}");
+                {
+                    Logger.Warn($"TrySpawnCompletionCrafter(): Failed to resolve {RiftCompletionVendorPrototypeName}");
+                    return false;
+                }
 
             PrototypeId vendorTypeProtoRef = ResolvePrototype(RiftCompletionCrafterTypePrototypeName);
             VendorTypePrototype vendorTypeProto = vendorTypeProtoRef.As<VendorTypePrototype>();
             if (vendorTypeProtoRef == PrototypeId.Invalid || vendorTypeProto == null || vendorTypeProto.IsCrafter == false)
-                return Logger.WarnReturn(false, $"TrySpawnCompletionCrafter(): Failed to resolve crafter type {RiftCompletionCrafterTypePrototypeName}");
+                {
+                    Logger.Warn($"TrySpawnCompletionCrafter(): Failed to resolve crafter type {RiftCompletionCrafterTypePrototypeName}");
+                    return false;
+                }
 
             Region region = Game.RegionManager.GetRegion(runState.EffectiveRegionId);
             if (region == null)
@@ -6786,7 +6810,7 @@ namespace MHServerEmu.Games.MythicRifts
             if (TryGetCompletionVendorSpawnLocation(runState, region, vendorProto, RiftCompletionCrafterSpawnOffset, out Vector3 spawnPosition, out Orientation spawnOrientation, out Cell spawnCell) == false)
                 return false;
 
-            using EntitySettings settings = ObjectPoolManager.Instance.Get<EntitySettings>();
+            using var settingsHandle = EntitySettingsPool.Get(out EntitySettings settings);
             settings.EntityRef = vendorProtoRef;
             settings.RegionId = region.Id;
             settings.Position = spawnPosition;
@@ -6795,7 +6819,7 @@ namespace MHServerEmu.Games.MythicRifts
             settings.Lifespan = CompletedRunRetention;
             settings.SourceEntityId = GetFirstRunAvatarId(region);
 
-            using PropertyCollection settingsProperties = ObjectPoolManager.Instance.Get<PropertyCollection>();
+            using var settingsPropertiesHandle = PropertyCollectionPool.Get(out PropertyCollection settingsProperties);
             settingsProperties[PropertyEnum.Interactable] = (int)TriBool.True;
             settingsProperties[PropertyEnum.InteractableUsesLeft] = -1;
             settingsProperties[PropertyEnum.Visible] = true;
@@ -6804,7 +6828,10 @@ namespace MHServerEmu.Games.MythicRifts
 
             WorldEntity crafter = Game.EntityManager.CreateEntity(settings) as WorldEntity;
             if (crafter == null)
-                return Logger.WarnReturn(false, "TrySpawnCompletionCrafter(): Failed to create completion crafter entity.");
+                {
+                    Logger.Warn("TrySpawnCompletionCrafter(): Failed to create completion crafter entity.");
+                    return false;
+                }
 
             crafter.Properties[PropertyEnum.VendorType] = vendorTypeProtoRef;
             runState.AttachCompletionCrafter(crafter.Id);
@@ -6828,12 +6855,18 @@ namespace MHServerEmu.Games.MythicRifts
             PrototypeId vendorProtoRef = ResolvePrototype(RiftCompletionVendorPrototypeName);
             WorldEntityPrototype vendorProto = vendorProtoRef.As<WorldEntityPrototype>();
             if (vendorProtoRef == PrototypeId.Invalid || vendorProto == null)
-                return Logger.WarnReturn(false, $"TrySpawnCompletionArtifactVendor(): Failed to resolve {RiftCompletionVendorPrototypeName}");
+                {
+                    Logger.Warn($"TrySpawnCompletionArtifactVendor(): Failed to resolve {RiftCompletionVendorPrototypeName}");
+                    return false;
+                }
 
             PrototypeId vendorTypeProtoRef = ResolveVendorTypePrototype(RiftCompletionArtifactVendorTypePrototypeName, "VendorDangerRoomRewards");
             VendorTypePrototype vendorTypeProto = vendorTypeProtoRef.As<VendorTypePrototype>();
             if (vendorTypeProtoRef == PrototypeId.Invalid || vendorTypeProto == null || vendorTypeProto.IsCrafter)
-                return Logger.WarnReturn(false, $"TrySpawnCompletionArtifactVendor(): Failed to resolve vendor type {RiftCompletionArtifactVendorTypePrototypeName}");
+                {
+                    Logger.Warn($"TrySpawnCompletionArtifactVendor(): Failed to resolve vendor type {RiftCompletionArtifactVendorTypePrototypeName}");
+                    return false;
+                }
 
             Region region = Game.RegionManager.GetRegion(runState.EffectiveRegionId);
             if (region == null)
@@ -6842,7 +6875,7 @@ namespace MHServerEmu.Games.MythicRifts
             if (TryGetCompletionVendorSpawnLocation(runState, region, vendorProto, RiftCompletionArtifactVendorSpawnOffset, out Vector3 spawnPosition, out Orientation spawnOrientation, out Cell spawnCell) == false)
                 return false;
 
-            using EntitySettings settings = ObjectPoolManager.Instance.Get<EntitySettings>();
+            using var settingsHandle = EntitySettingsPool.Get(out EntitySettings settings);
             settings.EntityRef = vendorProtoRef;
             settings.RegionId = region.Id;
             settings.Position = spawnPosition;
@@ -6851,7 +6884,7 @@ namespace MHServerEmu.Games.MythicRifts
             settings.Lifespan = CompletedRunRetention;
             settings.SourceEntityId = GetFirstRunAvatarId(region);
 
-            using PropertyCollection settingsProperties = ObjectPoolManager.Instance.Get<PropertyCollection>();
+            using var settingsPropertiesHandle = PropertyCollectionPool.Get(out PropertyCollection settingsProperties);
             settingsProperties[PropertyEnum.Interactable] = (int)TriBool.True;
             settingsProperties[PropertyEnum.InteractableUsesLeft] = -1;
             settingsProperties[PropertyEnum.Visible] = true;
@@ -6860,7 +6893,10 @@ namespace MHServerEmu.Games.MythicRifts
 
             WorldEntity vendor = Game.EntityManager.CreateEntity(settings) as WorldEntity;
             if (vendor == null)
-                return Logger.WarnReturn(false, "TrySpawnCompletionArtifactVendor(): Failed to create completion artifact vendor entity.");
+                {
+                    Logger.Warn("TrySpawnCompletionArtifactVendor(): Failed to create completion artifact vendor entity.");
+                    return false;
+                }
 
             vendor.Properties[PropertyEnum.VendorType] = vendorTypeProtoRef;
             runState.AttachCompletionVendor(vendor.Id);
@@ -6940,7 +6976,7 @@ namespace MHServerEmu.Games.MythicRifts
             if (TryResolveDangerRoomHubStartTarget(out PrototypeId dangerRoomHubStartTarget) == false)
                 return false;
 
-            using Teleporter teleporter = ObjectPoolManager.Instance.Get<Teleporter>();
+            using var teleporterHandle = TeleporterPool.Get(out Teleporter teleporter);
             teleporter.Initialize(player, TeleportContextEnum.TeleportContext_Debug);
             teleporter.DifficultyTierRef = GameDatabase.GlobalsPrototype.DifficultyTierDefault;
             bool teleported = teleporter.TeleportToTarget(dangerRoomHubStartTarget);
@@ -7362,8 +7398,8 @@ namespace MHServerEmu.Games.MythicRifts
             dialog.Message.LocaleString = (LocaleStringId)RiftModifierDialogLocale;
             dialog.Options = DialogOptionEnum.ScreenBottom | DialogOptionEnum.WorldClick;
             dialog.OnResponse = (_, _) => { };
-            dialog.AddButton(GameDialogResultEnum.eGDR_Option1, (LocaleStringId)RiftReadyCheckReadyButtonLocale, ButtonStyle.SecondaryPositive);
-            Game.GameDialogManager.ShowDialog(dialog);
+            dialog.AddButton(GameDialogResultEnum.eGDR_Option1, (LocaleStringId)RiftReadyCheckReadyButtonLocale, ButtonStyle.SecondaryPositive, false);
+            Game.GameDialogManager.PostDialogToClient(dialog);
         }
 
         private static string FormatPrototypeRefListForDiagnostics(IEnumerable<PrototypeId> prototypeRefs)
@@ -7503,7 +7539,7 @@ namespace MHServerEmu.Games.MythicRifts
         {
             startTargetRef = PrototypeId.Invalid;
 
-            RegionPrototype dangerRoomHubRegion = ((PrototypeId)RegionPrototypeId.DangerRoomHubRegion).As<RegionPrototype>();
+            RegionPrototype dangerRoomHubRegion = ((PrototypeId)13296910602616641976UL).As<RegionPrototype>();
             if (dangerRoomHubRegion == null || dangerRoomHubRegion.StartTarget == PrototypeId.Invalid)
                 return false;
 

@@ -201,7 +201,7 @@ namespace MHServerEmu.Games.Entities.PowerCollections
             AreaOfInterest aoi = player.AOI;
             if (!Verify.IsTrue(aoi.InterestedInEntity(_owner.Id, AOINetworkPolicyValues.AOIChannelProximity))) return false;
 
-            var assignCollectionBuilder = NetMessageAssignPowerCollection.CreateBuilder();
+            using var assignCollectionBuilderHandle = ProtobufBuilderPool<NetMessageAssignPowerCollection.Builder>.Get(out var assignCollectionBuilder);
 
             foreach (PowerCollectionRecord record in _powers.Values)
             {
@@ -210,8 +210,8 @@ namespace MHServerEmu.Games.Entities.PowerCollections
 
                 for (int i = 0; i < record.PowerRefCount; i++)
                 {
-                    assignCollectionBuilder.AddPower(NetMessagePowerCollectionAssignPower.CreateBuilder()
-                        .SetEntityId(_owner.Id)
+                    using var assignPowerBuilderHandle = ProtobufBuilderPool<NetMessagePowerCollectionAssignPower.Builder>.Get(out var assignPowerBulder);
+                    assignCollectionBuilder.AddPower(assignPowerBulder.SetEntityId(_owner.Id)
                         .SetPowerProtoId((ulong)record.PowerPrototypeRef)
                         .SetPowerRank(record.IndexProps.PowerRank)
                         .SetCharacterLevel(record.IndexProps.CharacterLevel)
@@ -240,7 +240,7 @@ namespace MHServerEmu.Games.Entities.PowerCollections
                 record.Power?.OnOwnerExitedWorld();
 
             // Copy to a temporary list to be able to remove entries while iterating
-            using var recordsHandle = ListPool<KeyValuePair<PrototypeId, PowerCollectionRecord>>.Instance.Get(out var records);
+            using var recordsHandle = ListPool<KeyValuePair<PrototypeId, PowerCollectionRecord>>.Get(out var records);
 
             // This needs to be done in a loop to remove all copies of powers with RefCount higher than 0.
             while (_powers.Count > 0)
@@ -338,8 +338,8 @@ namespace MHServerEmu.Games.Entities.PowerCollections
             // Send power assignment message to interested clients
             if (sendPowerAssignmentToClients && _owner != null && _owner.IsInGame)
             {
-                var assignPowerMessage = NetMessagePowerCollectionAssignPower.CreateBuilder()
-                    .SetEntityId(_owner.Id)
+                using var builderHandle = ProtobufBuilderPool<NetMessagePowerCollectionAssignPower.Builder>.Get(out var builder);
+                var assignPowerMessage = builder.SetEntityId(_owner.Id)
                     .SetPowerProtoId((ulong)powerProtoRef)
                     .SetPowerRank(indexProps.PowerRank)
                     .SetCharacterLevel(indexProps.CharacterLevel)
@@ -444,7 +444,7 @@ namespace MHServerEmu.Games.Entities.PowerCollections
             if (!Verify.IsNotNull(retPower)) return null;
 
             // Assemble property values passed as arguments into a collection
-            using PropertyCollection initializeProperties = ObjectPoolManager.Instance.Get<PropertyCollection>();
+            using var initializePropertiesHandle = PropertyCollectionPool.Get(out PropertyCollection initializeProperties);
 
             initializeProperties[PropertyEnum.PowerRank] = indexProps.PowerRank;
             initializeProperties[PropertyEnum.CharacterLevel] = indexProps.CharacterLevel;
@@ -502,7 +502,7 @@ namespace MHServerEmu.Games.Entities.PowerCollections
             int assignedPowers = 0;
 
             // NOTE: We reuse the same list for all iterations
-            using var triggeredPowerRefListHandle = ListPool<PrototypeId>.Instance.Get(out List<PrototypeId> triggeredPowerRefList);
+            using var triggeredPowerRefListHandle = ListPool<PrototypeId>.Get(out List<PrototypeId> triggeredPowerRefList);
 
             foreach (PowerEventActionPrototype triggeredPowerEventProto in powerProto.ActionsTriggeredOnPowerEvent)
             {
@@ -537,6 +537,7 @@ namespace MHServerEmu.Games.Entities.PowerCollections
                         if (!Verify.IsTrue(transformModeProto.ExitTransformModePower != PrototypeId.Invalid, $"Power [{power}] for agent [{_owner}] has a triggered TransformModeStart power event with no ExitTransformModePower power specified"))
                             continue;
 
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
                         // Transform enter/exit powers are not unassigned when a transform mode is active (see UnassignTriggeredPowers()).
                         // Because these are combo powers, this can result in multiple instances of enter/exit powers being assigned.
                         // We prevent this here by skipping assignment if we already have records for these powers.
@@ -545,6 +546,11 @@ namespace MHServerEmu.Games.Entities.PowerCollections
 
                         if (_powers.ContainsKey(transformModeProto.ExitTransformModePower) == false)
                             triggeredPowerRefList.Add(transformModeProto.ExitTransformModePower);
+#else
+                        // V48_NOTE: The above fix breaks Mr Fantastic's signature. Need a better solution for this.
+                        triggeredPowerRefList.Add(transformModeProto.EnterTransformModePower);
+                        triggeredPowerRefList.Add(transformModeProto.ExitTransformModePower);
+#endif
 
                         break;
 
@@ -627,8 +633,8 @@ namespace MHServerEmu.Games.Entities.PowerCollections
             // Send power unassignment message to interested clients
             if (sendPowerUnassignToClients && _owner.IsInGame && _owner.IsInWorld)
             {
-                var unassignPowerMessage = NetMessagePowerCollectionUnassignPower.CreateBuilder()
-                    .SetEntityId(_owner.Id)
+                using var builderHandle = ProtobufBuilderPool<NetMessagePowerCollectionUnassignPower.Builder>.Get(out var builder);
+                var unassignPowerMessage = builder.SetEntityId(_owner.Id)
                     .SetPowerProtoId((ulong)powerProtoRef)
                     .Build();
 
@@ -690,7 +696,7 @@ namespace MHServerEmu.Games.Entities.PowerCollections
                 return true;
 
             // NOTE: We reuse the same list for all iterations
-            using var triggeredPowerRefListHandle = ListPool<PrototypeId>.Instance.Get(out List<PrototypeId> triggeredPowerRefList);
+            using var triggeredPowerRefListHandle = ListPool<PrototypeId>.Get(out List<PrototypeId> triggeredPowerRefList);
 
             foreach (PowerEventActionPrototype triggeredPowerEventProto in powerProto.ActionsTriggeredOnPowerEvent)
             {

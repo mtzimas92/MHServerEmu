@@ -1358,7 +1358,7 @@ namespace MHServerEmu.Commands.Implementations
 
             try
             {
-                using EntitySettings settings = ObjectPoolManager.Instance.Get<EntitySettings>();
+                using var settingsHandle = EntitySettingsPool.Get(out EntitySettings settings);
                 settings.EntityRef = itemProtoRef;
                 settings.ItemSpec = itemSpec;
                 settings.InventoryLocation = new(player.Id, inventory.PrototypeDataRef, slot);
@@ -2554,7 +2554,7 @@ namespace MHServerEmu.Commands.Implementations
                 return false;
             }
 
-            using Teleporter teleporter = ObjectPoolManager.Instance.Get<Teleporter>();
+            using var teleporterHandle = TeleporterPool.Get(out Teleporter teleporter);
             teleporter.Initialize(player, TeleportContextEnum.TeleportContext_Debug);
             teleporter.DifficultyTierRef = region.DifficultyTierRef;
             return teleporter.TeleportToRegionLocation(region.Id, position);
@@ -2577,7 +2577,7 @@ namespace MHServerEmu.Commands.Implementations
                 return false;
             }
 
-            using Teleporter teleporter = ObjectPoolManager.Instance.Get<Teleporter>();
+            using var teleporterHandle = TeleporterPool.Get(out Teleporter teleporter);
             teleporter.Initialize(player, TeleportContextEnum.TeleportContext_Debug);
             teleporter.BypassQueueRegionForRift = true;
             teleporter.DifficultyTierRef = player.GetDifficultyTierForRegion(runState.Config.RegionProtoRef);

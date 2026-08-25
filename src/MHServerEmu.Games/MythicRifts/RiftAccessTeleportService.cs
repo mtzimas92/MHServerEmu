@@ -64,10 +64,10 @@ namespace MHServerEmu.Games.MythicRifts
             dialog.Options = DialogOptionEnum.WorldClick;
             dialog.TargetId = npc.Id;
             dialog.InteractorId = player.CurrentAvatar?.Id ?? Entity.InvalidId;
-            dialog.AddButton(GameDialogResultEnum.eGDR_Option1, CosmicAxisButtonRef, ButtonStyle.SecondaryPositive);
-            dialog.AddButton(GameDialogResultEnum.eGDR_Option2, MoreRaidOptionsButtonRef, ButtonStyle.SecondaryPositive);
+            dialog.AddButton(GameDialogResultEnum.eGDR_Option1, CosmicAxisButtonRef, ButtonStyle.SecondaryPositive, false);
+            dialog.AddButton(GameDialogResultEnum.eGDR_Option2, MoreRaidOptionsButtonRef, ButtonStyle.SecondaryPositive, false);
 
-            game.GameDialogManager.ShowDialog(dialog);
+            game.GameDialogManager.PostDialogToClient(dialog);
 
             void OnRaidAccessTeleporterDialogResponse(ulong playerGuid, DialogResponse response)
             {
@@ -96,10 +96,10 @@ namespace MHServerEmu.Games.MythicRifts
             dialog.Options = DialogOptionEnum.WorldClick;
             dialog.TargetId = npc.Id;
             dialog.InteractorId = player.CurrentAvatar?.Id ?? Entity.InvalidId;
-            dialog.AddButton(GameDialogResultEnum.eGDR_Option1, OmegaMuspelheimButtonRef, ButtonStyle.SecondaryPositive);
-            dialog.AddButton(GameDialogResultEnum.eGDR_Option2, OmegaUltronButtonRef, ButtonStyle.SecondaryPositive);
+            dialog.AddButton(GameDialogResultEnum.eGDR_Option1, OmegaMuspelheimButtonRef, ButtonStyle.SecondaryPositive, false);
+            dialog.AddButton(GameDialogResultEnum.eGDR_Option2, OmegaUltronButtonRef, ButtonStyle.SecondaryPositive, false);
 
-            game.GameDialogManager.ShowDialog(dialog);
+            game.GameDialogManager.PostDialogToClient(dialog);
 
             void OnRaidAccessMoreTeleporterDialogResponse(ulong playerGuid, DialogResponse response)
             {
@@ -126,10 +126,10 @@ namespace MHServerEmu.Games.MythicRifts
             dialog.Options = DialogOptionEnum.WorldClick;
             dialog.TargetId = npc.Id;
             dialog.InteractorId = player.CurrentAvatar?.Id ?? Entity.InvalidId;
-            dialog.AddButton(GameDialogResultEnum.eGDR_Option1, OmegaMidtownButtonRef, ButtonStyle.SecondaryPositive);
-            dialog.AddButton(GameDialogResultEnum.eGDR_Option2, MorePatrolOptionsButtonRef, ButtonStyle.SecondaryPositive);
+            dialog.AddButton(GameDialogResultEnum.eGDR_Option1, OmegaMidtownButtonRef, ButtonStyle.SecondaryPositive, false);
+            dialog.AddButton(GameDialogResultEnum.eGDR_Option2, MorePatrolOptionsButtonRef, ButtonStyle.SecondaryPositive, false);
 
-            game.GameDialogManager.ShowDialog(dialog);
+            game.GameDialogManager.PostDialogToClient(dialog);
 
             void OnOmegaPatrolTeleporterDialogResponse(ulong playerGuid, DialogResponse response)
             {
@@ -158,10 +158,10 @@ namespace MHServerEmu.Games.MythicRifts
             dialog.Options = DialogOptionEnum.WorldClick;
             dialog.TargetId = npc.Id;
             dialog.InteractorId = player.CurrentAvatar?.Id ?? Entity.InvalidId;
-            dialog.AddButton(GameDialogResultEnum.eGDR_Option1, OmegaIndustryCityButtonRef, ButtonStyle.SecondaryPositive);
-            dialog.AddButton(GameDialogResultEnum.eGDR_Option2, OmegaHightownButtonRef, ButtonStyle.SecondaryPositive);
+            dialog.AddButton(GameDialogResultEnum.eGDR_Option1, OmegaIndustryCityButtonRef, ButtonStyle.SecondaryPositive, false);
+            dialog.AddButton(GameDialogResultEnum.eGDR_Option2, OmegaHightownButtonRef, ButtonStyle.SecondaryPositive, false);
 
-            game.GameDialogManager.ShowDialog(dialog);
+            game.GameDialogManager.PostDialogToClient(dialog);
 
             void OnOmegaPatrolMoreTeleporterDialogResponse(ulong playerGuid, DialogResponse response)
             {
@@ -204,7 +204,7 @@ namespace MHServerEmu.Games.MythicRifts
             if (responsePlayer == null)
                 return;
 
-            using Teleporter teleporter = ObjectPoolManager.Instance.Get<Teleporter>();
+            using var teleporterHandle = TeleporterPool.Get(out Teleporter teleporter);
             teleporter.Initialize(responsePlayer, TeleportContextEnum.TeleportContext_Debug);
             teleporter.DifficultyTierRef = difficultyTierRef;
 

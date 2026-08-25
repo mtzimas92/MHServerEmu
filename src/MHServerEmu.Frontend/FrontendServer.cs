@@ -8,9 +8,9 @@ namespace MHServerEmu.Frontend
     /// <summary>
     /// A <see cref="TcpServer"/> that clients connect to.
     /// </summary>
-    public class FrontendServer : TcpServer, IGameService
+    public sealed class FrontendServer : TcpServer, IGameService
     {
-        private new static readonly Logger Logger = LogManager.CreateLogger();  // Hide the Server.Logger so that this logger can show the actual server as log source.
+        private static readonly Logger Logger = LogManager.CreateLogger();  // Hide the Server.Logger so that this logger can show the actual server as log source.
 
         private readonly HashSet<FrontendClient> _clients = new();
 
@@ -25,9 +25,8 @@ namespace MHServerEmu.Frontend
             IFrontendClient.FrontendAddress = config.PublicAddress;
             IFrontendClient.FrontendPort = config.Port;
 
-            // -1 indicates infinite duration for both Task.Delay() and Socket.SendTimeout
-            _receiveTimeoutMS = config.ReceiveTimeoutMS > 0 ? config.ReceiveTimeoutMS : -1;
-            _sendTimeoutMS = config.SendTimeoutMS > 0 ? config.SendTimeoutMS : -1;
+            // -1 indicates infinite duration
+            ReceiveTimeoutMS = config.ReceiveTimeoutMS > 0 ? config.ReceiveTimeoutMS : -1;
 
             if (Start(config.BindIP, int.Parse(config.Port)) == false) 
                 return;
@@ -47,7 +46,7 @@ namespace MHServerEmu.Frontend
             switch (message)
             {
                 default:
-                    Logger.Warn($"ReceiveServiceMessage(): Unhandled service message type {typeof(T).Name}");
+                    Verify.IsTrue(false, $"Unhandled service message type {typeof(T).Name}");
                     break;
             }
         }
@@ -64,26 +63,27 @@ namespace MHServerEmu.Frontend
 
         protected override void OnClientConnected(TcpClientConnection connection)
         {
-            Logger.Info($"Client connected from {connection}");
+            Logger.Trace($"Client connected from {connection}");
 
-            _clients.Add(new FrontendClient(connection));
+            var client = (FrontendClient)connection.Client;
+            _clients.Add(client);
         }
 
         protected override void OnClientDisconnected(TcpClientConnection connection)
         {
             var client = (FrontendClient)connection.Client;
-            Logger.Info($"Client [{client}] disconnected");
+            Logger.Trace($"Client [{client}] disconnected");
 
             client.OnDisconnected();
 
             _clients.Remove(client);
         }
 
-        protected override void OnDataReceived(TcpClientConnection connection, byte[] buffer, int length)
-        {
-            ((FrontendClient)connection.Client).HandleIncomingData(buffer, length);
-        }
-
         #endregion
+
+        protected override TcpClient CreateTcpClient()
+        {
+            return new FrontendClient();
+        }
     }
 }

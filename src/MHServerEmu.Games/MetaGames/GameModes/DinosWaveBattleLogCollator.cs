@@ -44,7 +44,14 @@ namespace MHServerEmu.Games.MetaGames.GameModes
             public readonly ulong MetaGameId;
             public readonly DateTime StartTime;
             public readonly System.Text.StringBuilder Buffer = new();
-            public readonly HashSet<string> ParticipantLabels = new(StringComparer.OrdinalIgnoreCase);
+
+            // Keyed by a stable player id (DatabaseUniqueId), NOT the display label - the label
+            // includes character level, and a player who levels up mid-run (common, given the XP
+            // orbs bosses grant) would otherwise get re-added under a new distinct string each time,
+            // producing one duplicate file per level gained instead of one file for that player.
+            // The dictionary value always holds their MOST RECENT label, so leveling during the run
+            // just updates the filename in place rather than creating extra entries.
+            public readonly Dictionary<ulong, string> ParticipantLabelsByPlayerId = new();
 
             public Session(ulong gameId, ulong metaGameId)
             {
@@ -77,15 +84,16 @@ namespace MHServerEmu.Games.MetaGames.GameModes
         }
 
         /// <summary>
-        /// Adds a player to this run's participant roster, so the run's log gets written under
-        /// their name too on flush. Safe to call repeatedly for the same player across every phase
-        /// of a run (e.g. once per OnActivate() for every in-world player) - a HashSet, so re-adding
-        /// an already-known participant is a no-op. Also lazily creates the session if this is the
-        /// very first call for a run (a phase can call this before any WriteLine()).
+        /// Adds (or updates) a player in this run's participant roster, so the run's log gets
+        /// written under their name too on flush. Safe to call repeatedly for the same player across
+        /// every phase of a run (e.g. once per OnActivate() for every in-world player) - keyed by
+        /// playerId, so re-adding an already-known participant just refreshes their label (e.g. after
+        /// a level-up) instead of creating a second entry. Also lazily creates the session if this is
+        /// the very first call for a run (a phase can call this before any WriteLine()).
         /// </summary>
-        public static void AddParticipant(ulong gameId, ulong metaGameId, string label)
+        public static void AddParticipant(ulong gameId, ulong metaGameId, ulong playerId, string label)
         {
-            if (metaGameId == 0 || string.IsNullOrEmpty(label)) return;
+            if (metaGameId == 0 || playerId == 0 || string.IsNullOrEmpty(label)) return;
 
             var key = (gameId, metaGameId);
             lock (_sessions)
@@ -96,7 +104,7 @@ namespace MHServerEmu.Games.MetaGames.GameModes
                     _sessions[key] = session;
                 }
 
-                session.ParticipantLabels.Add(label);
+                session.ParticipantLabelsByPlayerId[playerId] = label;
             }
         }
 
@@ -121,8 +129,8 @@ namespace MHServerEmu.Games.MetaGames.GameModes
                 string dir = Path.Combine(FileHelper.ServerRoot, "Logs", "DinosWaveBattle");
                 Directory.CreateDirectory(dir);
 
-                List<string> participants = session.ParticipantLabels.Count > 0
-                    ? new List<string>(session.ParticipantLabels)
+                List<string> participants = session.ParticipantLabelsByPlayerId.Count > 0
+                    ? new List<string>(session.ParticipantLabelsByPlayerId.Values)
                     : new List<string> { "unknown" };
 
                 string content = session.Buffer.ToString();

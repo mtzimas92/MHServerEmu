@@ -258,7 +258,7 @@ namespace MHServerEmu.Commands.Implementations
                 if (difficultyTierRef == PrototypeId.Invalid)
                     return "Unknown difficulty. Valid difficulties: t3, t4, t5";
 
-                using Teleporter teleporter = ObjectPoolManager.Instance.Get<Teleporter>();
+                using var teleporterHandle = TeleporterPool.Get(out Teleporter teleporter);
                 teleporter.Initialize(player, TeleportContextEnum.TeleportContext_Debug);
                 teleporter.DifficultyTierRef = difficultyTierRef;
 

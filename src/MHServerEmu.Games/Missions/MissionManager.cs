@@ -216,7 +216,9 @@ namespace MHServerEmu.Games.Missions
         { 
             PrototypeId pickedMissionRef = PrototypeId.Invalid;
 
-            var picker = LegendaryMissionCategoryPicker();
+            using var pickerHandle = PickerPool<LegendaryMissionCategoryPrototype>.Get(Game.Random, out Picker<LegendaryMissionCategoryPrototype> picker);
+            BuildLegendaryMissionCategoryPicker(picker);
+
             while (picker.PickRemove(out var categoryProto))
             {
                 List<PrototypeGuid> blacklist = null;
@@ -231,7 +233,9 @@ namespace MHServerEmu.Games.Missions
 
             if (pickedMissionRef == PrototypeId.Invalid)
             {
-                picker = LegendaryMissionCategoryPicker();
+                picker.Clear();
+                BuildLegendaryMissionCategoryPicker(picker);
+
                 while (picker.PickRemove(out var categoryProto))
                 {
                     pickedMissionRef = PickLegendaryMissionForCategory(categoryProto, null);
@@ -247,7 +251,7 @@ namespace MHServerEmu.Games.Missions
             if (categoryProto == null) return PrototypeId.Invalid;
 
             var categoryRef = categoryProto.DataRef;
-            Picker<LegendaryMissionPrototype> picker = new(Game.Random);
+            using var pickerHandle = PickerPool<LegendaryMissionPrototype>.Get(Game.Random, out Picker<LegendaryMissionPrototype> picker);
             foreach (var missionRef in GameDatabase.DataDirectory.IteratePrototypesInHierarchy<LegendaryMissionPrototype>(PrototypeIterateFlags.NoAbstractApprovedOnly))
             {
                 var missionProto = GameDatabase.GetPrototype<LegendaryMissionPrototype>(missionRef);
@@ -274,24 +278,22 @@ namespace MHServerEmu.Games.Missions
             var avatar = Player?.CurrentAvatar;
             if (avatar == null) return false;
             if (missionProto.EvalCanStart == null) return true;
-            
-            using EvalContextData evalContext = ObjectPoolManager.Instance.Get<EvalContextData>();
+
+            using var evalContextHandle = EvalContextDataPool.Get(out EvalContextData evalContext);
             evalContext.Game = Game;
             evalContext.SetVar_EntityPtr(EvalContext.Default, avatar);
             evalContext.SetVar_EntityPtr(EvalContext.Other, Player);
             return Eval.RunBool(missionProto.EvalCanStart, evalContext);            
         }
 
-        private Picker<LegendaryMissionCategoryPrototype> LegendaryMissionCategoryPicker()
+        private void BuildLegendaryMissionCategoryPicker(Picker<LegendaryMissionCategoryPrototype> picker)
         {
-            Picker<LegendaryMissionCategoryPrototype> picker = new(Game.Random);
             foreach (var categoryRef in GameDatabase.DataDirectory.IteratePrototypesInHierarchy<LegendaryMissionCategoryPrototype>(PrototypeIterateFlags.NoAbstractApprovedOnly))
             {
                 var categoryProto = GameDatabase.GetPrototype<LegendaryMissionCategoryPrototype>(categoryRef);
                 if (categoryProto != null && categoryProto is not AdvancedMissionCategoryPrototype)
                     picker.Add(categoryProto, categoryProto.Weight);
             }
-            return picker;
         }
 
         private void ActivateLegendaryMission(PrototypeId missionRef, bool shared)
@@ -490,7 +492,7 @@ namespace MHServerEmu.Games.Missions
         {
             if (categoryProto == null) return PrototypeId.Invalid;
 
-            Picker<AdvancedMissionPrototype> picker = new(Game.Random);
+            using var pickerHandle = PickerPool<AdvancedMissionPrototype>.Get(Game.Random, out Picker<AdvancedMissionPrototype> picker);
             foreach (var missionRef in GameDatabase.DataDirectory.IteratePrototypesInHierarchy<AdvancedMissionPrototype>(PrototypeIterateFlags.NoAbstractApprovedOnly))
             {
                 var missionProto = GameDatabase.GetPrototype<AdvancedMissionPrototype>(missionRef);
@@ -579,7 +581,7 @@ namespace MHServerEmu.Games.Missions
             if (Player == null || HasMissions == false) return;
 
             // initialize and clear old missions
-            using var oldMissionsHandle = ListPool<Mission>.Instance.Get(out List<Mission> oldMissions);
+            using var oldMissionsHandle = ListPool<Mission>.Get(out List<Mission> oldMissions);
             foreach (var mission in _missionDict.Values)
             {
                 if (mission == null) continue;
@@ -1036,8 +1038,7 @@ namespace MHServerEmu.Games.Missions
         /// </summary>
         public bool ShouldCreateMission(MissionPrototype missionPrototype)
         {
-            if (missionPrototype == null)
-                return Logger.WarnReturn(false, "ShouldCreateMission(): missionPrototype == false");
+            if (!Verify.IsNotNull(missionPrototype)) return false;
 
             if (missionPrototype is OpenMissionPrototype)
             {
@@ -1156,8 +1157,8 @@ namespace MHServerEmu.Games.Missions
                         if (archive.IsPersistent && versionMismatch)
                         {
                             // Reset the mission if its version has changed
-                            if (CreateMissionByDataRef(missionRef, MissionCreationState.Reset, (MissionState)missionState) == null)
-                                Logger.Warn($"SerializeMissions(): Failed to reset version mismatched mission {missionRef.GetName()}");
+                            Verify.IsNotNull(CreateMissionByDataRef(missionRef, MissionCreationState.Reset, (MissionState)missionState),
+                                $"Failed to reset version mismatched mission {missionRef.GetName()}");
 
                             archive.Skip();
 
@@ -1454,7 +1455,7 @@ namespace MHServerEmu.Games.Missions
                 }
             }
 
-            using var legendaryMissionsHandle = ListPool<Mission>.Instance.Get(out List<Mission> legendaryMissions);
+            using var legendaryMissionsHandle = ListPool<Mission>.Get(out List<Mission> legendaryMissions);
             foreach (var mission in _missionDict.Values)
                 if (mission.IsLegendaryMission)
                     legendaryMissions.Add(mission);
@@ -1478,20 +1479,18 @@ namespace MHServerEmu.Games.Missions
         public bool ResetAvatarMissionsForStoryWarp(PrototypeId chapterProtoRef, bool sendToClient)
         {
             Player player = Player;
-            if (player == null) return Logger.WarnReturn(false, "ResetMissions(): player == null");
+            if (!Verify.IsNotNull(player)) return false;
 
             Avatar avatar = player.CurrentAvatar;
-            if (avatar == null) return Logger.WarnReturn(false, "ResetMissions(): avatar == null");
+            if (!Verify.IsNotNull(avatar)) return false;
 
             // Default to chapter 0 (full reset)
             int chapterNumber = 0;
             if (chapterProtoRef != PrototypeId.Invalid)
             {
                 ChapterPrototype chapterProto = chapterProtoRef.As<ChapterPrototype>();
-                if (chapterProto != null)
+                if (Verify.IsNotNull(chapterProto))
                     chapterNumber = chapterProto.ChapterNumber;
-                else
-                    Logger.Warn("ResetMissions(): chapterProto == null");
             }
 
             player.SetActiveChapter(chapterProtoRef);
@@ -1516,11 +1515,8 @@ namespace MHServerEmu.Games.Missions
                     continue;
 
                 MissionPrototype missionProto = mission.Prototype;
-                if (missionProto == null)
-                {
-                    Logger.Warn("ResetAvatarMissionsForStoryWarp(): missionProto == null");
+                if (!Verify.IsNotNull(missionProto))
                     continue;
-                }
 
                 bool hasConditions = missionProto.PrereqConditions != null || missionProto.ActivateConditions != null || missionProto.ActivateNowConditions != null;
                 if (mission.IsAdvancedMission == false && hasConditions)
@@ -1543,7 +1539,7 @@ namespace MHServerEmu.Games.Missions
 
         public void UpdateMissionEntities(Mission mission)
         {
-            using var participantsHandle = ListPool<Player>.Instance.Get(out List<Player> participants);
+            using var participantsHandle = ListPool<Player>.Get(out List<Player> participants);
             if (mission.GetParticipants(participants))
             {
                 foreach (var player in participants)

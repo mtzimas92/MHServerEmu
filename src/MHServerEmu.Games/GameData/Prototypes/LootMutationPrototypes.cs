@@ -182,7 +182,7 @@ namespace MHServerEmu.Games.GameData.Prototypes
 
         public override MutationResults Mutate(LootRollSettings settings, IItemResolver resolver, LootCloneRecord lootCloneRecord)
         {
-            using LootCloneRecord sourceRecord = ObjectPoolManager.Instance.Get<LootCloneRecord>();
+            using var sourceRecordHandle = LootCloneRecordPool.Get(out LootCloneRecord sourceRecord);
 
             if (SourceIndex < 0 || resolver.InitializeCloneRecordFromSource(SourceIndex, sourceRecord) == false)
                 return MutationResults.Error;
@@ -219,7 +219,7 @@ namespace MHServerEmu.Games.GameData.Prototypes
 
         public override MutationResults Mutate(LootRollSettings settings, IItemResolver resolver, LootCloneRecord lootCloneRecord)
         {
-            using LootCloneRecord sourceRecord = ObjectPoolManager.Instance.Get<LootCloneRecord>();
+            using var sourceRecordHandle = LootCloneRecordPool.Get(out LootCloneRecord sourceRecord);
 
             if (SourceIndex < 0 || resolver.InitializeCloneRecordFromSource(SourceIndex, sourceRecord) == false)
                 return MutationResults.Error;
@@ -249,7 +249,7 @@ namespace MHServerEmu.Games.GameData.Prototypes
 
         public override MutationResults Mutate(LootRollSettings settings, IItemResolver resolver, LootCloneRecord lootCloneRecord)
         {
-            using LootCloneRecord sourceRecord = ObjectPoolManager.Instance.Get<LootCloneRecord>();
+            using var sourceRecordHandle = LootCloneRecordPool.Get(out LootCloneRecord sourceRecord);
 
             if (SourceIndex < 0 || resolver.InitializeCloneRecordFromSource(SourceIndex, sourceRecord) == false)
                 return MutationResults.Error;
@@ -318,7 +318,7 @@ namespace MHServerEmu.Games.GameData.Prototypes
             ItemSpec itemSpec = new(lootCloneRecord);
             AffixSpec affixSpec = new();
 
-            using var affixSetHandle = HashSetPool<ScopedAffixRef>.Instance.Get(out HashSet<ScopedAffixRef> affixSet);
+            using var affixSetHandle = HashSetPool<ScopedAffixRef>.Get(out HashSet<ScopedAffixRef> affixSet);
 
             List<AffixRecord> affixRecords = lootCloneRecord.AffixRecords;
             for (int i = 0; i < affixRecords.Count; i++)
@@ -363,7 +363,7 @@ namespace MHServerEmu.Games.GameData.Prototypes
 
             if (resolver.CheckItem(lootCloneRecord, RestrictionTestFlags.All, true) == false)
             {
-                using LootCloneRecord lootCloneRecordCopy = ObjectPoolManager.Instance.Get<LootCloneRecord>();
+                using var lootCloneRecordCopyHandle = LootCloneRecordPool.Get(out LootCloneRecord lootCloneRecordCopy);
                 LootCloneRecord.Initialize(lootCloneRecordCopy, lootCloneRecord);
 
                 result = CreateItemForAvatar(resolver, lootCloneRecordCopy.RollFor, lootCloneRecordCopy, lootCloneRecord);
@@ -379,7 +379,7 @@ namespace MHServerEmu.Games.GameData.Prototypes
             MutationResults result = MutationResults.None;
 
             // Pick new base type
-            Picker<Prototype> picker = new(resolver.Random);
+            using var pickerHandle = PickerPool<Prototype>.Get(resolver.Random, out Picker<Prototype> picker);
 
             if (sourceItem.Slot == EquipmentInvUISlot.Invalid)
                 GameDataTables.Instance.LootPickingTable.GetConcreteLootPicker(picker, sourceItem.ItemProto.DataRef, rollFor.As<AgentPrototype>());
@@ -397,7 +397,7 @@ namespace MHServerEmu.Games.GameData.Prototypes
                 result |= MutationResults.ItemPrototypeChange;
 
             // Update affixes
-            using var affixSetHandle = HashSetPool<ScopedAffixRef>.Instance.Get(out HashSet<ScopedAffixRef> affixSet);
+            using var affixSetHandle = HashSetPool<ScopedAffixRef>.Get(out HashSet<ScopedAffixRef> affixSet);
 
             ItemSpec itemSpec = new(destItem);
             for (int i = 0; i < itemSpec.AffixSpecs.Count; i++)
@@ -470,8 +470,8 @@ namespace MHServerEmu.Games.GameData.Prototypes
             if (lootCloneRecord.Rank == Rank)
                 return MutationResults.None;
 
-            Picker<Prototype> concretePicker = new(resolver.Random);
-            Picker<Prototype> filteredPicker = new(resolver.Random);
+            using var concretePickerHandle = PickerPool<Prototype>.Get(resolver.Random, out Picker<Prototype> concretePicker);
+            using var filteredPickerHandle = PickerPool<Prototype>.Get(resolver.Random, out Picker<Prototype> filteredPicker);
 
             if (lootCloneRecord.Slot != EquipmentInvUISlot.Invalid && lootCloneRecord.Slot != EquipmentInvUISlot.Costume)
                 LootUtilities.BuildInventoryLootPicker(concretePicker, lootCloneRecord.RollFor, lootCloneRecord.Slot);
@@ -512,8 +512,6 @@ namespace MHServerEmu.Games.GameData.Prototypes
 
         //---
 
-        private static readonly Logger Logger = LogManager.CreateLogger();
-
         public override MutationResults Mutate(LootRollSettings settings, IItemResolver resolver, LootCloneRecord lootCloneRecord)
         {
             int level = resolver.ResolveLevel(lootCloneRecord.Level, true);
@@ -525,7 +523,7 @@ namespace MHServerEmu.Games.GameData.Prototypes
             lootCloneRecord.Rarity = rarityProtoRef;
 
             ItemPrototype itemProto = lootCloneRecord.ItemProto as ItemPrototype;
-            if (itemProto == null) return Logger.WarnReturn(MutationResults.Error, "Mutate(): itemProto == null");
+            if (!Verify.IsNotNull(itemProto)) return MutationResults.Error;
 
             if (itemProto.IsDroppableForRestrictions(lootCloneRecord, RestrictionTestFlags.Level) == false)
                 itemProto.MakeRestrictionsDroppable(lootCloneRecord, RestrictionTestFlags.Level, out _);
@@ -570,7 +568,7 @@ namespace MHServerEmu.Games.GameData.Prototypes
             lootCloneRecord.Slot = Slot;
             lootCloneRecord.Rank = 0;
 
-            Picker<Prototype> picker = new(resolver.Random);
+            using var pickerHandle = PickerPool<Prototype>.Get(resolver.Random, out Picker<Prototype> picker);
             LootUtilities.BuildInventoryLootPicker(picker, lootCloneRecord.RollFor, Slot);
 
             if (LootUtilities.PickValidItem(resolver, picker, null, lootCloneRecord, out ItemPrototype itemProto) == false)
@@ -658,7 +656,7 @@ namespace MHServerEmu.Games.GameData.Prototypes
 
         public override MutationResults Mutate(LootRollSettings settings, IItemResolver resolver, LootCloneRecord lootCloneRecord)
         {
-            using LootCloneRecord sourceRecord = ObjectPoolManager.Instance.Get<LootCloneRecord>();
+            using var sourceRecordHandle = LootCloneRecordPool.Get(out LootCloneRecord sourceRecord);
 
             if (SourceIndex < 0 || resolver.InitializeCloneRecordFromSource(SourceIndex, sourceRecord) == false)
                 return MutationResults.Error;
@@ -688,7 +686,7 @@ namespace MHServerEmu.Games.GameData.Prototypes
 
         public override MutationResults Mutate(LootRollSettings settings, IItemResolver resolver, LootCloneRecord lootCloneRecord)
         {
-            using LootCloneRecord sourceRecord = ObjectPoolManager.Instance.Get<LootCloneRecord>();
+            using var sourceRecordHandle = LootCloneRecordPool.Get(out LootCloneRecord sourceRecord);
 
             if (SourceIndex < 0 || resolver.InitializeCloneRecordFromSource(SourceIndex, sourceRecord) == false)
                 return MutationResults.Error;
@@ -708,8 +706,6 @@ namespace MHServerEmu.Games.GameData.Prototypes
 
         //---
 
-        private static readonly Logger Logger = LogManager.CreateLogger();
-
         public override MutationResults Mutate(LootRollSettings settings, IItemResolver resolver, LootCloneRecord lootCloneRecord)
         {
             if (Affix == PrototypeId.Invalid)
@@ -718,7 +714,7 @@ namespace MHServerEmu.Games.GameData.Prototypes
             ItemSpec itemSpec = new(lootCloneRecord);
 
             AffixPrototype affixProto = Affix.As<AffixPrototype>();
-            if (affixProto == null) return Logger.WarnReturn(MutationResults.Error, "Mutate(): affixProto == null");
+            if (!Verify.IsNotNull(affixProto)) return MutationResults.Error;
 
             MutationResults affixResult = LootUtilities.AddAffix(resolver, lootCloneRecord, itemSpec, affixProto);
             if (affixResult.HasFlag(MutationResults.Error))
@@ -751,7 +747,7 @@ namespace MHServerEmu.Games.GameData.Prototypes
             if (Eval == null)
                 return;
 
-            using EvalContextData evalContext = ObjectPoolManager.Instance.Get<EvalContextData>();
+            using var evalContextHandle = EvalContextDataPool.Get(out EvalContextData evalContext);
             evalContext.SetVar_PropertyCollectionPtr(EvalContext.Default, item?.Properties);
 
             Verify.IsTrue(Properties.Evals.Eval.RunBool(Eval, evalContext), $"The LootEvalPrototype Eval failed:\n: [{Eval.ExpressionString()}]");

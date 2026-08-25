@@ -44,19 +44,22 @@ namespace MHServerEmu.Games.Entities
 
         private bool BuyMythicRiftVendorItem(int avatarIndex, Item vendorItem)
         {
-            if (vendorItem == null) return Logger.WarnReturn(false, "BuyMythicRiftVendorItem(): vendorItem == null");
+            if (vendorItem == null) { Logger.Warn("BuyMythicRiftVendorItem(): vendorItem == null"); return false; }
 
             ItemPrototype itemProto = vendorItem.ItemPrototype;
-            if (itemProto == null) return Logger.WarnReturn(false, "BuyMythicRiftVendorItem(): itemProto == null");
+            if (itemProto == null) { Logger.Warn("BuyMythicRiftVendorItem(): itemProto == null"); return false; }
 
             Inventory destinationInventory = GetInventory(itemProto.DestinationFromVendor);
-            if (destinationInventory == null) return Logger.WarnReturn(false, "BuyMythicRiftVendorItem(): destinationInventory == null");
+            if (destinationInventory == null) { Logger.Warn("BuyMythicRiftVendorItem(): destinationInventory == null"); return false; }
 
             uint destinationSlot = destinationInventory.GetFreeSlot(vendorItem, true);
             if (destinationSlot == Inventory.InvalidSlot)
-                return Logger.WarnReturn(false, "BuyMythicRiftVendorItem(): destinationSlot == Inventory.InvalidSlot");
+                {
+                    Logger.Warn("BuyMythicRiftVendorItem(): destinationSlot == Inventory.InvalidSlot");
+                    return false;
+                }
 
-            using EntitySettings settings = ObjectPoolManager.Instance.Get<EntitySettings>();
+            using var settingsHandle = EntitySettingsPool.Get(out EntitySettings settings);
             settings.EntityRef = vendorItem.PrototypeDataRef;
             settings.ItemSpec = new(vendorItem.ItemSpec);
             settings.InventoryLocation = new(Id, destinationInventory.PrototypeDataRef, destinationSlot);
@@ -66,10 +69,16 @@ namespace MHServerEmu.Games.Entities
 
             Item clonedItem = Game.EntityManager.CreateEntity(settings) as Item;
             if (clonedItem == null)
-                return Logger.WarnReturn(false, $"BuyMythicRiftVendorItem(): Failed to clone item [{vendorItem}]");
+                {
+                    Logger.Warn($"BuyMythicRiftVendorItem(): Failed to clone item [{vendorItem}]");
+                    return false;
+                }
 
             if (Game.MythicRiftLauncherService.TryRegisterTrackedBeaconItem(this, clonedItem) == false)
-                return Logger.WarnReturn(false, $"BuyMythicRiftVendorItem(): Failed to register purchased Rift beacon [{clonedItem}]");
+                {
+                    Logger.Warn($"BuyMythicRiftVendorItem(): Failed to register purchased Rift beacon [{clonedItem}]");
+                    return false;
+                }
 
             Logger.Info($"[MythicRiftVendor] Registered purchased beacon playerDbId={DatabaseUniqueId} itemId={clonedItem.Id} prototype={clonedItem.PrototypeDataRef.GetNameFormatted()} totalTrackedCharges={Game.MythicRiftLauncherService.GetTotalTrackedBeaconCharges(DatabaseUniqueId)}");
 
@@ -101,7 +110,10 @@ namespace MHServerEmu.Games.Entities
                 return false;
 
             if (Game.MythicRiftLauncherService.TryRegisterTrackedBeaconItem(this, item) == false)
-                return Logger.WarnReturn(false, $"TryRegisterPurchasedMythicRiftBeacon(): Failed to register purchased Rift beacon [{item}] from {source}");
+                {
+                    Logger.Warn($"TryRegisterPurchasedMythicRiftBeacon(): Failed to register purchased Rift beacon [{item}] from {source}");
+                    return false;
+                }
 
             Logger.Info($"[MythicRiftVendor] Registered purchased beacon via {source} playerDbId={DatabaseUniqueId} vendor={vendor.PrototypeDataRef.GetNameFormatted()} itemId={item.Id} prototype={item.PrototypeDataRef.GetNameFormatted()} totalTrackedCharges={Game.MythicRiftLauncherService.GetTotalTrackedBeaconCharges(DatabaseUniqueId)}");
             return true;
@@ -119,7 +131,7 @@ namespace MHServerEmu.Games.Entities
             if (region == null)
                 return false;
 
-            if (region.PrototypeDataRef != (PrototypeId)RegionPrototypeId.DangerRoomHubRegion)
+            if (region.PrototypeDataRef != (PrototypeId)13296910602616641976UL)
                 return false;
 
             if (vendor.IsVendor == false)
@@ -190,7 +202,7 @@ namespace MHServerEmu.Games.Entities
             if (vendorTypeProto == null || Game?.MythicRiftManager == null)
                 return false;
 
-            using var inventoryListHandle = ListPool<PrototypeId>.Instance.Get(out List<PrototypeId> inventoryList);
+            using var inventoryListHandle = ListPool<PrototypeId>.Get(out List<PrototypeId> inventoryList);
             if (vendorTypeProto.GetInventories(inventoryList) == false)
                 return false;
 
@@ -261,9 +273,12 @@ namespace MHServerEmu.Games.Entities
                 PrototypeId itemProtoRef = stockEntry.RewardItemProtoRef;
                 ItemSpec itemSpec = Game.LootManager.CreateItemSpec(itemProtoRef, LootContext.Vendor, this, Math.Max(stockEntry.ItemLevel, 1));
                 if (itemSpec == null)
-                    return Logger.WarnReturn(false, $"TryAddMythicRiftCompletionVendorOfferItem(): Failed to create ItemSpec for {itemProtoRef.GetNameFormatted()}");
+                    {
+                        Logger.Warn($"TryAddMythicRiftCompletionVendorOfferItem(): Failed to create ItemSpec for {itemProtoRef.GetNameFormatted()}");
+                        return false;
+                    }
 
-                using EntitySettings settings = ObjectPoolManager.Instance.Get<EntitySettings>();
+                using var settingsHandle = EntitySettingsPool.Get(out EntitySettings settings);
                 settings.EntityRef = itemSpec.ItemProtoRef;
                 settings.ItemSpec = itemSpec;
 
@@ -272,13 +287,19 @@ namespace MHServerEmu.Games.Entities
 
                 Item item = Game.EntityManager.CreateEntity(settings) as Item;
                 if (item == null)
-                    return Logger.WarnReturn(false, "TryAddMythicRiftCompletionVendorOfferItem(): item == null");
+                    {
+                        Logger.Warn("TryAddMythicRiftCompletionVendorOfferItem(): item == null");
+                        return false;
+                    }
 
                 InventoryResult inventoryResult = item.ChangeInventoryLocation(inventory, slot);
                 if (inventoryResult != InventoryResult.Success)
                 {
                     item.Destroy();
-                    return Logger.WarnReturn(false, $"TryAddMythicRiftCompletionVendorOfferItem(): Failed to add {itemProtoRef.GetNameFormatted()} to {inventory} for reason {inventoryResult}");
+                    {
+                        Logger.Warn($"TryAddMythicRiftCompletionVendorOfferItem(): Failed to add {itemProtoRef.GetNameFormatted()} to {inventory} for reason {inventoryResult}");
+                        return false;
+                    }
                 }
 
                 _mythicRiftCompletionVendorOfferItemIds[item.Id] = stockEntry;
@@ -460,14 +481,14 @@ namespace MHServerEmu.Games.Entities
             if (vendorTypeProto == null || vendorTypeProto.IsCrafter == false)
                 return false;
 
-            using var inventoryListHandle = ListPool<PrototypeId>.Instance.Get(out List<PrototypeId> inventoryList);
+            using var inventoryListHandle = ListPool<PrototypeId>.Get(out List<PrototypeId> inventoryList);
             if (vendorTypeProto.GetInventories(inventoryList) == false)
                 return false;
 
             CleanupTrackedMythicRiftCompletionCrafterRecipes();
             FilterMythicRiftCompletionCrafterInventories(vendorTypeProto, inventoryList);
 
-            using var ingredientSetHandle = HashSetPool<PrototypeId>.Instance.Get(out HashSet<PrototypeId> craftingIngredientSet);
+            using var ingredientSetHandle = HashSetPool<PrototypeId>.Get(out HashSet<PrototypeId> craftingIngredientSet);
             EntityManager entityManager = Game.EntityManager;
             bool addedAny = false;
 
@@ -498,9 +519,12 @@ namespace MHServerEmu.Games.Entities
 
                     ItemSpec itemSpec = Game.LootManager.CreateItemSpec(recipeProtoRef, LootContext.Vendor, this);
                     if (itemSpec == null)
-                        return Logger.WarnReturn(false, $"TryAddMythicRiftCompletionCrafterRecipe(): Failed to create ItemSpec for {recipeProtoRef.GetNameFormatted()}");
+                        {
+                            Logger.Warn($"TryAddMythicRiftCompletionCrafterRecipe(): Failed to create ItemSpec for {recipeProtoRef.GetNameFormatted()}");
+                            return false;
+                        }
 
-                    using EntitySettings settings = ObjectPoolManager.Instance.Get<EntitySettings>();
+                    using var settingsHandle = EntitySettingsPool.Get(out EntitySettings settings);
                     settings.EntityRef = recipeProtoRef;
                     settings.ItemSpec = itemSpec;
                     settings.InventoryLocation = new(Id, inventory.PrototypeDataRef, slot);
@@ -511,7 +535,10 @@ namespace MHServerEmu.Games.Entities
 
                     Item recipeItem = entityManager.CreateEntity(settings) as Item;
                     if (recipeItem == null)
-                        return Logger.WarnReturn(false, "TryAddMythicRiftCompletionCrafterRecipe(): recipeItem == null");
+                        {
+                            Logger.Warn("TryAddMythicRiftCompletionCrafterRecipe(): recipeItem == null");
+                            return false;
+                        }
 
                     _mythicRiftCompletionCrafterRecipeItemIds.Add(recipeItem.Id);
                     InitializeCraftingIngredientAvailable(recipeProto, craftingIngredientSet);
@@ -683,21 +710,30 @@ namespace MHServerEmu.Games.Entities
 
         private bool TryAddMythicRiftVendorItem(VendorTypePrototype vendorTypeProto)
         {
-            if (vendorTypeProto == null) return Logger.WarnReturn(false, "TryAddMythicRiftVendorItem(): vendorTypeProto == null");
+            if (vendorTypeProto == null) { Logger.Warn("TryAddMythicRiftVendorItem(): vendorTypeProto == null"); return false; }
 
             PrototypeId standardItemProtoRef = Game.MythicRiftLauncherService.ResolveChosenBeaconPrototypeRef();
             if (standardItemProtoRef == PrototypeId.Invalid)
-                return Logger.WarnReturn(false, $"TryAddMythicRiftVendorItem(): Failed to resolve {MythicRiftLauncherService.CosmicRiftBeaconPrototypeName}");
+                {
+                    Logger.Warn($"TryAddMythicRiftVendorItem(): Failed to resolve {MythicRiftLauncherService.CosmicRiftBeaconPrototypeName}");
+                    return false;
+                }
 
             PrototypeId endlessItemProtoRef = Game.MythicRiftLauncherService.ResolveEndlessBeaconPrototypeRef();
             if (endlessItemProtoRef == PrototypeId.Invalid)
-                return Logger.WarnReturn(false, $"TryAddMythicRiftVendorItem(): Failed to resolve {MythicRiftLauncherService.EndlessRiftBeaconPrototypeName}");
+                {
+                    Logger.Warn($"TryAddMythicRiftVendorItem(): Failed to resolve {MythicRiftLauncherService.EndlessRiftBeaconPrototypeName}");
+                    return false;
+                }
 
             PrototypeId bossGauntletItemProtoRef = Game.MythicRiftLauncherService.ResolveBossGauntletBeaconPrototypeRef();
             if (bossGauntletItemProtoRef == PrototypeId.Invalid)
-                return Logger.WarnReturn(false, $"TryAddMythicRiftVendorItem(): Failed to resolve {MythicRiftLauncherService.BossGauntletRiftBeaconPrototypeName}");
+                {
+                    Logger.Warn($"TryAddMythicRiftVendorItem(): Failed to resolve {MythicRiftLauncherService.BossGauntletRiftBeaconPrototypeName}");
+                    return false;
+                }
 
-            using var inventoryHandle = ListPool<Inventory>.Instance.Get(out List<Inventory> inventories);
+            using var inventoryHandle = ListPool<Inventory>.Get(out List<Inventory> inventories);
             GetMythicRiftVendorInventories(vendorTypeProto, inventories);
             if (inventories.Count == 0)
                 return false;
@@ -747,15 +783,21 @@ namespace MHServerEmu.Games.Entities
 
             uint slot = inventory.GetFreeSlot(null, false);
             if (slot == Inventory.InvalidSlot)
-                return Logger.WarnReturn(false, $"TryAddMythicRiftVendorItem(): No free vendor slot available in {inventory.PrototypeDataRef.GetNameFormatted()}");
+                {
+                    Logger.Warn($"TryAddMythicRiftVendorItem(): No free vendor slot available in {inventory.PrototypeDataRef.GetNameFormatted()}");
+                    return false;
+                }
 
             ItemSpec itemSpec = Game.LootManager.CreateItemSpec(itemProtoRef, LootContext.Vendor, this);
             if (itemSpec == null)
-                return Logger.WarnReturn(false, $"TryAddMythicRiftVendorItem(): Failed to create ItemSpec for {itemProtoRef.GetNameFormatted()}");
+                {
+                    Logger.Warn($"TryAddMythicRiftVendorItem(): Failed to create ItemSpec for {itemProtoRef.GetNameFormatted()}");
+                    return false;
+                }
 
             itemSpec = MythicRiftItemPresentation.ApplyLauncherPresentation(itemSpec, mode);
 
-            using EntitySettings settings = ObjectPoolManager.Instance.Get<EntitySettings>();
+            using var settingsHandle = EntitySettingsPool.Get(out EntitySettings settings);
             settings.EntityRef = itemSpec.ItemProtoRef;
             settings.ItemSpec = itemSpec;
 
@@ -764,13 +806,19 @@ namespace MHServerEmu.Games.Entities
 
             Item item = Game.EntityManager.CreateEntity(settings) as Item;
             if (item == null)
-                return Logger.WarnReturn(false, "TryAddMythicRiftVendorItem(): item == null");
+                {
+                    Logger.Warn("TryAddMythicRiftVendorItem(): item == null");
+                    return false;
+                }
 
             InventoryResult inventoryResult = item.ChangeInventoryLocation(inventory, slot);
             if (inventoryResult != InventoryResult.Success)
             {
                 item.Destroy();
-                return Logger.WarnReturn(false, $"TryAddMythicRiftVendorItem(): Failed to add item to {inventory} for reason {inventoryResult}");
+                {
+                    Logger.Warn($"TryAddMythicRiftVendorItem(): Failed to add item to {inventory} for reason {inventoryResult}");
+                    return false;
+                }
             }
 
             _mythicRiftVendorItemIds.Add(item.Id);
@@ -783,11 +831,11 @@ namespace MHServerEmu.Games.Entities
             if (vendorTypeProto == null || inventories == null)
                 return;
 
-            using var inventoryListHandle = ListPool<PrototypeId>.Instance.Get(out List<PrototypeId> inventoryList);
+            using var inventoryListHandle = ListPool<PrototypeId>.Get(out List<PrototypeId> inventoryList);
             if (vendorTypeProto.GetInventories(inventoryList) == false)
                 return;
 
-            using var fallbackHandle = ListPool<Inventory>.Instance.Get(out List<Inventory> fallbackInventories);
+            using var fallbackHandle = ListPool<Inventory>.Get(out List<Inventory> fallbackInventories);
 
             foreach (PrototypeId inventoryProtoRef in inventoryList)
             {

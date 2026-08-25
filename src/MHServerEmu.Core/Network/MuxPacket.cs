@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using Google.ProtocolBuffers;
+﻿using Google.ProtocolBuffers;
 using MHServerEmu.Core.Logging;
 using MHServerEmu.Core.Memory;
 using MHServerEmu.Core.Network.Tcp;
@@ -12,8 +11,6 @@ namespace MHServerEmu.Core.Network
     /// </summary>
     public readonly struct MuxPacket : IPacket
     {
-        private static readonly Logger Logger = LogManager.CreateLogger();
-
         // Packets apparently go as high as 2800+ messages based on logs, so we presize pooled lists to 4096 to fit that and extra.
         private static readonly ConcurrentPool<List<MessagePackageOut>> MessageListPool = new(4096, static () => new(4096));
 
@@ -56,53 +53,41 @@ namespace MHServerEmu.Core.Network
         /// <summary>
         /// Adds a new <see cref="IMessage"/> to this <see cref="MuxPacket"/>.
         /// </summary>
-        public bool AddMessage(IMessage message)
+        public void AddMessage(IMessage message)
         {
-            if (IsDataPacket == false)
-                return Logger.WarnReturn(false, "AddMessage(): Attempted to add a message to a non-data packet");
+            if (!Verify.IsTrue(IsDataPacket)) return;
 
             MessagePackageOut messagePackage = new(message);
             _outboundMessageList.Add(messagePackage);
-            return true;
         }
 
         /// <summary>
-        /// Adds an <see cref="IEnumerable"/> collection of <see cref="MessageBuffer"/> instances to this <see cref="MuxPacket"/>.
+        /// Adds an <see cref="List{T}"/> collection of <see cref="MessageBuffer"/> instances to this <see cref="MuxPacket"/>.
         /// </summary>
-        public bool AddMessageList(List<IMessage> messageList)
+        public void AddMessageList(List<IMessage> messageList)
         {
-            if (IsDataPacket == false)
-                return Logger.WarnReturn(false, "AddMessages(): Attempted to add messages to a non-data packet");
+            if (!Verify.IsTrue(IsDataPacket)) return;
 
             foreach (IMessage message in messageList)
             {
                 MessagePackageOut messagePackage = new(message);
                 _outboundMessageList.Add(messagePackage);
             }
-
-            return true;
         }
 
         /// <summary>
         /// Serializes this <see cref="MuxPacket"/> to an existing <see cref="byte"/> buffer.
         /// </summary>
-        public int Serialize(byte[] buffer)
-        {
-            using (MemoryStream ms = new(buffer))
-                return Serialize(ms);
-        }
-
-        /// <summary>
-        /// Serializes this <see cref="MuxPacket"/> to a <see cref="Stream"/>.
-        /// </summary>
-        public int Serialize(Stream stream)
+        public int Serialize(byte[] buffer, int offset)
         {
             int dataSize = CalculateSerializedDataSize();
+            int totalSize = offset + MuxHeader.Size + dataSize;
+            if (!Verify.IsTrue(buffer.Length >= totalSize)) return 0;
 
             MuxHeader header = MuxHeader.FromData(MuxId, dataSize, Command);
-            header.WriteTo(stream);
+            header.WriteTo(buffer.AsSpan(offset));
 
-            SerializeData(stream);
+            SerializeData(buffer, offset + MuxHeader.Size, dataSize);
 
             return MuxHeader.Size + dataSize;
         }
@@ -126,16 +111,15 @@ namespace MHServerEmu.Core.Network
         /// <summary>
         /// Serializes all messages contained in this <see cref="MuxPacket"/> to a <see cref="Stream"/>.
         /// </summary>
-        private bool SerializeData(Stream stream)
+        private bool SerializeData(byte[] buffer, int offset, int length)
         {
             // If this is not a data packet we don't need to write a body
             if (IsDataPacket == false)
                 return false;
 
-            if (_outboundMessageList.Count == 0)
-                return Logger.WarnReturn(false, "SerializeData(): Data packet contains no messages");
+            if (!Verify.IsTrue(_outboundMessageList.Count > 0)) return false;
 
-            using RecyclableCodedOutputStream cos = RecyclableCodedOutputStream.CreateInstance(stream);
+            using RecyclableCodedOutputStream cos = RecyclableCodedOutputStream.CreateInstance(buffer, offset, length);
 
             foreach (MessagePackageOut messagePackage in _outboundMessageList)
                 messagePackage.WriteTo(cos);

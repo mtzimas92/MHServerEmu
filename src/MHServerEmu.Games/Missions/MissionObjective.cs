@@ -444,7 +444,7 @@ namespace MHServerEmu.Games.Missions
                     var region = Region;
                     if (region != null)
                     {
-                        using EvalContextData evalContext = ObjectPoolManager.Instance.Get<EvalContextData>();
+                        using var evalContextHandle = EvalContextDataPool.Get(out EvalContextData evalContext);
                         evalContext.Game = Game;
                         evalContext.SetReadOnlyVar_PropertyCollectionPtr(EvalContext.Other, region.Properties);
                         if (region.MetaGames.Count > 0)
@@ -519,7 +519,7 @@ namespace MHServerEmu.Games.Missions
                     var missionRef = Mission.PrototypeDataRef;
                     var objectiveId = namedProto.ObjectiveID;
 
-                    using var playerActivitiesHandle = DictionaryPool<ulong, PlayerActivity>.Instance.Get(out var playerActivities);
+                    using var playerActivitiesHandle = DictionaryPool<ulong, PlayerActivity>.Get(out var playerActivities);
                     if (Mission.GetPlayerActivities(playerActivities))
                     {
                         foreach (var activity in playerActivities.Values)
@@ -542,7 +542,7 @@ namespace MHServerEmu.Games.Missions
 
             if (mission.IsOpenMission)
             {
-                using var sortedContributorsHandle = ListPool<(Player, float)>.Instance.Get(out List<(Player, float)> sortedContributors);
+                using var sortedContributorsHandle = ListPool<(Player, float)>.Get(out List<(Player, float)> sortedContributors);
                 if (mission.GetSortedContributors(sortedContributors))
                 {
                     foreach ((Player player, _) in sortedContributors)
@@ -551,7 +551,7 @@ namespace MHServerEmu.Games.Missions
             }
             else
             {
-                using var participantsHandle = ListPool<Player>.Instance.Get(out List<Player> participants);
+                using var participantsHandle = ListPool<Player>.Get(out List<Player> participants);
                 if (mission.GetParticipants(participants))
                 {
                     foreach (Player player in participants)
@@ -684,7 +684,7 @@ namespace MHServerEmu.Games.Missions
                 var region = Region;
                 if (region == null) return;
 
-                using var participantsHandle = ListPool<Player>.Instance.Get(out List<Player> participants);
+                using var participantsHandle = ListPool<Player>.Get(out List<Player> participants);
                 if (Mission.GetParticipants(participants))
                 {
                     var missionRef = Mission.PrototypeDataRef;
@@ -806,7 +806,7 @@ namespace MHServerEmu.Games.Missions
             var missionProto = Mission.Prototype;
             if (missionProto == null || missionProto.HasClientInterest == false) return;
 
-            using var participantsHandle = ListPool<Player>.Instance.Get(out List<Player> participants);
+            using var participantsHandle = ListPool<Player>.Get(out List<Player> participants);
             if (Mission.GetParticipants(participants))
             {
                 foreach (var player in participants)
@@ -816,61 +816,55 @@ namespace MHServerEmu.Games.Missions
 
         public void SendUpdateToPlayer(Player player, MissionObjectiveUpdateFlags objectiveFlags)
         {
-            if (objectiveFlags == MissionObjectiveUpdateFlags.None) return;
+            if (objectiveFlags == MissionObjectiveUpdateFlags.None)
+                return;
 
-            var message = NetMessageMissionObjectiveUpdate.CreateBuilder();
-            message.SetMissionPrototypeId((ulong)Mission.PrototypeDataRef);
-            message.SetObjectiveIndex(PrototypeIndex);
+            using var builderHandle = ProtobufBuilderPool<NetMessageMissionObjectiveUpdate.Builder>.Get(out var builder);
+            builder.SetMissionPrototypeId((ulong)Mission.PrototypeDataRef);
+            builder.SetObjectiveIndex(PrototypeIndex);
 
             if (objectiveFlags.HasFlag(MissionObjectiveUpdateFlags.State))
-                message.SetObjectiveState((uint)State);
+                builder.SetObjectiveState((uint)State);
 
             if (objectiveFlags.HasFlag(MissionObjectiveUpdateFlags.StateExpireTime))
             {
                 ulong time = (ulong)TimeExpire.TotalMilliseconds;
-                message.SetObjectiveStateExpireTime(time); 
+                builder.SetObjectiveStateExpireTime(time); 
             }
 
             if (objectiveFlags.HasFlag(MissionObjectiveUpdateFlags.CurrentCount))
             {
-                message.SetCurrentCount(_currentCount);
-                message.SetRequiredCount(_requiredCount);
+                builder.SetCurrentCount(_currentCount);
+                builder.SetRequiredCount(_requiredCount);
             }
 
             if (objectiveFlags.HasFlag(MissionObjectiveUpdateFlags.FailCurrentCount))
             {
-                message.SetFailCurrentCount(_failCurrentCount);
-                message.SetFailRequiredCount(_failRequiredCount);
+                builder.SetFailCurrentCount(_failCurrentCount);
+                builder.SetFailRequiredCount(_failRequiredCount);
             }
 
             if (objectiveFlags.HasFlag(MissionObjectiveUpdateFlags.InteractedEntities))
-            { 
+            {
                 if (_interactedEntityList.Count == 0)
                 {
-                    var tagMessage = NetStructMissionInteractionTag.CreateBuilder()
-                        .SetEntityId(Entity.InvalidId)
-                        .SetRegionId(0).Build();
-                    message.AddInteractedEntities(tagMessage);
+                    InteractionTag dummyTag = new(Entity.InvalidId, 0);
+                    builder.AddInteractedEntities(dummyTag.ToProtobuf());
                 }
                 else
                 {
-                    foreach(var tag in _interactedEntityList)
-                    {
-                        var tagMessage = NetStructMissionInteractionTag.CreateBuilder()
-                            .SetEntityId(tag.EntityId)
-                            .SetRegionId(tag.RegionId).Build();
-                        message.AddInteractedEntities(tagMessage);
-                    }
+                    foreach (InteractionTag tag in _interactedEntityList)
+                        builder.AddInteractedEntities(tag.ToProtobuf());
                 }
             }
 
             if (objectiveFlags.HasFlag(MissionObjectiveUpdateFlags.SuppressNotification))
-                message.SetSuppressNotification(true);
+                builder.SetSuppressNotification(true);
 
             if (objectiveFlags.HasFlag(MissionObjectiveUpdateFlags.SuspendedState))
-                message.SetSuspendedState(Mission.IsSuspended);
+                builder.SetSuspendedState(Mission.IsSuspended);
 
-            player.SendMessage(message.Build());
+            player.SendMessage(builder.Build());
         }
 
         private void CancelTimeLimitEvent()

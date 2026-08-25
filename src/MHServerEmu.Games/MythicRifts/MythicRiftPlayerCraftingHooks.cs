@@ -273,7 +273,7 @@ namespace MHServerEmu.Games.Entities
             if (outputSlot == Inventory.InvalidSlot)
                 return null;
 
-            using EntitySettings settings = ObjectPoolManager.Instance.Get<EntitySettings>();
+            using var settingsHandle = EntitySettingsPool.Get(out EntitySettings settings);
             settings.EntityRef = outputSpec.ItemProtoRef;
             settings.ItemSpec = outputSpec;
             settings.InventoryLocation = new(Id, resultsInv.PrototypeDataRef, outputSlot);
@@ -282,7 +282,7 @@ namespace MHServerEmu.Games.Entities
             if (IsInGame == false)
                 settings.OptionFlags &= ~EntitySettingsOptionFlags.EnterGame;
 
-            using PropertyCollection properties = ObjectPoolManager.Instance.Get<PropertyCollection>();
+            using var propertiesHandle = PropertyCollectionPool.Get(out PropertyCollection properties);
             settings.Properties = properties;
             properties[PropertyEnum.InventoryStackCount] = outputSpec.StackCount;
 

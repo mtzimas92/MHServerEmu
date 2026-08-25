@@ -43,7 +43,7 @@ namespace MHServerEmu.Games.MythicRifts
             float yaw = moiraOrientation.Yaw;
             Vector3 vendorPosition = new(moiraPosition.X + (MathF.Cos(yaw) * DangerRoomScenarioVendorSideOffset), moiraPosition.Y, moiraPosition.Z);
 
-            using EntitySettings entitySettings = ObjectPoolManager.Instance.Get<EntitySettings>();
+            using var entitySettingsHandle = EntitySettingsPool.Get(out EntitySettings entitySettings);
             entitySettings.EntityRef = DangerRoomScenarioVendorRef;
             entitySettings.Position = vendorPosition;
             entitySettings.Orientation = moiraOrientation;

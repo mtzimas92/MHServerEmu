@@ -20,7 +20,6 @@ namespace MHServerEmu.Games.Populations
         private SpawnReservationMap _regionLookup = new();
         private Dictionary<PrototypeId, SpawnReservationMap> _areaLookup = new();
         private Dictionary<uint, SpawnReservationMap> _cellLookup = new();
-        private Picker<SpawnReservation> _reusablePicker = new();   // TODO: Replace with pooling
         public TimeSpan _respawnDelay;
 
         public SpawnMarkerRegistry(Region region)
@@ -183,7 +182,7 @@ namespace MHServerEmu.Games.Populations
 
         public void RemoveCell(Cell cell)
         {
-            using var reservationsHandle = ListPool<SpawnReservation>.Instance.Get(out List<SpawnReservation> reservations);
+            using var reservationsHandle = ListPool<SpawnReservation>.Get(out List<SpawnReservation> reservations);
             GetReservationsInCell(cell.Id, reservations);
 
             foreach (SpawnReservation reservation in reservations)
@@ -333,8 +332,7 @@ namespace MHServerEmu.Games.Populations
 
         public SpawnReservation ReserveFreeReservation(PrototypeId markerRef, GRandom random, SpawnLocation spawnLocation, SpawnFlags flag, int respawnDelayMS)
         {
-            Picker<SpawnReservation> picker = _reusablePicker;  // TODO: replace with pooling
-            picker.Initialize(random);
+            using var pickerHandle = PickerPool<SpawnReservation>.Get(random, out Picker<SpawnReservation> picker);
             _respawnDelay = TimeSpan.FromMilliseconds(respawnDelayMS);
 
             bool canPick = PickReservation(picker, markerRef, spawnLocation, flag);
@@ -363,7 +361,7 @@ namespace MHServerEmu.Games.Populations
         {
             int cellId = pid / 1000;
             int markerId = pid % 1000;
-            using var reservationsHandle = ListPool<SpawnReservation>.Instance.Get(out List<SpawnReservation> reservations);
+            using var reservationsHandle = ListPool<SpawnReservation>.Get(out List<SpawnReservation> reservations);
 
             GetReservationsInCell((uint)cellId, reservations);
             foreach (var reservation in reservations)
@@ -374,7 +372,7 @@ namespace MHServerEmu.Games.Populations
 
         public SpawnReservation GetReservationInCell(uint cellId, int id)
         {
-            using var reservationsHandle = ListPool<SpawnReservation>.Instance.Get(out List<SpawnReservation> reservations);
+            using var reservationsHandle = ListPool<SpawnReservation>.Get(out List<SpawnReservation> reservations);
 
             GetReservationsInCell(cellId, reservations);
             foreach (var reservation in reservations)
@@ -396,7 +394,7 @@ namespace MHServerEmu.Games.Populations
 
         public void OnSimulation(Cell cell, int numPlayers)
         {
-            using var reservationsHandle = ListPool<SpawnReservation>.Instance.Get(out List<SpawnReservation> reservations);
+            using var reservationsHandle = ListPool<SpawnReservation>.Get(out List<SpawnReservation> reservations);
 
             if (numPlayers == 0)
             {

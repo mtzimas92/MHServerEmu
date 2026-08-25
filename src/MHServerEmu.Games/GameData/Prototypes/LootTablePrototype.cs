@@ -44,7 +44,7 @@ namespace MHServerEmu.Games.GameData.Prototypes
             // Do a modified roll
             if (Modifiers.HasValue())
             {
-                using LootRollSettings modifiedSettings = ObjectPoolManager.Instance.Get<LootRollSettings>();
+                using var modifiedSettingsHandle = LootRollSettingsPool.Get(out LootRollSettings modifiedSettings);
                 modifiedSettings.Set(settings);
 
                 foreach (LootRollModifierPrototype modifier in Modifiers)
@@ -117,7 +117,7 @@ namespace MHServerEmu.Games.GameData.Prototypes
             AvatarPrototype usableAvatarProto = settings.UsableAvatar;
             AgentPrototype usableTeamUpProto = settings.UsableTeamUp;
 
-            Picker<Prototype> picker = new(resolver.Random);
+            using var pickerHandle = PickerPool<Prototype>.Get(resolver.Random, out Picker<Prototype> picker);
 
             RestrictionTestFlags restrictionFlags = RestrictionTestFlags.All;
             if (settings.DropChanceModifiers.HasFlag(LootDropChanceModifiers.IgnoreCooldown) ||
@@ -163,7 +163,7 @@ namespace MHServerEmu.Games.GameData.Prototypes
                         currentPickerAvatarProto = resolvedAvatarProto;
                     }
 
-                    using DropFilterArguments pickFilterArgs = ObjectPoolManager.Instance.Get<DropFilterArguments>();
+                    using var pickFilterArgsHanlde = DropFilterArgumentsPool.Get(out DropFilterArguments pickFilterArgs);
                     DropFilterArguments.Initialize(pickFilterArgs, null, rollFor, level, rarityProtoRef.Value, 0, slot, resolver.LootContext);
                     pickFilterArgs.DropDistanceSq = settings.DropDistanceSq;
 
@@ -180,7 +180,7 @@ namespace MHServerEmu.Games.GameData.Prototypes
                     pickedItemProto = itemProto;
                 }
 
-                using DropFilterArguments pushFilterArgs = ObjectPoolManager.Instance.Get<DropFilterArguments>();
+                using var pushFilterArgsHanlde = DropFilterArgumentsPool.Get(out DropFilterArguments pushFilterArgs);
                 DropFilterArguments.Initialize(pushFilterArgs, pickedItemProto, rollFor, level, rarityProtoRef.Value, 0, slot, resolver.LootContext);
                 pushFilterArgs.DropDistanceSq = settings.DropDistanceSq;
 
@@ -341,7 +341,7 @@ namespace MHServerEmu.Games.GameData.Prototypes
                 return LootRollResult.NoRoll;
 
             // Create a picker of possible nodes
-            Picker<LootNodePrototype> nodePicker = new(resolver.Random);
+            using var nodePickerHandle = PickerPool<LootNodePrototype>.Get(resolver.Random, out Picker<LootNodePrototype> nodePicker);
             foreach (LootNodePrototype proto in Choices)
                 nodePicker.Add(proto, proto.GetWeight());
 
@@ -362,7 +362,7 @@ namespace MHServerEmu.Games.GameData.Prototypes
             // Create a picker of possible nodes.
             // NOTE: Same as the client, we use the Weight prototype field instead of the GetWeight() method.
             // Because of this, PickWeightTryAll is not affected by live tuning.
-            Picker<LootNodePrototype> nodePicker = new(resolver.Random);
+            using var nodePickerHandle = PickerPool<LootNodePrototype>.Get(resolver.Random, out Picker<LootNodePrototype> nodePicker);
             foreach (LootNodePrototype proto in Choices)
                 nodePicker.Add(proto, Weight);
 
@@ -371,7 +371,7 @@ namespace MHServerEmu.Games.GameData.Prototypes
             LootRollResult result = LootRollResult.NoRoll;
             for (int i = 0; i < numPicks; i++)
             {
-                Picker<LootNodePrototype> removePicker = new(nodePicker);
+                using var removePickerHandle = PickerPool<LootNodePrototype>.Get(nodePicker, out Picker<LootNodePrototype> removePicker);
 
                 LootRollResult nodeResult = LootRollResult.NoRoll;
                 while (nodeResult.HasFlag(LootRollResult.Success) == false && removePicker.PickRemove(out LootNodePrototype node))

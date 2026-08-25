@@ -62,6 +62,7 @@ namespace MHServerEmu.Games
 
         private const int TargetFrameRate = 20;
         public static readonly TimeSpan StartTime = TimeSpan.FromMilliseconds(1);
+        public readonly NetMessageServerVersion ServerVersion;
         public readonly NetStructGameOptions GameOptions;
         public readonly CustomGameOptionsConfig CustomGameOptions;
 
@@ -135,6 +136,9 @@ namespace MHServerEmu.Games
 
             // Small lags are fine, and logging all of them creates too much noise
             _fixedTimeUpdateProcessTimeLogThreshold = FixedTimeBetweenUpdates * 5;
+
+            // Cache server version message (it's always the same)
+            ServerVersion = NetMessageServerVersion.CreateBuilder().SetVersion(Version).Build();
 
             // Initialize game options
             var config = ConfigManager.Instance.GetConfig<GameOptionsConfig>();
@@ -406,7 +410,7 @@ namespace MHServerEmu.Games
 
         private void SendServerFrameProfile()
         {
-            using var interestedClientsHandle = ListPool<PlayerConnection>.Instance.Get(out List<PlayerConnection> interestedClients);
+            using var interestedClientsHandle = ListPool<PlayerConnection>.Get(out List<PlayerConnection> interestedClients);
 
             foreach (Player player in new PlayerIterator(this))
             {

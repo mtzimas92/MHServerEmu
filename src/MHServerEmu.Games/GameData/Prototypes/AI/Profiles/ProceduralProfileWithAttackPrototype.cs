@@ -334,7 +334,7 @@ namespace MHServerEmu.Games.GameData.Prototypes
             }
 
             GRandom random = game.Random;
-            Picker<ProceduralUsePowerContextPrototype> powerPicker = new(random);
+            using var powerPickerHandle = PickerPool<ProceduralUsePowerContextPrototype>.Get(random, out Picker<ProceduralUsePowerContextPrototype> powerPicker);
             PopulatePowerPicker(ownerController, powerPicker);
             HandleProceduralPower(ownerController, proceduralAI, random, currentTime, powerPicker, true);
 
@@ -370,7 +370,7 @@ namespace MHServerEmu.Games.GameData.Prototypes
             }
 
             GRandom random = game.Random;
-            Picker<ProceduralUsePowerContextPrototype> powerPicker = new(random);
+            using var powerPickerHandle = PickerPool<ProceduralUsePowerContextPrototype>.Get(random, out Picker<ProceduralUsePowerContextPrototype> powerPicker);
             PopulatePowerPicker(ownerController, powerPicker);
             if (HandleProceduralPower(ownerController, proceduralAI, random, currentTime, powerPicker, true) == StaticBehaviorReturnType.Running)
             {
@@ -418,7 +418,7 @@ namespace MHServerEmu.Games.GameData.Prototypes
             }
 
             GRandom random = game.Random;
-            Picker<ProceduralUsePowerContextPrototype> powerPicker = new(random);
+            using var powerPickerHandle = PickerPool<ProceduralUsePowerContextPrototype>.Get(random, out Picker<ProceduralUsePowerContextPrototype> powerPicker);
             PopulatePowerPicker(ownerController, powerPicker);
             if (HandleProceduralPower(ownerController, proceduralAI, random, currentTime, powerPicker, true) == StaticBehaviorReturnType.Running)
                 return;
@@ -474,7 +474,7 @@ namespace MHServerEmu.Games.GameData.Prototypes
             }
 
             GRandom random = game.Random;
-            Picker<ProceduralUsePowerContextPrototype> powerPicker = new(random);
+            using var powerPickerHandle = PickerPool<ProceduralUsePowerContextPrototype>.Get(random, out Picker<ProceduralUsePowerContextPrototype> powerPicker);
             PopulatePowerPicker(ownerController, powerPicker);
             if (HandleProceduralPower(ownerController, proceduralAI, random, currentTime, powerPicker, true) == StaticBehaviorReturnType.Running)
                 return;
@@ -521,7 +521,7 @@ namespace MHServerEmu.Games.GameData.Prototypes
             }
 
             GRandom random = game.Random;
-            Picker<ProceduralUsePowerContextPrototype> powerPicker = new(random);
+            using var powerPickerHandle = PickerPool<ProceduralUsePowerContextPrototype>.Get(random, out Picker<ProceduralUsePowerContextPrototype> powerPicker);
             PopulatePowerPicker(ownerController, powerPicker);
             if (HandleProceduralPower(ownerController, proceduralAI, random, currentTime, powerPicker, true) == StaticBehaviorReturnType.Running)
                 return;
@@ -573,7 +573,7 @@ namespace MHServerEmu.Games.GameData.Prototypes
             }
 
             GRandom random = game.Random;
-            Picker<ProceduralUsePowerContextPrototype> powerPicker = new(random);
+            using var powerPickerHandle = PickerPool<ProceduralUsePowerContextPrototype>.Get(random, out Picker<ProceduralUsePowerContextPrototype> powerPicker);
             PopulatePowerPicker(ownerController, powerPicker);
             if (HandleProceduralPower(ownerController, proceduralAI, random, currentTime, powerPicker, true) == StaticBehaviorReturnType.Running)
                 return;
@@ -656,7 +656,7 @@ namespace MHServerEmu.Games.GameData.Prototypes
             else
             {
                 GRandom random = game.Random;
-                Picker<ProceduralUsePowerContextPrototype> powerPicker = new(random);
+                using var powerPickerHandle = PickerPool<ProceduralUsePowerContextPrototype>.Get(random, out Picker<ProceduralUsePowerContextPrototype> powerPicker);
                 PopulatePowerPicker(ownerController, powerPicker);
                 StaticBehaviorReturnType powerResult = HandleProceduralPower(ownerController, proceduralAI, random, currentTime, powerPicker, true);
                 if (powerResult == StaticBehaviorReturnType.Running)
@@ -778,7 +778,7 @@ namespace MHServerEmu.Games.GameData.Prototypes
             else
             {
                 GRandom random = game.Random;
-                Picker<ProceduralUsePowerContextPrototype> powerPicker = new(random);
+                using var powerPickerHandle = PickerPool<ProceduralUsePowerContextPrototype>.Get(random, out Picker<ProceduralUsePowerContextPrototype> powerPicker);
                 PopulatePowerPicker(ownerController, powerPicker);
                 StaticBehaviorReturnType powerResult = HandleProceduralPower(ownerController, proceduralAI, random, currentTime, powerPicker, true);
                 if (powerResult == StaticBehaviorReturnType.Running)
@@ -903,10 +903,13 @@ namespace MHServerEmu.Games.GameData.Prototypes
             {
                 case State.Hide:
                     GRandom random = game.Random;
-                    Picker<ProceduralUsePowerContextPrototype> powerPicker = new(random);
-                    PopulatePowerPicker(ownerController, powerPicker);
-                    if (HandleProceduralPower(ownerController, proceduralAI, random, currentTime, powerPicker, true) == StaticBehaviorReturnType.Completed)
-                        blackboardProps[PropertyEnum.AICustomStateVal2] = (int)State.Multishot;
+                    {
+                        using var powerPickerHandle = PickerPool<ProceduralUsePowerContextPrototype>.Get(random, out Picker<ProceduralUsePowerContextPrototype> powerPicker);
+                        PopulatePowerPicker(ownerController, powerPicker);
+                        if (HandleProceduralPower(ownerController, proceduralAI, random, currentTime, powerPicker, true) == StaticBehaviorReturnType.Completed)
+                            blackboardProps[PropertyEnum.AICustomStateVal2] = (int)State.Multishot;
+                    }
+
                     break;
 
                 case State.Multishot:
@@ -918,7 +921,7 @@ namespace MHServerEmu.Games.GameData.Prototypes
                     }
                     else
                     {
-                        powerPicker = new(random);
+                        using var powerPickerHandle = PickerPool<ProceduralUsePowerContextPrototype>.Get(random, out Picker<ProceduralUsePowerContextPrototype> powerPicker);
                         PopulatePowerPicker(ownerController, powerPicker);
                         if (HandleProceduralPower(ownerController, proceduralAI, random, currentTime, powerPicker, true) == StaticBehaviorReturnType.Completed)
                         {
@@ -1034,7 +1037,7 @@ namespace MHServerEmu.Games.GameData.Prototypes
             }
 
             GRandom random = game.Random;
-            Picker<ProceduralUsePowerContextPrototype> powerPicker = new(random);
+            using var powerPickerHandle = PickerPool<ProceduralUsePowerContextPrototype>.Get(random, out Picker<ProceduralUsePowerContextPrototype> powerPicker);
             PopulatePowerPicker(ownerController, powerPicker);
             if (HandleProceduralPower(ownerController, proceduralAI, random, currentTime, powerPicker, true) == StaticBehaviorReturnType.Running)
                 return;
@@ -1126,7 +1129,7 @@ namespace MHServerEmu.Games.GameData.Prototypes
             }
 
             GRandom random = game.Random;
-            Picker<ProceduralUsePowerContextPrototype> powerPicker = new(random);
+            using var powerPickerHandle = PickerPool<ProceduralUsePowerContextPrototype>.Get(random, out Picker<ProceduralUsePowerContextPrototype> powerPicker);
             PopulatePowerPicker(ownerController, powerPicker);
             if (HandleProceduralPower(ownerController, proceduralAI, random, currentTime, powerPicker, true) == StaticBehaviorReturnType.Running)
                 return;
@@ -1181,7 +1184,7 @@ namespace MHServerEmu.Games.GameData.Prototypes
             }
 
             GRandom random = game.Random;
-            Picker<ProceduralUsePowerContextPrototype> powerPicker = new(random);
+            using var powerPickerHandle = PickerPool<ProceduralUsePowerContextPrototype>.Get(random, out Picker<ProceduralUsePowerContextPrototype> powerPicker);
             PopulatePowerPicker(ownerController, powerPicker);
             if (HandleProceduralPower(ownerController, proceduralAI, random, currentTime, powerPicker, true) == StaticBehaviorReturnType.Running)
                 return;
@@ -1263,7 +1266,7 @@ namespace MHServerEmu.Games.GameData.Prototypes
             GRandom random = game.Random;
 
             PrototypeId startedPowerRef = ownerController.ActivePowerRef;
-            Picker<ProceduralUsePowerContextPrototype> powerPicker = new(random);
+            using var powerPickerHandle = PickerPool<ProceduralUsePowerContextPrototype>.Get(random, out Picker<ProceduralUsePowerContextPrototype> powerPicker);
             if (!Verify.IsNotNull(MeleePower)) return;
             UsePowerContextPrototype meleePowerContext = MeleePower.PowerContext;
             if (!Verify.IsNotNull(meleePowerContext)) return;
@@ -1365,7 +1368,7 @@ namespace MHServerEmu.Games.GameData.Prototypes
                 return;
 
             GRandom random = game.Random;
-            Picker<ProceduralUsePowerContextPrototype> powerPicker = new(random);
+            using var powerPickerHandle = PickerPool<ProceduralUsePowerContextPrototype>.Get(random, out Picker<ProceduralUsePowerContextPrototype> powerPicker);
             PopulatePowerPicker(ownerController, powerPicker);
             if (HandleProceduralPower(ownerController, proceduralAI, random, currentTime, powerPicker, true) == StaticBehaviorReturnType.Running)
                 return;
@@ -1441,7 +1444,7 @@ namespace MHServerEmu.Games.GameData.Prototypes
             }
 
             GRandom random = game.Random;
-            Picker<ProceduralUsePowerContextPrototype> powerPicker = new(random);
+            using var powerPickerHandle = PickerPool<ProceduralUsePowerContextPrototype>.Get(random, out Picker<ProceduralUsePowerContextPrototype> powerPicker);
             PopulatePowerPicker(ownerController, powerPicker);
             HandleProceduralPower(ownerController, proceduralAI, random, currentTime, powerPicker, true);
         }
@@ -1467,7 +1470,7 @@ namespace MHServerEmu.Games.GameData.Prototypes
                 return;
 
             GRandom random = game.Random;
-            Picker<ProceduralUsePowerContextPrototype> powerPicker = new(random);
+            using var powerPickerHandle = PickerPool<ProceduralUsePowerContextPrototype>.Get(random, out Picker<ProceduralUsePowerContextPrototype> powerPicker);
             PopulatePowerPicker(ownerController, powerPicker);
             HandleProceduralPower(ownerController, proceduralAI, random, currentTime, powerPicker, true);
         }
@@ -1493,7 +1496,7 @@ namespace MHServerEmu.Games.GameData.Prototypes
                 return;
 
             GRandom random = game.Random;
-            Picker<ProceduralUsePowerContextPrototype> powerPicker = new(random);
+            using var powerPickerHandle = PickerPool<ProceduralUsePowerContextPrototype>.Get(random, out Picker<ProceduralUsePowerContextPrototype> powerPicker);
             PopulatePowerPicker(ownerController, powerPicker);
             HandleProceduralPower(ownerController, proceduralAI, random, currentTime, powerPicker, true);
         }
@@ -1519,7 +1522,7 @@ namespace MHServerEmu.Games.GameData.Prototypes
                 return;
 
             GRandom random = game.Random;
-            Picker<ProceduralUsePowerContextPrototype> powerPicker = new(random);
+            using var powerPickerHandle = PickerPool<ProceduralUsePowerContextPrototype>.Get(random, out Picker<ProceduralUsePowerContextPrototype> powerPicker);
             PopulatePowerPicker(ownerController, powerPicker);
             if (HandleProceduralPower(ownerController, proceduralAI, random, currentTime, powerPicker, true) == StaticBehaviorReturnType.Completed) 
                 agent.Kill(null);
@@ -1545,7 +1548,7 @@ namespace MHServerEmu.Games.GameData.Prototypes
                 SelectEntity.RegisterSelectedEntity(ownerController, agent, SelectEntityType.SelectTarget);
 
             GRandom random = game.Random;
-            Picker<ProceduralUsePowerContextPrototype> powerPicker = new(random);
+            using var powerPickerHandle = PickerPool<ProceduralUsePowerContextPrototype>.Get(random, out Picker<ProceduralUsePowerContextPrototype> powerPicker);
             PopulatePowerPicker(ownerController, powerPicker);
             HandleProceduralPower(ownerController, proceduralAI, random, currentTime, powerPicker, true);
         }
@@ -1579,7 +1582,7 @@ namespace MHServerEmu.Games.GameData.Prototypes
             }
 
             GRandom random = game.Random;
-            Picker<ProceduralUsePowerContextPrototype> powerPicker = new(random);
+            using var powerPickerHandle = PickerPool<ProceduralUsePowerContextPrototype>.Get(random, out Picker<ProceduralUsePowerContextPrototype> powerPicker);
             PopulatePowerPicker(ownerController, powerPicker);
             if (HandleProceduralPower(ownerController, proceduralAI, random, currentTime, powerPicker, true) == StaticBehaviorReturnType.Running)
                 return;
@@ -1788,7 +1791,7 @@ namespace MHServerEmu.Games.GameData.Prototypes
             }
 
             GRandom random = game.Random;
-            Picker<ProceduralUsePowerContextPrototype> powerPicker = new(random);
+            using var powerPickerHandle = PickerPool<ProceduralUsePowerContextPrototype>.Get(random, out Picker<ProceduralUsePowerContextPrototype> powerPicker);
             PopulatePowerPicker(ownerController, powerPicker);
             HandleProceduralPower(ownerController, proceduralAI, random, currentTime, powerPicker, true);
         }
@@ -1873,7 +1876,7 @@ namespace MHServerEmu.Games.GameData.Prototypes
             }
 
             GRandom random = game.Random;
-            Picker<ProceduralUsePowerContextPrototype> powerPicker = new (random);
+            using var powerPickerHandle = PickerPool<ProceduralUsePowerContextPrototype>.Get(random, out Picker<ProceduralUsePowerContextPrototype> powerPicker);
 
             if (state == State.Attack || state == State.NoWeapon)
             {
@@ -1984,7 +1987,7 @@ namespace MHServerEmu.Games.GameData.Prototypes
             }
 
             GRandom random = game.Random;
-            Picker<ProceduralUsePowerContextPrototype> powerPicker = new(random);
+            using var powerPickerHandle = PickerPool<ProceduralUsePowerContextPrototype>.Get(random, out Picker<ProceduralUsePowerContextPrototype> powerPicker);
             PopulatePowerPicker(ownerController, powerPicker);
             if (HandleProceduralPower(ownerController, proceduralAI, random, currentTime, powerPicker, true) == StaticBehaviorReturnType.Running)
                 return;
@@ -2040,7 +2043,7 @@ namespace MHServerEmu.Games.GameData.Prototypes
             }
 
             GRandom random = game.Random;
-            Picker<ProceduralUsePowerContextPrototype> powerPicker = new(random);
+            using var powerPickerHandle = PickerPool<ProceduralUsePowerContextPrototype>.Get(random, out Picker<ProceduralUsePowerContextPrototype> powerPicker);
             PopulatePowerPicker(ownerController, powerPicker);
             if (HandleProceduralPower(ownerController, proceduralAI, random, currentTime, powerPicker, true) == StaticBehaviorReturnType.Running)
                 return;
@@ -2106,7 +2109,7 @@ namespace MHServerEmu.Games.GameData.Prototypes
             }
 
             GRandom random = game.Random;
-            Picker<ProceduralUsePowerContextPrototype> powerPicker = new(random);
+            using var powerPickerHandle = PickerPool<ProceduralUsePowerContextPrototype>.Get(random, out Picker<ProceduralUsePowerContextPrototype> powerPicker);
             PopulatePowerPicker(ownerController, powerPicker);
             if (HandleProceduralPower(ownerController, proceduralAI, random, currentTime, powerPicker, true) == StaticBehaviorReturnType.Running)
             {
@@ -2202,7 +2205,7 @@ namespace MHServerEmu.Games.GameData.Prototypes
             }
 
             GRandom random = game.Random;
-            Picker<ProceduralUsePowerContextPrototype> powerPicker = new(random);
+            using var powerPickerHandle = PickerPool<ProceduralUsePowerContextPrototype>.Get(random, out Picker<ProceduralUsePowerContextPrototype> powerPicker);
             PopulatePowerPicker(ownerController, powerPicker);
             if (HandleProceduralPower(ownerController, proceduralAI, random, currentTime, powerPicker, true) == StaticBehaviorReturnType.Running)
                 return;
@@ -2312,7 +2315,7 @@ namespace MHServerEmu.Games.GameData.Prototypes
             }
 
             GRandom random = game.Random;
-            Picker<ProceduralUsePowerContextPrototype> powerPicker = new(random);
+            using var powerPickerHandle = PickerPool<ProceduralUsePowerContextPrototype>.Get(random, out Picker<ProceduralUsePowerContextPrototype> powerPicker);
             PopulatePowerPicker(ownerController, powerPicker);
             if (HandleProceduralPower(ownerController, proceduralAI, random, currentTime, powerPicker, true) == StaticBehaviorReturnType.Running)
                 return;
@@ -2370,7 +2373,7 @@ namespace MHServerEmu.Games.GameData.Prototypes
             }
 
             GRandom random = game.Random;
-            Picker<ProceduralUsePowerContextPrototype> powerPicker = new(random);
+            using var powerPickerHandle = PickerPool<ProceduralUsePowerContextPrototype>.Get(random, out Picker<ProceduralUsePowerContextPrototype> powerPicker);
             PopulatePowerPicker(ownerController, powerPicker);
             if (HandleProceduralPower(ownerController, proceduralAI, random, currentTime, powerPicker, true) == StaticBehaviorReturnType.Running)
                 return;
@@ -2447,7 +2450,7 @@ namespace MHServerEmu.Games.GameData.Prototypes
             DefaultSensory(ref target, ownerController, proceduralAI, SelectTarget, CombatTargetType.Hostile);
 
             GRandom random = game.Random;
-            Picker<ProceduralUsePowerContextPrototype> powerPicker = new(random);
+            using var powerPickerHandle = PickerPool<ProceduralUsePowerContextPrototype>.Get(random, out Picker<ProceduralUsePowerContextPrototype> powerPicker);
             PopulatePowerPicker(ownerController, powerPicker);
             if (HandleProceduralPower(ownerController, proceduralAI, random, currentTime, powerPicker, true) == StaticBehaviorReturnType.Running)
                 return;
@@ -2498,7 +2501,7 @@ namespace MHServerEmu.Games.GameData.Prototypes
             if (proceduralAI.GetState(0) == UsePower.Instance)
             {
                 GRandom random = game.Random;
-                Picker<ProceduralUsePowerContextPrototype> powerPicker = new(random);
+                using var powerPickerHandle = PickerPool<ProceduralUsePowerContextPrototype>.Get(random, out Picker<ProceduralUsePowerContextPrototype> powerPicker);
                 PopulatePowerPicker(ownerController, powerPicker);
                 if (HandleProceduralPower(ownerController, proceduralAI, random, currentTime, powerPicker, true) == StaticBehaviorReturnType.Running)
                     return;
@@ -2507,7 +2510,7 @@ namespace MHServerEmu.Games.GameData.Prototypes
             if (HandleContext(proceduralAI, ownerController, FlockContext) == StaticBehaviorReturnType.Completed)
             {
                 GRandom random = game.Random;
-                Picker<ProceduralUsePowerContextPrototype> powerPicker = new(random);
+                using var powerPickerHandle = PickerPool<ProceduralUsePowerContextPrototype>.Get(random, out Picker<ProceduralUsePowerContextPrototype> powerPicker);
                 PopulatePowerPicker(ownerController, powerPicker);
                 if (HandleProceduralPower(ownerController, proceduralAI, random, currentTime, powerPicker, true) == StaticBehaviorReturnType.Running)
                     return;
@@ -2576,7 +2579,7 @@ namespace MHServerEmu.Games.GameData.Prototypes
                     return;
 
                 GRandom random = game.Random;
-                Picker<ProceduralUsePowerContextPrototype> powerPicker = new(random);
+                using var powerPickerHandle = PickerPool<ProceduralUsePowerContextPrototype>.Get(random, out Picker<ProceduralUsePowerContextPrototype> powerPicker);
                 PopulatePowerPicker(ownerController, powerPicker);
                 HandleProceduralPower(ownerController, proceduralAI, random, currentTime, powerPicker, true);
             }
@@ -2734,7 +2737,7 @@ namespace MHServerEmu.Games.GameData.Prototypes
             }
 
             GRandom random = game.Random;
-            Picker<ProceduralUsePowerContextPrototype> powerPicker = new(random);
+            using var powerPickerHandle = PickerPool<ProceduralUsePowerContextPrototype>.Get(random, out Picker<ProceduralUsePowerContextPrototype> powerPicker);
             PopulatePowerPicker(ownerController, powerPicker);
             if (HandleProceduralPower(ownerController, proceduralAI, random, currentTime, powerPicker, true) == StaticBehaviorReturnType.Running)
                 return;
@@ -2940,14 +2943,17 @@ namespace MHServerEmu.Games.GameData.Prototypes
                 return;
             }
 
+            GRandom random;
             switch (state)
             {
                 case RestrictedMode.Default:
-                    GRandom random = game.Random;
-                    Picker<ProceduralUsePowerContextPrototype> powerPicker = new(random);
-                    PopulatePowerPicker(ownerController, powerPicker);
-                    if (HandleProceduralPower(ownerController, proceduralAI, random, currentTime, powerPicker, true) == StaticBehaviorReturnType.Running)
-                        return;
+                    {
+                        random = game.Random;
+                        using var powerPickerHandle = PickerPool<ProceduralUsePowerContextPrototype>.Get(random, out Picker<ProceduralUsePowerContextPrototype> powerPicker);
+                        PopulatePowerPicker(ownerController, powerPicker);
+                        if (HandleProceduralPower(ownerController, proceduralAI, random, currentTime, powerPicker, true) == StaticBehaviorReturnType.Running)
+                            return;
+                    }
 
                     if (proceduralAI.GetState(0) != UsePower.Instance && currentTime > blackboardProps[PropertyEnum.AICustomTimeVal1])
                     {
@@ -2976,11 +2982,13 @@ namespace MHServerEmu.Games.GameData.Prototypes
                     break;
 
                 case RestrictedMode.ProceduralPowers:
-                    random = game.Random;
-                    powerPicker = new(random);
-                    PopulatePowerPicker(ownerController, powerPicker);
-                    if (HandleProceduralPower(ownerController, proceduralAI, random, currentTime, powerPicker, true) == StaticBehaviorReturnType.Running)
-                        return;
+                    {
+                        random = game.Random;
+                        using var powerPickerHandle = PickerPool<ProceduralUsePowerContextPrototype>.Get(random, out Picker<ProceduralUsePowerContextPrototype> powerPicker);
+                        PopulatePowerPicker(ownerController, powerPicker);
+                        if (HandleProceduralPower(ownerController, proceduralAI, random, currentTime, powerPicker, true) == StaticBehaviorReturnType.Running)
+                            return;
+                    }
 
                     if (proceduralAI.GetState(0) != UsePower.Instance && currentTime > blackboardProps[PropertyEnum.AICustomTimeVal2])
                     {

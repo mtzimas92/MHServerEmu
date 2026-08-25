@@ -360,7 +360,7 @@ namespace MHServerEmu.Games.Entities
             // Restore persistent cooldowns
             if (archive.IsPersistent)
             {
-                using var setDictHandle = DictionaryPool<PropertyId, PropertyValue>.Instance.Get(out Dictionary<PropertyId, PropertyValue> setDict);
+                using var setDictHandle = DictionaryPool<PropertyId, PropertyValue>.Get(out Dictionary<PropertyId, PropertyValue> setDict);
 
                 foreach (var kvp in Properties.IteratePropertyRange(PropertyEnum.PowerCooldownDurationPersistent))
                 {
@@ -519,7 +519,7 @@ namespace MHServerEmu.Games.Entities
                 .SetGamestarttime((ulong)Game.StartTime.TotalMilliseconds)
                 .Build());
 
-            SendMessage(NetMessageServerVersion.CreateBuilder().SetVersion(Game.Version).Build());
+            SendMessage(Game.ServerVersion);
             SendMessage(Game.LiveTuningData.GetLiveTuningUpdate());
 
             SendMessage(NetMessageLocalPlayer.CreateBuilder()
@@ -1080,7 +1080,7 @@ namespace MHServerEmu.Games.Entities
             // Update vendor inventories if we are adding a recipe
             if (invLoc.InventoryConvenienceLabel == InventoryConvenienceLabel.CraftingRecipesLearned)
             {
-                using var vendorsToUpdateHandle = ListPool<VendorTypePrototype>.Instance.Get(out List<VendorTypePrototype> vendorsToUpdate);
+                using var vendorsToUpdateHandle = ListPool<VendorTypePrototype>.Get(out List<VendorTypePrototype> vendorsToUpdate);
 
                 foreach (var kvp in Properties.IteratePropertyRange(PropertyEnum.VendorLevel))
                 {
@@ -1198,11 +1198,7 @@ namespace MHServerEmu.Games.Entities
                 slot = inventory.GetFreeSlot(item, true, isAdding);
                 if (slot == Inventory.InvalidSlot)
                 {
-                    SendMessage(NetMessageInventoryFull.CreateBuilder()
-                        .SetPlayerID(Id)
-                        .SetItemID(InvalidId)
-                        .Build());
-
+                    SendInventoryFullMessage(InvalidId, inventory.PrototypeDataRef);
                     return false;
                 }
             }
@@ -1212,6 +1208,17 @@ namespace MHServerEmu.Games.Entities
             bool canMove = item.PlayerCanMove(this, ref invLoc, out InventoryResult canMoveResult, out PropertyEnum canMoveResultProperty, out _);
             if (!Verify.IsTrue(canMove, $"PlayerCanMove check failed, player=[{this}], item={item}, canMoveResult={canMoveResult}, canMoveResultProperty=[{canMoveResultProperty}]"))
                 return false;
+
+#if GAME_VERSION_1_53
+            // Special handling for when a player tries to equip a legacy costume item in 1.53.
+            if (item.Prototype is CostumePrototype && inventory.ConvenienceLabel == InventoryConvenienceLabel.Costume)
+            {
+                Avatar avatar = CurrentAvatar;
+                if (!Verify.IsNotNull(avatar)) return false;
+
+                return avatar.UseInteractableObject(item.Id, PrototypeId.Invalid);
+            }
+#endif
 
             // Move
             ulong? stackEntityId = InvalidId;
@@ -1255,12 +1262,7 @@ namespace MHServerEmu.Games.Entities
             InventoryResult result = item.SplitStack(ref invLoc, 1);
 
             if (result == InventoryResult.InventoryFull)
-            {
-                SendMessage(NetMessageInventoryFull.CreateBuilder()
-                    .SetPlayerID(Id)
-                    .SetItemID(InvalidId)
-                    .Build());
-            }
+                SendInventoryFullMessage(InvalidId, inventory.PrototypeDataRef);
 
             return result == InventoryResult.Success;
         }
@@ -1305,7 +1307,7 @@ namespace MHServerEmu.Games.Entities
             item.ChangeInventoryLocation(null);
 
             // Drop it
-            using EntitySettings settings = ObjectPoolManager.Instance.Get<EntitySettings>();
+            using var settingsHandle = EntitySettingsPool.Get(out EntitySettings settings);
             settings.OptionFlags |= EntitySettingsOptionFlags.IsNewOnServer;
             settings.SourceEntityId = avatar.Id;
             settings.SourcePosition = avatar.RegionLocation.Position;
@@ -1677,7 +1679,7 @@ namespace MHServerEmu.Games.Entities
         /// </summary>
         private void OnEnterGameInitStashTabOptions()
         {
-            using var stashInvRefsHandle = ListPool<PrototypeId>.Instance.Get(out List<PrototypeId> stashInvRefs);
+            using var stashInvRefsHandle = ListPool<PrototypeId>.Get(out List<PrototypeId> stashInvRefs);
             if (!Verify.IsTrue(GetStashInventoryProtoRefs(stashInvRefs, false, true))) return;
 
             foreach (PrototypeId stashRef in stashInvRefs)
@@ -1768,7 +1770,7 @@ namespace MHServerEmu.Games.Entities
             Inventory avatarLibrary = GetInventory(InventoryConvenienceLabel.AvatarLibrary);
             if (!Verify.IsNotNull(avatarLibrary)) return null;
 
-            using EntitySettings avatarSettings = ObjectPoolManager.Instance.Get<EntitySettings>();
+            using var avatarSettingsHandle = EntitySettingsPool.Get(out EntitySettings avatarSettings);
             avatarSettings.EntityRef = avatarProtoRef;
             avatarSettings.InventoryLocation = new(Id, avatarLibrary.PrototypeDataRef);
 
@@ -1811,7 +1813,7 @@ namespace MHServerEmu.Games.Entities
             Inventory teamUpLibrary = GetInventory(InventoryConvenienceLabel.TeamUpLibrary);
             if (!Verify.IsNotNull(teamUpLibrary)) return false;
 
-            using EntitySettings settings = ObjectPoolManager.Instance.Get<EntitySettings>();
+            using var settingsHandle = EntitySettingsPool.Get(out EntitySettings settings);
             settings.InventoryLocation = new(Id, teamUpLibrary.PrototypeDataRef);
             settings.EntityRef = teamUpRef;
 
@@ -1978,7 +1980,7 @@ namespace MHServerEmu.Games.Entities
             Logger.Trace($"EnableCurrentAvatar(): [{CurrentAvatar}] entering world in region [{region}]");
 
             // Disable initial visibility and schedule swap-in power if requested
-            using EntitySettings settings = ObjectPoolManager.Instance.Get<EntitySettings>();
+            using var settingsHandle = EntitySettingsPool.Get(out EntitySettings settings);
             if (withSwapInPower)
             {
                 settings.OptionFlags = EntitySettingsOptionFlags.IsClientEntityHidden;
@@ -2209,6 +2211,12 @@ namespace MHServerEmu.Games.Entities
                     return true;
             }
 
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
+            // Costume unlocks
+            if (HasCostumeUnlocked(itemProtoRef))
+                return true;
+#endif
+
             return false;
         }
 
@@ -2270,13 +2278,15 @@ namespace MHServerEmu.Games.Entities
             return unlockType;
         }
 
-        public bool UnlockAvatar(PrototypeId avatarRef, bool sendToClient)
+        public bool UnlockAvatar(PrototypeId avatarRef, AvatarUnlockType unlockType, bool sendToClient)
         {
-            AvatarUnlockType currentUnlockType = GetAvatarUnlockType(avatarRef);
-            if (currentUnlockType != AvatarUnlockType.None && currentUnlockType != AvatarUnlockType.Starter)
-                return false;
+            if (!Verify.IsTrue(avatarRef != PrototypeId.Invalid)) return false;
+            if (!Verify.IsTrue(unlockType != AvatarUnlockType.None)) return false;
 
-            Properties[PropertyEnum.AvatarUnlock, avatarRef] = (int)AvatarUnlockType.Type2;
+            AvatarUnlockType currentUnlockType = GetAvatarUnlockType(avatarRef);
+            if (!Verify.IsTrue(currentUnlockType == AvatarUnlockType.None || currentUnlockType == AvatarUnlockType.Starter)) return false;
+
+            Properties[PropertyEnum.AvatarUnlock, avatarRef] = (int)unlockType;
             GetRegion()?.PlayerUnlockedAvatarEvent.Invoke(new(this, avatarRef));
             OnScoringEvent(new(ScoringEventType.AvatarsUnlocked, avatarRef.As<AvatarPrototype>(), 1));
 
@@ -2381,7 +2391,7 @@ namespace MHServerEmu.Games.Entities
             if (!Verify.IsNotNull(region)) return CanSwitchAvatarResult.NotAllowedUnknown;
 
             // Region lock
-            if (region.AvatarSwapEnabled == false && CurrentHUDTutorial?.HighlightAvatars.HasValue() == false)
+            if (region.AvatarSwapEnabled == false && CurrentHUDTutorial?.HighlightAvatars.HasValue() != true)
                 return CanSwitchAvatarResult.NotAllowedInRegion;
 
             RegionPrototype regionProto = region.Prototype;
@@ -2733,9 +2743,8 @@ namespace MHServerEmu.Games.Entities
         {
             IsOnLoadingScreen = true;
 
-            SendMessage(NetMessageQueueLoadingScreen.CreateBuilder()
-                .SetRegionPrototypeId((ulong)regionProtoRef)
-                .Build());
+            using var builderHandle = ProtobufBuilderPool<NetMessageQueueLoadingScreen.Builder>.Get(out var builder);
+            SendMessage(builder.SetRegionPrototypeId((ulong)regionProtoRef).Build());
         }
 
         public void QueueLoadingScreen(ulong regionId)
@@ -3381,8 +3390,8 @@ namespace MHServerEmu.Games.Entities
             if (!Verify.IsTrue(gotB, $"Failed to get one or more trade inventories for target player [{playerB}]"))
                 return false;
 
-            using var itemsAHandle = ListPool<Entity>.Instance.Get(out List<Entity> itemsA);
-            using var itemsBHandle = ListPool<Entity>.Instance.Get(out List<Entity> itemsB);
+            using var itemsAHandle = ListPool<Entity>.Get(out List<Entity> itemsA);
+            using var itemsBHandle = ListPool<Entity>.Get(out List<Entity> itemsB);
 
             GatherItemsForPlayerTrade(tradeInvA, itemsA);
             GatherItemsForPlayerTrade(tradeInvB, itemsB);
@@ -3587,7 +3596,7 @@ namespace MHServerEmu.Games.Entities
             var missionProto = GameDatabase.MissionGlobalsPrototype;
             if (currencyProto == null || missionProto?.LegendaryRerollCost == null) return;
 
-            using EvalContextData evalContext = ObjectPoolManager.Instance.Get<EvalContextData>();
+            using var evalContextHandle = EvalContextDataPool.Get(out EvalContextData evalContext);
             evalContext.Game = Game;
             evalContext.SetVar_EntityPtr(EvalContext.Default, avatar);
             int rerollCost = Eval.RunInt(missionProto.LegendaryRerollCost, evalContext);
@@ -3968,6 +3977,19 @@ namespace MHServerEmu.Games.Entities
             return SendBannerMessage(bannerMessageProtoRef.As<BannerMessagePrototype>());
         }
 
+        public void SendInventoryFullMessage(ulong itemId, PrototypeId inventoryProtoRef = PrototypeId.Invalid)
+        {
+            NetMessageInventoryFull message = NetMessageInventoryFull.CreateBuilder()
+                .SetPlayerID(Id)
+                .SetItemID(itemId)
+#if GAME_VERSION_1_53
+                .SetInventoryPrototypeID((ulong)inventoryProtoRef)
+#endif
+                .Build();
+
+            SendMessage(message);
+        }
+
         #endregion
 
         #region Scoring Events
@@ -3992,7 +4014,7 @@ namespace MHServerEmu.Games.Entities
             Party party = GetParty();
             if (party != null && party.Type == GroupType.GroupType_Party && avatars.Count > 0)
             {
-                using var newFiltersHandle = ListPool<PrototypeId>.Instance.Get(out List<PrototypeId> newFilters);
+                using var newFiltersHandle = ListPool<PrototypeId>.Get(out List<PrototypeId> newFilters);
 
                 foreach (PrototypeId partyFilterProtoRef in DataDirectory.Instance.IteratePrototypesInHierarchy<PartyFilterPrototype>(PrototypeIterateFlags.NoAbstractApprovedOnly))
                 {
@@ -4085,7 +4107,7 @@ namespace MHServerEmu.Games.Entities
                 foreach (PrototypeId avatarRef in GameDatabase.DataDirectory.IteratePrototypesInHierarchy<AvatarPrototype>(PrototypeIterateFlags.NoAbstractApprovedOnly))
                 {
                     if (avatarRef == (PrototypeId)6044485448390219466) continue;   //zzzBrevikOLD.prototype
-                    UnlockAvatar(avatarRef, false);
+                    UnlockAvatar(avatarRef, AvatarUnlockType.Default, false);
                 }
             }
 
@@ -4128,11 +4150,26 @@ namespace MHServerEmu.Games.Entities
 
         public void SetTipSeen(PrototypeId tipDataRef)
         {
-            if (tipDataRef == PrototypeId.Invalid) return;
-            Properties[PropertyEnum.TutorialHasSeenTip, tipDataRef] = true;
-        }
+            if (!Verify.IsTrue(tipDataRef != PrototypeId.Invalid)) return;
 
-        // V48_TODO: TutorialSystem::ShowTip() for TipPrototype separate from ShowHUDTutorial
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
+            Properties[PropertyEnum.TutorialHasSeenTip, tipDataRef] = true;
+#else
+            TipPrototype tipProto = tipDataRef.As<TipPrototype>();
+            if (!Verify.IsNotNull(tipProto)) return;
+
+            if (tipProto.ShowForEachAvatar)
+            {
+                Avatar avatar = CurrentAvatar;
+                if (avatar != null)
+                    avatar.Properties[PropertyEnum.TutorialHasSeenTip, tipDataRef] = true;
+            }
+            else
+            {
+                Properties[PropertyEnum.TutorialHasSeenTip, tipDataRef] = true;
+            }
+#endif
+        }
 
         public void ShowHUDTutorial(HUDTutorialPrototype hudTutorialProto)
         {
@@ -4211,6 +4248,27 @@ namespace MHServerEmu.Games.Entities
 
         #endregion
 
+        #region Costumes
+
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
+        public bool HasCostumeUnlocked(PrototypeId costumeProtoRef)
+        {
+            return Properties[PropertyEnum.CostumeUnlock, costumeProtoRef];
+        }
+#endif
+
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
+        public void UnlockCostume(PrototypeId costumeProtoRef)
+        {
+            CostumePrototype costumeProto = costumeProtoRef.As<CostumePrototype>();
+            if (!Verify.IsNotNull(costumeProto)) return;
+
+            Properties[PropertyEnum.CostumeUnlock, costumeProtoRef] = true;
+        }
+#endif
+
+        #endregion
+
         #region Daily Login
 
         public void CheckDailyLogin()
@@ -4251,7 +4309,7 @@ namespace MHServerEmu.Games.Entities
             bool rollover = false;
 
             // Check the rollover (daily at 10 AM UTC+0, same as shared quests)
-            using PropertyCollection rolloverProperties = ObjectPoolManager.Instance.Get<PropertyCollection>();
+            using var rolloverPropertiesHandle = PropertyCollectionPool.Get(out PropertyCollection rolloverProperties);
             rolloverProperties[PropertyEnum.LootCooldownRolloverWallTime, 0, (PropertyParam)Weekday.All] = 10f;
 
             TimeSpan currentTime = Clock.UnixTime;
@@ -4419,8 +4477,8 @@ namespace MHServerEmu.Games.Entities
             CommunityCircle partyCircle = Community?.GetCircle(CircleId.__Party);
             if (!Verify.IsNotNull(partyCircle)) return false;
 
-            using var avatarsHandle = ListPool<AvatarPrototype>.Instance.Get(out List<AvatarPrototype> avatars);
-            using var costumesHandle = ListPool<CostumePrototype>.Instance.Get(out List<CostumePrototype> costumes);
+            using var avatarsHandle = ListPool<AvatarPrototype>.Get(out List<AvatarPrototype> avatars);
+            using var costumesHandle = ListPool<CostumePrototype>.Get(out List<CostumePrototype> costumes);
 
             ulong playerDbId = DatabaseUniqueId;
             int playerIndex = -1;
@@ -4651,7 +4709,7 @@ namespace MHServerEmu.Games.Entities
             if (mapDiscoveryData == null)
                 return;
 
-            using var partyMembersHandle = ListPool<Player>.Instance.Get(out List<Player> partyMembers);
+            using var partyMembersHandle = ListPool<Player>.Get(out List<Player> partyMembers);
 
             EntityManager entityManager = Game.EntityManager;
             foreach (var kvp in party)
@@ -4746,7 +4804,7 @@ namespace MHServerEmu.Games.Entities
             }
 
             // Teleport
-            using Teleporter teleporter = ObjectPoolManager.Instance.Get<Teleporter>();
+            using var teleporterHandle = TeleporterPool.Get(out Teleporter teleporter);
             teleporter.Initialize(this, TeleportContextEnum.TeleportContext_Party);
             return teleporter.TeleportToPlayer(targetPlayerDbId);
         }
@@ -4866,7 +4924,7 @@ namespace MHServerEmu.Games.Entities
         {
             _permaBuffProperties.Clear();
 
-            using PropertyCollection unlockedPermaBuffs = ObjectPoolManager.Instance.Get<PropertyCollection>();
+            using var unlockedPermaBuffsHandle = PropertyCollectionPool.Get(out PropertyCollection unlockedPermaBuffs);
             unlockedPermaBuffs.CopyPropertyRange(Properties, PropertyEnum.PermaBuff);
 
             foreach (var kvp in unlockedPermaBuffs.IteratePropertyRange(PropertyEnum.PermaBuff))
@@ -4887,9 +4945,9 @@ namespace MHServerEmu.Games.Entities
             if (permaBuffProto.EvalAvatarProperties == null)
                 return true;
 
-            using PropertyCollection tempProps = ObjectPoolManager.Instance.Get<PropertyCollection>();
-            
-            using EvalContextData evalContext = ObjectPoolManager.Instance.Get<EvalContextData>();
+            using var tempPropsHandle = PropertyCollectionPool.Get(out PropertyCollection tempProps);
+
+            using var evalContextHandle = EvalContextDataPool.Get(out EvalContextData evalContext);
             evalContext.SetVar_PropertyCollectionPtr(EvalContext.Default, tempProps);
             Eval.RunBool(permaBuffProto.EvalAvatarProperties, evalContext);
 

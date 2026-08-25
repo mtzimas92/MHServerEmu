@@ -530,6 +530,17 @@ namespace MHServerEmu.Games.GameData.Prototypes
         }
 #endif
 
+#if GAME_VERSION_1_48
+        public int GetPowerPointsGrantedAtLevel(int level, int startingLevel = 1)
+        {
+            Curve curve = PowerPointsGrantedAtLevel.AsCurve();
+            if (!Verify.IsNotNull(curve)) return 0;
+
+            level = Math.Max(level, startingLevel);
+            return curve.IntegrateDiscreteInt(startingLevel, level);
+        }
+#endif
+
         public PetTechAffixInfoPrototype GetPetTechAffixInfoPrototype(AffixPosition position)
         {
             if (!Verify.IsTrue(PetTechAffixInfo.HasValue())) return null;
@@ -889,13 +900,23 @@ namespace MHServerEmu.Games.GameData.Prototypes
         public PrototypeId MessageAlreadyInQueue { get; protected set; }
         public PrototypeId MessageOnlyPartyLeaderCanQueue { get; protected set; }
         public PrototypeId MessageTeleportTargetIsInMatch { get; protected set; }
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
         [PrototypeField(PrototypeFieldType.PrototypeRefPtr)]
         public HUDTutorialPrototype PowerGrantItemTutorialTip { get; protected set; }
+#else
+        [PrototypeField(PrototypeFieldType.PrototypeRefPtr)]
+        public TipPrototype PowerGrantItemTutorialTip { get; protected set; }
+#endif
         public PrototypeId MessagePrivateDisallowedInRaid { get; protected set; }
         public PrototypeId MessageQueueNotAvailableInRaid { get; protected set; }
         public PrototypeId PowerTooltipBodyNextRank1Antireq { get; protected set; }
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
         [PrototypeField(PrototypeFieldType.PrototypeRefPtr)]
         public HUDTutorialPrototype CosmicEquippedTutorialTip { get; protected set; }
+#else
+        [PrototypeField(PrototypeFieldType.PrototypeRefPtr)]
+        public TipPrototype CosmicEquippedTutorialTip { get; protected set; }
+#endif
         public PrototypeId MessageRegionDisabledPortalFail { get; protected set; }
 #if GAME_VERSION_1_48
         public PrototypeId PowerTooltipBodyTeamUp { get; protected set; }

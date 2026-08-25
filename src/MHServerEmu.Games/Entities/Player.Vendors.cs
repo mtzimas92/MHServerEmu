@@ -111,7 +111,7 @@ namespace MHServerEmu.Games.Entities
             PrototypeId vendorTypeProtoRef = vendorXPCapInfoProto.Vendor;
 
             // Find out when the current rollover happened
-            using PropertyCollection rolloverProperties = ObjectPoolManager.Instance.Get<PropertyCollection>();
+            using var rolloverPropertiesHandle = PropertyCollectionPool.Get(out PropertyCollection rolloverProperties);
             rolloverProperties[PropertyEnum.LootCooldownRolloverWallTime, 0, (PropertyParam)vendorXPCapInfoProto.WallClockTimeDay] = vendorXPCapInfoProto.WallClockTime24Hr;
             LootUtilities.GetLastLootCooldownRolloverWallTime(rolloverProperties, Clock.UnixTime + TimeSpan.FromDays(7), out TimeSpan lastRolloverTime);
 
@@ -185,7 +185,7 @@ namespace MHServerEmu.Games.Entities
             if (isCloning)
             {
                 // Create a clone
-                using EntitySettings settings = ObjectPoolManager.Instance.Get<EntitySettings>();
+                using var settingsHandle = EntitySettingsPool.Get(out EntitySettings settings);
                 settings.EntityRef = item.PrototypeDataRef;
                 settings.ItemSpec = new(item.ItemSpec);
                 settings.InventoryLocation = new(Id, destinationInventory.PrototypeDataRef, destinationSlot);
@@ -393,6 +393,33 @@ namespace MHServerEmu.Games.Entities
             return RefreshVendorInventoryInternal(vendorTypeProtoRef);
         }
 
+#if GAME_VERSION_1_48
+        public bool HasUsedInitialFreeAvatarUnlock()
+        {
+            foreach (var kvp in Properties.IteratePropertyRange(PropertyEnum.AvatarUnlock))
+            {
+                AvatarUnlockType unlockType = (AvatarUnlockType)(int)kvp.Value;
+                if (unlockType == AvatarUnlockType.FreeUnlock)
+                    return true;
+            }
+
+            return false;
+        }
+#endif
+
+#if GAME_VERSION_1_48
+        public bool CanUnlockAvatarForFree(PrototypeId avatarProtoRef)
+        {
+            if (HasUsedInitialFreeAvatarUnlock())
+                return false;
+
+            if (GetAvatarUnlockType(avatarProtoRef) != AvatarUnlockType.Starter)
+                return false;
+
+            return true;
+        }
+#endif
+
         public PurchaseUnlockResult CanPurchaseUnlock(PrototypeId agentProtoRef)
         {
             AgentPrototype agentProto = agentProtoRef.As<AgentPrototype>();
@@ -409,6 +436,11 @@ namespace MHServerEmu.Games.Entities
             {
                 if (HasAvatarFullyUnlocked(agentProtoRef))
                     return PurchaseUnlockResult.AlreadyUnlocked;
+
+#if GAME_VERSION_1_48
+                if (CanUnlockAvatarForFree(agentProtoRef))
+                    return PurchaseUnlockResult.Success;
+#endif
             }
             else
             {
@@ -451,6 +483,8 @@ namespace MHServerEmu.Games.Entities
 
         public PurchaseUnlockResult PurchaseUnlock(PrototypeId agentProtoRef)
         {
+            if (!Verify.IsTrue(agentProtoRef != PrototypeId.Invalid)) return PurchaseUnlockResult.UnknownFailure;
+
             PurchaseUnlockResult result = CanPurchaseUnlock(agentProtoRef);
             if (result != PurchaseUnlockResult.Success)
                 return result;
@@ -463,7 +497,12 @@ namespace MHServerEmu.Games.Entities
 
             if (agentProto is AvatarPrototype)
             {
-                if (!Verify.IsTrue(UnlockAvatar(agentProtoRef, true))) return PurchaseUnlockResult.UnknownFailure;
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
+                AvatarUnlockType unlockType = AvatarUnlockType.Default;
+#else
+                AvatarUnlockType unlockType = HasUsedInitialFreeAvatarUnlock() ? AvatarUnlockType.Default : AvatarUnlockType.FreeUnlock;
+#endif
+                if (!Verify.IsTrue(UnlockAvatar(agentProtoRef, unlockType, true))) return PurchaseUnlockResult.UnknownFailure;
             }
             else
             {
@@ -650,7 +689,7 @@ namespace MHServerEmu.Games.Entities
             int tableLevel;
             if (vendorTypeProto.IsCrafter == false)
             {
-                using EvalContextData evalContext = ObjectPoolManager.Instance.Get<EvalContextData>();
+                using var evalContextHandle = EvalContextDataPool.Get(out EvalContextData evalContext);
                 evalContext.SetReadOnlyVar_PropertyCollectionPtr(EvalContext.Entity, Properties);
                 evalContext.SetReadOnlyVar_PropertyCollectionPtr(EvalContext.Other, avatar?.Properties);
                 evalContext.SetReadOnlyVar_ProtoRef(EvalContext.Var1, vendorTypeProtoRef);
@@ -689,7 +728,7 @@ namespace MHServerEmu.Games.Entities
             if (vendorTypeProto.IsCrafter)
                 return true;
 
-            using var inventoryListHandle = ListPool<PrototypeId>.Instance.Get(out List<PrototypeId> inventoryList);
+            using var inventoryListHandle = ListPool<PrototypeId>.Get(out List<PrototypeId> inventoryList);
             vendorTypeProto.GetInventories(inventoryList);
 
             foreach (PrototypeId inventoryProtoRef in inventoryList)
@@ -731,8 +770,8 @@ namespace MHServerEmu.Games.Entities
             if (isInitializing && _initializedVendorTypeProtoRefs.Add(vendorTypeProtoRef) == false)
                 return true;
 
-            using var inventoryListHandle = ListPool<PrototypeId>.Instance.Get(out List<PrototypeId> inventoryList);
-            using var craftingIngredientSetHandle = HashSetPool<PrototypeId>.Instance.Get(out HashSet<PrototypeId> craftingIngredientSet);
+            using var inventoryListHandle = ListPool<PrototypeId>.Get(out List<PrototypeId> inventoryList);
+            using var craftingIngredientSetHandle = HashSetPool<PrototypeId>.Get(out HashSet<PrototypeId> craftingIngredientSet);
 
             // Early return if there are no inventories to roll
             if (vendorTypeProto.GetInventories(inventoryList) == false)
@@ -809,7 +848,7 @@ namespace MHServerEmu.Games.Entities
                 if (lootTableProto != null)
                 {
                     // Initialize settings
-                    using LootRollSettings rollSettings = ObjectPoolManager.Instance.Get<LootRollSettings>();
+                    using var rollSettingsHandle = LootRollSettingsPool.Get(out LootRollSettings rollSettings);
                     rollSettings.Player = this;
                     rollSettings.UsableAvatar = ((PrototypeId)Properties[PropertyEnum.VendorRollAvatar, vendorTypeProtoRef]).As<AvatarPrototype>();
                     rollSettings.Level = Properties[PropertyEnum.VendorRollLevel, vendorTypeProtoRef];
@@ -822,7 +861,7 @@ namespace MHServerEmu.Games.Entities
                     }
 
                     // Initialize resolver and roll
-                    using ItemResolver resolver = ObjectPoolManager.Instance.Get<ItemResolver>();
+                    using var resolverHandle = ItemResolverPool.Get(out ItemResolver resolver);
                     resolver.Initialize(new(rollSeed));
                     resolver.SetContext(LootContext.Vendor, this);
 
@@ -832,7 +871,7 @@ namespace MHServerEmu.Games.Entities
                         continue;
 
                     // Create the rolled items
-                    using LootResultSummary lootResultSummary = ObjectPoolManager.Instance.Get<LootResultSummary>();
+                    using var lootResultSummaryHandle = LootResultSummaryPool.Get(out LootResultSummary lootResultSummary);
                     resolver.FillLootResultSummary(lootResultSummary);
 
                     if (!Verify.IsTrue(lootResultSummary.Types == LootType.Item, $"Rolled non-item loot for loot table {lootTableProto}, vendor type {vendorTypeProto}"))
@@ -858,7 +897,7 @@ namespace MHServerEmu.Games.Entities
                         if (stashTokenProto != null && stashTokenProto.Inventory != PrototypeId.Invalid && IsInventoryUnlocked(stashTokenProto.Inventory))
                             continue;
 
-                        using EntitySettings entitySettings = ObjectPoolManager.Instance.Get<EntitySettings>();
+                        using var entitySettingsHandle = EntitySettingsPool.Get(out EntitySettings entitySettings);
                         entitySettings.EntityRef = itemSpec.ItemProtoRef;
                         entitySettings.ItemSpec = itemSpec;
 
@@ -903,7 +942,7 @@ namespace MHServerEmu.Games.Entities
                             if (vendorTypeProto.ContainsCraftingRecipeCategory(recipeProto.RecipeCategory) == false)
                                 continue;
 
-                            using EntitySettings settings = ObjectPoolManager.Instance.Get<EntitySettings>();
+                            using var settingsHandle = EntitySettingsPool.Get(out EntitySettings settings);
                             settings.EntityRef = recipe.PrototypeDataRef;
                             settings.ItemSpec = new(recipe.ItemSpec);
                             settings.InventoryLocation = new(Id, inventory.PrototypeDataRef);
@@ -979,8 +1018,8 @@ namespace MHServerEmu.Games.Entities
                 return VendorResult.BuyInventoryFull;
 
             WorldEntity vendor = Game.EntityManager.GetEntity<WorldEntity>(vendorId);
-            if (vendor == null) return Logger.WarnReturn(VendorResult.BuyFailure, "CanBuyItemFromVendor(): vendor == null");
-            if (vendor.IsVendor == false) return Logger.WarnReturn(VendorResult.BuyFailure, "CanBuyItemFromVendor(): vendor.IsVendor == false");
+            if (vendor == null) { Logger.Warn("CanBuyItemFromVendor(): vendor == null"); return VendorResult.BuyFailure; }
+            if (vendor.IsVendor == false) { Logger.Warn("CanBuyItemFromVendor(): vendor.IsVendor == false"); return VendorResult.BuyFailure; }
             bool isMythicRiftCompletionVendorOfferItem = IsMythicRiftCompletionVendorOfferItem(item, vendor);
 
             if (avatar.InInteractRange(vendor, InteractionMethod.Buy) == false)

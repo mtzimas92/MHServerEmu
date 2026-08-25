@@ -44,7 +44,7 @@ namespace MHServerEmu.Games.Network.Parsing
             {
                 Entity entity = DummyGame.AllocateEntity(entityPrototypeRef);
 
-                using EntitySettings settings = ObjectPoolManager.Instance.Get<EntitySettings>();
+		using var settingsHandle = EntitySettingsPool.Get(out EntitySettings settings);
                 settings.EntityRef = entityPrototypeRef;
                 settings.Id = entityId;
 

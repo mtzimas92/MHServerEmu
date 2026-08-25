@@ -186,7 +186,7 @@ namespace MHServerEmu.Games.MetaGames.GameModes
                 {
                     Avatar avatar = player?.CurrentAvatar;
                     if (avatar != null && avatar.IsInWorld)
-                        DinosWaveBattleLogCollator.AddParticipant(Game.Id, MetaGame.Id, $"{player.GetName()}_L{avatar.CharacterLevel}");
+                        DinosWaveBattleLogCollator.AddParticipant(Game.Id, MetaGame.Id, player.DatabaseUniqueId, $"{player.GetName()}_L{avatar.CharacterLevel}");
                 }
             }
 
@@ -365,7 +365,7 @@ namespace MHServerEmu.Games.MetaGames.GameModes
         // player count.
         private void SpawnWaveBatch(int clustersPerPlayer)
         {
-            using var playersHandle = ListPool<Player>.Instance.Get(out List<Player> players);
+            using var playersHandle = ListPool<Player>.Get(out List<Player> players);
             foreach (Player player in MetaGame.Players)
                 players.Add(player);
 
@@ -420,7 +420,7 @@ namespace MHServerEmu.Games.MetaGames.GameModes
             }
             Vector3 position = ChooseValidSpawnPosition(popObj, desiredPosition);
 
-            using var spawnedHandle = ListPool<WorldEntity>.Instance.Get(out List<WorldEntity> spawned);
+            using var spawnedHandle = ListPool<WorldEntity>.Get(out List<WorldEntity> spawned);
             Region.PopulationManager.SpawnObjectUsePosition(popObj, position, spawned);
             if (spawned.Count == 0) return;
 
@@ -479,7 +479,7 @@ namespace MHServerEmu.Games.MetaGames.GameModes
         {
             position = Vector3.Zero;
 
-            using var candidatesHandle = ListPool<Vector3>.Instance.Get(out List<Vector3> candidates);
+            using var candidatesHandle = ListPool<Vector3>.Get(out List<Vector3> candidates);
             foreach (Vector3 markerPosition in _encounterMarkerPositions)
                 if (Vector3.DistanceSquared2D(origin, markerPosition) <= radius * radius)
                     candidates.Add(markerPosition);
@@ -571,7 +571,7 @@ namespace MHServerEmu.Games.MetaGames.GameModes
 
             Vector3 position = ChooseBossSpawnPosition(bossObj);
 
-            using var spawnedHandle = ListPool<WorldEntity>.Instance.Get(out List<WorldEntity> spawned);
+            using var spawnedHandle = ListPool<WorldEntity>.Get(out List<WorldEntity> spawned);
             Region.PopulationManager.SpawnObjectUsePosition(bossObj, position, spawned);
             if (spawned.Count == 0) return;
 
@@ -607,7 +607,7 @@ namespace MHServerEmu.Games.MetaGames.GameModes
         // use those instead so the fight always happens in the built arena, drawing the party together.
         private Vector3 ChooseBossSpawnPosition(PopulationObjectPrototype bossObj)
         {
-            using var positionsHandle = ListPool<Vector3>.Instance.Get(out List<Vector3> positions);
+            using var positionsHandle = ListPool<Vector3>.Get(out List<Vector3> positions);
             Region.SpawnMarkerRegistry.GetPositionsByMarker(BossArenaMarkerRef, positions);
             if (positions.Count > 0)
             {
@@ -655,8 +655,8 @@ namespace MHServerEmu.Games.MetaGames.GameModes
             if (avatar == null || avatar.IsInWorld == false) return;
 
             Vector3 position = ChoosePowerUpPosition(avatar.RegionLocation.Position);
-
-            using EntitySettings settings = ObjectPoolManager.Instance.Get<EntitySettings>();
+	    
+	    using var settingsHandle = EntitySettingsPool.Get(out EntitySettings settings);
             settings.EntityRef = _proto.PowerUpItem;
             settings.Position = position;
             settings.Orientation = Orientation.Zero;
@@ -689,7 +689,7 @@ namespace MHServerEmu.Games.MetaGames.GameModes
         {
             if (_proto.PowerUpMarkerType != PrototypeId.Invalid)
             {
-                using var positionsHandle = ListPool<Vector3>.Instance.Get(out List<Vector3> positions);
+                using var positionsHandle = ListPool<Vector3>.Get(out List<Vector3> positions);
                 Region.SpawnMarkerRegistry.GetPositionsByMarker(_proto.PowerUpMarkerType, positions);
                 if (positions.Count > 0)
                     return positions[Game.Random.Next(0, positions.Count)];
@@ -844,7 +844,7 @@ namespace MHServerEmu.Games.MetaGames.GameModes
 
         private Player GetRandomPlayer()
         {
-            using var playersHandle = ListPool<Player>.Instance.Get(out List<Player> players);
+            using var playersHandle = ListPool<Player>.Get(out List<Player> players);
             foreach (Player player in MetaGame.Players)
                 players.Add(player);
 
@@ -854,8 +854,8 @@ namespace MHServerEmu.Games.MetaGames.GameModes
 
         private void EjectPlayer(Player player)
         {
-            using Teleporter teleporter = ObjectPoolManager.Instance.Get<Teleporter>();
-            teleporter.Initialize(player, TeleportContextEnum.TeleportContext_MetaGame);
+            using var teleporterHandle = TeleporterPool.Get(out Teleporter teleporter);
+	    teleporter.Initialize(player, TeleportContextEnum.TeleportContext_MetaGame);
             teleporter.TeleportToTarget(_proto.DeathRegionTarget);
         }
 
@@ -912,7 +912,7 @@ namespace MHServerEmu.Games.MetaGames.GameModes
 
         private static WorldEntityPrototype GetRepresentativeEntityProto(PopulationObjectPrototype popObj)
         {
-            using var entitiesHandle = HashSetPool<PrototypeId>.Instance.Get(out HashSet<PrototypeId> entities);
+            using var entitiesHandle = HashSetPool<PrototypeId>.Get(out HashSet<PrototypeId> entities);
             popObj.GetContainedEntities(entities);
             foreach (var entityRef in entities)
             {

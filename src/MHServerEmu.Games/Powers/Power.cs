@@ -191,7 +191,7 @@ namespace MHServerEmu.Games.Powers
 #if GAME_VERSION_1_52 || GAME_VERSION_1_53
             if (Owner is Avatar avatar && (avatar.HasPowerInPowerProgression(PrototypeDataRef) || avatar.HasMappedPower(PrototypeDataRef)))
             {
-                using var bonusDictHandle = DictionaryPool<PropertyId, PropertyValue>.Instance.Get(out Dictionary<PropertyId, PropertyValue> bonusDict);
+                using var bonusDictHandle = DictionaryPool<PropertyId, PropertyValue>.Get(out Dictionary<PropertyId, PropertyValue> bonusDict);
 
                 foreach (var kvp in avatar.Properties.IteratePropertyRange(PropertyEnum.PowerChargesMaxBonusForKwd))
                     bonusDict.Add(kvp.Key, kvp.Value);
@@ -346,7 +346,7 @@ namespace MHServerEmu.Games.Powers
             // Run evals
             if (powerProto.EvalOnCreate.HasValue())
             {
-                using EvalContextData evalContext = ObjectPoolManager.Instance.Get<EvalContextData>();
+                using var evalContextHandle = EvalContextDataPool.Get(out EvalContextData evalContext);
                 evalContext.Game = owner.Game;
                 evalContext.SetVar_PropertyCollectionPtr(EvalContext.Default, primaryCollection);
                 evalContext.SetReadOnlyVar_PropertyCollectionPtr(EvalContext.Entity, owner.Properties);
@@ -363,7 +363,7 @@ namespace MHServerEmu.Games.Powers
 
             if (powerProto.EvalPowerSynergies != null)
             {
-                using EvalContextData evalContext = ObjectPoolManager.Instance.Get<EvalContextData>();
+                using var evalContextHandle = EvalContextDataPool.Get(out EvalContextData evalContext);
                 evalContext.Game = owner.Game;
                 evalContext.SetVar_PropertyCollectionPtr(EvalContext.Default, primaryCollection);
                 evalContext.SetReadOnlyVar_PropertyCollectionPtr(EvalContext.Entity, owner.Properties);
@@ -448,7 +448,7 @@ namespace MHServerEmu.Games.Powers
             // Rerun creation evals
             if (powerProto.EvalOnCreate.HasValue())
             {
-                using EvalContextData evalContext = ObjectPoolManager.Instance.Get<EvalContextData>();
+                using var evalContextHandle = EvalContextDataPool.Get(out EvalContextData evalContext);
                 evalContext.Game = Game;
                 evalContext.SetVar_PropertyCollectionPtr(EvalContext.Default, Properties);
                 evalContext.SetReadOnlyVar_PropertyCollectionPtr(EvalContext.Entity, Owner.Properties);
@@ -471,8 +471,8 @@ namespace MHServerEmu.Games.Powers
                 {
                     PowerIndexProperties indexProperties = GetIndexProperties();
 
-                    var updatePropsMessage = NetMessageUpdatePowerIndexProps.CreateBuilder()
-                        .SetEntityId(Owner.Id)
+                    using var builderHandle = ProtobufBuilderPool<NetMessageUpdatePowerIndexProps.Builder>.Get(out var builder);
+                    var updatePropsMessage = builder.SetEntityId(Owner.Id)
                         .SetPowerProtoId((ulong)PrototypeDataRef)
                         .SetPowerRank(indexProperties.CombatLevel)
                         .SetCharacterLevel(indexProperties.CharacterLevel)
@@ -691,7 +691,7 @@ namespace MHServerEmu.Games.Powers
             if (powerProto.EvalOnActivate.HasValue())
             {
                 // Initialize context data
-                using EvalContextData evalContext = ObjectPoolManager.Instance.Get<EvalContextData>();
+                using var evalContextHandle = EvalContextDataPool.Get(out EvalContextData evalContext);
                 evalContext.Game = Game;
                 evalContext.SetVar_PropertyCollectionPtr(EvalContext.Default, Properties);
                 evalContext.SetVar_PropertyCollectionPtr(EvalContext.Entity, Owner.Properties);
@@ -712,7 +712,7 @@ namespace MHServerEmu.Games.Powers
 
                 if (target == null)
                 {
-                    using PropertyCollection properties = ObjectPoolManager.Instance.Get<PropertyCollection>();
+                    using var propertiesHandle = PropertyCollectionPool.Get(out PropertyCollection properties);
                     evalContext.SetVar_PropertyCollectionPtr(EvalContext.Other, properties);
                     evalsSucceeded = RunActivateEval(evalContext);
                 }
@@ -729,7 +729,7 @@ namespace MHServerEmu.Games.Powers
             // Run power synergy eval if defined
             if (powerProto.EvalPowerSynergies != null)
             {
-                using EvalContextData evalContext = ObjectPoolManager.Instance.Get<EvalContextData>();
+                using var evalContextHandle = EvalContextDataPool.Get(out EvalContextData evalContext);
                 evalContext.Game = Game;
                 evalContext.SetVar_PropertyCollectionPtr(EvalContext.Default, Properties);
                 evalContext.SetVar_PropertyCollectionPtr(EvalContext.Entity, Owner.Properties);
@@ -983,8 +983,8 @@ namespace MHServerEmu.Games.Powers
             payload.OnDeliverPayload();
 
             // Find targets for this power application
-            using var targetListHandle = ListPool<WorldEntity>.Instance.Get(out List<WorldEntity> targetList);
-            using var targetResultsListHandle = ListPool<PowerResults>.Instance.Get(out List<PowerResults> targetResultsList);
+            using var targetListHandle = ListPool<WorldEntity>.Get(out List<WorldEntity> targetList);
+            using var targetResultsListHandle = ListPool<PowerResults>.Get(out List<PowerResults> targetResultsList);
 
             GetTargets(targetList, payload);
             payload.Properties[PropertyEnum.TargetsHit] = targetList.Count;
@@ -1233,7 +1233,7 @@ namespace MHServerEmu.Games.Powers
             // Check stealth break override eval (e.g. talents that remove stealth break)
             if (powerProto.BreaksStealthOverrideEval != null)
             {
-                using EvalContextData evalContext = ObjectPoolManager.Instance.Get<EvalContextData>();
+                using var evalContextHandle = EvalContextDataPool.Get(out EvalContextData evalContext);
                 evalContext.SetVar_EntityPtr(EvalContext.Default, stealthedEntity);
                 if (Eval.RunBool(powerProto.BreaksStealthOverrideEval, evalContext) == false)
                     return false;
@@ -1343,8 +1343,8 @@ namespace MHServerEmu.Games.Powers
         private PowerUseResult StartDelayedActivation(ref PowerActivationSettings settings, SecondaryActivateOnReleasePrototype secondaryActivationProto)
         {
             // Send pre-activation message to nearby clients
-            var preActivatePower = NetMessagePreActivatePower.CreateBuilder()
-                .SetIdUserEntity(Owner.Id)
+            using var builderHandle = ProtobufBuilderPool<NetMessagePreActivatePower.Builder>.Get(out var builder);
+            var preActivatePower = builder.SetIdUserEntity(Owner.Id)
                 .SetPowerPrototypeId((ulong)PrototypeDataRef)
                 .SetIdTargetEntity(settings.TargetEntityId)
                 .SetTargetPosition(settings.TargetPosition.ToNetStructPoint3())
@@ -1881,7 +1881,7 @@ namespace MHServerEmu.Games.Powers
             if (conditionCollection == null)
                 return;
 
-            using var unpausedConditionListHandle = ListPool<TrackedCondition>.Instance.Get(out List<TrackedCondition> unpausedConditionList);
+            using var unpausedConditionListHandle = ListPool<TrackedCondition>.Get(out List<TrackedCondition> unpausedConditionList);
 
             for (int i = 0; i < _trackedConditionList.Count; i++)
             {
@@ -1904,7 +1904,7 @@ namespace MHServerEmu.Games.Powers
 
         private void RemoveTrackedConditions(bool allowUnpause)
         {
-            using var unpausedConditionListHandle = ListPool<TrackedCondition>.Instance.Get(out List<TrackedCondition> unpausedConditionList);
+            using var unpausedConditionListHandle = ListPool<TrackedCondition>.Get(out List<TrackedCondition> unpausedConditionList);
 
             EntityManager entityManager = Game.EntityManager;
 
@@ -2136,7 +2136,7 @@ namespace MHServerEmu.Games.Powers
             if (!Verify.IsNotNull(region)) return null;
 
             // Populate potential target picker
-            Picker<WorldEntity> picker = new(Game.Random);
+            using var pickerHandle = PickerPool<WorldEntity>.Get(Game.Random, out Picker<WorldEntity> picker);
             bool requiresLineOfSight = RequiresLineOfSight(powerProto);
             Sphere bounds = new(Owner.RegionLocation.Position, powerProto.Radius);
 
@@ -2730,6 +2730,9 @@ namespace MHServerEmu.Games.Powers
                 // Calculate and apply range multiplier
                 float rangeMult = 1f;
                 AccumulateKeywordProperties(ref rangeMult, powerProto, ownerProperties, ownerProperties, PropertyEnum.RangeModifierPctKeyword);
+#if GAME_VERSION_1_53
+                rangeMult += ownerProperties[PropertyEnum.RangeModifierPctForPower, powerProto.DataRef];
+#endif
                 range *= rangeMult;
             }
 
@@ -3462,7 +3465,7 @@ namespace MHServerEmu.Games.Powers
             EvalPrototype damageRatingEval = combatGlobals.EvalDamageRatingFormula;
             if (!Verify.IsNotNull(damageRatingEval)) return 0f;
 
-            using EvalContextData evalContext = ObjectPoolManager.Instance.Get<EvalContextData>();
+            using var evalContextHandle = EvalContextDataPool.Get(out EvalContextData evalContext);
             evalContext.SetReadOnlyVar_PropertyCollectionPtr(EvalContext.Entity, userProperties);
             evalContext.SetReadOnlyVar_PropertyCollectionPtr(EvalContext.Other, target.Properties);
             evalContext.SetVar_Float(EvalContext.Var1, damageRating);
@@ -3509,6 +3512,9 @@ namespace MHServerEmu.Games.Powers
 
             // Apply target keyword crit bonus
             target.AccumulateKeywordProperties(PropertyEnum.CritRatingBonusVsTargetKeyword, userProperties, ref critRatingAdd);            
+#if GAME_VERSION_1_53
+            target.AccumulateKeywordProperties(PropertyEnum.CritChancePctVsTgtKwd, userProperties, ref critChancePctAdd);
+#endif
 
             // Prepare int arguments for context data
             int critRating = (int)(critRatingAdd * MathF.Max(critRatingMult, 0f));
@@ -3517,7 +3523,7 @@ namespace MHServerEmu.Games.Powers
             int targetLevel = targetLevelOverride >= 0 ? targetLevelOverride : target.CombatLevel;
 
             // Run eval
-            using EvalContextData evalContext = ObjectPoolManager.Instance.Get<EvalContextData>();
+            using var evalContextHandle = EvalContextDataPool.Get(out EvalContextData evalContext);
             evalContext.SetReadOnlyVar_PropertyCollectionPtr(EvalContext.Entity, userProperties);
             evalContext.SetReadOnlyVar_PropertyCollectionPtr(EvalContext.Other, target.Properties);
             evalContext.SetVar_Int(EvalContext.Var1, critRating);
@@ -3553,6 +3559,10 @@ namespace MHServerEmu.Games.Powers
                 AccumulateKeywordProperties(ref superCritChancePctAdd, powerProto, userProperties, userProperties, PropertyEnum.SuperCritChancePctAddPowerKwd);
             }
 
+#if GAME_VERSION_1_53
+            target.AccumulateKeywordProperties(PropertyEnum.SuperCritChancePctVsTgtKwd, userProperties, ref superCritChancePctAdd);
+#endif
+
             // Prepare arguments for context data
             float superCritRating = superCritRatingAdd * MathF.Max(superCritRatingMult, 0f);
             int superCritChancePctAddInt = MathHelper.RoundToInt(superCritChancePctAdd * 100f);
@@ -3560,7 +3570,7 @@ namespace MHServerEmu.Games.Powers
             int targetLevel = targetLevelOverride >= 0 ? targetLevelOverride : target.CombatLevel;
 
             // Run eval
-            using EvalContextData evalContext = ObjectPoolManager.Instance.Get<EvalContextData>();
+            using var evalContextHandle = EvalContextDataPool.Get(out EvalContextData evalContext);
             evalContext.SetReadOnlyVar_PropertyCollectionPtr(EvalContext.Entity, userProperties);
             evalContext.SetReadOnlyVar_PropertyCollectionPtr(EvalContext.Other, target.Properties);
             evalContext.SetVar_Float(EvalContext.Var1, superCritRating);
@@ -3596,7 +3606,7 @@ namespace MHServerEmu.Games.Powers
                 critDamageRating += userProperties[PropertyEnum.SuperCritDamageRating];
 
             // Run crit damage rating eval
-            using EvalContextData evalContext = ObjectPoolManager.Instance.Get<EvalContextData>();
+            using var evalContextHandle = EvalContextDataPool.Get(out EvalContextData evalContext);
             evalContext.SetReadOnlyVar_PropertyCollectionPtr(EvalContext.Entity, userProperties);
             evalContext.SetReadOnlyVar_PropertyCollectionPtr(EvalContext.Other, target.Properties);
             evalContext.SetVar_Float(EvalContext.Var1, critDamageRating);
@@ -3629,7 +3639,7 @@ namespace MHServerEmu.Games.Powers
             EvalPrototype blockEvalProto = GameDatabase.CombatGlobalsPrototype.EvalBlockChanceFormula;
             if (!Verify.IsNotNull(blockEvalProto)) return 0f;
 
-            using EvalContextData evalContext = ObjectPoolManager.Instance.Get<EvalContextData>();
+            using var evalContextHandle = EvalContextDataPool.Get(out EvalContextData evalContext);
             evalContext.SetReadOnlyVar_PropertyCollectionPtr(EvalContext.Entity, targetProperties);
             evalContext.SetReadOnlyVar_PropertyCollectionPtr(EvalContext.Other, attackerProperties);
             evalContext.SetVar_Float(EvalContext.Var1, blockRating);
@@ -3658,7 +3668,7 @@ namespace MHServerEmu.Games.Powers
             EvalPrototype dodgeEvalProto = GameDatabase.CombatGlobalsPrototype.EvalDodgeChanceFormula;
             if (!Verify.IsNotNull(dodgeEvalProto)) return 0f;
 
-            using EvalContextData evalContext = ObjectPoolManager.Instance.Get<EvalContextData>();
+            using var evalContextHandle = EvalContextDataPool.Get(out EvalContextData evalContext);
             evalContext.SetReadOnlyVar_PropertyCollectionPtr(EvalContext.Entity, targetProperties);
             evalContext.SetReadOnlyVar_PropertyCollectionPtr(EvalContext.Other, attackerProperties);
 
@@ -3754,7 +3764,7 @@ namespace MHServerEmu.Games.Powers
                 // Owner is excluded from power activation messages unless explicitly flagged or this is a combo power triggered by the server (therefore the client is not aware of it)
                 bool skipOwner = settings.Flags.HasFlag(PowerActivationSettingsFlags.NotifyOwner) == false && settings.Flags.HasFlag(PowerActivationSettingsFlags.ServerCombo) == false;
 
-                using var interestedClientListHandle = ListPool<PlayerConnection>.Instance.Get(out List<PlayerConnection> interestedClientList);
+                using var interestedClientListHandle = ListPool<PlayerConnection>.Get(out List<PlayerConnection> interestedClientList);
                 if (networkManager.GetInterestedClients(interestedClientList, Owner, AOINetworkPolicyValues.AOIChannelProximity, skipOwner))
                 {
                     NetMessageActivatePower activatePowerMessage = ArchiveMessageBuilder.BuildActivatePowerMessage(this, ref settings);
@@ -3888,7 +3898,7 @@ namespace MHServerEmu.Games.Powers
             // Run pre-apply eval
             if (Prototype.EvalOnPreApply.HasValue())
             {
-                using EvalContextData evalContext = ObjectPoolManager.Instance.Get<EvalContextData>();
+                using var evalContextHandle = EvalContextDataPool.Get(out EvalContextData evalContext);
                 evalContext.Game = Game;
                 evalContext.SetVar_PropertyCollectionPtr(EvalContext.Default, payload.Properties);
                 evalContext.SetVar_PropertyCollectionPtr(EvalContext.Entity, Owner.Properties);
@@ -3899,7 +3909,7 @@ namespace MHServerEmu.Games.Powers
                 WorldEntity target = Game.EntityManager.GetEntity<WorldEntity>(payload.TargetId);
                 if (target == null)
                 {
-                    using PropertyCollection properties = ObjectPoolManager.Instance.Get<PropertyCollection>();
+                    using var propertiesHandle = PropertyCollectionPool.Get(out PropertyCollection properties);
                     evalContext.SetVar_PropertyCollectionPtr(EvalContext.Other, properties);
                     RunPreApplyEval(evalContext);
                 }
@@ -4054,13 +4064,13 @@ namespace MHServerEmu.Games.Powers
             // The owner's client should have canceled the power it requested on its own
             bool skipOwner = flags.HasFlag(EndPowerFlags.ClientRequest);
 
-            using var interestedClientListHandle = ListPool<PlayerConnection>.Instance.Get(out List<PlayerConnection> interestedClientList);
+            using var interestedClientListHandle = ListPool<PlayerConnection>.Get(out List<PlayerConnection> interestedClientList);
             if (networkManager.GetInterestedClients(interestedClientList, Owner, AOINetworkPolicyValues.AOIChannelProximity, skipOwner))
             {
                 // NOTE: Although NetMessageCancelPower is not an archive, it uses power prototype enums
                 ulong powerPrototypeEnum = (ulong)DataDirectory.Instance.GetPrototypeEnumValue<PowerPrototype>(PrototypeDataRef);
-                var cancelPowerMessage = NetMessageCancelPower.CreateBuilder()
-                    .SetIdAgent(Owner.Id)
+                using var builderHandle = ProtobufBuilderPool<NetMessageCancelPower.Builder>.Get(out var builder);
+                var cancelPowerMessage = builder.SetIdAgent(Owner.Id)
                     .SetPowerPrototypeId(powerPrototypeEnum)
                     .SetEndPowerFlags((uint)flags)
                     .Build();
@@ -4546,7 +4556,7 @@ namespace MHServerEmu.Games.Powers
                 return;
 
             // Look for potential targets in the AOE shape
-            using var potentialTargetListHandle = ListPool<WorldEntity>.Instance.Get(out List<WorldEntity> potentialTargetList);
+            using var potentialTargetListHandle = ListPool<WorldEntity>.Get(out List<WorldEntity> potentialTargetList);
             GetPotentialTargetsInShape(region, radius, in aoePosition, in aoeDirection, powerProto, potentialTargetList);
 
             // Set up random
@@ -4804,7 +4814,7 @@ namespace MHServerEmu.Games.Powers
             {
                 WorldEntity target = Game.EntityManager.GetEntity<WorldEntity>(settings.TargetEntityId);
 
-                using EvalContextData evalContext = ObjectPoolManager.Instance.Get<EvalContextData>();
+                using var evalContextHandle = EvalContextDataPool.Get(out EvalContextData evalContext);
                 evalContext.Game = Game;
                 evalContext.SetReadOnlyVar_PropertyCollectionPtr(EvalContext.Default, Properties);
                 evalContext.SetVar_PropertyCollectionPtr(EvalContext.Entity, Owner.Properties);
@@ -4956,14 +4966,14 @@ namespace MHServerEmu.Games.Powers
             ulong lastTargetId = payload.TargetId;
             float speed = payload.Properties[PropertyEnum.BounceSpeedPayload];
 
-            NetMessagePowerBounce.Builder bounceMessageBuilder = NetMessagePowerBounce.CreateBuilder()
-                .SetIdPowerUser(payload.PowerOwnerId)
+            using var bounceMessageBuilderHandle = ProtobufBuilderPool<NetMessagePowerBounce.Builder>.Get(out var bounceMessageBuilder);
+            bounceMessageBuilder.SetIdPowerUser(payload.PowerOwnerId)
                 .SetIdLastTarget(lastTargetId)
                 .SetPowerPrototypeId((ulong)payload.PowerProtoRef)
                 .SetUserOriginalAssetId((ulong)payload.Properties[PropertyEnum.CreatorEntityAssetRefBase])
                 .SetUserCurrentAssetId((ulong)payload.Properties[PropertyEnum.CreatorEntityAssetRefCurrent])
                 .SetProjectileSpeed(speed)
-                .SetFxRandomSeed((int)payload.FXRandomSeed);
+                .SetFxRandomSeed(payload.FXRandomSeed);
 
             // Do bouncing if we still have any to do
             int bounceCount = payload.Properties[PropertyEnum.BounceCountPayload];
