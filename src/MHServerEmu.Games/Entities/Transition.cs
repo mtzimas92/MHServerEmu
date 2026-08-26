@@ -187,6 +187,9 @@ namespace MHServerEmu.Games.Entities
 
         public bool UseTransition(Player player)
         {
+            if (Game.MythicRiftManager.TryUseRewardRoomPortal(player, this))
+                return true;
+
             if (Game.MythicRiftManager.TryUseReturnPortal(player, this))
                 return true;
 

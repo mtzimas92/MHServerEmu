@@ -1,0 +1,189 @@
+[
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/DropRestrictions/ArmorSlotTier/ArmorQuality.prototype",
+    "Path": "Children[0].AllowedRarities[]",
+    "Description": "[Omega Tier Items] Permit R6Omega on armor. Armor blueprints already carry R6Omega affix rows, but the shared armor rarity restriction did not allow the rarity to roll.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Items/Rarity/R6Omega.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Affixes/ChallengeBonusAffixes/ChallengeDurability.prototype",
+    "Path": "DropRestrictions[0].AllowedRarities[]",
+    "Description": "[Omega Tier Items] Permit challenge bonus affixes on R6Omega.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Items/Rarity/R6Omega.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Affixes/ChallengeBonusAffixes/ChallengeEnergy.prototype",
+    "Path": "DropRestrictions[0].AllowedRarities[]",
+    "Description": "[Omega Tier Items] Permit challenge bonus affixes on R6Omega.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Items/Rarity/R6Omega.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Affixes/ChallengeBonusAffixes/ChallengeFighting.prototype",
+    "Path": "DropRestrictions[0].AllowedRarities[]",
+    "Description": "[Omega Tier Items] Permit challenge bonus affixes on R6Omega.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Items/Rarity/R6Omega.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Affixes/ChallengeBonusAffixes/ChallengeIntelligence.prototype",
+    "Path": "DropRestrictions[0].AllowedRarities[]",
+    "Description": "[Omega Tier Items] Permit challenge bonus affixes on R6Omega.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Items/Rarity/R6Omega.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Affixes/ChallengeBonusAffixes/ChallengeSpeed.prototype",
+    "Path": "DropRestrictions[0].AllowedRarities[]",
+    "Description": "[Omega Tier Items] Permit challenge bonus affixes on R6Omega.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Items/Rarity/R6Omega.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Affixes/ChallengeBonusAffixes/ChallengeStrength.prototype",
+    "Path": "DropRestrictions[0].AllowedRarities[]",
+    "Description": "[Omega Tier Items] Permit challenge bonus affixes on R6Omega.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Items/Rarity/R6Omega.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/CosmicAffixes/CosmicDevastation.prototype",
+    "Path": "DropRestrictions[2].AllowedRarities[]",
+    "Description": "[Omega Tier Items] Let existing cosmic signature affixes roll in Omega's ArmorCosmic slot.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Items/Rarity/R6Omega.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/CosmicAffixes/CosmicInvul.prototype",
+    "Path": "DropRestrictions[2].AllowedRarities[]",
+    "Description": "[Omega Tier Items] Let existing cosmic signature affixes roll in Omega's ArmorCosmic slot.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Items/Rarity/R6Omega.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/CosmicAffixes/CosmicMight.prototype",
+    "Path": "DropRestrictions[2].AllowedRarities[]",
+    "Description": "[Omega Tier Items] Let existing cosmic signature affixes roll in Omega's ArmorCosmic slot.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Items/Rarity/R6Omega.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/CosmicAffixes/CosmicMightDemonReplacement.prototype",
+    "Path": "DropRestrictions[2].AllowedRarities[]",
+    "Description": "[Omega Tier Items] Let existing cosmic signature affixes roll in Omega's ArmorCosmic slot.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Items/Rarity/R6Omega.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/CosmicAffixes/CosmicMissileDampening.prototype",
+    "Path": "DropRestrictions[2].AllowedRarities[]",
+    "Description": "[Omega Tier Items] Let existing cosmic signature affixes roll in Omega's ArmorCosmic slot.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Items/Rarity/R6Omega.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/CosmicAffixes/CosmicMovement.prototype",
+    "Path": "DropRestrictions[2].AllowedRarities[]",
+    "Description": "[Omega Tier Items] Let existing cosmic signature affixes roll in Omega's ArmorCosmic slot.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Items/Rarity/R6Omega.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/CosmicAffixes/CosmicReflectOnDash.prototype",
+    "Path": "DropRestrictions[2].AllowedRarities[]",
+    "Description": "[Omega Tier Items] Let existing cosmic signature affixes roll in Omega's ArmorCosmic slot.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Items/Rarity/R6Omega.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/CosmicAffixes/CosmicStarFall.prototype",
+    "Path": "DropRestrictions[2].AllowedRarities[]",
+    "Description": "[Omega Tier Items] Let existing cosmic signature affixes roll in Omega's ArmorCosmic slot.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Items/Rarity/R6Omega.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Globals/LootGlobals.defaults",
+    "Path": "AffixCategoryTable[36].Affixes[]",
+    "Description": "[Omega Tier Items] Add TripleBoost to the Omega-exclusive ArmorOmega affix pool.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Items/Affixes/UltimateAffixes/TripleBoost.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Globals/LootGlobals.defaults",
+    "Path": "AffixCategoryTable[36].Affixes[]",
+    "Description": "[Omega Tier Items] Add AreaAttackResistance to the Omega-exclusive ArmorOmega affix pool.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Items/Affixes/UltimateAffixes/AreaAttackResistance.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Globals/LootGlobals.defaults",
+    "Path": "AffixCategoryTable[36].Affixes[]",
+    "Description": "[Omega Tier Items] Add MortalStrike to the Omega-exclusive ArmorOmega affix pool.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Items/Affixes/UltimateAffixes/MortalStrike.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Affixes/ArmorAffixes/Omega/OmegaSelfRez.prototype",
+    "Path": "Weight",
+    "Description": "[Omega Tier Items] Remove native OmegaSelfRez from the Omega-exclusive pool by weight; patcher appends cannot remove the native pool member.",
+    "ValueType": "Integer",
+    "Value": 0
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Affixes/UltimateAffixes/AreaAttackResistance.prototype",
+    "Path": "DropRestrictions[1].AllowedRarities[]",
+    "Description": "[Omega Tier Items] Permit the replacement Omega-exclusive prefix pool on R6Omega.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Items/Rarity/R6Omega.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Affixes/UltimateAffixes/TripleBoost.prototype",
+    "Path": "DropRestrictions[1].AllowedRarities[]",
+    "Description": "[Omega Tier Items] Permit the replacement Omega-exclusive prefix pool on R6Omega.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Items/Rarity/R6Omega.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Affixes/UltimateAffixes/MortalStrike.prototype",
+    "Path": "DropRestrictions[1].AllowedRarities[]",
+    "Description": "[Omega Tier Items] Permit the replacement Omega-exclusive prefix pool on R6Omega.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Items/Rarity/R6Omega.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Affixes/RingAffixes/RingLoot20/BuiltInHP/RingHealthOmega.prototype",
+    "Path": "DropRestrictions[1].AllowedRarities",
+    "Description": "[Omega Tier Items] Allow the Omega-tier built-in HP affix on R6Omega rings.",
+    "ValueType": "PrototypeIdArray",
+    "Value": [
+      "Entity/Items/Rarity/R5Cosmic.prototype",
+      "Entity/Items/Rarity/R6Omega.prototype"
+    ]
+  }
+]

@@ -2270,7 +2270,131 @@
                           }
                       ],
     "randomItemPools":  [
+                            {
+                                "id":  "omega-tier-armor-standard-levels-1-plus",
+                                "enabled":  true,
+                                "prototypeDirectoryPrefix":  "Entity/Items/Armor/Prototypes/",
+                                "itemRarityPrototype":  "Entity/Items/Rarity/R6Omega.prototype",
+                                "allowedEquipmentSlots":  [
+                                                              "Gear01",
+                                                              "Gear02",
+                                                              "Gear03",
+                                                              "Gear04",
+                                                              "Gear05"
+                                                          ],
+                                "rollEachAllowedEquipmentSlot":  true,
+                                "chancePercent":  100,
+                                "rolls":  1,
+                                "itemLevel":  69,
+                                "minRiftLevel":  1,
+                                "maxRiftLevel":  0,
+                                "minWave":  1,
+                                "maxWave":  0,
+                                "successOnly":  true,
+                                "checkpointOnly":  false,
+                                "classicOnly":  false,
+                                "modes":  [
+                                              "standard"
+                                          ],
+                                "contentIds":  [
 
+                                               ],
+                                "bossSourceIds":  [
+
+                                                  ],
+                                "delivery":  "ground"
+                            },
+                            {
+                                "id":  "omega-tier-ring-standard-levels-1-plus",
+                                "enabled":  true,
+                                "itemPrototypePaths":  [
+                                                           "Entity/Items/Rings/RingOffenseLoot20.prototype",
+                                                           "Entity/Items/Rings/RingDefenseLoot20.prototype"
+                                                       ],
+                                "itemRarityPrototype":  "Entity/Items/Rarity/R6Omega.prototype",
+                                "chancePercent":  100,
+                                "rolls":  1,
+                                "itemLevel":  69,
+                                "minRiftLevel":  1,
+                                "maxRiftLevel":  0,
+                                "minWave":  1,
+                                "maxWave":  0,
+                                "successOnly":  true,
+                                "checkpointOnly":  false,
+                                "classicOnly":  false,
+                                "modes":  [
+                                              "standard"
+                                          ],
+                                "contentIds":  [
+
+                                               ],
+                                "bossSourceIds":  [
+
+                                                  ],
+                                "delivery":  "ground"
+                            },
+                            {
+                                "id":  "omega-tier-armor-boss-gauntlet-wave-30-plus",
+                                "enabled":  true,
+                                "prototypeDirectoryPrefix":  "Entity/Items/Armor/Prototypes/",
+                                "itemRarityPrototype":  "Entity/Items/Rarity/R6Omega.prototype",
+                                "allowedEquipmentSlots":  [
+                                                              "Gear01",
+                                                              "Gear02",
+                                                              "Gear03",
+                                                              "Gear04",
+                                                              "Gear05"
+                                                          ],
+                                "chancePercent":  25,
+                                "rolls":  1,
+                                "itemLevel":  69,
+                                "minRiftLevel":  1,
+                                "maxRiftLevel":  0,
+                                "minWave":  30,
+                                "maxWave":  0,
+                                "successOnly":  true,
+                                "checkpointOnly":  false,
+                                "classicOnly":  false,
+                                "modes":  [
+                                              "boss-gauntlet"
+                                          ],
+                                "contentIds":  [
+
+                                               ],
+                                "bossSourceIds":  [
+
+                                                  ],
+                                "delivery":  "ground"
+                            },
+                            {
+                                "id":  "omega-tier-ring-boss-gauntlet-wave-30-plus",
+                                "enabled":  true,
+                                "itemPrototypePaths":  [
+                                                           "Entity/Items/Rings/RingOffenseLoot20.prototype",
+                                                           "Entity/Items/Rings/RingDefenseLoot20.prototype"
+                                                       ],
+                                "itemRarityPrototype":  "Entity/Items/Rarity/R6Omega.prototype",
+                                "chancePercent":  10,
+                                "rolls":  1,
+                                "itemLevel":  69,
+                                "minRiftLevel":  1,
+                                "maxRiftLevel":  0,
+                                "minWave":  30,
+                                "maxWave":  0,
+                                "successOnly":  true,
+                                "checkpointOnly":  false,
+                                "classicOnly":  false,
+                                "modes":  [
+                                              "boss-gauntlet"
+                                          ],
+                                "contentIds":  [
+
+                                               ],
+                                "bossSourceIds":  [
+
+                                                  ],
+                                "delivery":  "ground"
+                            }
                         ],
     "rewardShopOffers":  [
                              {

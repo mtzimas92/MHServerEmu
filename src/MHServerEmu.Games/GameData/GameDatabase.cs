@@ -9,6 +9,7 @@ using MHServerEmu.Games.GameData.Prototypes;
 using MHServerEmu.Games.GameData.Tables;
 using MHServerEmu.Games.Leaderboards;
 using MHServerEmu.Games.Locales;
+using MHServerEmu.Games.OmegaTierItems;
 using MHServerEmu.Games.Properties;
 
 namespace MHServerEmu.Games.GameData
@@ -117,6 +118,9 @@ namespace MHServerEmu.Games.GameData
                 loadAllWatch.Stop();
                 Logger.Info($"Loaded all prototypes in {loadAllWatch.ElapsedMilliseconds} ms");
             }
+
+            if (config.EnableOmegaTierItems)
+                OmegaTierAffixLimits.Apply();
 
             // Initialize InteractionManager
             Stopwatch loadInteraction = Stopwatch.StartNew();

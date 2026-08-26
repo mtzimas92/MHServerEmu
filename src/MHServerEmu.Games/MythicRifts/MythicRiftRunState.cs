@@ -37,6 +37,7 @@ namespace MHServerEmu.Games.MythicRifts
         public ulong RegionId { get; private set; }
         public ulong BossEntityId => _activeBossEntityIds.FirstOrDefault();
         public ulong ExitPortalEntityId { get; private set; }
+        public ulong RewardRoomPortalEntityId { get; private set; }
         public ulong CompletionVendorEntityId { get; private set; }
         public ulong CompletionCrafterEntityId { get; private set; }
         public ulong RewardRoomRegionId { get; private set; }
@@ -134,6 +135,11 @@ namespace MHServerEmu.Games.MythicRifts
         public void AttachExitPortal(ulong exitPortalEntityId)
         {
             ExitPortalEntityId = exitPortalEntityId;
+        }
+
+        public void AttachRewardRoomPortal(ulong rewardRoomPortalEntityId)
+        {
+            RewardRoomPortalEntityId = rewardRoomPortalEntityId;
         }
 
         public void AttachCompletionVendor(ulong completionVendorEntityId)

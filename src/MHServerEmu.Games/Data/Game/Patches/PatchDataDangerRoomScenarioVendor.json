@@ -1,0 +1,199 @@
+[
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Characters/Vendors/Prototypes/Endgame/DangerRoomScenarioVendor.prototype",
+    "Path": "DesignState",
+    "Description": "[ScenarioItems] Enable the unused Danger Room Scenario Vendor (native DesignState:NotInGame inherited from Vendor.defaults) so it can be spawned at Moira MacTaggert's old marker and sell the Blue/Purple/Cosmic scenario crates.",
+    "ValueType": "Enum",
+    "Value": "Live"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Consumables/Prototypes/DangerRoom/DangerRoomScenarioCrateBlue.prototype",
+    "Path": "DisplayName",
+    "Description": "[ScenarioItems] Name the actual blue crate sold by the Danger Room Scenario Vendor as the Cosmic Rift launcher.",
+    "ValueType": "LocaleStringId",
+    "Value": 18000000000000080010
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Consumables/Prototypes/DangerRoom/DangerRoomScenarioCrateBlue.prototype",
+    "Path": "TooltipDescription",
+    "Description": "[ScenarioItems] Tooltip for the actual blue crate sold by the Danger Room Scenario Vendor.",
+    "ValueType": "LocaleStringId",
+    "Value": 18000000000000080011
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Consumables/Prototypes/DangerRoom/DangerRoomScenarioCrateBlue.prototype",
+    "Path": "IconPath",
+    "Description": "[ScenarioItems] Give the actual Cosmic Rift vendor crate the Cosmic Rift icon.",
+    "ValueType": "AssetId",
+    "Value": 18109230673074853238
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Consumables/Prototypes/DangerRoom/DangerRoomScenarioCratePurple.prototype",
+    "Path": "DisplayName",
+    "Description": "[ScenarioItems] Name the actual purple crate sold by the Danger Room Scenario Vendor as the Rift Gauntlet launcher.",
+    "ValueType": "LocaleStringId",
+    "Value": 6233969392374514963
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Consumables/Prototypes/DangerRoom/DangerRoomScenarioCratePurple.prototype",
+    "Path": "TooltipDescription",
+    "Description": "[ScenarioItems] Tooltip for the actual purple crate sold by the Danger Room Scenario Vendor.",
+    "ValueType": "LocaleStringId",
+    "Value": 16293886189635437874
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Consumables/Prototypes/DangerRoom/DangerRoomScenarioCratePurple.prototype",
+    "Path": "IconPath",
+    "Description": "[ScenarioItems] Give the actual Rift Gauntlet vendor crate the Rift Gauntlet icon.",
+    "ValueType": "AssetId",
+    "Value": 18306558645704594592
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Consumables/Prototypes/DangerRoom/DangerRoomScenarioCratePurple.prototype",
+    "Path": "IconPathHiRes",
+    "Description": "[ScenarioItems] Give the actual Rift Gauntlet vendor crate the Rift Gauntlet high-resolution icon.",
+    "ValueType": "AssetId",
+    "Value": 18306558645704594592
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Consumables/Prototypes/DangerRoom/DangerRoomScenarioCratePurple.prototype",
+    "Path": "IconPathTooltipHeader",
+    "Description": "[ScenarioItems] Give the actual Rift Gauntlet vendor crate the Rift Gauntlet tooltip icon.",
+    "ValueType": "AssetId",
+    "Value": 18306558645704594592
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Consumables/Prototypes/DangerRoom/DangerRoomScenarioCratePurple.prototype",
+    "Path": "StoreIconPath",
+    "Description": "[ScenarioItems] Give the actual Rift Gauntlet vendor crate the Rift Gauntlet store/vendor icon.",
+    "ValueType": "AssetId",
+    "Value": 18306558645704594592
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Consumables/Prototypes/DangerRoom/DangerRoomScenarioCrateCosmic.prototype",
+    "Path": "DisplayName",
+    "Description": "[ScenarioItems] Name the actual cosmic crate sold by the Danger Room Scenario Vendor as the Boss Gauntlet launcher.",
+    "ValueType": "LocaleStringId",
+    "Value": 6934926540613879050
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Consumables/Prototypes/DangerRoom/DangerRoomScenarioCrateCosmic.prototype",
+    "Path": "TooltipDescription",
+    "Description": "[ScenarioItems] Tooltip for the actual cosmic crate sold by the Danger Room Scenario Vendor.",
+    "ValueType": "LocaleStringId",
+    "Value": 18388199697347446112
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Consumables/Prototypes/DangerRoom/DangerRoomScenarioCrateCosmic.prototype",
+    "Path": "IconPath",
+    "Description": "[ScenarioItems] Give the actual Boss Gauntlet vendor crate the Boss Gauntlet icon.",
+    "ValueType": "AssetId",
+    "Value": 16131469697309218259
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Consumables/Prototypes/DangerRoom/DangerRoomScenarioCrateCosmic.prototype",
+    "Path": "IconPathHiRes",
+    "Description": "[ScenarioItems] Give the actual Boss Gauntlet vendor crate the Boss Gauntlet high-resolution icon.",
+    "ValueType": "AssetId",
+    "Value": 16131469697309218259
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Consumables/Prototypes/DangerRoom/DangerRoomScenarioCrateCosmic.prototype",
+    "Path": "IconPathTooltipHeader",
+    "Description": "[ScenarioItems] Give the actual Boss Gauntlet vendor crate the Boss Gauntlet tooltip icon.",
+    "ValueType": "AssetId",
+    "Value": 16131469697309218259
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Consumables/Prototypes/DangerRoom/DangerRoomScenarioCrateCosmic.prototype",
+    "Path": "StoreIconPath",
+    "Description": "[ScenarioItems] Give the actual Boss Gauntlet vendor crate the Boss Gauntlet store/vendor icon.",
+    "ValueType": "AssetId",
+    "Value": 16131469697309218259
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Consumables/Prototypes/DangerRoom/DangerRoomScenarioCrateBlue.prototype",
+    "Path": "ActionsTriggeredOnItemEvent.Choices[0]",
+    "Description": "[ScenarioItems] Replace the crate's native OnUse (ItemActionReplaceSelfLootTable -> OneBlueScenario, which drops a themed one-off portal item into inventory) with an ItemActionUsePower using the same shared summon power (Powers/FortuneCards/DangerRoom/PortalToDangerRoomScenario.prototype) that all 3 real technical beacons use - ItemPrototype.GetPortalTarget() requires a genuine SummonPowerPrototype with SummonEntityContexts to resolve a target region at all, so a non-portal placeholder power (originally tried: DangerRoomScenarioCrateDropUniqueCableFight, a SpawnLootTable power) silently fails to launch anything.",
+    "ValueType": "Prototype",
+    "Value": {
+      "ParentDataRef": 15817198418951873143,
+      "Power": 1883924451478346644
+    }
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Consumables/Prototypes/DangerRoom/DangerRoomScenarioCrateBlue.prototype",
+    "Path": "ActionsTriggeredOnItemEvent.Choices[]",
+    "Description": "[ScenarioItems] Append the matching ItemActionDestroySelf (fires on OnUsePowerActivated by default) so the crate consumes itself once used, same as CableFight's own action list.",
+    "ValueType": "PrototypeDataRef",
+    "Value": 15651688269673866161
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Consumables/Prototypes/DangerRoom/DangerRoomScenarioCratePurple.prototype",
+    "Path": "ActionsTriggeredOnItemEvent.Choices[0]",
+    "Description": "[ScenarioItems] Same OnUse rewrite as DangerRoomScenarioCrateBlue, for the Rift Gauntlet Scenario launcher.",
+    "ValueType": "Prototype",
+    "Value": {
+      "ParentDataRef": 15817198418951873143,
+      "Power": 1883924451478346644
+    }
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Consumables/Prototypes/DangerRoom/DangerRoomScenarioCratePurple.prototype",
+    "Path": "ActionsTriggeredOnItemEvent.Choices[]",
+    "Description": "[ScenarioItems] Append matching ItemActionDestroySelf, same as DangerRoomScenarioCrateBlue.",
+    "ValueType": "PrototypeDataRef",
+    "Value": 15651688269673866161
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Consumables/Prototypes/DangerRoom/DangerRoomScenarioCrateCosmic.prototype",
+    "Path": "ActionsTriggeredOnItemEvent.Choices[0]",
+    "Description": "[ScenarioItems] Same OnUse rewrite as DangerRoomScenarioCrateBlue, for the Boss Gauntlet Scenario launcher.",
+    "ValueType": "Prototype",
+    "Value": {
+      "ParentDataRef": 15817198418951873143,
+      "Power": 1883924451478346644
+    }
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Consumables/Prototypes/DangerRoom/DangerRoomScenarioCrateCosmic.prototype",
+    "Path": "ActionsTriggeredOnItemEvent.Choices[]",
+    "Description": "[ScenarioItems] Append matching ItemActionDestroySelf, same as DangerRoomScenarioCrateBlue.",
+    "ValueType": "PrototypeDataRef",
+    "Value": 15651688269673866161
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Loot/Tables/Vendor/DangerRoom/DRScenario01.prototype",
+    "Path": "Choices",
+    "Description": "[ScenarioItems] Trim the vendor to exactly one scenario item per Rift mode: Cosmic Rift, Rift Gauntlet, and Boss Gauntlet.",
+    "ValueType": "PrototypeArray",
+    "Value": [
+      { "ParentDataRef": 1071992662862269383, "Item": 1306282991228953158 },
+      { "ParentDataRef": 1071992662862269383, "Item": 6837415083932197686 },
+      { "ParentDataRef": 1071992662862269383, "Item": 12417429671383147292 }
+    ]
+  }
+]

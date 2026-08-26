@@ -17,6 +17,7 @@ using MHServerEmu.Games.Loot;
 using MHServerEmu.Games.Loot.Specs;
 using MHServerEmu.Games.Missions;
 using MHServerEmu.Games.Navi;
+using MHServerEmu.Games.OmegaTierItems;
 using MHServerEmu.Games.Properties;
 using MHServerEmu.Games.Regions;
 using MHServerEmu.Games.Social.Parties;
@@ -206,13 +207,13 @@ namespace MHServerEmu.Games.MythicRifts
         {
             Game = game;
             TryReloadContentPool(out _contentPoolLastLoadMessage);
-            Logger.Info($"Mythic Rift content pool: {_contentPoolLastLoadMessage}");
+            Logger.Trace($"Mythic Rift content pool: {_contentPoolLastLoadMessage}");
             TryReloadRewardTuning(out _rewardTuningLastLoadMessage);
-            Logger.Info($"Mythic Rift reward tuning: {_rewardTuningLastLoadMessage}");
+            Logger.Trace($"Mythic Rift reward tuning: {_rewardTuningLastLoadMessage}");
             TryReloadHazardTuning(out _hazardTuningLastLoadMessage);
-            Logger.Info($"Mythic Rift hazard tuning: {_hazardTuningLastLoadMessage}");
+            Logger.Trace($"Mythic Rift hazard tuning: {_hazardTuningLastLoadMessage}");
             TryReloadAffixTuning(out _affixTuningLastLoadMessage);
-            Logger.Info($"Mythic Rift affix tuning: {_affixTuningLastLoadMessage}");
+            Logger.Trace($"Mythic Rift affix tuning: {_affixTuningLastLoadMessage}");
         }
 
         public IReadOnlyList<MythicRiftContentEntry> ContentPool => _contentPool;
@@ -1549,7 +1550,7 @@ namespace MHServerEmu.Games.MythicRifts
                 return;
 
             PrototypeId itemProtoRef = guaranteedItem.ItemProtoRef;
-            if (itemProtoRef == PrototypeId.Invalid || player == null)
+            if (player == null)
                 return;
 
             string delivery = deliveryOverride ?? guaranteedItem.Delivery;
@@ -1573,12 +1574,29 @@ namespace MHServerEmu.Games.MythicRifts
                 return;
             }
 
-            if (itemLevel > 1)
+            ItemSpec candidateItemSpec = null;
+            if (itemProtoRef == PrototypeId.Invalid && guaranteedItem.CandidateItemProtoRefs?.Count > 0)
             {
-                ItemSpec itemSpec = Game.LootManager.CreateItemSpec(itemProtoRef, LootContext.Drop, player, itemLevel);
+                candidateItemSpec = CreateRewardItemSpecFromCandidates(guaranteedItem, player, Math.Max(itemLevel, 1), out itemProtoRef);
+                if (candidateItemSpec == null)
+                {
+                    Logger.Warn($"Mythic Rift failed to create random reward item from pool id={guaranteedItem.Id} candidates={guaranteedItem.CandidateItemProtoRefs.Count} rarity={guaranteedItem.RarityProtoRef.GetNameFormatted()}.");
+                    return;
+                }
+            }
+
+            if (itemProtoRef == PrototypeId.Invalid)
+                return;
+
+            if (candidateItemSpec != null || itemLevel > 1 || guaranteedItem.RarityProtoRef != PrototypeId.Invalid)
+            {
+                int resolvedItemLevel = Math.Max(itemLevel, 1);
+                ItemSpec itemSpec = candidateItemSpec ?? (guaranteedItem.RarityProtoRef != PrototypeId.Invalid
+                    ? OmegaTierItemFactory.CreateItemSpec(Game, itemProtoRef, guaranteedItem.RarityProtoRef, LootContext.Drop, player, resolvedItemLevel)
+                    : Game.LootManager.CreateItemSpec(itemProtoRef, LootContext.Drop, player, resolvedItemLevel));
                 if (itemSpec == null)
                 {
-                    Logger.Warn($"Mythic Rift failed to create reward item {itemProtoRef.GetNameFormatted()} at level {itemLevel}.");
+                    Logger.Warn($"Mythic Rift failed to create reward item {itemProtoRef.GetNameFormatted()} at level {resolvedItemLevel} rarity={guaranteedItem.RarityProtoRef.GetNameFormatted()}.");
                     return;
                 }
 
@@ -1588,7 +1606,7 @@ namespace MHServerEmu.Games.MythicRifts
                 if (MythicRiftRewardTuning.IsGroundDelivery(delivery))
                 {
                     using var inputSettingsHandle = LootInputSettingsPool.Get(out LootInputSettings inputSettings);
-                    inputSettings.Initialize(LootContext.Drop, player, rewardSourceEntity, itemLevel, positionOverride);
+                    inputSettings.Initialize(LootContext.Drop, player, rewardSourceEntity, resolvedItemLevel, positionOverride);
                     Game.LootManager.SpawnLootFromSummary(lootResultSummary, inputSettings);
                 }
                 else
@@ -1606,6 +1624,72 @@ namespace MHServerEmu.Games.MythicRifts
             }
 
             Game.LootManager.GiveItem(itemProtoRef, LootContext.Drop, player);
+        }
+
+        private ItemSpec CreateRewardItemSpecFromCandidates(
+            MythicRiftRewardGuaranteedItem guaranteedItem,
+            Player player,
+            int resolvedItemLevel,
+            out PrototypeId itemProtoRef)
+        {
+            itemProtoRef = PrototypeId.Invalid;
+            IReadOnlyList<PrototypeId> candidates = guaranteedItem?.CandidateItemProtoRefs;
+            if (candidates == null || candidates.Count == 0 || player == null)
+                return null;
+
+            AvatarPrototype avatarProto = player.CurrentAvatar?.AvatarPrototype;
+            IReadOnlyList<EquipmentInvUISlot> allowedEquipmentSlots = guaranteedItem.CandidateAllowedEquipmentSlots;
+            EquipmentInvUISlot requestedSlot = guaranteedItem.CandidateRequestedEquipmentSlot != EquipmentInvUISlot.Invalid
+                ? guaranteedItem.CandidateRequestedEquipmentSlot
+                : PickRewardPoolAllowedSlot(allowedEquipmentSlots);
+            int startIndex = Game.Random.Next(0, candidates.Count);
+            for (int attempt = 0; attempt < candidates.Count; attempt++)
+            {
+                PrototypeId candidateRef = candidates[(startIndex + attempt) % candidates.Count];
+                if (candidateRef == PrototypeId.Invalid)
+                    continue;
+
+                ItemPrototype candidateProto = candidateRef.As<ItemPrototype>();
+                if (candidateProto == null)
+                    continue;
+
+                if (RewardPoolItemMatchesForcedRarity(candidateProto, guaranteedItem.RarityProtoRef) == false)
+                    continue;
+
+                if (RewardPoolItemMatchesAllowedEquipmentSlots(candidateProto, allowedEquipmentSlots, avatarProto, requestedSlot) == false)
+                    continue;
+
+                ItemSpec itemSpec = guaranteedItem.RarityProtoRef != PrototypeId.Invalid
+                    ? OmegaTierItemFactory.CreateItemSpec(Game, candidateRef, guaranteedItem.RarityProtoRef, LootContext.Drop, player, resolvedItemLevel, logFailures: false)
+                    : Game.LootManager.CreateItemSpec(candidateRef, LootContext.Drop, player, resolvedItemLevel);
+                if (itemSpec == null)
+                    continue;
+
+                if (RewardItemSpecMatchesAllowedEquipmentSlots(itemSpec, player, allowedEquipmentSlots) == false)
+                    continue;
+
+                itemProtoRef = candidateRef;
+                return itemSpec;
+            }
+
+            return null;
+        }
+
+        private static bool RewardItemSpecMatchesAllowedEquipmentSlots(
+            ItemSpec itemSpec,
+            Player player,
+            IReadOnlyList<EquipmentInvUISlot> allowedEquipmentSlots)
+        {
+            if (itemSpec == null || allowedEquipmentSlots == null || allowedEquipmentSlots.Count == 0)
+                return true;
+
+            ItemPrototype itemProto = itemSpec.ItemProtoRef.As<ItemPrototype>();
+            if (itemProto == null)
+                return false;
+
+            AvatarPrototype avatarProto = player?.CurrentAvatar?.AvatarPrototype;
+            EquipmentInvUISlot slot = itemProto.GetInventorySlotForAgent(avatarProto);
+            return allowedEquipmentSlots.Contains(slot);
         }
 
         private bool TrySpawnRewardChest(
@@ -1966,7 +2050,7 @@ namespace MHServerEmu.Games.MythicRifts
                 string maxLevelText = itemPool.MaxRiftLevel > 0 ? itemPool.MaxRiftLevel.ToString() : "none";
                 int candidateCount = ResolveRewardItemPool(itemPool).Count;
                 lines.Add(
-                    $"randomItemPool id={itemPool.Id} | enabled={itemPool.Enabled} | candidates={candidateCount} | itemLevel={itemPool.ItemLevel} | delivery={itemPool.Delivery} | chance={itemPool.ChancePercent:0.##}% | rolls={itemPool.Rolls} | min={itemPool.MinRiftLevel} | max={maxLevelText} | checkpointOnly={itemPool.CheckpointOnly} | directory={itemPool.PrototypeDirectoryPrefix} | explicitItems={itemPool.ItemPrototypePaths?.Count ?? 0}");
+                    $"randomItemPool id={itemPool.Id} | enabled={itemPool.Enabled} | candidates={candidateCount} | itemLevel={itemPool.ItemLevel} | rarity={itemPool.ItemRarityPrototype} | delivery={itemPool.Delivery} | chance={itemPool.ChancePercent:0.##}% | rolls={itemPool.Rolls} | min={itemPool.MinRiftLevel} | max={maxLevelText} | checkpointOnly={itemPool.CheckpointOnly} | directory={itemPool.PrototypeDirectoryPrefix} | explicitItems={itemPool.ItemPrototypePaths?.Count ?? 0}");
             }
 
             if (tuning.RandomItemPools.Count > 20)
@@ -2592,7 +2676,7 @@ namespace MHServerEmu.Games.MythicRifts
                 CleanupRewardChestRegionListener(regionId);
         }
 
-        private void ClearNativeRegionPopulationOnSuccess(MythicRiftRunState runState)
+        private void ClearNativeRegionPopulationOnSuccess(MythicRiftRunState runState, bool logResult = true)
         {
             if (runState == null || runState.EffectiveRegionId == 0)
                 return;
@@ -2644,7 +2728,7 @@ namespace MHServerEmu.Games.MythicRifts
                 }
             }
 
-            if (stoppedSpawnerCount > 0 || destroyedAgentCount > 0)
+            if (logResult && (stoppedSpawnerCount > 0 || destroyedAgentCount > 0))
                 Logger.Info($"Mythic Rift run {runState.Config.RunId} cleared native region population on success: stoppedSpawners={stoppedSpawnerCount}, destroyedAgents={destroyedAgentCount}.");
         }
 
@@ -2660,7 +2744,7 @@ namespace MHServerEmu.Games.MythicRifts
             }
 
             _nextRewardRoomPopulationSuppressionAt[runState.Config.RunId] = currentTime + RewardRoomPopulationSuppressionInterval;
-            ClearNativeRegionPopulationOnSuccess(runState);
+            ClearNativeRegionPopulationOnSuccess(runState, logResult: false);
         }
 
         private static void EnableRiftPopulationRespawns(MythicRiftRunState runState, Region region)
@@ -3381,6 +3465,15 @@ namespace MHServerEmu.Games.MythicRifts
         {
             if (runState?.Config == null)
                 return (0, 0);
+
+            if (runState.Config.UseBossGauntletMode == false &&
+                runState.Config.Content.BossOnlyCheckpointEligible == false &&
+                runState.BossUnlocked &&
+                runState.BossKillCount == 0)
+            {
+                int requiredKills = Math.Max(runState.Config.KillQuota, 1);
+                return (requiredKills, requiredKills);
+            }
 
             bool trackBossKills =
                 runState.Config.UseBossGauntletMode ||
@@ -4296,6 +4389,10 @@ namespace MHServerEmu.Games.MythicRifts
                 if (entry == null || entry.AppliesTo(runState, timedSuccess, checkpointSuccess) == false)
                     continue;
 
+                PrototypeId rarityProtoRef = string.IsNullOrWhiteSpace(entry.ItemRarityPrototype)
+                    ? PrototypeId.Invalid
+                    : ResolvePrototype(entry.ItemRarityPrototype);
+                IReadOnlyList<EquipmentInvUISlot> allowedEquipmentSlots = ParseRewardPoolAllowedEquipmentSlots(entry.AllowedEquipmentSlots);
                 IReadOnlyList<PrototypeId> candidates = ResolveRewardItemPool(entry);
                 if (candidates.Count == 0)
                 {
@@ -4311,6 +4408,43 @@ namespace MHServerEmu.Games.MythicRifts
                         continue;
                     }
 
+                    if (ShouldResolveRandomItemPoolAtGrantTime(entry, allowedEquipmentSlots))
+                    {
+                        if (entry.RollEachAllowedEquipmentSlot && allowedEquipmentSlots.Count > 0)
+                        {
+                            foreach (EquipmentInvUISlot slot in allowedEquipmentSlots)
+                            {
+                                resolvedItems.Add(new()
+                                {
+                                    Id = $"{entry.Id}/{slot}/random",
+                                    ItemProtoRef = PrototypeId.Invalid,
+                                    CandidateItemProtoRefs = candidates,
+                                    CandidateAllowedEquipmentSlots = allowedEquipmentSlots,
+                                    CandidateRequestedEquipmentSlot = slot,
+                                    Quantity = 1,
+                                    ItemLevel = entry.ItemLevel,
+                                    RarityProtoRef = rarityProtoRef,
+                                    Delivery = MythicRiftRewardTuning.NormalizeDelivery(entry.Delivery)
+                                });
+                            }
+
+                            continue;
+                        }
+
+                        resolvedItems.Add(new()
+                        {
+                            Id = $"{entry.Id}/random",
+                            ItemProtoRef = PrototypeId.Invalid,
+                            CandidateItemProtoRefs = candidates,
+                            CandidateAllowedEquipmentSlots = allowedEquipmentSlots,
+                            Quantity = 1,
+                            ItemLevel = entry.ItemLevel,
+                            RarityProtoRef = rarityProtoRef,
+                            Delivery = MythicRiftRewardTuning.NormalizeDelivery(entry.Delivery)
+                        });
+                        continue;
+                    }
+
                     PrototypeId itemProtoRef = candidates[Game.Random.Next(0, candidates.Count)];
                     resolvedItems.Add(new()
                     {
@@ -4318,6 +4452,7 @@ namespace MHServerEmu.Games.MythicRifts
                         ItemProtoRef = itemProtoRef,
                         Quantity = 1,
                         ItemLevel = entry.ItemLevel,
+                        RarityProtoRef = rarityProtoRef,
                         Delivery = MythicRiftRewardTuning.NormalizeDelivery(entry.Delivery)
                     });
                 }
@@ -4326,8 +4461,18 @@ namespace MHServerEmu.Games.MythicRifts
             return resolvedItems;
         }
 
+        private static bool ShouldResolveRandomItemPoolAtGrantTime(MythicRiftRandomItemPoolTuning entry, IReadOnlyList<EquipmentInvUISlot> allowedEquipmentSlots)
+        {
+            if (entry == null || string.IsNullOrWhiteSpace(entry.PrototypeDirectoryPrefix))
+                return false;
+
+            return allowedEquipmentSlots.Count > 0;
+        }
+
         private IReadOnlyList<PrototypeId> ResolveRewardItemPool(MythicRiftRandomItemPoolTuning entry)
         {
+            IReadOnlyList<EquipmentInvUISlot> allowedEquipmentSlots = ParseRewardPoolAllowedEquipmentSlots(entry?.AllowedEquipmentSlots);
+
             if (entry?.ItemPrototypePaths != null && entry.ItemPrototypePaths.Count > 0)
             {
                 List<PrototypeId> candidates = new();
@@ -4347,16 +4492,22 @@ namespace MHServerEmu.Games.MythicRifts
                         continue;
                     }
 
+                    if (RewardPoolItemMatchesForcedRarity(itemProto, entry) == false)
+                        continue;
+
+                    if (RewardPoolItemMatchesAllowedEquipmentSlots(itemProto, allowedEquipmentSlots) == false)
+                        continue;
+
                     candidates.Add(itemProtoRef);
                 }
 
                 return candidates;
             }
 
-            return ResolveRewardItemPool(entry?.PrototypeDirectoryPrefix);
+            return ResolveRewardItemPool(entry?.PrototypeDirectoryPrefix, entry?.ItemRarityPrototype, allowedEquipmentSlots);
         }
 
-        private IReadOnlyList<PrototypeId> ResolveRewardItemPool(string prototypeDirectoryPrefix)
+        private IReadOnlyList<PrototypeId> ResolveRewardItemPool(string prototypeDirectoryPrefix, string itemRarityPrototype = null, IReadOnlyList<EquipmentInvUISlot> allowedEquipmentSlots = null)
         {
             string normalizedPrefix = prototypeDirectoryPrefix?.Trim().Replace('\\', '/') ?? string.Empty;
             if (normalizedPrefix.Length > 0 && normalizedPrefix.EndsWith('/') == false)
@@ -4365,10 +4516,32 @@ namespace MHServerEmu.Games.MythicRifts
             if (string.IsNullOrWhiteSpace(normalizedPrefix))
                 return Array.Empty<PrototypeId>();
 
-            if (_rewardItemPoolsByDirectory.TryGetValue(normalizedPrefix, out IReadOnlyList<PrototypeId> cachedPool))
+            string normalizedRarity = itemRarityPrototype?.Trim() ?? string.Empty;
+            string normalizedSlots = allowedEquipmentSlots == null || allowedEquipmentSlots.Count == 0
+                ? string.Empty
+                : string.Join(",", allowedEquipmentSlots.OrderBy(slot => slot.ToString()).Select(slot => slot.ToString()));
+            string cacheKey = string.IsNullOrWhiteSpace(normalizedRarity)
+                ? normalizedPrefix
+                : $"{normalizedPrefix}|rarity={normalizedRarity}";
+            if (string.IsNullOrWhiteSpace(normalizedSlots) == false)
+                cacheKey += $"|slots={normalizedSlots}";
+
+            if (_rewardItemPoolsByDirectory.TryGetValue(cacheKey, out IReadOnlyList<PrototypeId> cachedPool))
                 return cachedPool;
 
+            PrototypeId forcedRarityProtoRef = PrototypeId.Invalid;
+            if (string.IsNullOrWhiteSpace(normalizedRarity) == false)
+            {
+                forcedRarityProtoRef = ResolvePrototype(normalizedRarity);
+                if (forcedRarityProtoRef == PrototypeId.Invalid)
+                {
+                    _rewardItemPoolsByDirectory[cacheKey] = Array.Empty<PrototypeId>();
+                    return Array.Empty<PrototypeId>();
+                }
+            }
+
             List<PrototypeId> candidates = new();
+            bool deferSlotFilteringToGrant = ShouldDeferRewardPoolSlotFiltering(normalizedPrefix, allowedEquipmentSlots);
             foreach (PrototypeId itemProtoRef in GameDatabase.DataDirectory.IteratePrototypesInHierarchy<ItemPrototype>(
                          PrototypeIterateFlags.NoAbstractApprovedOnly))
             {
@@ -4380,6 +4553,13 @@ namespace MHServerEmu.Games.MythicRifts
                 if (itemProto?.IsLiveTuningEnabled() != true)
                     continue;
 
+                if (RewardPoolItemMatchesForcedRarity(itemProto, forcedRarityProtoRef) == false)
+                    continue;
+
+                if (deferSlotFilteringToGrant == false &&
+                    RewardPoolItemMatchesAllowedEquipmentSlots(itemProto, allowedEquipmentSlots) == false)
+                    continue;
+
                 candidates.Add(itemProtoRef);
             }
 
@@ -4387,9 +4567,86 @@ namespace MHServerEmu.Games.MythicRifts
                 GameDatabase.GetPrototypeName(left),
                 GameDatabase.GetPrototypeName(right),
                 StringComparison.OrdinalIgnoreCase));
-            _rewardItemPoolsByDirectory[normalizedPrefix] = candidates;
-            Logger.Info($"Mythic Rift resolved random reward item pool directory={normalizedPrefix} candidates={candidates.Count}.");
+            _rewardItemPoolsByDirectory[cacheKey] = candidates;
+            Logger.Info($"Mythic Rift resolved random reward item pool directory={normalizedPrefix} rarity={normalizedRarity} slots={normalizedSlots} candidates={candidates.Count}.");
             return candidates;
+        }
+
+        private static bool ShouldDeferRewardPoolSlotFiltering(string normalizedPrefix, IReadOnlyList<EquipmentInvUISlot> allowedEquipmentSlots)
+        {
+            return string.IsNullOrWhiteSpace(normalizedPrefix) == false &&
+                normalizedPrefix.StartsWith("Entity/Items/Armor/Prototypes/", StringComparison.OrdinalIgnoreCase) &&
+                allowedEquipmentSlots != null &&
+                allowedEquipmentSlots.Count > 0;
+        }
+
+        private static IReadOnlyList<EquipmentInvUISlot> ParseRewardPoolAllowedEquipmentSlots(IReadOnlyList<string> allowedEquipmentSlotNames)
+        {
+            if (allowedEquipmentSlotNames == null || allowedEquipmentSlotNames.Count == 0)
+                return Array.Empty<EquipmentInvUISlot>();
+
+            List<EquipmentInvUISlot> allowedSlots = new();
+            foreach (string slotName in allowedEquipmentSlotNames)
+            {
+                if (string.IsNullOrWhiteSpace(slotName))
+                    continue;
+
+                if (Enum.TryParse(slotName.Trim(), ignoreCase: true, out EquipmentInvUISlot slot) == false ||
+                    slot == EquipmentInvUISlot.Invalid)
+                {
+                    Logger.Warn($"Mythic Rift reward tuning ignored invalid allowed equipment slot '{slotName}'.");
+                    continue;
+                }
+
+                if (allowedSlots.Contains(slot) == false)
+                    allowedSlots.Add(slot);
+            }
+
+            return allowedSlots;
+        }
+
+        private EquipmentInvUISlot PickRewardPoolAllowedSlot(IReadOnlyList<EquipmentInvUISlot> allowedEquipmentSlots)
+        {
+            if (allowedEquipmentSlots == null || allowedEquipmentSlots.Count == 0)
+                return EquipmentInvUISlot.Invalid;
+
+            return allowedEquipmentSlots[Game.Random.Next(0, allowedEquipmentSlots.Count)];
+        }
+
+        private static bool RewardPoolItemMatchesAllowedEquipmentSlots(
+            ItemPrototype itemProto,
+            IReadOnlyList<EquipmentInvUISlot> allowedEquipmentSlots,
+            AvatarPrototype avatarProto = null,
+            EquipmentInvUISlot requestedSlot = EquipmentInvUISlot.Invalid)
+        {
+            if (itemProto == null || allowedEquipmentSlots == null || allowedEquipmentSlots.Count == 0)
+                return true;
+
+            EquipmentInvUISlot slot = itemProto.GetInventorySlotForAgent(avatarProto);
+            if (requestedSlot != EquipmentInvUISlot.Invalid)
+                return slot == requestedSlot;
+
+            return allowedEquipmentSlots.Contains(slot);
+        }
+
+        private static bool RewardPoolItemMatchesForcedRarity(ItemPrototype itemProto, MythicRiftRandomItemPoolTuning entry)
+        {
+            if (itemProto == null || entry == null || string.IsNullOrWhiteSpace(entry.ItemRarityPrototype))
+                return true;
+
+            PrototypeId rarityProtoRef = ResolvePrototype(entry.ItemRarityPrototype);
+            return RewardPoolItemMatchesForcedRarity(itemProto, rarityProtoRef);
+        }
+
+        private static bool RewardPoolItemMatchesForcedRarity(ItemPrototype itemProto, PrototypeId rarityProtoRef)
+        {
+            if (itemProto == null)
+                return false;
+
+            if (rarityProtoRef == PrototypeId.Invalid)
+                return true;
+
+            return rarityProtoRef != PrototypeId.Invalid && itemProto.GetAffixLimits(rarityProtoRef, LootContext.Drop) != null;
         }
 
         private void GrantProgressionForSuccessfulRun(MythicRiftRunState runState)
@@ -6375,7 +6632,10 @@ namespace MHServerEmu.Games.MythicRifts
             TrySendRiftClearedBanner(runState);
             NotifyRunCompleted(runState, success: true, successMessage);
             if (usesRewardRoom)
+            {
                 TryOfferRewardRoomTravel(runState);
+                TrySpawnRewardRoomPortal(runState);
+            }
             else
             {
                 TrySpawnReturnPortal(runState);
@@ -6779,6 +7039,60 @@ namespace MHServerEmu.Games.MythicRifts
             return true;
         }
 
+        private bool TrySpawnRewardRoomPortal(MythicRiftRunState runState)
+        {
+            if (runState?.Config == null ||
+                (runState.Config.Mode != MythicRiftMode.Standard && runState.Config.Mode != MythicRiftMode.Endless) ||
+                runState.RegionId == 0 ||
+                runState.RewardRoomTeleportResolved)
+            {
+                return false;
+            }
+
+            if (runState.RewardRoomPortalEntityId != 0 && Game.EntityManager.GetEntity<Transition>(runState.RewardRoomPortalEntityId) != null)
+                return true;
+
+            PrototypeId portalProtoRef = GameDatabase.GetPrototypeRefByName(RiftExitPortalPrototypeName);
+            if (portalProtoRef == PrototypeId.Invalid)
+            {
+                Logger.Warn($"TrySpawnRewardRoomPortal(): Failed to resolve {RiftExitPortalPrototypeName}");
+                return false;
+            }
+
+            Region region = Game.RegionManager.GetRegion(runState.RegionId);
+            if (region == null)
+                return false;
+
+            if (TryGetReturnPortalSpawnLocation(runState, region, out Vector3 spawnPosition, out Orientation spawnOrientation, out Cell spawnCell) == false)
+                return false;
+
+            using var settingsHandle = EntitySettingsPool.Get(out EntitySettings settings);
+            settings.EntityRef = portalProtoRef;
+            settings.RegionId = region.Id;
+            settings.Position = spawnPosition;
+            settings.Orientation = spawnOrientation;
+            settings.Cell = spawnCell;
+            settings.Lifespan = CompletedRunRetention;
+            settings.SourceEntityId = GetFirstRunAvatarId(region);
+
+            using var settingsPropertiesHandle = PropertyCollectionPool.Get(out PropertyCollection settingsProperties);
+            settingsProperties[PropertyEnum.Interactable] = (int)TriBool.True;
+            settingsProperties[PropertyEnum.InteractableUsesLeft] = -1;
+            settingsProperties[PropertyEnum.Visible] = true;
+            settings.Properties = settingsProperties;
+
+            Transition rewardRoomPortal = Game.EntityManager.CreateEntity(settings) as Transition;
+            if (rewardRoomPortal == null)
+            {
+                Logger.Warn("TrySpawnRewardRoomPortal(): Failed to create reward room portal entity.");
+                return false;
+            }
+
+            runState.AttachRewardRoomPortal(rewardRoomPortal.Id);
+            Logger.Info($"Mythic Rift run {runState.Config.RunId} spawned reward room portal {rewardRoomPortal.PrototypeName} (0x{rewardRoomPortal.Id:X}).");
+            return true;
+        }
+
         private bool TrySpawnCompletionCrafter(MythicRiftRunState runState)
         {
             if (runState == null || runState.EffectiveRegionId == 0)
@@ -6984,6 +7298,24 @@ namespace MHServerEmu.Games.MythicRifts
                 Logger.Info($"Mythic Rift run {runState.Config.RunId} used return portal 0x{transition.Id:X} for playerDbId=0x{player.DatabaseUniqueId:X}.");
             else
                 Logger.Warn($"Mythic Rift run {runState.Config.RunId} failed to use return portal 0x{transition.Id:X} for playerDbId=0x{player.DatabaseUniqueId:X}.");
+
+            return teleported;
+        }
+
+        public bool TryUseRewardRoomPortal(Player player, Transition transition)
+        {
+            if (player == null || transition == null)
+                return false;
+
+            MythicRiftRunState runState = _activeRuns.Values.FirstOrDefault(run => run.RewardRoomPortalEntityId == transition.Id);
+            if (runState == null || runState.Status != MythicRiftRunStatus.Success || runState.RewardRoomTeleportResolved)
+                return false;
+
+            bool teleported = TryTeleportPartyToRewardRoom(runState, player);
+            if (teleported)
+                Logger.Info($"Mythic Rift run {runState.Config.RunId} used reward room portal 0x{transition.Id:X} for playerDbId=0x{player.DatabaseUniqueId:X}.");
+            else
+                Logger.Warn($"Mythic Rift run {runState.Config.RunId} failed to use reward room portal 0x{transition.Id:X} for playerDbId=0x{player.DatabaseUniqueId:X}.");
 
             return teleported;
         }

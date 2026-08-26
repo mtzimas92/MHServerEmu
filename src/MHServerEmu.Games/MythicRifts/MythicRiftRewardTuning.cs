@@ -484,6 +484,9 @@ namespace MHServerEmu.Games.MythicRifts
         public bool Enabled { get; set; } = true;
         public string PrototypeDirectoryPrefix { get; set; }
         public List<string> ItemPrototypePaths { get; set; } = new();
+        public string ItemRarityPrototype { get; set; }
+        public List<string> AllowedEquipmentSlots { get; set; } = new();
+        public bool RollEachAllowedEquipmentSlot { get; set; }
         public float ChancePercent { get; set; } = 100f;
         public int Rolls { get; set; } = 1;
         public int ItemLevel { get; set; } = 1;
@@ -504,6 +507,14 @@ namespace MHServerEmu.Games.MythicRifts
             PrototypeDirectoryPrefix = PrototypeDirectoryPrefix?.Trim().Replace('\\', '/') ?? string.Empty;
             if (PrototypeDirectoryPrefix.Length > 0 && PrototypeDirectoryPrefix.EndsWith('/') == false)
                 PrototypeDirectoryPrefix += "/";
+            ItemRarityPrototype = ItemRarityPrototype?.Trim() ?? string.Empty;
+            AllowedEquipmentSlots = AllowedEquipmentSlots == null
+                ? new()
+                : AllowedEquipmentSlots
+                    .Where(slot => string.IsNullOrWhiteSpace(slot) == false)
+                    .Select(slot => slot.Trim())
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .ToList();
 
             ItemPrototypePaths = ItemPrototypePaths == null
                 ? new()
