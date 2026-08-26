@@ -7,6 +7,7 @@ using MHServerEmu.Games.Entities.Items;
 using MHServerEmu.Games.GameData;
 using MHServerEmu.Games.GameData.Prototypes;
 using MHServerEmu.Games.GameData.Tables;
+using MHServerEmu.Games.OmegaTierItems;
 using MHServerEmu.Games.Properties;
 using MHServerEmu.Games.Regions;
 
@@ -256,7 +257,10 @@ namespace MHServerEmu.Games.Loot
                 // Check limits
                 if (affixLimits != null)
                 {
-                    if (itemSpec.NumAffixesOfPosition(position) + affixCountNeeded > affixLimits.GetMax(position, settings))
+                    short currentCount = itemSpec.NumAffixesOfPosition(position);
+                    short currentLimit = affixLimits.GetMax(position, settings);
+                    if (currentCount + affixCountNeeded > currentLimit &&
+                        OmegaTierAffixLimits.AllowOmegaCraftingAffixLimitOverride(args, itemSpec, position, affixCountNeeded, currentCount, currentLimit) == false)
                         return MutationResults.Error;
                 }
 
