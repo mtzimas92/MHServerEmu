@@ -67,7 +67,12 @@ namespace MHServerEmu.Games.Entities
             // Validate craftability
             CraftingResult canCraftRecipeResult = recipeItem.CanCraftRecipe(this, ingredientIds, vendor, isRecraft);
             if (!Verify.IsTrue(canCraftRecipeResult == CraftingResult.Success, $"CanCraftRecipe() failed for player=[{this}], recipeItem=[{recipeItem}], result=[{canCraftRecipeResult}]"))
+            {
+                if (TryHandleOmegaChallengeBonusCraftFallback(recipeProto, ingredientIds, vendor, resultsInv, out CraftingResult omegaChallengeCraftingResult))
+                    return omegaChallengeCraftingResult;
+
                 return canCraftRecipeResult;
+            }
 
             // Get crafting costs (already validated in CanCraftRecipe() above)
             using var currencyCostHandle = PropertyCollectionPool.Get(out PropertyCollection currencyCost);

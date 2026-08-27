@@ -247,6 +247,9 @@ namespace MHServerEmu.Games.Entities
             if (EnsureMythicRiftCompletionCrafterStock(vendor))
                 return;
 
+            if (TryPostMythicRiftCompletionEnchanterPrompt(vendor))
+                return;
+
             if (ShouldInjectMythicRiftVendorStock(vendor) == false)
                 return;
 

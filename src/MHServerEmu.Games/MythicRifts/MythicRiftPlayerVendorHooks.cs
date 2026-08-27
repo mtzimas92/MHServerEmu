@@ -124,7 +124,7 @@ namespace MHServerEmu.Games.Entities
             if (vendor == null)
                 return false;
 
-            if (Game?.MythicRiftManager?.IsCompletionCrafter(vendor) == true)
+            if (Game?.MythicRiftManager?.IsCompletionOmegaForgeVendor(vendor) == true)
                 return false;
 
             Region region = vendor.Region ?? GetRegion();
@@ -476,6 +476,14 @@ namespace MHServerEmu.Games.Entities
             return true;
         }
 
+        private bool TryPostMythicRiftCompletionEnchanterPrompt(WorldEntity vendor)
+        {
+            if (vendor == null || Game?.MythicRiftManager?.IsCompletionEnchanter(vendor) != true)
+                return false;
+
+            return true;
+        }
+
         private bool TryAddMythicRiftCompletionCrafterRecipe(VendorTypePrototype vendorTypeProto, PrototypeId vendorTypeProtoRef)
         {
             if (vendorTypeProto == null || vendorTypeProto.IsCrafter == false)
@@ -486,13 +494,17 @@ namespace MHServerEmu.Games.Entities
                 return false;
 
             CleanupTrackedMythicRiftCompletionCrafterRecipes();
-            FilterMythicRiftCompletionCrafterInventories(vendorTypeProto, inventoryList);
+            bool filteredInventories = FilterMythicRiftCompletionCrafterInventories(vendorTypeProto, inventoryList);
 
             using var ingredientSetHandle = HashSetPool<PrototypeId>.Get(out HashSet<PrototypeId> craftingIngredientSet);
             EntityManager entityManager = Game.EntityManager;
             bool addedAny = false;
 
-            foreach (PrototypeId recipeProtoRef in Game.MythicRiftManager.CompletionCrafterRecipePrototypeRefs)
+            using var recipeRefsHandle = ListPool<PrototypeId>.Get(out List<PrototypeId> recipeProtoRefs);
+            recipeProtoRefs.AddRange(Game.MythicRiftManager.CompletionCrafterRecipePrototypeRefs);
+            AddOmegaForgeChallengeRecipePrototypeRefs(recipeProtoRefs);
+
+            foreach (PrototypeId recipeProtoRef in recipeProtoRefs)
             {
                 CraftingRecipePrototype recipeProto = recipeProtoRef.As<CraftingRecipePrototype>();
                 if (recipeProtoRef == PrototypeId.Invalid || recipeProto == null)
@@ -544,7 +556,7 @@ namespace MHServerEmu.Games.Entities
                     InitializeCraftingIngredientAvailable(recipeProto, craftingIngredientSet);
                     _initializedVendorTypeProtoRefs.Remove(vendorTypeProtoRef);
                     addedAny = true;
-                    Logger.Info($"[MythicRiftCompletionCrafter] Added recipe={recipeProtoRef.GetNameFormatted()} vendorType={vendorTypeProto.DataRef.GetNameFormatted()} inventory={inventory.PrototypeDataRef.GetNameFormatted()} itemId=0x{recipeItem.Id:X}");
+                    Logger.Trace($"[MythicRiftCompletionCrafter] Added recipe={recipeProtoRef.GetNameFormatted()} vendorType={vendorTypeProto.DataRef.GetNameFormatted()} inventory={inventory.PrototypeDataRef.GetNameFormatted()} itemId=0x{recipeItem.Id:X}");
                     break;
                 }
             }
@@ -553,7 +565,10 @@ namespace MHServerEmu.Games.Entities
             if (addedAny == false && HasAnyTrackedMythicRiftCompletionCrafterRecipe(inventoryList) == false)
                 Logger.Warn("TryAddMythicRiftCompletionCrafterRecipe(): No free completion crafter slot or no completion recipes resolved.");
 
-            return addedAny || _mythicRiftCompletionCrafterInventoriesFiltered;
+            if (addedAny)
+                Logger.Info($"[MythicRiftCompletionCrafter] Stocked completion crafter vendorType={vendorTypeProto.DataRef.GetNameFormatted()} recipeCount={recipeProtoRefs.Count}");
+
+            return addedAny || filteredInventories;
         }
 
         private bool TryBlockMythicRiftCompletionCrafterReroll(PrototypeId vendorTypeProtoRef, bool isInitializing)
@@ -584,10 +599,10 @@ namespace MHServerEmu.Games.Entities
             return true;
         }
 
-        private void FilterMythicRiftCompletionCrafterInventories(VendorTypePrototype vendorTypeProto, List<PrototypeId> inventoryList)
+        private bool FilterMythicRiftCompletionCrafterInventories(VendorTypePrototype vendorTypeProto, List<PrototypeId> inventoryList)
         {
             if (_mythicRiftCompletionCrafterInventoriesFiltered && IsMythicRiftCompletionCrafterAlreadyIsolated(inventoryList))
-                return;
+                return false;
 
             foreach (PrototypeId inventoryProtoRef in inventoryList)
             {
@@ -598,6 +613,7 @@ namespace MHServerEmu.Games.Entities
             _mythicRiftCompletionCrafterRecipeItemIds.Clear();
             _mythicRiftCompletionCrafterInventoriesFiltered = true;
             _initializedVendorTypeProtoRefs.Remove(vendorTypeProto.DataRef);
+            return true;
         }
 
         private bool IsMythicRiftCompletionCrafterAlreadyIsolated(List<PrototypeId> inventoryList)
@@ -615,8 +631,7 @@ namespace MHServerEmu.Games.Entities
                     if (item == null || item.IsScheduledToDestroy)
                         continue;
 
-                    if (_mythicRiftCompletionCrafterRecipeItemIds.Contains(item.Id) &&
-                        Game.MythicRiftManager.IsCompletionCrafterRecipe(item.PrototypeDataRef))
+                    if (_mythicRiftCompletionCrafterRecipeItemIds.Contains(item.Id))
                     {
                         foundTrackedRecipe = true;
                         continue;
@@ -638,8 +653,7 @@ namespace MHServerEmu.Games.Entities
             {
                 Item item = Game.EntityManager.GetEntity<Item>(entry.Id);
                 if (item != null &&
-                    _mythicRiftCompletionCrafterRecipeItemIds.Contains(item.Id) &&
-                    Game.MythicRiftManager.IsCompletionCrafterRecipe(item.PrototypeDataRef))
+                    _mythicRiftCompletionCrafterRecipeItemIds.Contains(item.Id))
                 {
                     return true;
                 }

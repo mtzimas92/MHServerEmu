@@ -1,0 +1,66 @@
+[
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Crafting/Recipes/Tab3Gear/AddChallengeBonus.prototype",
+    "Path": "RecipeInputs[0].Restrictions[1].AllowedRarities[]",
+    "Description": "[Omega Tier Items] Allow Omega armor in the generic challenge-bonus recipe's target item slot.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Items/Rarity/R6Omega.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Crafting/Recipes/Tab3Gear/AddChallengeBonusRandom.prototype",
+    "Path": "RecipeInputs[0].Restrictions[1].AllowedRarities[]",
+    "Description": "[Omega Tier Items] Allow Omega armor in the random challenge-bonus recipe's target item slot.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Items/Rarity/R6Omega.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Crafting/Recipes/Tab3Gear/AddChallengeBonusDurability.prototype",
+    "Path": "RecipeInputs[0].Restrictions[1].AllowedRarities[]",
+    "Description": "[Omega Tier Items] Allow Omega armor in the Durability challenge-bonus recipe's target item slot.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Items/Rarity/R6Omega.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Crafting/Recipes/Tab3Gear/AddChallengeBonusEnergy.prototype",
+    "Path": "RecipeInputs[0].Restrictions[1].AllowedRarities[]",
+    "Description": "[Omega Tier Items] Allow Omega armor in the Energy challenge-bonus recipe's target item slot.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Items/Rarity/R6Omega.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Crafting/Recipes/Tab3Gear/AddChallengeBonusFighting.prototype",
+    "Path": "RecipeInputs[0].Restrictions[1].AllowedRarities[]",
+    "Description": "[Omega Tier Items] Allow Omega armor in the Fighting challenge-bonus recipe's target item slot.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Items/Rarity/R6Omega.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Crafting/Recipes/Tab3Gear/AddChallengeBonusIntelligence.prototype",
+    "Path": "RecipeInputs[0].Restrictions[1].AllowedRarities[]",
+    "Description": "[Omega Tier Items] Allow Omega armor in the Intelligence challenge-bonus recipe's target item slot.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Items/Rarity/R6Omega.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Crafting/Recipes/Tab3Gear/AddChallengeBonusSpeed.prototype",
+    "Path": "RecipeInputs[0].Restrictions[1].AllowedRarities[]",
+    "Description": "[Omega Tier Items] Allow Omega armor in the Speed challenge-bonus recipe's target item slot.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Items/Rarity/R6Omega.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Crafting/Recipes/Tab3Gear/AddChallengeBonusStrength.prototype",
+    "Path": "RecipeInputs[0].Restrictions[1].AllowedRarities[]",
+    "Description": "[Omega Tier Items] Allow Omega armor in the Strength challenge-bonus recipe's target item slot.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Items/Rarity/R6Omega.prototype"
+  }
+]

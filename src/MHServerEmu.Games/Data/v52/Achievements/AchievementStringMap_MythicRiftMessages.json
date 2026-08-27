@@ -103,5 +103,92 @@
   },
   "18000000000000040015": {
     "en_us": "Travel to Rift Reward"
+  },
+  "18000000000000040100": {
+    "en_us": "Omega Forge: choose equipped gear slot."
+  },
+  "18000000000000040101": {
+    "en_us": "Omega Forge: choose equipped gear slot."
+  },
+  "18000000000000040102": {
+    "en_us": "Omega Forge: choose equipped gear slot."
+  },
+  "18000000000000040103": {
+    "en_us": "Omega Forge: choose challenge bonus type."
+  },
+  "18000000000000040104": {
+    "en_us": "Omega Forge: choose specific challenge bonus."
+  },
+  "18000000000000040105": {
+    "en_us": "Omega Forge: choose specific challenge bonus."
+  },
+  "18000000000000040106": {
+    "en_us": "Omega Forge: choose specific challenge bonus."
+  },
+  "18000000000000040107": {
+    "en_us": "Gear 1"
+  },
+  "18000000000000040108": {
+    "en_us": "Gear 2"
+  },
+  "18000000000000040109": {
+    "en_us": "Gear 3"
+  },
+  "18000000000000040110": {
+    "en_us": "Gear 4"
+  },
+  "18000000000000040111": {
+    "en_us": "Gear 5"
+  },
+  "18000000000000040112": {
+    "en_us": "More"
+  },
+  "18000000000000040113": {
+    "en_us": "Back"
+  },
+  "18000000000000040114": {
+    "en_us": "Cancel"
+  },
+  "18000000000000040115": {
+    "en_us": "Random"
+  },
+  "18000000000000040116": {
+    "en_us": "Specific"
+  },
+  "18000000000000040117": {
+    "en_us": "Fighting"
+  },
+  "18000000000000040118": {
+    "en_us": "Strength"
+  },
+  "18000000000000040119": {
+    "en_us": "Energy"
+  },
+  "18000000000000040120": {
+    "en_us": "Speed"
+  },
+  "18000000000000040121": {
+    "en_us": "Intelligence"
+  },
+  "18000000000000040122": {
+    "en_us": "Durability"
+  },
+  "18000000000000040123": {
+    "en_us": "Omega Forge: choose action."
+  },
+  "18000000000000040124": {
+    "en_us": "Challenge Bonus"
+  },
+  "18000000000000040125": {
+    "en_us": "Enchant / Runeword"
+  },
+  "18000000000000040126": {
+    "en_us": "Omega Forge: choose an unlocked enchantment or runeword recipe."
+  },
+  "18000000000000040127": {
+    "en_us": "Omega Forge: no learned enchantment or runeword recipes are currently valid for that equipped Omega item, or the required glyphs/runes are missing."
+  },
+  "18000000000000040128": {
+    "en_us": "Apply Recipe"
   }
 }

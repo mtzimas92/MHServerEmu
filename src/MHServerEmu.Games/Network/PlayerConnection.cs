@@ -1252,7 +1252,15 @@ namespace MHServerEmu.Games.Network
                 ingredientIds.Add(ingredientId);
             }
 
+            WorldEntity vendor = entityManager.GetEntity<WorldEntity>(tryCraft.IdVendor);
+            bool traceOmegaCraft = TryBuildOmegaCraftingTrace(recipeItem, ingredientIds, entityManager, Game, vendor, out string omegaCraftTraceDetails);
+            if (traceOmegaCraft)
+                Logger.Info($"[OmegaCraftingTrace] received player={Player} recipe={recipeItem.PrototypeDataRef.GetNameFormatted()} vendor={vendor?.PrototypeDataRef.GetNameFormatted()} vendorId=0x{tryCraft.IdVendor:X} isRecraft={tryCraft.IsRecraft} ingredients=[{omegaCraftTraceDetails}]");
+
             CraftingResult craftingResult = Player.Craft(recipeItemId, tryCraft.IdVendor, ingredientIds, tryCraft.IsRecraft);
+
+            if (traceOmegaCraft)
+                Logger.Info($"[OmegaCraftingTrace] result player={Player} recipe={recipeItem.PrototypeDataRef.GetNameFormatted()} result={craftingResult}");
 
             if (craftingResult != CraftingResult.Success)
             {
@@ -1264,6 +1272,72 @@ namespace MHServerEmu.Games.Network
             {
                 SendMessage(NetMessageCraftingSuccess.DefaultInstance);
             }
+        }
+
+        private static bool TryBuildOmegaCraftingTrace(Item recipeItem, List<ulong> ingredientIds, EntityManager entityManager, Game game, WorldEntity vendor, out string details)
+        {
+            details = string.Empty;
+
+            if (recipeItem == null || ingredientIds == null || entityManager == null)
+                return false;
+
+            bool shouldTrace = IsOmegaItem(recipeItem) ||
+                               game?.MythicRiftManager?.IsCompletionCrafter(vendor) == true ||
+                               game?.MythicRiftManager?.IsCompletionEnchanter(vendor) == true ||
+                               game?.MythicRiftManager?.IsCompletionCrafterRecipe(recipeItem.PrototypeDataRef) == true;
+            using var detailPartsHandle = ListPool<string>.Get(out List<string> detailParts);
+
+            for (int i = 0; i < ingredientIds.Count; i++)
+            {
+                ulong ingredientId = ingredientIds[i];
+                if (ingredientId == Entity.InvalidId)
+                {
+                    detailParts.Add($"{i}:auto");
+                    continue;
+                }
+
+                Item ingredient = entityManager.GetEntity<Item>(ingredientId);
+                if (ingredient == null)
+                {
+                    detailParts.Add($"{i}:missing id=0x{ingredientId:X}");
+                    continue;
+                }
+
+                PrototypeId rarityRef = GetItemRarityRef(ingredient);
+                if (IsOmegaRarity(rarityRef))
+                    shouldTrace = true;
+
+                detailParts.Add($"{i}:{ingredient.PrototypeDataRef.GetNameFormatted()} rarity={rarityRef.GetNameFormatted()} id=0x{ingredientId:X}");
+            }
+
+            details = string.Join(", ", detailParts);
+            return shouldTrace;
+        }
+
+        private static bool IsOmegaItem(Item item)
+        {
+            return item != null && IsOmegaRarity(GetItemRarityRef(item));
+        }
+
+        private static PrototypeId GetItemRarityRef(Item item)
+        {
+            if (item == null)
+                return PrototypeId.Invalid;
+
+            PrototypeId rarityRef = item.ItemSpec?.RarityProtoRef ?? PrototypeId.Invalid;
+            if (rarityRef == PrototypeId.Invalid)
+                rarityRef = item.Properties[PropertyEnum.ItemRarity];
+
+            return rarityRef;
+        }
+
+        private static bool IsOmegaRarity(PrototypeId rarityRef)
+        {
+            if (rarityRef == PrototypeId.Invalid)
+                return false;
+
+            string rarityName = GameDatabase.GetPrototypeName(rarityRef);
+            return rarityName != null && rarityName.EndsWith("/R6Omega.prototype", StringComparison.OrdinalIgnoreCase);
         }
 
         private void OnUseWaypoint(in MailboxMessage message)

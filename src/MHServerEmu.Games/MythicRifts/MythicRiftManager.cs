@@ -105,8 +105,10 @@ namespace MHServerEmu.Games.MythicRifts
         private const string RiftExitPortalPrototypeName = "Entity/Transitions/ReturnToLastBaseDR.prototype";
         private const string RiftRewardChestPrototypeName = "Entity/Props/Chests/DangerRoomChestTutorialRewardEntity.prototype";
         private const string RiftCompletionVendorPrototypeName = "Entity/Characters/Vendors/Prototypes/Endgame/DangerRoomRewardsVendor.prototype";
+        private const string RiftCompletionEnchanterPrototypeName = "Entity/Characters/Vendors/Prototypes/HUB04Asgard/AsgardVendorEnchanter.prototype";
         private const string RiftCompletionArtifactVendorTypePrototypeName = "Entity/Characters/Vendors/VendorTypes/VendorDangerRoomRewards.prototype";
         private const string RiftCompletionCrafterTypePrototypeName = "Entity/Characters/Vendors/VendorTypes/TestVendorCrafter.prototype";
+        private const string RiftCompletionEnchanterTypePrototypeName = "Entity/Characters/Vendors/VendorTypes/VendorEnchanter.prototype";
         private static readonly PrototypeId RiftCompletionCrafterRecipePrototypeRef = (PrototypeId)9691334961261451315UL;
         private const string RiftCompletionCrafterCosmicRecipePrototypeName = "Entity/Items/Crafting/Recipes/Tab3Gear/RerollCosmicReplacement.prototype";
         // One place to switch the post-run artifact vendor economy if we later decide to split it
@@ -122,6 +124,7 @@ namespace MHServerEmu.Games.MythicRifts
         private const string RiftCompletionCrafterCurrencyPrototypeName = "Entity/Items/CurrencyItems/CurrencyPrototypes/GenoshaRaidCurrency.prototype";
         private const float RiftCompletionArtifactVendorSpawnOffset = -260f;
         private const float RiftCompletionCrafterSpawnOffset = 390f;
+        private const float RiftCompletionEnchanterSpawnOffset = 560f;
         private const string BossGauntletArenaContentId = "boss-gauntlet-tutorial-arena";
         private static readonly Vector3 BossGauntletRewardRoomCenterPosition = new(-79f, 18f, 307f);
         private const float SpecialRandomMapChance = 0.05f;
@@ -880,6 +883,23 @@ namespace MHServerEmu.Games.MythicRifts
                 run.Status == MythicRiftRunStatus.Success);
         }
 
+        public bool IsCompletionEnchanter(WorldEntity vendor)
+        {
+            if (vendor == null)
+                return false;
+
+            return _activeRuns.Values.Any(run =>
+                run != null &&
+                run.CompletionEnchanterEntityId != 0 &&
+                run.CompletionEnchanterEntityId == vendor.Id &&
+                run.Status == MythicRiftRunStatus.Success);
+        }
+
+        public bool IsCompletionOmegaForgeVendor(WorldEntity vendor)
+        {
+            return IsCompletionCrafter(vendor) || IsCompletionEnchanter(vendor);
+        }
+
         public bool IsCompletionArtifactVendor(WorldEntity vendor)
         {
             if (vendor == null)
@@ -899,6 +919,15 @@ namespace MHServerEmu.Games.MythicRifts
 
             PrototypeId completionCrafterTypeProtoRef = ResolvePrototype(RiftCompletionCrafterTypePrototypeName);
             return completionCrafterTypeProtoRef != PrototypeId.Invalid && vendorTypeProtoRef == completionCrafterTypeProtoRef;
+        }
+
+        public bool IsCompletionEnchanterType(PrototypeId vendorTypeProtoRef)
+        {
+            if (vendorTypeProtoRef == PrototypeId.Invalid)
+                return false;
+
+            PrototypeId completionEnchanterTypeProtoRef = ResolvePrototype(RiftCompletionEnchanterTypePrototypeName);
+            return completionEnchanterTypeProtoRef != PrototypeId.Invalid && vendorTypeProtoRef == completionEnchanterTypeProtoRef;
         }
 
         public bool IsCompletionArtifactVendorType(PrototypeId vendorTypeProtoRef)
@@ -949,6 +978,32 @@ namespace MHServerEmu.Games.MythicRifts
 
                 runState = candidate;
                 return true;
+            }
+
+            return false;
+        }
+
+        public bool TryResolveCompletionOmegaForgeRun(WorldEntity vendor, ulong playerDbId, out MythicRiftRunState runState)
+        {
+            runState = null;
+            if (vendor == null || playerDbId == 0 || IsCompletionOmegaForgeVendor(vendor) == false)
+                return false;
+
+            foreach (MythicRiftRunState candidate in _activeRuns.Values)
+            {
+                if (candidate == null ||
+                    candidate.Status != MythicRiftRunStatus.Success ||
+                    candidate.IsRewardEligible(playerDbId) == false)
+                {
+                    continue;
+                }
+
+                if (candidate.CompletionCrafterEntityId == vendor.Id ||
+                    candidate.CompletionEnchanterEntityId == vendor.Id)
+                {
+                    runState = candidate;
+                    return true;
+                }
             }
 
             return false;
@@ -5440,6 +5495,7 @@ namespace MHServerEmu.Games.MythicRifts
                 TrySpawnReturnPortal(runState);
                 TrySpawnCompletionArtifactVendor(runState);
                 TrySpawnCompletionCrafter(runState);
+                TrySpawnCompletionEnchanter(runState);
                 return;
             }
 
@@ -5450,6 +5506,7 @@ namespace MHServerEmu.Games.MythicRifts
             TrySpawnReturnPortal(runState);
             TrySpawnCompletionArtifactVendor(runState);
             TrySpawnCompletionCrafter(runState);
+            TrySpawnCompletionEnchanter(runState);
             Logger.Info($"Mythic Rift run {runState.Config.RunId} finalized reward room region 0x{rewardRoomRegionId:X}.");
         }
 
@@ -6641,6 +6698,7 @@ namespace MHServerEmu.Games.MythicRifts
                 TrySpawnReturnPortal(runState);
                 TrySpawnCompletionArtifactVendor(runState);
                 TrySpawnCompletionCrafter(runState);
+                TrySpawnCompletionEnchanter(runState);
             }
 
             return true;
@@ -7152,6 +7210,67 @@ namespace MHServerEmu.Games.MythicRifts
             MythicRiftRewardTuning spawnTuning = _rewardTuning ?? MythicRiftRewardTuning.CreateDefault();
             NotifyRunPlayers(runState, $"[Mythic Rift] Completion crafter spawned. Use it for item level 69-74 unique or 63-74 cosmic upgrades; each eligible player has three attempts and one success per cleared Rift. Costs {FormatCompletionCrafterCostText(spawnTuning.CompletionCrafterUniqueRecipeCost, spawnTuning.CompletionCrafterCosmicRecipeCost)} on a successful upgrade.");
             Logger.Info($"Mythic Rift run {runState.Config.RunId} spawned completion crafter {crafter.PrototypeName} (0x{crafter.Id:X}) vendorType={vendorTypeProtoRef.GetNameFormatted()}.");
+            return true;
+        }
+
+        private bool TrySpawnCompletionEnchanter(MythicRiftRunState runState)
+        {
+            if (runState == null || runState.EffectiveRegionId == 0)
+                return false;
+
+            if (runState.CompletionEnchanterEntityId != 0 && Game.EntityManager.GetEntity<WorldEntity>(runState.CompletionEnchanterEntityId) != null)
+                return true;
+
+            PrototypeId vendorProtoRef = ResolvePrototype(RiftCompletionEnchanterPrototypeName);
+            WorldEntityPrototype vendorProto = vendorProtoRef.As<WorldEntityPrototype>();
+            if (vendorProtoRef == PrototypeId.Invalid || vendorProto == null)
+            {
+                Logger.Warn($"TrySpawnCompletionEnchanter(): Failed to resolve {RiftCompletionEnchanterPrototypeName}");
+                return false;
+            }
+
+            PrototypeId vendorTypeProtoRef = ResolvePrototype(RiftCompletionEnchanterTypePrototypeName);
+            VendorTypePrototype vendorTypeProto = vendorTypeProtoRef.As<VendorTypePrototype>();
+            if (vendorTypeProtoRef == PrototypeId.Invalid || vendorTypeProto == null || vendorTypeProto.IsCrafter == false)
+            {
+                Logger.Warn($"TrySpawnCompletionEnchanter(): Failed to resolve enchanter type {RiftCompletionEnchanterTypePrototypeName}");
+                return false;
+            }
+
+            Region region = Game.RegionManager.GetRegion(runState.EffectiveRegionId);
+            if (region == null)
+                return false;
+
+            if (TryGetCompletionVendorSpawnLocation(runState, region, vendorProto, RiftCompletionEnchanterSpawnOffset, out Vector3 spawnPosition, out Orientation spawnOrientation, out Cell spawnCell) == false)
+                return false;
+
+            using var settingsHandle = EntitySettingsPool.Get(out EntitySettings settings);
+            settings.EntityRef = vendorProtoRef;
+            settings.RegionId = region.Id;
+            settings.Position = spawnPosition;
+            settings.Orientation = spawnOrientation;
+            settings.Cell = spawnCell;
+            settings.Lifespan = CompletedRunRetention;
+            settings.SourceEntityId = GetFirstRunAvatarId(region);
+
+            using var settingsPropertiesHandle = PropertyCollectionPool.Get(out PropertyCollection settingsProperties);
+            settingsProperties[PropertyEnum.Interactable] = (int)TriBool.True;
+            settingsProperties[PropertyEnum.InteractableUsesLeft] = -1;
+            settingsProperties[PropertyEnum.Visible] = true;
+            settingsProperties[PropertyEnum.VendorType] = vendorTypeProtoRef;
+            settings.Properties = settingsProperties;
+
+            WorldEntity enchanter = Game.EntityManager.CreateEntity(settings) as WorldEntity;
+            if (enchanter == null)
+            {
+                Logger.Warn("TrySpawnCompletionEnchanter(): Failed to create completion enchanter entity.");
+                return false;
+            }
+
+            enchanter.Properties[PropertyEnum.VendorType] = vendorTypeProtoRef;
+            runState.AttachCompletionEnchanter(enchanter.Id);
+            NotifyRunPlayers(runState, "[Mythic Rift] Completion enchanter spawned. Select an unlocked enchantment or runeword recipe, then choose the equipped Omega gear slot when prompted.");
+            Logger.Info($"Mythic Rift run {runState.Config.RunId} spawned completion enchanter {enchanter.PrototypeName} (0x{enchanter.Id:X}) vendorType={vendorTypeProtoRef.GetNameFormatted()}.");
             return true;
         }
 
