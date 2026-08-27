@@ -4460,6 +4460,9 @@ namespace MHServerEmu.Games.Entities.Avatars
                 return false;
             }
 
+            if (player.TryPostMythicRiftOmegaForgeInteractionPrompt(entityId))
+                return true;
+
             WorldEntityPrototype objectProto = interactableObject.WorldEntityPrototype;
             if (objectProto.PreInteractPower != null)
             {

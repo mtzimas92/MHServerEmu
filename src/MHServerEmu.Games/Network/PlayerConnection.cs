@@ -1212,6 +1212,9 @@ namespace MHServerEmu.Games.Network
             Avatar avatar = Player.GetActiveAvatarByIndex(useInteractableObject.AvatarIndex);
             if (!Verify.IsNotNull(avatar)) return;
 
+            if (Player.TryPostMythicRiftOmegaForgeInteractionPrompt(useInteractableObject.IdTarget))
+                return;
+
             avatar.UseInteractableObject(useInteractableObject.IdTarget, (PrototypeId)useInteractableObject.MissionPrototypeRef);
         }
 
@@ -1801,6 +1804,7 @@ namespace MHServerEmu.Games.Network
             if (!Verify.IsNotNull(setDialogTarget)) return;
 
             Player.SetDialogTargetId(setDialogTarget.TargetId, setDialogTarget.InteractorId);
+            Player.TryPostMythicRiftOmegaForgeInteractionPrompt(setDialogTarget.TargetId);
         }
 
         private void OnDialogResult(in MailboxMessage message)

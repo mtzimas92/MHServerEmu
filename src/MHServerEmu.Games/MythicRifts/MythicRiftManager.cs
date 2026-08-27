@@ -105,7 +105,7 @@ namespace MHServerEmu.Games.MythicRifts
         private const string RiftExitPortalPrototypeName = "Entity/Transitions/ReturnToLastBaseDR.prototype";
         private const string RiftRewardChestPrototypeName = "Entity/Props/Chests/DangerRoomChestTutorialRewardEntity.prototype";
         private const string RiftCompletionVendorPrototypeName = "Entity/Characters/Vendors/Prototypes/Endgame/DangerRoomRewardsVendor.prototype";
-        private const string RiftCompletionEnchanterPrototypeName = "Entity/Characters/Vendors/Prototypes/HUB04Asgard/AsgardVendorEnchanter.prototype";
+        private const string RiftCompletionEnchanterPrototypeName = "Entity/Characters/Vendors/Prototypes/Endgame/DangerRoomRewardsVendor.prototype";
         private const string RiftCompletionArtifactVendorTypePrototypeName = "Entity/Characters/Vendors/VendorTypes/VendorDangerRoomRewards.prototype";
         private const string RiftCompletionCrafterTypePrototypeName = "Entity/Characters/Vendors/VendorTypes/TestVendorCrafter.prototype";
         private const string RiftCompletionEnchanterTypePrototypeName = "Entity/Characters/Vendors/VendorTypes/VendorEnchanter.prototype";
@@ -124,7 +124,8 @@ namespace MHServerEmu.Games.MythicRifts
         private const string RiftCompletionCrafterCurrencyPrototypeName = "Entity/Items/CurrencyItems/CurrencyPrototypes/GenoshaRaidCurrency.prototype";
         private const float RiftCompletionArtifactVendorSpawnOffset = -260f;
         private const float RiftCompletionCrafterSpawnOffset = 390f;
-        private const float RiftCompletionEnchanterSpawnOffset = 560f;
+        private const float RiftCompletionEnchanterSpawnOffset = 65f;
+        private const float RiftCompletionEnchanterForwardOffset = 220f;
         private const string BossGauntletArenaContentId = "boss-gauntlet-tutorial-arena";
         private static readonly Vector3 BossGauntletRewardRoomCenterPosition = new(-79f, 18f, 307f);
         private const float SpecialRandomMapChance = 0.05f;
@@ -898,6 +899,40 @@ namespace MHServerEmu.Games.MythicRifts
         public bool IsCompletionOmegaForgeVendor(WorldEntity vendor)
         {
             return IsCompletionCrafter(vendor) || IsCompletionEnchanter(vendor);
+        }
+
+        public bool IsCompletionOmegaForgeVendorOrRewardRoomForge(WorldEntity vendor)
+        {
+            if (IsCompletionOmegaForgeVendor(vendor))
+                return true;
+
+            return IsRewardRoomForgeVendorByType(vendor, requireEnchanter: false);
+        }
+
+        public bool IsCompletionEnchanterOrRewardRoomEnchanter(WorldEntity vendor)
+        {
+            if (IsCompletionEnchanter(vendor))
+                return true;
+
+            return IsRewardRoomForgeVendorByType(vendor, requireEnchanter: true);
+        }
+
+        private bool IsRewardRoomForgeVendorByType(WorldEntity vendor, bool requireEnchanter)
+        {
+            if (vendor?.Region == null)
+                return false;
+
+            PrototypeId vendorTypeProtoRef = vendor.Properties[PropertyEnum.VendorType];
+            bool isValidForgeType = requireEnchanter
+                ? IsCompletionEnchanterType(vendorTypeProtoRef)
+                : IsCompletionCrafterType(vendorTypeProtoRef) || IsCompletionEnchanterType(vendorTypeProtoRef);
+            if (isValidForgeType == false)
+                return false;
+
+            return _activeRuns.Values.Any(run =>
+                run != null &&
+                run.Status == MythicRiftRunStatus.Success &&
+                run.EffectiveRegionId == vendor.Region.Id);
         }
 
         public bool IsCompletionArtifactVendor(WorldEntity vendor)
@@ -7241,7 +7276,7 @@ namespace MHServerEmu.Games.MythicRifts
             if (region == null)
                 return false;
 
-            if (TryGetCompletionVendorSpawnLocation(runState, region, vendorProto, RiftCompletionEnchanterSpawnOffset, out Vector3 spawnPosition, out Orientation spawnOrientation, out Cell spawnCell) == false)
+            if (TryGetCompletionVendorSpawnLocation(runState, region, vendorProto, RiftCompletionEnchanterSpawnOffset, out Vector3 spawnPosition, out Orientation spawnOrientation, out Cell spawnCell, RiftCompletionEnchanterForwardOffset) == false)
                 return false;
 
             using var settingsHandle = EntitySettingsPool.Get(out EntitySettings settings);
@@ -7345,7 +7380,8 @@ namespace MHServerEmu.Games.MythicRifts
             float spawnOffset,
             out Vector3 position,
             out Orientation orientation,
-            out Cell cell)
+            out Cell cell,
+            float forwardOffset = 0f)
         {
             position = Vector3.Zero;
             orientation = Orientation.Zero;
@@ -7357,19 +7393,21 @@ namespace MHServerEmu.Games.MythicRifts
             if (TryGetReturnPortalSpawnLocation(runState, region, out Vector3 anchorPosition, out orientation, out Cell anchorCell) == false)
                 return false;
 
-            Vector3 right = Vector3.Perp2D(Vector3.SafeNormalize2D(Vector3.XAxis, Vector3.XAxis));
+            Vector3 forward = Vector3.SafeNormalize2D(Vector3.XAxis, Vector3.XAxis);
+            Vector3 right = Vector3.Perp2D(forward);
             foreach (Player player in new PlayerIterator(region))
             {
                 Avatar avatar = player?.CurrentAvatar;
                 if (avatar?.IsInWorld == true && avatar.Region == region)
                 {
-                    right = Vector3.Perp2D(Vector3.SafeNormalize2D(avatar.Forward, Vector3.XAxis));
+                    forward = Vector3.SafeNormalize2D(avatar.Forward, Vector3.XAxis);
+                    right = Vector3.Perp2D(forward);
                     orientation = avatar.RegionLocation.Orientation;
                     break;
                 }
             }
 
-            Vector3 preferredPosition = anchorPosition + right * spawnOffset;
+            Vector3 preferredPosition = anchorPosition + right * spawnOffset + forward * forwardOffset;
             cell = anchorCell ?? region.GetCellAtPosition(anchorPosition);
             if (vendorProto.Bounds != null && cell != null)
             {

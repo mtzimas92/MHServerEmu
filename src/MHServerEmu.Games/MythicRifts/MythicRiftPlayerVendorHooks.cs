@@ -473,15 +473,16 @@ namespace MHServerEmu.Games.Entities
             if (stocked)
                 SendMessage(NetMessageVendorRefresh.CreateBuilder().SetVendorTypeProtoId((ulong)vendorTypeProtoRef).Build());
 
+            TryPostMythicRiftOmegaForgePrompt(vendor);
             return true;
         }
 
         private bool TryPostMythicRiftCompletionEnchanterPrompt(WorldEntity vendor)
         {
-            if (vendor == null || Game?.MythicRiftManager?.IsCompletionEnchanter(vendor) != true)
+            if (vendor == null || Game?.MythicRiftManager?.IsCompletionEnchanterOrRewardRoomEnchanter(vendor) != true)
                 return false;
 
-            return true;
+            return TryPostMythicRiftOmegaForgePrompt(vendor);
         }
 
         private bool TryAddMythicRiftCompletionCrafterRecipe(VendorTypePrototype vendorTypeProto, PrototypeId vendorTypeProtoRef)

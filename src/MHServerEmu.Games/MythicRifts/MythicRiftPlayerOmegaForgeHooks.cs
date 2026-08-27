@@ -47,6 +47,9 @@ namespace MHServerEmu.Games.Entities
         private const ulong OmegaForgeRecipeLocale = 18000000000000040126UL;
         private const ulong OmegaForgeNoRecipesLocale = 18000000000000040127UL;
         private const ulong OmegaForgeApplyRecipeButtonLocale = 18000000000000040128UL;
+        private const int OmegaForgeEnchantmentRecipeMin = 25;
+        private const int OmegaForgeEnchantmentRecipeMax = 34;
+        private const string OmegaForgeEnchantmentRecipeNameFormat = "Entity/Items/Crafting/Recipes/Enchanting/EnchantmentRecipe{0:D3}.prototype";
 
         private const string OmegaForgeEnchantmentsCategoryName = "UI/LocalizedInfo/CraftingPanel/TabLabelEnchantments.prototype";
         private const string OmegaForgeRunewordsCategoryName = "UI/LocalizedInfo/CraftingPanel/TabLabelRunewords.prototype";
@@ -151,8 +154,8 @@ namespace MHServerEmu.Games.Entities
 
             if (TryGetSelectedOmegaForgeGearSlot(vendor, out EquipmentInvUISlot slot) == false)
             {
-                PostOmegaForgeGearSelectionPrompt(vendor, 0);
-                Logger.Info($"[OmegaCraftingTrace] recipe vendor item deferred until gear slot selected playerDbId=0x{DatabaseUniqueId:X} vendor={vendor.PrototypeDataRef.GetNameFormatted()} recipe={recipeProto.DataRef.GetNameFormatted()} itemId=0x{recipeItem.Id:X}");
+                PostOmegaForgeSelectedRecipeGearPage(vendor, recipeProto.DataRef, 0);
+                Logger.Info($"[OmegaCraftingTrace] recipe vendor item deferred to gear prompt playerDbId=0x{DatabaseUniqueId:X} vendor={vendor.PrototypeDataRef.GetNameFormatted()} recipe={recipeProto.DataRef.GetNameFormatted()} itemId=0x{recipeItem.Id:X}");
                 return true;
             }
 
@@ -176,8 +179,8 @@ namespace MHServerEmu.Games.Entities
 
             if (TryGetSelectedOmegaForgeGearSlot(vendor, out EquipmentInvUISlot slot) == false)
             {
-                PostOmegaForgeGearSelectionPrompt(vendor, 0);
-                Logger.Info($"[OmegaCraftingTrace] craft request deferred until gear slot selected playerDbId=0x{DatabaseUniqueId:X} vendor={vendor.PrototypeDataRef.GetNameFormatted()} recipe={recipeProto.DataRef.GetNameFormatted()}");
+                PostOmegaForgeSelectedRecipeGearPage(vendor, recipeProto.DataRef, 0);
+                Logger.Info($"[OmegaCraftingTrace] craft request deferred to gear prompt playerDbId=0x{DatabaseUniqueId:X} vendor={vendor.PrototypeDataRef.GetNameFormatted()} recipe={recipeProto.DataRef.GetNameFormatted()}");
                 return true;
             }
 
@@ -199,29 +202,48 @@ namespace MHServerEmu.Games.Entities
             }
         }
 
-        private void TryPostMythicRiftOmegaForgePrompt(WorldEntity vendor)
+        private bool TryPostMythicRiftOmegaForgePrompt(WorldEntity vendor, bool forceRefresh = false)
         {
-            if (vendor == null || Game?.MythicRiftManager?.IsCompletionOmegaForgeVendor(vendor) != true)
-                return;
+            if (vendor == null || Game?.MythicRiftManager?.IsCompletionOmegaForgeVendorOrRewardRoomForge(vendor) != true)
+                return false;
 
-            if (Game.MythicRiftManager.TryResolveCompletionOmegaForgeRun(vendor, DatabaseUniqueId, out _) != true)
-                return;
+            if (Game.MythicRiftManager.IsCompletionCrafter(vendor) == false &&
+                Game.MythicRiftManager.IsCompletionEnchanterOrRewardRoomEnchanter(vendor) == false &&
+                Game.MythicRiftManager.IsCompletionCrafterType(vendor.Properties[PropertyEnum.VendorType]) == false)
+                return false;
 
             if (HasActiveOmegaForgeDialog(vendor))
-                return;
+            {
+                if (forceRefresh == false)
+                    return true;
 
-            if (TryGetSelectedOmegaForgeGearSlot(vendor, out _))
-                return;
+                RemoveActiveOmegaForgeDialog(vendor);
+            }
+
+            if (HasActiveOmegaForgeDialog(vendor))
+                return true;
 
             if (_mythicRiftOmegaForgePromptedVendorIds.Add(vendor.Id))
             {
                 Game.ChatManager?.SendChatFromCustomSystem(
                     this,
-                    "[Mythic Rift] Omega Forge available. Choose the equipped Omega gear slot first, then select the crafting or enchantment recipe from this vendor's UI.",
+                    Game.MythicRiftManager.IsCompletionEnchanterOrRewardRoomEnchanter(vendor)
+                        ? "[Mythic Rift] Omega Forge enchanter available. Choose the equipped Omega gear slot, then choose an unlocked enchantment."
+                        : "[Mythic Rift] Omega Forge crafter available. Choose the equipped Omega gear slot, then choose the challenge bonus.",
                     showSender: false);
             }
 
-            PostOmegaForgeGearSelectionPrompt(vendor, 0);
+            OmegaForgeAction action = Game.MythicRiftManager.IsCompletionEnchanterOrRewardRoomEnchanter(vendor)
+                ? OmegaForgeAction.EnchantOrRuneword
+                : OmegaForgeAction.ChallengeBonus;
+            PostOmegaForgeGearPage(vendor, action, 0);
+            return true;
+        }
+
+        public bool TryPostMythicRiftOmegaForgeInteractionPrompt(ulong vendorId)
+        {
+            WorldEntity vendor = Game?.EntityManager.GetEntity<WorldEntity>(vendorId);
+            return TryPostMythicRiftOmegaForgePrompt(vendor, forceRefresh: true);
         }
 
         private bool TryGetSelectedOmegaForgeGearSlot(WorldEntity vendor, out EquipmentInvUISlot slot)
@@ -422,7 +444,7 @@ namespace MHServerEmu.Games.Entities
             if (IsOmegaForgeChallengeBonusRecipe(recipeProtoRef, out OmegaForgeBonus bonus))
                 return TryCraftOmegaForgeChallengeBonus(vendor, slot, bonus);
 
-            if (IsOmegaForgeEnchantOrRunewordRecipe(recipeProto))
+            if (IsOmegaForgeEnchantmentRecipeAllowedForSlot(recipeProtoRef, slot))
                 return TryCraftOmegaForgeLearnedRecipe(vendor, slot, recipeProtoRef);
 
             Game.ChatManager?.SendChatFromCustomSystem(this, "[Mythic Rift] Omega Forge: selected recipe is not supported for Omega gear.", showSender: false);
@@ -472,6 +494,20 @@ namespace MHServerEmu.Games.Entities
         {
             if (vendor != null)
                 _mythicRiftOmegaForgeActiveDialogIds.Remove(vendor.Id);
+        }
+
+        private void RemoveActiveOmegaForgeDialog(WorldEntity vendor)
+        {
+            if (vendor == null)
+                return;
+
+            if (_mythicRiftOmegaForgeActiveDialogIds.TryGetValue(vendor.Id, out ulong dialogId) &&
+                Game.GameDialogManager.GetInstance(dialogId) is GameDialogInstance dialog)
+            {
+                Game.GameDialogManager.RemoveDialogFromClient(dialog);
+            }
+
+            _mythicRiftOmegaForgeActiveDialogIds.Remove(vendor.Id);
         }
 
         private void PrimeOmegaForgeCraftingUiSelection(WorldEntity vendor, EquipmentInvUISlot slot, Item sourceItem)
@@ -557,10 +593,20 @@ namespace MHServerEmu.Games.Entities
             if (vendor == null)
                 return;
 
+            Item sourceItem = FindEquippedOmegaForgeGearItem(slot);
+            if (sourceItem == null)
+            {
+                Game.ChatManager?.SendChatFromCustomSystem(this, $"[Mythic Rift] Omega Forge: no equipped Omega gear found in {slot}.", showSender: false);
+                Logger.Info($"[OmegaCraftingTrace] learned-recipe prompt failed playerDbId=0x{DatabaseUniqueId:X} vendor={vendor.PrototypeDataRef.GetNameFormatted()} reason=no-equipped-omega slot={slot}");
+                ClearActiveOmegaForgeDialog(vendor);
+                return;
+            }
+
             using var recipeRefsHandle = ListPool<PrototypeId>.Get(out List<PrototypeId> recipeRefs);
-            BuildAvailableOmegaForgeRecipeRefs(slot, recipeRefs);
+            BuildAvailableOmegaForgeRecipeRefs(vendor, slot, recipeRefs);
             if (recipeRefs.Count == 0)
             {
+                LogOmegaForgeLearnedRecipeAudit(vendor, slot);
                 GameDialogInstance emptyDialog = CreateOmegaForgeDialog(vendor);
                 emptyDialog.Message.LocaleString = (LocaleStringId)OmegaForgeNoRecipesLocale;
                 emptyDialog.AddButton(GameDialogResultEnum.eGDR_Option1, (LocaleStringId)OmegaForgeMoreButtonLocale, ButtonStyle.SecondaryPositive, false);
@@ -597,7 +643,7 @@ namespace MHServerEmu.Games.Entities
             PostOmegaForgeDialog(vendor, dialog);
         }
 
-        private void BuildAvailableOmegaForgeRecipeRefs(EquipmentInvUISlot slot, List<PrototypeId> recipeRefs)
+        private void BuildAvailableOmegaForgeRecipeRefs(WorldEntity vendor, EquipmentInvUISlot slot, List<PrototypeId> recipeRefs)
         {
             recipeRefs.Clear();
 
@@ -605,6 +651,19 @@ namespace MHServerEmu.Games.Entities
             if (sourceItem == null)
                 return;
 
+            AddAvailableOmegaForgeRecipeRefsFromVendor(vendor, slot, recipeRefs);
+            if (recipeRefs.Count > 0)
+                return;
+
+            AddAvailableOmegaForgeRecipeRefsFromLearned(slot, recipeRefs);
+            if (recipeRefs.Count > 0)
+                return;
+
+            AddAvailableOmegaForgeRecipeRefsBySlot(slot, recipeRefs);
+        }
+
+        private void AddAvailableOmegaForgeRecipeRefsFromLearned(EquipmentInvUISlot slot, List<PrototypeId> recipeRefs)
+        {
             Inventory learnedRecipeInv = GetInventory(InventoryConvenienceLabel.CraftingRecipesLearned);
             if (learnedRecipeInv == null)
                 return;
@@ -619,14 +678,221 @@ namespace MHServerEmu.Games.Entities
                 if (recipeItem?.ItemPrototype is not CraftingRecipePrototype recipeProto || recipeItem.IsScheduledToDestroy)
                     continue;
 
-                if (IsOmegaForgeEnchantOrRunewordRecipe(recipeProto) == false)
-                    continue;
-
-                if (TryBuildOmegaForgeRecipeIngredientIds(recipeProto, sourceItem, out _, out _) == false)
-                    continue;
-
-                recipeRefs.Add(recipeProto.DataRef);
+                if (IsOmegaForgeEnchantOrRunewordRecipe(recipeProto))
+                    AddAvailableOmegaForgeRecipeRef(recipeProto.DataRef, slot, recipeRefs);
             }
+        }
+
+        private static void AddAvailableOmegaForgeRecipeRefsBySlot(EquipmentInvUISlot slot, List<PrototypeId> recipeRefs)
+        {
+            if (recipeRefs == null)
+                return;
+
+            for (int recipeNumber = OmegaForgeEnchantmentRecipeMin; recipeNumber <= OmegaForgeEnchantmentRecipeMax; recipeNumber++)
+            {
+                PrototypeId recipeProtoRef = GameDatabase.GetPrototypeRefByName(string.Format(OmegaForgeEnchantmentRecipeNameFormat, recipeNumber));
+                if (recipeProtoRef == PrototypeId.Invalid)
+                    continue;
+
+                AddAvailableOmegaForgeRecipeRef(recipeProtoRef, slot, recipeRefs);
+            }
+        }
+
+        private void AddAvailableOmegaForgeRecipeRefsFromVendor(WorldEntity vendor, EquipmentInvUISlot slot, List<PrototypeId> recipeRefs)
+        {
+            if (vendor == null)
+                return;
+
+            PrototypeId vendorTypeProtoRef = vendor.Properties[PropertyEnum.VendorType];
+            VendorTypePrototype vendorTypeProto = vendorTypeProtoRef.As<VendorTypePrototype>();
+            if (vendorTypeProto == null)
+                return;
+
+            using var inventoryListHandle = ListPool<PrototypeId>.Get(out List<PrototypeId> inventoryList);
+            if (vendorTypeProto.GetInventories(inventoryList) == false)
+                return;
+
+            foreach (PrototypeId inventoryProtoRef in inventoryList)
+                InitializeVendorInventory(inventoryProtoRef);
+
+            EntityManager entityManager = Game.EntityManager;
+            foreach (PrototypeId inventoryProtoRef in inventoryList)
+            {
+                Inventory inventory = GetInventoryByRef(inventoryProtoRef);
+                if (inventory == null)
+                    continue;
+
+                foreach (var entry in inventory)
+                {
+                    Item recipeItem = entityManager.GetEntity<Item>(entry.Id);
+                    if (recipeItem?.ItemPrototype is not CraftingRecipePrototype recipeProto || recipeItem.IsScheduledToDestroy)
+                        continue;
+
+                    AddAvailableOmegaForgeRecipeRef(recipeProto.DataRef, slot, recipeRefs);
+                }
+            }
+        }
+
+        private static void AddAvailableOmegaForgeRecipeRef(PrototypeId recipeProtoRef, EquipmentInvUISlot slot, List<PrototypeId> recipeRefs)
+        {
+            if (recipeProtoRef == PrototypeId.Invalid || recipeRefs == null || recipeRefs.Contains(recipeProtoRef))
+                return;
+
+            if (IsOmegaForgeEnchantmentRecipeAllowedForSlot(recipeProtoRef, slot) == false)
+                return;
+
+            recipeRefs.Add(recipeProtoRef);
+        }
+
+        private bool IsOmegaForgeRecipeAvailableFromVendor(WorldEntity vendor, EquipmentInvUISlot slot, PrototypeId recipeProtoRef)
+        {
+            if (vendor == null || recipeProtoRef == PrototypeId.Invalid || IsOmegaForgeEnchantmentRecipeAllowedForSlot(recipeProtoRef, slot) == false)
+                return false;
+
+            using var recipeRefsHandle = ListPool<PrototypeId>.Get(out List<PrototypeId> recipeRefs);
+            AddAvailableOmegaForgeRecipeRefsFromVendor(vendor, slot, recipeRefs);
+            return recipeRefs.Contains(recipeProtoRef);
+        }
+
+        private void LogOmegaForgeLearnedRecipeAudit(WorldEntity vendor, EquipmentInvUISlot slot)
+        {
+            Inventory learnedRecipeInv = GetInventory(InventoryConvenienceLabel.CraftingRecipesLearned);
+            if (learnedRecipeInv == null)
+            {
+                Logger.Info($"[OmegaCraftingTrace] learned-recipe audit playerDbId=0x{DatabaseUniqueId:X} reason=no-learned-recipe-inventory slot={slot}");
+                return;
+            }
+
+            int learnedEntries = 0;
+            int craftingRecipes = 0;
+            int enchantNameMatches = 0;
+            int allowedSlotMatches = 0;
+            int enchantCategoryMatches = 0;
+            int enchantCategoryAllowedSlotMatches = 0;
+            int directRecipeMatches = 0;
+            int directAllowedSlotMatches = 0;
+            int vendorRecipeMatches = 0;
+            int vendorAllowedSlotMatches = 0;
+            int vendorCategoryMatches = 0;
+            int vendorCategoryAllowedSlotMatches = 0;
+            string sampleMatches = string.Empty;
+            string vendorSampleMatches = string.Empty;
+            string learnedSample = string.Empty;
+
+            EntityManager entityManager = Game.EntityManager;
+            foreach (var entry in learnedRecipeInv)
+            {
+                if (entry.Id == InvalidId)
+                    continue;
+
+                learnedEntries++;
+                Item recipeItem = entityManager.GetEntity<Item>(entry.Id);
+                CraftingRecipePrototype recipeProto = recipeItem?.ItemPrototype as CraftingRecipePrototype;
+                PrototypeId recipeProtoRef = recipeProto?.DataRef ?? recipeItem?.PrototypeDataRef ?? entry.ProtoRef;
+                PrototypeId recipeCategoryRef = recipeProto?.RecipeCategory ?? PrototypeId.Invalid;
+                bool isCraftingRecipe = recipeProto != null;
+                bool isEnchantCategory = IsOmegaForgeEnchantmentsCategory(recipeCategoryRef);
+                if (isCraftingRecipe)
+                {
+                    craftingRecipes++;
+
+                    if (learnedSample.Length < 1000)
+                    {
+                        if (learnedSample.Length > 0)
+                            learnedSample += ", ";
+
+                        learnedSample += $"{recipeProtoRef.GetNameFormatted()}/category={recipeCategoryRef.GetNameFormatted()}";
+                    }
+                }
+
+                if (isEnchantCategory)
+                {
+                    enchantCategoryMatches++;
+                    bool categoryAllowedForSlot = IsOmegaForgeEnchantmentRecipeAllowedForSlot(recipeProtoRef, slot);
+                    if (categoryAllowedForSlot)
+                        enchantCategoryAllowedSlotMatches++;
+                }
+
+                if (TryGetOmegaForgeEnchantmentRecipeNumber(recipeProtoRef, out int recipeNumber) == false)
+                    continue;
+
+                enchantNameMatches++;
+                bool allowedForSlot = IsOmegaForgeEnchantmentRecipeAllowedForSlot(recipeProtoRef, slot);
+                if (allowedForSlot)
+                    allowedSlotMatches++;
+
+                if (sampleMatches.Length < 800)
+                {
+                    if (sampleMatches.Length > 0)
+                        sampleMatches += ", ";
+
+                    sampleMatches += $"{recipeProtoRef.GetNameFormatted()}#{recipeNumber}/crafting={isCraftingRecipe}/allowed={allowedForSlot}";
+                }
+            }
+
+            for (int recipeNumber = OmegaForgeEnchantmentRecipeMin; recipeNumber <= OmegaForgeEnchantmentRecipeMax; recipeNumber++)
+            {
+                PrototypeId recipeProtoRef = GameDatabase.GetPrototypeRefByName(string.Format(OmegaForgeEnchantmentRecipeNameFormat, recipeNumber));
+                if (recipeProtoRef == PrototypeId.Invalid)
+                    continue;
+
+                directRecipeMatches++;
+                if (IsOmegaForgeEnchantmentRecipeAllowedForSlot(recipeProtoRef, slot))
+                    directAllowedSlotMatches++;
+            }
+
+            if (vendor != null)
+            {
+                PrototypeId vendorTypeProtoRef = vendor.Properties[PropertyEnum.VendorType];
+                VendorTypePrototype vendorTypeProto = vendorTypeProtoRef.As<VendorTypePrototype>();
+                using var inventoryListHandle = ListPool<PrototypeId>.Get(out List<PrototypeId> inventoryList);
+                if (vendorTypeProto?.GetInventories(inventoryList) == true)
+                {
+                    foreach (PrototypeId inventoryProtoRef in inventoryList)
+                    {
+                        Inventory inventory = GetInventoryByRef(inventoryProtoRef);
+                        if (inventory == null)
+                            continue;
+
+                        foreach (var entry in inventory)
+                        {
+                            if (entry.Id == InvalidId)
+                                continue;
+
+                            Item recipeItem = entityManager.GetEntity<Item>(entry.Id);
+                            if (recipeItem?.ItemPrototype is not CraftingRecipePrototype recipeProto || recipeItem.IsScheduledToDestroy)
+                                continue;
+
+                            bool isEnchantCategory = IsOmegaForgeEnchantmentsCategory(recipeProto.RecipeCategory);
+                            if (isEnchantCategory)
+                            {
+                                vendorCategoryMatches++;
+                                bool categoryAllowedForSlot = IsOmegaForgeEnchantmentRecipeAllowedForSlot(recipeProto.DataRef, slot);
+                                if (categoryAllowedForSlot)
+                                    vendorCategoryAllowedSlotMatches++;
+                            }
+
+                            if (TryGetOmegaForgeEnchantmentRecipeNumber(recipeProto.DataRef, out int recipeNumber) == false)
+                                continue;
+
+                            vendorRecipeMatches++;
+                            bool allowedForSlot = IsOmegaForgeEnchantmentRecipeAllowedForSlot(recipeProto.DataRef, slot);
+                            if (allowedForSlot)
+                                vendorAllowedSlotMatches++;
+
+                            if (vendorSampleMatches.Length < 800)
+                            {
+                                if (vendorSampleMatches.Length > 0)
+                                    vendorSampleMatches += ", ";
+
+                                vendorSampleMatches += $"{recipeProto.DataRef.GetNameFormatted()}#{recipeNumber}/inventory={inventory.PrototypeDataRef.GetNameFormatted()}/allowed={allowedForSlot}";
+                            }
+                        }
+                    }
+                }
+            }
+
+            Logger.Info($"[OmegaCraftingTrace] learned-recipe audit playerDbId=0x{DatabaseUniqueId:X} reason=no-available-enchantments slot={slot} learnedEntries={learnedEntries} craftingRecipes={craftingRecipes} enchantCategoryMatches={enchantCategoryMatches} enchantCategoryAllowedSlotMatches={enchantCategoryAllowedSlotMatches} enchantNameMatches={enchantNameMatches} allowedSlotMatches={allowedSlotMatches} directRecipeMatches={directRecipeMatches} directAllowedSlotMatches={directAllowedSlotMatches} vendorEnchantCategoryMatches={vendorCategoryMatches} vendorEnchantCategoryAllowedSlotMatches={vendorCategoryAllowedSlotMatches} vendorEnchantMatches={vendorRecipeMatches} vendorAllowedSlotMatches={vendorAllowedSlotMatches} learnedSample=[{learnedSample}] matches=[{sampleMatches}] vendorMatches=[{vendorSampleMatches}]");
         }
 
         private bool TryCraftOmegaForgeLearnedRecipe(WorldEntity vendor, EquipmentInvUISlot slot, PrototypeId recipeProtoRef)
@@ -640,10 +906,11 @@ namespace MHServerEmu.Games.Entities
             }
 
             CraftingRecipePrototype recipeProto = recipeProtoRef.As<CraftingRecipePrototype>();
-            if (recipeProto == null || IsOmegaForgeEnchantOrRunewordRecipe(recipeProto) == false || HasLearnedCraftingRecipe(recipeProtoRef) == false)
+            if (recipeProto == null ||
+                IsOmegaForgeEnchantmentRecipeAllowedForSlot(recipeProtoRef, slot) == false)
             {
-                Game.ChatManager?.SendChatFromCustomSystem(this, "[Mythic Rift] Omega Forge: that enchantment recipe is not learned.", showSender: false);
-                Logger.Info($"[OmegaCraftingTrace] learned-recipe failed playerDbId=0x{DatabaseUniqueId:X} reason=recipe-not-learned slot={slot} recipe={recipeProtoRef.GetNameFormatted()}");
+                Game.ChatManager?.SendChatFromCustomSystem(this, "[Mythic Rift] Omega Forge: that enchantment recipe is not available for this gear slot.", showSender: false);
+                Logger.Info($"[OmegaCraftingTrace] learned-recipe failed playerDbId=0x{DatabaseUniqueId:X} reason=recipe-not-available slot={slot} recipe={recipeProtoRef.GetNameFormatted()}");
                 return false;
             }
 
@@ -1038,15 +1305,83 @@ namespace MHServerEmu.Games.Entities
             if (recipeProto == null || recipeProto.RecipeInputs.IsNullOrEmpty() || recipeProto.RecipeInputs.Length < 2)
                 return false;
 
-            if (_omegaForgeEnchantmentsCategoryRef == PrototypeId.Invalid)
-                _omegaForgeEnchantmentsCategoryRef = GameDatabase.GetPrototypeRefByName(OmegaForgeEnchantmentsCategoryName);
-
             if (_omegaForgeRunewordsCategoryRef == PrototypeId.Invalid)
                 _omegaForgeRunewordsCategoryRef = GameDatabase.GetPrototypeRefByName(OmegaForgeRunewordsCategoryName);
 
             PrototypeId categoryRef = recipeProto.RecipeCategory;
-            return categoryRef != PrototypeId.Invalid &&
-                   (categoryRef == _omegaForgeEnchantmentsCategoryRef || categoryRef == _omegaForgeRunewordsCategoryRef);
+            if (categoryRef == PrototypeId.Invalid ||
+                (IsOmegaForgeEnchantmentsCategory(categoryRef) == false && categoryRef != _omegaForgeRunewordsCategoryRef))
+            {
+                return false;
+            }
+
+            return TryGetOmegaForgeEnchantmentRecipeNumber(recipeProto.DataRef, out _);
+        }
+
+        private static bool IsOmegaForgeEnchantmentsCategory(PrototypeId categoryRef)
+        {
+            if (categoryRef == PrototypeId.Invalid)
+                return false;
+
+            if (_omegaForgeEnchantmentsCategoryRef == PrototypeId.Invalid)
+                _omegaForgeEnchantmentsCategoryRef = GameDatabase.GetPrototypeRefByName(OmegaForgeEnchantmentsCategoryName);
+
+            return _omegaForgeEnchantmentsCategoryRef != PrototypeId.Invalid && categoryRef == _omegaForgeEnchantmentsCategoryRef;
+        }
+
+        private static bool IsOmegaForgeEnchantmentRecipeAllowedForSlot(PrototypeId recipeProtoRef, EquipmentInvUISlot slot)
+        {
+            if (TryGetOmegaForgeEnchantmentRecipeNumber(recipeProtoRef, out int recipeNumber) == false)
+                return false;
+
+            bool outerGearSlot = slot == EquipmentInvUISlot.Gear01 || slot == EquipmentInvUISlot.Gear05;
+            bool middleGearSlot = slot == EquipmentInvUISlot.Gear02 || slot == EquipmentInvUISlot.Gear03 || slot == EquipmentInvUISlot.Gear04;
+
+            return middleGearSlot && recipeNumber is >= 25 and <= 29 ||
+                   outerGearSlot && recipeNumber is >= 30 and <= 34;
+        }
+
+        private static bool TryGetOmegaForgeEnchantmentRecipeNumber(PrototypeId recipeProtoRef, out int recipeNumber)
+        {
+            recipeNumber = 0;
+            if (recipeProtoRef == PrototypeId.Invalid)
+                return false;
+
+            for (int directRecipeNumber = OmegaForgeEnchantmentRecipeMin; directRecipeNumber <= OmegaForgeEnchantmentRecipeMax; directRecipeNumber++)
+            {
+                PrototypeId directRecipeProtoRef = GameDatabase.GetPrototypeRefByName(string.Format(OmegaForgeEnchantmentRecipeNameFormat, directRecipeNumber));
+                if (directRecipeProtoRef == recipeProtoRef)
+                {
+                    recipeNumber = directRecipeNumber;
+                    return true;
+                }
+            }
+
+            string prototypeName = recipeProtoRef.GetName();
+            if (string.IsNullOrWhiteSpace(prototypeName))
+                prototypeName = recipeProtoRef.GetNameFormatted();
+
+            int enchantIndex = prototypeName.IndexOf("Enchant", StringComparison.OrdinalIgnoreCase);
+            int recipeIndex = prototypeName.IndexOf("Recipe", StringComparison.OrdinalIgnoreCase);
+            if (enchantIndex < 0 || recipeIndex < 0)
+                return false;
+
+            for (int numberIndex = enchantIndex; numberIndex + 3 <= prototypeName.Length; numberIndex++)
+            {
+                if (char.IsDigit(prototypeName[numberIndex]) == false ||
+                    char.IsDigit(prototypeName[numberIndex + 1]) == false ||
+                    char.IsDigit(prototypeName[numberIndex + 2]) == false)
+                {
+                    continue;
+                }
+
+                if (int.TryParse(prototypeName.Substring(numberIndex, 3), out recipeNumber) == false)
+                    continue;
+
+                return recipeNumber >= OmegaForgeEnchantmentRecipeMin && recipeNumber <= OmegaForgeEnchantmentRecipeMax;
+            }
+
+            return false;
         }
 
         private static CraftingRecipePrototype ResolveOmegaForgeRecipe(OmegaForgeBonus bonus)

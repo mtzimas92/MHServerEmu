@@ -14,7 +14,6 @@ namespace MHServerEmu.Games.OmegaTierItems
     {
         private static readonly Logger Logger = LogManager.CreateLogger();
 
-        private const string CosmicRarityName = "Entity/Items/Rarity/R5Cosmic.prototype";
         private const string OmegaRarityName = "Entity/Items/Rarity/R6Omega.prototype";
         private const string ArmorOmegaCategoryName = "Entity/Items/Affixes/AffixCategories/ArmorOmega.prototype";
         private const string RingOmegaAffixName = "Entity/Items/Affixes/RingAffixes/RingLoot20/BuiltInHP/RingHealthOmega.prototype";
@@ -62,22 +61,17 @@ namespace MHServerEmu.Games.OmegaTierItems
             EquipmentInvUISlot slot = itemProto.GetInventorySlotForAgent(avatarProto);
 
             PrototypeId omegaRarityRef = GameDatabase.GetPrototypeRefByName(OmegaRarityName);
-            PrototypeId cosmicRarityRef = GameDatabase.GetPrototypeRefByName(CosmicRarityName);
             bool requestedOmega = omegaRarityRef != PrototypeId.Invalid && rarityProtoRef == omegaRarityRef;
-            bool useOmegaSpec = requestedOmega && slot == EquipmentInvUISlot.Ring;
-            PrototypeId effectiveRarityProtoRef = requestedOmega && useOmegaSpec == false && cosmicRarityRef != PrototypeId.Invalid
-                ? cosmicRarityRef
-                : rarityProtoRef;
 
             using var filterArgsHandle = DropFilterArgumentsPool.Get(out DropFilterArguments filterArgs);
-            DropFilterArguments.Initialize(filterArgs, itemProto, rollFor, resolvedLevel, effectiveRarityProtoRef, 0, slot, lootContext);
+            DropFilterArguments.Initialize(filterArgs, itemProto, rollFor, resolvedLevel, rarityProtoRef, 0, slot, lootContext);
 
             RestrictionTestFlags nonRarityRestrictions = RestrictionTestFlags.All & ~(RestrictionTestFlags.Rarity | RestrictionTestFlags.Level);
             if (itemProto.MakeRestrictionsDroppable(filterArgs, nonRarityRestrictions, out _) == false ||
                 itemProto.IsDroppableForRestrictions(filterArgs, RestrictionTestFlags.Rarity) == false)
             {
                 if (logFailures)
-                    Logger.Warn($"CreateItemSpec(): {itemProtoRef.GetNameFormatted()} cannot drop as {effectiveRarityProtoRef.GetNameFormatted()} at level {filterArgs.Level} requestedRarity={rarityProtoRef.GetNameFormatted()}");
+                    Logger.Warn($"CreateItemSpec(): {itemProtoRef.GetNameFormatted()} cannot drop as {rarityProtoRef.GetNameFormatted()} at level {filterArgs.Level}");
                 return null;
             }
 
@@ -93,7 +87,7 @@ namespace MHServerEmu.Games.OmegaTierItems
             if (mutationResults.HasFlag(MutationResults.Error))
             {
                 if (logFailures)
-                    Logger.Warn($"CreateItemSpec(): failed to roll affixes for {itemProtoRef.GetNameFormatted()} as {effectiveRarityProtoRef.GetNameFormatted()} requestedRarity={rarityProtoRef.GetNameFormatted()}");
+                    Logger.Warn($"CreateItemSpec(): failed to roll affixes for {itemProtoRef.GetNameFormatted()} as {rarityProtoRef.GetNameFormatted()}");
                 return null;
             }
 
@@ -101,8 +95,8 @@ namespace MHServerEmu.Games.OmegaTierItems
             TryApplyOmegaArmorAffix(resolver, filterArgs, itemSpec, rollFor, requestedOmega, omegaRarityRef);
             TryApplyOmegaRingAffix(resolver, filterArgs, itemSpec, requestedOmega, omegaRarityRef);
 
-            if (requestedOmega && itemSpec.RarityProtoRef == effectiveRarityProtoRef)
-                Logger.Info($"Omega reward created as craftable cosmic item: item={itemSpec.ItemProtoRef.GetNameFormatted()} slot={slot} requestedRarity={rarityProtoRef.GetNameFormatted()} effectiveRarity={effectiveRarityProtoRef.GetNameFormatted()} affixes={itemSpec.AffixSpecs.Count}");
+            if (requestedOmega && itemSpec.RarityProtoRef == rarityProtoRef)
+                Logger.Info($"Omega reward created: item={itemSpec.ItemProtoRef.GetNameFormatted()} slot={slot} rarity={rarityProtoRef.GetNameFormatted()} affixes={itemSpec.AffixSpecs.Count}");
 
             return itemSpec;
         }
