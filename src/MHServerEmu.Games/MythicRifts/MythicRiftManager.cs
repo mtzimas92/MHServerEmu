@@ -1678,10 +1678,11 @@ namespace MHServerEmu.Games.MythicRifts
             if (itemProtoRef == PrototypeId.Invalid)
                 return;
 
-            if (candidateItemSpec != null || itemLevel > 1 || guaranteedItem.RarityProtoRef != PrototypeId.Invalid)
+            bool useItemFactory = OmegaTierItemFactory.ShouldUseFactory(itemProtoRef, guaranteedItem.RarityProtoRef);
+            if (candidateItemSpec != null || itemLevel > 1 || guaranteedItem.RarityProtoRef != PrototypeId.Invalid || useItemFactory)
             {
                 int resolvedItemLevel = Math.Max(itemLevel, 1);
-                ItemSpec itemSpec = candidateItemSpec ?? (guaranteedItem.RarityProtoRef != PrototypeId.Invalid
+                ItemSpec itemSpec = candidateItemSpec ?? (useItemFactory
                     ? OmegaTierItemFactory.CreateItemSpec(Game, itemProtoRef, guaranteedItem.RarityProtoRef, LootContext.Drop, player, resolvedItemLevel)
                     : Game.LootManager.CreateItemSpec(itemProtoRef, LootContext.Drop, player, resolvedItemLevel));
                 if (itemSpec == null)
@@ -1749,7 +1750,8 @@ namespace MHServerEmu.Games.MythicRifts
                 if (RewardPoolItemMatchesAllowedEquipmentSlots(candidateProto, allowedEquipmentSlots, avatarProto, requestedSlot) == false)
                     continue;
 
-                ItemSpec itemSpec = guaranteedItem.RarityProtoRef != PrototypeId.Invalid
+                bool useItemFactory = OmegaTierItemFactory.ShouldUseFactory(candidateRef, guaranteedItem.RarityProtoRef);
+                ItemSpec itemSpec = useItemFactory
                     ? OmegaTierItemFactory.CreateItemSpec(Game, candidateRef, guaranteedItem.RarityProtoRef, LootContext.Drop, player, resolvedItemLevel, logFailures: false)
                     : Game.LootManager.CreateItemSpec(candidateRef, LootContext.Drop, player, resolvedItemLevel);
                 if (itemSpec == null)

@@ -28,6 +28,7 @@ namespace MHServerEmu.Games.OmegaTierItems
         public List<OmegaTierPreferredAffixTuning> PreferredAffixes { get; set; } = new();
         public List<string> DisabledAffixes { get; set; } = new();
         public List<string> DisabledAffixCategories { get; set; } = new();
+        public List<OmegaTierItemOverrideTuning> ItemOverrides { get; set; } = new();
 
         public static string ConfigPath => Path.Combine(FileHelper.DataDirectory, RelativeConfigPath);
 
@@ -106,9 +107,13 @@ namespace MHServerEmu.Games.OmegaTierItems
             PreferredAffixes ??= new();
             DisabledAffixes ??= new();
             DisabledAffixCategories ??= new();
+            ItemOverrides ??= new();
 
             foreach (OmegaTierPreferredAffixTuning preferredAffix in PreferredAffixes)
                 preferredAffix?.Normalize();
+
+            foreach (OmegaTierItemOverrideTuning itemOverride in ItemOverrides)
+                itemOverride?.Normalize();
 
             DisabledAffixes = DisabledAffixes
                 .Where(name => string.IsNullOrWhiteSpace(name) == false)
@@ -147,6 +152,20 @@ namespace MHServerEmu.Games.OmegaTierItems
 
             return false;
         }
+
+        public bool HasItemOverride(PrototypeId itemProtoRef, PrototypeId rarityProtoRef)
+        {
+            if (Enabled == false || itemProtoRef == PrototypeId.Invalid || ItemOverrides.Count == 0)
+                return false;
+
+            foreach (OmegaTierItemOverrideTuning itemOverride in ItemOverrides)
+            {
+                if (itemOverride?.Matches(itemProtoRef, rarityProtoRef) == true)
+                    return true;
+            }
+
+            return false;
+        }
     }
 
     public sealed class OmegaTierPreferredAffixTuning
@@ -182,6 +201,117 @@ namespace MHServerEmu.Games.OmegaTierItems
             }
 
             return false;
+        }
+    }
+
+    public sealed class OmegaTierItemOverrideTuning
+    {
+        public string Id { get; set; }
+        public bool Enabled { get; set; } = true;
+        public List<string> ItemPrototypes { get; set; } = new();
+        public List<string> Rarities { get; set; } = new();
+        public bool ClearExistingAffixes { get; set; } = false;
+        public List<string> DisabledAffixes { get; set; } = new();
+        public List<OmegaTierForcedAffixTuning> ForcedAffixes { get; set; } = new();
+        public List<OmegaTierRandomAffixTuning> RandomAffixes { get; set; } = new();
+
+        public void Normalize()
+        {
+            Id = string.IsNullOrWhiteSpace(Id) ? "unnamed-item-override" : Id.Trim();
+            ItemPrototypes = NormalizeStringList(ItemPrototypes);
+            Rarities = NormalizeStringList(Rarities);
+            DisabledAffixes = NormalizeStringList(DisabledAffixes);
+            ForcedAffixes ??= new();
+            RandomAffixes ??= new();
+
+            foreach (OmegaTierForcedAffixTuning forcedAffix in ForcedAffixes)
+                forcedAffix?.Normalize();
+
+            foreach (OmegaTierRandomAffixTuning randomAffix in RandomAffixes)
+                randomAffix?.Normalize();
+        }
+
+        public bool Matches(PrototypeId itemProtoRef, PrototypeId rarityProtoRef)
+        {
+            if (Enabled == false || itemProtoRef == PrototypeId.Invalid || ItemPrototypes.Count == 0)
+                return false;
+
+            bool itemMatches = false;
+            foreach (string itemName in ItemPrototypes)
+            {
+                if (GameDatabase.GetPrototypeRefByName(itemName) == itemProtoRef)
+                {
+                    itemMatches = true;
+                    break;
+                }
+            }
+
+            if (itemMatches == false)
+                return false;
+
+            if (Rarities.Count == 0)
+                return true;
+
+            foreach (string rarityName in Rarities)
+            {
+                if (GameDatabase.GetPrototypeRefByName(rarityName) == rarityProtoRef)
+                    return true;
+            }
+
+            return false;
+        }
+
+        public bool IsAffixDisabled(AffixPrototype affixProto)
+        {
+            if (affixProto == null)
+                return false;
+
+            foreach (string affixName in DisabledAffixes)
+            {
+                PrototypeId disabledAffixRef = GameDatabase.GetPrototypeRefByName(affixName);
+                if (disabledAffixRef != PrototypeId.Invalid && disabledAffixRef == affixProto.DataRef)
+                    return true;
+            }
+
+            return false;
+        }
+
+        private static List<string> NormalizeStringList(List<string> values)
+        {
+            return values == null
+                ? new()
+                : values
+                    .Where(value => string.IsNullOrWhiteSpace(value) == false)
+                    .Select(value => value.Trim())
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .ToList();
+        }
+    }
+
+    public sealed class OmegaTierForcedAffixTuning
+    {
+        public string Prototype { get; set; }
+        public int Count { get; set; } = 1;
+        public bool AllowInvalidAttachment { get; set; } = false;
+        public bool ReplaceExistingSamePosition { get; set; } = false;
+
+        public void Normalize()
+        {
+            Prototype = string.IsNullOrWhiteSpace(Prototype) ? string.Empty : Prototype.Trim();
+            Count = Math.Max(Count, 0);
+        }
+    }
+
+    public sealed class OmegaTierRandomAffixTuning
+    {
+        public string Position { get; set; }
+        public int Count { get; set; } = 1;
+        public bool AllowInvalidAttachment { get; set; } = false;
+
+        public void Normalize()
+        {
+            Position = string.IsNullOrWhiteSpace(Position) ? string.Empty : Position.Trim();
+            Count = Math.Max(Count, 0);
         }
     }
 }
