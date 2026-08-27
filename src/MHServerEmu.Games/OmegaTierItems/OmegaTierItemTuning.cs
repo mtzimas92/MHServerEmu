@@ -76,20 +76,17 @@ namespace MHServerEmu.Games.OmegaTierItems
                     new()
                     {
                         Prototype = "Entity/Items/Affixes/ArmorAffixes/Loot20/CritChance/CritChanceT3.prototype",
-                        Weight = 10,
-                        Slots = ["Gear02", "Gear04"]
+                        Weight = 10
                     },
                     new()
                     {
                         Prototype = "Entity/Items/Affixes/ArmorAffixes/Loot20/CritDamage/CritDamageT3.prototype",
-                        Weight = 10,
-                        Slots = ["Gear02", "Gear04"]
+                        Weight = 10
                     },
                     new()
                     {
                         Prototype = "Entity/Items/Affixes/ArmorAffixes/Loot20/BrutalDamage/BrutalDamageT3.prototype",
-                        Weight = 10,
-                        Slots = ["Gear02", "Gear04"]
+                        Weight = 10
                     }
                 ]
             };

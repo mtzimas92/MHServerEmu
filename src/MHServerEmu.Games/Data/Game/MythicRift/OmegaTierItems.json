@@ -6,18 +6,15 @@
   "preferredAffixes": [
     {
       "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/CritChance/CritChanceT3.prototype",
-      "weight": 10,
-      "slots": [ "Gear02", "Gear04" ]
+      "weight": 10
     },
     {
       "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/CritDamage/CritDamageT3.prototype",
-      "weight": 10,
-      "slots": [ "Gear02", "Gear04" ]
+      "weight": 10
     },
     {
       "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/BrutalDamage/BrutalDamageT3.prototype",
-      "weight": 10,
-      "slots": [ "Gear02", "Gear04" ]
+      "weight": 10
     }
   ],
   "disabledAffixes": [
