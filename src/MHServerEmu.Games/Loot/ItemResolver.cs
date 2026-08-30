@@ -10,6 +10,7 @@ using MHServerEmu.Games.GameData.Calligraphy;
 using MHServerEmu.Games.GameData.Prototypes;
 using MHServerEmu.Games.Loot.Specs;
 using MHServerEmu.Games.Missions;
+using MHServerEmu.Games.OmegaTierItems;
 using MHServerEmu.Games.Properties;
 using MHServerEmu.Games.Regions;
 
@@ -541,6 +542,8 @@ namespace MHServerEmu.Games.Loot
 
                             if (adjustResultFlags.HasFlag(RestrictionTestFlags.OutputRarity))
                                 itemSpec.RarityProtoRef = restrictionArgs.Rarity;
+
+                            OmegaTierItemFactory.TryApplyConfiguredUniqueOverrideForOmegaDifficulty(this, itemSpec, settings);
 
                             // Push the final processed item
                             _processedItemList.Add(new(itemSpec, isVaporized));

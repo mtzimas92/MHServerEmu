@@ -8,6 +8,7 @@ using MHServerEmu.Games.GameData;
 using MHServerEmu.Games.GameData.Prototypes;
 using MHServerEmu.Games.GameData.Tables;
 using MHServerEmu.Games.Loot;
+using MHServerEmu.Games.Properties;
 
 namespace MHServerEmu.Games.OmegaTierItems
 {
@@ -16,6 +17,10 @@ namespace MHServerEmu.Games.OmegaTierItems
         private static readonly Logger Logger = LogManager.CreateLogger();
 
         private const string OmegaRarityName = "Entity/Items/Rarity/R6Omega.prototype";
+        private const string ArmorSimpleAT2CategoryName = "Entity/Items/Affixes/AffixCategories/ArmorSimpleAT2.prototype";
+        private const string ArmorSimpleAT3CategoryName = "Entity/Items/Affixes/AffixCategories/ArmorSimpleAT3.prototype";
+        private const string ArmorSimpleBT2CategoryName = "Entity/Items/Affixes/AffixCategories/ArmorSimpleBT2.prototype";
+        private const string ArmorSimpleBT3CategoryName = "Entity/Items/Affixes/AffixCategories/ArmorSimpleBT3.prototype";
         private const string ArmorOmegaCategoryName = "Entity/Items/Affixes/AffixCategories/ArmorOmega.prototype";
         private const string RingOmegaAffixName = "Entity/Items/Affixes/RingAffixes/RingLoot20/BuiltInHP/RingHealthOmega.prototype";
         private const string RingOffenseT3CategoryName = "Entity/Items/Affixes/AffixCategories/RingOffenseT3.prototype";
@@ -27,6 +32,39 @@ namespace MHServerEmu.Games.OmegaTierItems
                 return true;
 
             return OmegaTierItemTuning.Load().HasItemOverride(itemProtoRef, rarityProtoRef);
+        }
+
+        public static bool TryApplyConfiguredUniqueOverrideForOmegaDifficulty(ItemResolver resolver, ItemSpec itemSpec, LootRollSettings settings = null)
+        {
+            if (resolver == null || itemSpec == null || itemSpec.IsValid == false)
+                return false;
+
+            OmegaTierItemTuning tuning = OmegaTierItemTuning.Load();
+            if (tuning?.Enabled != true || tuning.HasItemOverride(itemSpec.ItemProtoRef, itemSpec.RarityProtoRef) == false)
+                return false;
+
+            if (IsSupportedOverrideLootContext(resolver.LootContext) == false ||
+                IsUniqueItemSpec(itemSpec) == false ||
+                IsOmegaDifficulty(resolver, settings) == false)
+            {
+                return false;
+            }
+
+            ItemPrototype itemProto = itemSpec.ItemProtoRef.As<ItemPrototype>();
+            if (itemProto == null)
+                return false;
+
+            AvatarPrototype avatarProto = resolver.Player?.CurrentAvatar?.AvatarPrototype;
+            PrototypeId rollFor = itemSpec.EquippableBy != PrototypeId.Invalid
+                ? itemSpec.EquippableBy
+                : resolver.ResolveAvatarPrototype(avatarProto, forceUsable: true, usablePercent: 1f).DataRef;
+            EquipmentInvUISlot slot = itemProto.GetInventorySlotForAgent(avatarProto);
+
+            using var filterArgsHandle = DropFilterArgumentsPool.Get(out DropFilterArguments filterArgs);
+            DropFilterArguments.Initialize(filterArgs, itemProto, rollFor, Math.Max(itemSpec.ItemLevel, 1), itemSpec.RarityProtoRef, 0, slot, resolver.LootContext);
+
+            TryApplyItemOverrides(resolver, filterArgs, itemSpec, rollFor, tuning);
+            return true;
         }
 
         public static ItemSpec CreateItemSpec(
@@ -109,7 +147,10 @@ namespace MHServerEmu.Games.OmegaTierItems
             TryApplyItemOverrides(resolver, filterArgs, itemSpec, rollFor, tuning);
 
             if (requestedOmega && itemSpec.RarityProtoRef == rarityProtoRef)
+            {
                 Logger.Info($"Omega reward created: item={itemSpec.ItemProtoRef.GetNameFormatted()} slot={slot} rarity={rarityProtoRef.GetNameFormatted()} affixes={itemSpec.AffixSpecs.Count}");
+                LogOmegaAffixAudit(itemSpec, slot);
+            }
 
             return itemSpec;
         }
@@ -234,6 +275,55 @@ namespace MHServerEmu.Games.OmegaTierItems
                 slot = armorProto.DefaultEquipmentSlot;
 
             return slot >= EquipmentInvUISlot.Gear01 && slot <= EquipmentInvUISlot.Gear05;
+        }
+
+        private static void LogOmegaAffixAudit(ItemSpec itemSpec, EquipmentInvUISlot slot)
+        {
+            if (itemSpec == null)
+                return;
+
+            int t2Count = 0;
+            int t3Count = 0;
+            List<string> affixSummaries = new(itemSpec.AffixSpecs.Count);
+
+            foreach (AffixSpec affixSpec in itemSpec.AffixSpecs)
+            {
+                AffixPrototype affixProto = affixSpec?.AffixProto;
+                if (affixProto == null)
+                    continue;
+
+                string tier = "Other";
+                if (HasAnyCategory(affixProto, ArmorSimpleAT3CategoryName, ArmorSimpleBT3CategoryName, RingOffenseT3CategoryName, RingDefenseT3CategoryName))
+                {
+                    tier = "T3";
+                    t3Count++;
+                }
+                else if (HasAnyCategory(affixProto, ArmorSimpleAT2CategoryName, ArmorSimpleBT2CategoryName))
+                {
+                    tier = "T2";
+                    t2Count++;
+                }
+
+                affixSummaries.Add($"{affixProto.DataRef.GetNameFormatted()}@{affixProto.Position}:{tier}");
+            }
+
+            Logger.Info($"Omega reward affix audit: item={itemSpec.ItemProtoRef.GetNameFormatted()} slot={slot} rarity={itemSpec.RarityProtoRef.GetNameFormatted()} t3Affixes={t3Count} t2Affixes={t2Count} affixes=[{string.Join(", ", affixSummaries)}]");
+        }
+
+        private static bool HasAnyCategory(AffixPrototype affixProto, params string[] categoryNames)
+        {
+            if (affixProto == null || categoryNames == null)
+                return false;
+
+            foreach (string categoryName in categoryNames)
+            {
+                PrototypeId categoryRef = GameDatabase.GetPrototypeRefByName(categoryName);
+                AffixCategoryPrototype categoryProto = GameDatabase.GetPrototype<AffixCategoryPrototype>(categoryRef);
+                if (categoryProto != null && affixProto.HasCategory(categoryProto))
+                    return true;
+            }
+
+            return false;
         }
 
         private static void TryApplyItemOverrides(
@@ -402,6 +492,7 @@ namespace MHServerEmu.Games.OmegaTierItems
             foreach (AffixSpec affixSpec in itemSpec.AffixSpecs)
                 affixSpecs.Add(new(affixSpec));
 
+            int nativePreferredCount = CountConfiguredPreferredAffixesPresent(affixSpecs, tuning, filterArgs.Slot);
             int appliedCount = 0;
             for (int attempt = 0; appliedCount < tuning.MaxPreferredAffixesPerItem && attempt < tuning.MaxPreferredAffixesPerItem * 4; attempt++)
             {
@@ -424,11 +515,15 @@ namespace MHServerEmu.Games.OmegaTierItems
             }
 
             if (appliedCount <= 0)
+            {
+                if (nativePreferredCount > 0)
+                    Logger.Info($"Omega item preferred affixes already present: item={itemSpec.ItemProtoRef.GetNameFormatted()} slot={filterArgs.Slot} native={nativePreferredCount}");
                 return;
+            }
 
             itemSpec.SetAffixes(affixSpecs);
             itemSpec.OnAffixesRolled(resolver, rollFor);
-            Logger.Info($"Omega item preferred affixes applied: item={itemSpec.ItemProtoRef.GetNameFormatted()} slot={filterArgs.Slot} applied={appliedCount}");
+            Logger.Info($"Omega item preferred affixes applied: item={itemSpec.ItemProtoRef.GetNameFormatted()} slot={filterArgs.Slot} native={nativePreferredCount} applied={appliedCount}");
         }
 
         private static void TryReplaceDisabledAffixes(
@@ -579,7 +674,7 @@ namespace MHServerEmu.Games.OmegaTierItems
                 if (requiredPosition.HasValue && affixProto.Position != requiredPosition.Value)
                     continue;
 
-                if (ContainsAffix(currentAffixSpecs, affixRef) || tuning.IsAffixDisabled(affixProto))
+                if (ContainsEquivalentPreferredAffix(currentAffixSpecs, affixProto) || tuning.IsAffixDisabled(affixProto))
                     continue;
 
                 if (affixProto.AllowAttachment(filterArgs) == false)
@@ -602,6 +697,81 @@ namespace MHServerEmu.Games.OmegaTierItems
             }
 
             return candidates[^1].AffixProto;
+        }
+
+        private static int CountConfiguredPreferredAffixesPresent(List<AffixSpec> affixSpecs, OmegaTierItemTuning tuning, EquipmentInvUISlot slot)
+        {
+            if (affixSpecs == null || tuning?.PreferredAffixes == null)
+                return 0;
+
+            int count = 0;
+            foreach (OmegaTierPreferredAffixTuning preferredAffix in tuning.PreferredAffixes)
+            {
+                if (preferredAffix == null || preferredAffix.AllowsSlot(slot) == false)
+                    continue;
+
+                AffixPrototype preferredAffixProto = ResolveAffix(preferredAffix.Prototype);
+                if (preferredAffixProto != null && ContainsEquivalentPreferredAffix(affixSpecs, preferredAffixProto))
+                    count++;
+            }
+
+            return count;
+        }
+
+        private static bool ContainsEquivalentPreferredAffix(IEnumerable<AffixSpec> affixSpecs, AffixPrototype preferredAffixProto)
+        {
+            if (affixSpecs == null || preferredAffixProto == null)
+                return false;
+
+            foreach (AffixSpec affixSpec in affixSpecs)
+            {
+                AffixPrototype existingAffixProto = affixSpec?.AffixProto;
+                if (existingAffixProto == null)
+                    continue;
+
+                if (existingAffixProto.DataRef == preferredAffixProto.DataRef)
+                    return true;
+
+                if (existingAffixProto.Position == preferredAffixProto.Position &&
+                    HasMatchingPropertyEntry(existingAffixProto, preferredAffixProto))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static bool HasMatchingPropertyEntry(AffixPrototype existingAffixProto, AffixPrototype preferredAffixProto)
+        {
+            if (existingAffixProto?.PropertyEntries == null || preferredAffixProto?.PropertyEntries == null)
+                return false;
+
+            foreach (PropertyPickInRangeEntryPrototype existingEntry in existingAffixProto.PropertyEntries)
+            {
+                PropertyId existingProp = existingEntry?.Prop ?? PropertyId.Invalid;
+                if (existingProp == PropertyId.Invalid)
+                    continue;
+
+                foreach (PropertyPickInRangeEntryPrototype preferredEntry in preferredAffixProto.PropertyEntries)
+                {
+                    PropertyId preferredProp = preferredEntry?.Prop ?? PropertyId.Invalid;
+                    if (preferredProp == PropertyId.Invalid)
+                        continue;
+
+                    if (existingProp.Raw == preferredProp.Raw)
+                        return true;
+
+                    if (existingProp.HasParams == false &&
+                        preferredProp.HasParams == false &&
+                        existingProp.Enum == preferredProp.Enum)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
 
         private static bool TryAddRandomOverrideAffixes(
@@ -720,6 +890,41 @@ namespace MHServerEmu.Games.OmegaTierItems
         {
             PrototypeId omegaRarityRef = GameDatabase.GetPrototypeRefByName(OmegaRarityName);
             return omegaRarityRef != PrototypeId.Invalid && rarityProtoRef == omegaRarityRef;
+        }
+
+        private static bool IsSupportedOverrideLootContext(LootContext lootContext)
+        {
+            return lootContext.HasFlag(LootContext.Drop) ||
+                lootContext.HasFlag(LootContext.MissionReward) ||
+                lootContext.HasFlag(LootContext.MysteryChest);
+        }
+
+        private static bool IsUniqueItemSpec(ItemSpec itemSpec)
+        {
+            if (itemSpec == null)
+                return false;
+
+            if (itemSpec.RarityProtoRef == GameDatabase.LootGlobalsPrototype?.RarityUnique)
+                return true;
+
+            string itemName = itemSpec.ItemProtoRef.GetName();
+            return itemName != null && itemName.Contains("/UniquePrototypes/", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool IsOmegaDifficulty(ItemResolver resolver, LootRollSettings settings)
+        {
+            PrototypeId difficultyTierRef = settings?.DifficultyTier ?? PrototypeId.Invalid;
+            if (difficultyTierRef == PrototypeId.Invalid)
+                difficultyTierRef = resolver?.Region?.DifficultyTierRef ?? PrototypeId.Invalid;
+
+            if (difficultyTierRef == PrototypeId.Invalid)
+                return false;
+
+            if (difficultyTierRef == (PrototypeId)424700179461639950)
+                return true;
+
+            string difficultyName = difficultyTierRef.GetName();
+            return difficultyName != null && difficultyName.Contains("Omega", StringComparison.OrdinalIgnoreCase);
         }
 
         private static int FindReplaceableAffixIndex(List<AffixSpec> affixSpecs, AffixPrototype preferredAffixProto, OmegaTierItemTuning tuning)

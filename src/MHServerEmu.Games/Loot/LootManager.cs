@@ -12,6 +12,7 @@ using MHServerEmu.Games.GameData.Prototypes;
 using MHServerEmu.Games.Loot.Specs;
 using MHServerEmu.Games.MetaGames.GameModes;
 using MHServerEmu.Games.Missions;
+using MHServerEmu.Games.OmegaTierItems;
 using MHServerEmu.Games.Properties;
 using MHServerEmu.Games.Regions;
 
@@ -580,6 +581,8 @@ namespace MHServerEmu.Games.Loot
             MutationResults mutationResults = LootUtilities.UpdateAffixes(_resolver, filterArgs, AffixCountBehavior.Roll, itemSpec, null);
             if (!Verify.IsTrue(mutationResults.HasFlag(MutationResults.Error) == false, $"Failed to update affixes for {itemProto}"))
                 return null;
+
+            OmegaTierItemFactory.TryApplyConfiguredUniqueOverrideForOmegaDifficulty(_resolver, itemSpec);
 
             return itemSpec;
         }

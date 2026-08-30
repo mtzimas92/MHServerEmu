@@ -6,15 +6,18 @@
   "preferredAffixes": [
     {
       "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/CritChance/CritChanceT3.prototype",
-      "weight": 10
+      "weight": 10,
+      "slots": [ "Gear02", "Gear04" ]
     },
     {
       "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/CritDamage/CritDamageT3.prototype",
-      "weight": 10
+      "weight": 10,
+      "slots": [ "Gear02", "Gear04" ]
     },
     {
       "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/BrutalDamage/BrutalDamageT3.prototype",
-      "weight": 10
+      "weight": 10,
+      "slots": [ "Gear02", "Gear04" ]
     }
   ],
   "disabledAffixes": [
@@ -22,5 +25,33 @@
   "disabledAffixCategories": [
   ],
   "itemOverrides": [
+    {
+      "id": "unique303-add-crit-and-brutal-strike",
+      "enabled": true,
+      "itemPrototypes": [
+        "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot1/Unique303.prototype"
+      ],
+      "rarities": [
+      ],
+      "clearExistingAffixes": false,
+      "disabledAffixes": [
+      ],
+      "forcedAffixes": [
+        {
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/CritChance/CritChanceT3.prototype",
+          "count": 1,
+          "allowInvalidAttachment": true,
+          "replaceExistingSamePosition": false
+        },
+        {
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/BrutalStrike/BrutalStrikeT3.prototype",
+          "count": 1,
+          "allowInvalidAttachment": true,
+          "replaceExistingSamePosition": false
+        }
+      ],
+      "randomAffixes": [
+      ]
+    }
   ]
 }
