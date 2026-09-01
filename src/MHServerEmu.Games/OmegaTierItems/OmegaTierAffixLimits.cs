@@ -108,8 +108,7 @@ namespace MHServerEmu.Games.OmegaTierItems
                         continue;
 
                     bool rowChanged = false;
-                    rowChanged |= EnsureExistingCategoryCount(row, ringOffenseT3CategoryRef, RingT3AffixCount, ref entriesAdjusted);
-                    rowChanged |= EnsureExistingCategoryCount(row, ringDefenseT3CategoryRef, RingT3AffixCount, ref entriesAdjusted);
+                    rowChanged |= NormalizeOmegaRingCategories(itemProtoRef, row, ringOffenseT3CategoryRef, ringDefenseT3CategoryRef, ref entriesAdjusted, ref entriesAdded);
 
                     if (IsArmorOmegaCandidate(itemProtoRef, row, armorOmegaCategoryRef) == false)
                     {
@@ -158,6 +157,30 @@ namespace MHServerEmu.Games.OmegaTierItems
             return currentCount + affixCountNeeded <= effectiveLimit;
         }
 
+        public static bool AllowOmegaCraftingCloneTierRestrictionOverride(DropFilterArguments args)
+        {
+            if (args == null || args.LootContext.HasFlag(LootContext.Crafting) == false)
+                return false;
+
+            PrototypeId omegaRarityRef = GameDatabase.GetPrototypeRefByName(OmegaRarityName);
+            PrototypeId cosmicRarityRef = GameDatabase.GetPrototypeRefByName(CosmicRarityName);
+            if (omegaRarityRef == PrototypeId.Invalid || cosmicRarityRef == PrototypeId.Invalid)
+                return false;
+
+            if (IsArmorSlotOneThroughFive(args.ItemProto as ItemPrototype, args.Slot) == false)
+                return false;
+
+            if (args.Rarity == omegaRarityRef)
+                return true;
+
+            // Omega challenge bonus recipes temporarily clone the item as Cosmic because the shipped
+            // recipes were authored for Cosmic gear. The clone still carries the Omega affix, so use
+            // that as the marker that this is an Omega-forge clone and not ordinary Cosmic crafting.
+            return args.Rarity == cosmicRarityRef &&
+                args is LootCloneRecord cloneRecord &&
+                HasArmorOmegaAffix(cloneRecord);
+        }
+
         private static bool IsArmorOmegaCandidate(PrototypeId itemProtoRef, AffixLimitsPrototype row, PrototypeId armorOmegaCategoryRef)
         {
             string prototypeName = GameDatabase.GetPrototypeName(itemProtoRef);
@@ -165,6 +188,30 @@ namespace MHServerEmu.Games.OmegaTierItems
                 return true;
 
             return FindEntry(row, armorOmegaCategoryRef) != null;
+        }
+
+        private static bool NormalizeOmegaRingCategories(
+            PrototypeId itemProtoRef,
+            AffixLimitsPrototype row,
+            PrototypeId ringOffenseT3CategoryRef,
+            PrototypeId ringDefenseT3CategoryRef,
+            ref int entriesAdjusted,
+            ref int entriesAdded)
+        {
+            string itemName = GameDatabase.GetPrototypeName(itemProtoRef);
+            if (RingPrototypeNames.Any(ringName => string.Equals(ringName, itemName, StringComparison.OrdinalIgnoreCase)) == false)
+                return false;
+
+            CategorizedAffixEntryPrototype offenseEntry = FindEntry(row, ringOffenseT3CategoryRef);
+            CategorizedAffixEntryPrototype defenseEntry = FindEntry(row, ringDefenseT3CategoryRef);
+            if (offenseEntry == null && defenseEntry == null)
+                return false;
+
+            bool changed = false;
+
+            changed |= EnsureCategory(row, ringOffenseT3CategoryRef, (short)(RingT3AffixCount - 1), ref entriesAdjusted, ref entriesAdded);
+            changed |= EnsureCategory(row, ringDefenseT3CategoryRef, (short)1, ref entriesAdjusted, ref entriesAdded);
+            return changed;
         }
 
         private static bool IsArmorSlotOneThroughFive(ItemPrototype itemProto, EquipmentInvUISlot slot)
@@ -176,6 +223,26 @@ namespace MHServerEmu.Games.OmegaTierItems
                 slot = armorProto.DefaultEquipmentSlot;
 
             return slot >= EquipmentInvUISlot.Gear01 && slot <= EquipmentInvUISlot.Gear05;
+        }
+
+        public static bool HasArmorOmegaAffix(LootCloneRecord cloneRecord)
+        {
+            if (cloneRecord == null || cloneRecord.AffixRecords.Count == 0)
+                return false;
+
+            PrototypeId armorOmegaCategoryRef = GameDatabase.GetPrototypeRefByName(ArmorOmegaCategoryName);
+            AffixCategoryPrototype armorOmegaCategory = GameDatabase.GetPrototype<AffixCategoryPrototype>(armorOmegaCategoryRef);
+            if (armorOmegaCategory == null)
+                return false;
+
+            foreach (AffixRecord affixRecord in cloneRecord.AffixRecords)
+            {
+                AffixPrototype affixProto = GameDatabase.GetPrototype<AffixPrototype>(affixRecord.AffixProtoRef);
+                if (affixProto != null && affixProto.HasCategory(armorOmegaCategory))
+                    return true;
+            }
+
+            return false;
         }
 
         private static bool PromoteCategory(AffixLimitsPrototype row, PrototypeId sourceCategoryRef, PrototypeId targetCategoryRef, ref int categoriesPromoted)

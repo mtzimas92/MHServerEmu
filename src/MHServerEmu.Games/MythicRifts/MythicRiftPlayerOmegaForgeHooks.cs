@@ -1036,7 +1036,7 @@ namespace MHServerEmu.Games.Entities
             using var autoPopulatedIngredientsHandle = DictionaryPool<Item, int>.Get(out Dictionary<Item, int> autoPopulatedIngredients);
             using var outputItemsHandle = ListPool<Item>.Get(out List<Item> outputItems);
 
-            if (CraftPrepareIngredients(recipeProto, ingredientIds, resolver, ingredients, autoPopulatedIngredients) == false)
+            if (PrepareOmegaForgeCraftIngredients(recipeProto, ingredientIds, resolver, ingredients, autoPopulatedIngredients) == false)
                 return CraftingResult.InsufficientIngredients;
 
             using var settingsHandle = LootRollSettingsPool.Get(out LootRollSettings settings);
@@ -1065,6 +1065,7 @@ namespace MHServerEmu.Games.Entities
 
             using var summaryHandle = LootResultSummaryPool.Get(out LootResultSummary summary);
             resolver.FillLootResultSummary(summary);
+            RestoreOmegaForgeCraftOutputRarity(summary);
 
             const LootType LootTypeFilter = LootType.Item | LootType.LootMutation | LootType.VendorXP | LootType.CallbackNode;
             if ((summary.Types & ~LootTypeFilter) != LootType.None)
@@ -1086,6 +1087,108 @@ namespace MHServerEmu.Games.Entities
 
             Logger.Info($"[OmegaCraftingTrace] craft success playerDbId=0x{DatabaseUniqueId:X} recipe={recipeProto.DataRef.GetNameFormatted()} source={sourceItem.PrototypeDataRef.GetNameFormatted()} output={outputItem.PrototypeDataRef.GetNameFormatted()} outputId=0x{outputItem.Id:X}");
             return CraftingResult.Success;
+        }
+
+        private bool PrepareOmegaForgeCraftIngredients(CraftingRecipePrototype recipeProto, List<ulong> ingredientIds, ItemResolver resolver,
+            List<Item> ingredients, Dictionary<Item, int> autoPopulatedIngredients)
+        {
+            CraftingInputPrototype[] recipeInputs = recipeProto?.RecipeInputs;
+            if (recipeInputs.IsNullOrEmpty() || ingredientIds == null || recipeInputs.Length != ingredientIds.Count)
+                return false;
+
+            EntityManager entityManager = Game.EntityManager;
+            bool useCosmicCraftingClone = IsOmegaForgeChallengeBonusRecipe(recipeProto.DataRef, out _);
+            PrototypeId cosmicRarityRef = useCosmicCraftingClone
+                ? GameDatabase.GetPrototypeRefByName("Entity/Items/Rarity/R5Cosmic.prototype")
+                : PrototypeId.Invalid;
+
+            using var autoPopulatedIngredientCountsHandle = DictionaryPool<PrototypeId, int>.Get(out Dictionary<PrototypeId, int> autoPopulatedIngredientCounts);
+
+            for (int i = 0; i < ingredientIds.Count; i++)
+            {
+                ulong ingredientId = ingredientIds[i];
+
+                if (ingredientId != InvalidId)
+                {
+                    Item ingredient = entityManager.GetEntity<Item>(ingredientId);
+                    if (ingredient == null)
+                        return false;
+
+                    ingredients.Add(ingredient);
+
+                    ItemSpec cloneSource = new(ingredient.ItemSpec);
+                    cloneSource.StackCount = ingredient.IsRelic ? ingredient.CurrentStackSize : 1;
+
+                    // Challenge bonus recipes were authored against cosmic gear. Enchantment recipes must stay Omega
+                    // so the Omega crafting affix-limit override can allow their Runeword affix slot.
+                    if (i == 0 && cosmicRarityRef != PrototypeId.Invalid && IsOmegaForgeRarity(ingredient))
+                        cloneSource.RarityProtoRef = cosmicRarityRef;
+
+                    resolver.SetCloneSource(i, cloneSource);
+                    continue;
+                }
+
+                AutoPopulatedInputPrototype inputProto = recipeInputs[i] as AutoPopulatedInputPrototype;
+                if (inputProto == null || inputProto.AutoPopulatedIngredientPrototype == null)
+                    return false;
+
+                ItemPrototype autoPopulatedIngredientProto = inputProto.AutoPopulatedIngredientPrototype;
+                if (autoPopulatedIngredientCounts.ContainsKey(autoPopulatedIngredientProto.DataRef))
+                    return false;
+
+                autoPopulatedIngredientCounts.Add(autoPopulatedIngredientProto.DataRef, inputProto.Quantity);
+                ingredients.Add(null);
+            }
+
+            if (autoPopulatedIngredientCounts.Count == 0)
+                return true;
+
+            foreach (Inventory inventory in new InventoryIterator(this, InventoryIterationFlags.CraftingIngredients))
+            {
+                foreach (var entry in inventory)
+                {
+                    if (autoPopulatedIngredientCounts.TryGetValue(entry.ProtoRef, out int quantity) == false)
+                        continue;
+
+                    Item ingredient = entityManager.GetEntity<Item>(entry.Id);
+                    if (ingredient == null || ingredient.IsScheduledToDestroy)
+                        continue;
+
+                    int quantityToConsume = Math.Min(quantity, ingredient.CurrentStackSize);
+                    autoPopulatedIngredients[ingredient] = quantityToConsume;
+
+                    quantity -= quantityToConsume;
+                    if (quantity > 0)
+                        autoPopulatedIngredientCounts[entry.ProtoRef] = quantity;
+                    else
+                        autoPopulatedIngredientCounts.Remove(entry.ProtoRef);
+
+                    if (autoPopulatedIngredientCounts.Count == 0)
+                        return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static void RestoreOmegaForgeCraftOutputRarity(LootResultSummary summary)
+        {
+            if (summary == null || summary.ItemSpecs.Count == 0)
+                return;
+
+            if (_omegaForgeRarityProtoRef == PrototypeId.Invalid)
+                _omegaForgeRarityProtoRef = GameDatabase.GetPrototypeRefByName(OmegaForgeRarityPrototypeName);
+
+            if (_omegaForgeRarityProtoRef == PrototypeId.Invalid)
+                return;
+
+            foreach (ItemSpec itemSpec in summary.ItemSpecs)
+            {
+                if (itemSpec?.ItemProtoRef.As<ArmorPrototype>() == null)
+                    continue;
+
+                itemSpec.RarityProtoRef = _omegaForgeRarityProtoRef;
+            }
         }
 
         private CraftingResult ValidateOmegaForgeRecipeIngredients(CraftingRecipePrototype recipeProto, List<ulong> ingredientIds, Item sourceItem)

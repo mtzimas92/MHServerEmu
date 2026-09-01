@@ -9,6 +9,7 @@ using MHServerEmu.Games.Entities.PowerCollections;
 using MHServerEmu.Games.GameData.Calligraphy;
 using MHServerEmu.Games.Loot;
 using MHServerEmu.Games.Network;
+using MHServerEmu.Games.OmegaTierItems;
 using MHServerEmu.Games.Powers;
 using MHServerEmu.Games.Properties;
 using MHServerEmu.Games.Social;
@@ -246,6 +247,8 @@ namespace MHServerEmu.Games.GameData.Prototypes
                 lootCloneRecord.RestrictionFlags &= ~RestrictionTestFlags.UsableBy;
 
             lootCloneRecord.RestrictionFlags &= ~RestrictionTestFlags.Rarity;
+            if (OmegaTierAffixLimits.AllowOmegaCraftingCloneTierRestrictionOverride(lootCloneRecord))
+                lootCloneRecord.RestrictionFlags &= ~(RestrictionTestFlags.Level | RestrictionTestFlags.Rank);
 
             // Apply mutations
             if (Mutations.HasValue())
