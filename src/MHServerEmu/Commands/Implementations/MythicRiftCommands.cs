@@ -378,7 +378,7 @@ namespace MHServerEmu.Commands.Implementations
 
         [Command("debugcompletecrafter")]
         [CommandDescription("Force-completes a synthetic Mythic Rift run for the invoking player in their current region, granting rewards and spawning the completion crafter as if a real run had just been cleared.")]
-        [CommandUsage("rift debugcompletecrafter")]
+        [CommandUsage("rift debugcompletecrafter [cosmic|gauntlet|bossgauntlet] [levelOrWave] [players]")]
         [CommandUserLevel(AccountUserLevel.Admin)]
         [CommandInvokerType(CommandInvokerType.Client)]
         public string DebugCompleteCrafter(string[] @params, NetClient client)
@@ -389,10 +389,24 @@ namespace MHServerEmu.Commands.Implementations
             if (game == null || player == null)
                 return "Game or player not found.";
 
-            if (game.MythicRiftManager.DebugCompleteRunForPlayer(player, out string errorMessage) == false)
+            if (TryParseOptionalModeArguments(@params, out MythicRiftMode mode, out string[] valueArgs, out string modeError) == false)
+                return modeError;
+
+            if (valueArgs.Length > 2)
+                return "Usage: rift debugcompletecrafter [cosmic|gauntlet|bossgauntlet] [levelOrWave] [players]";
+
+            int riftLevel = 1;
+            int requestedPlayers = 1;
+            if (valueArgs.Length >= 1 && TryParsePositiveInt(valueArgs[0], out riftLevel) == false)
+                return "Invalid level/wave.";
+
+            if (valueArgs.Length >= 2 && TryParsePositiveInt(valueArgs[1], out requestedPlayers) == false)
+                return "Invalid player count.";
+
+            if (game.MythicRiftManager.DebugCompleteRunForPlayer(player, riftLevel, requestedPlayers, mode, out string errorMessage) == false)
                 return errorMessage;
 
-            return "Debug run completed. Completion crafter should now be spawned nearby.";
+            return $"Debug {MythicRiftManager.GetModeDisplayName(mode)} run completed at level/wave {riftLevel} for {requestedPlayers} player(s). Rewards and completion vendors should now be spawned nearby.";
         }
 
         [Command("setaccess")]
@@ -2405,6 +2419,45 @@ namespace MHServerEmu.Commands.Implementations
             lines.Add("Temporary completed run is retained briefly so reward chests can be opened if this reward set spawned one.");
             CommandHelper.SendMessages(client, lines);
             return string.Empty;
+        }
+
+        [Command("omegarewarddrop")]
+        [CommandDescription("Drops configured Omega random-pool Rift rewards at the invoking player's feet for fast reward testing.")]
+        [CommandUsage("rift omegarewarddrop [cosmic|gauntlet|bossgauntlet] [sets] [levelOrWave] [players]")]
+        [CommandUserLevel(AccountUserLevel.Admin)]
+        [CommandInvokerType(CommandInvokerType.Client)]
+        public string OmegaRewardDrop(string[] @params, NetClient client)
+        {
+            PlayerConnection playerConnection = (PlayerConnection)client;
+            Game game = playerConnection?.Game;
+            Player player = playerConnection?.Player;
+            if (game == null || player == null)
+                return "Game or player not found.";
+
+            if (TryParseOptionalModeArguments(@params, out MythicRiftMode mode, out string[] valueArgs, out string modeError) == false)
+                return modeError;
+
+            if (valueArgs.Length > 3)
+                return "Usage: rift omegarewarddrop [cosmic|gauntlet|bossgauntlet] [sets] [levelOrWave] [players]";
+
+            int rewardSets = 1;
+            int level = mode == MythicRiftMode.BossGauntlet ? 30 : 1;
+            int requestedPlayers = 1;
+
+            if (valueArgs.Length >= 1 && TryParsePositiveInt(valueArgs[0], out rewardSets) == false)
+                return "Invalid reward set count.";
+
+            if (valueArgs.Length >= 2 && TryParsePositiveInt(valueArgs[1], out level) == false)
+                return "Invalid level/wave.";
+
+            if (valueArgs.Length >= 3 && TryParsePositiveInt(valueArgs[2], out requestedPlayers) == false)
+                return "Invalid player count.";
+
+            int droppedCount = game.MythicRiftManager.DebugDropOmegaRewardPoolItems(player, mode, level, requestedPlayers, rewardSets, out string errorMessage);
+            if (droppedCount <= 0)
+                return string.IsNullOrWhiteSpace(errorMessage) ? "No Omega reward-pool items were dropped." : errorMessage;
+
+            return $"Dropped {droppedCount} Omega reward-pool item(s) from {rewardSets} simulated {MythicRiftManager.GetModeDisplayName(mode)} reward set(s) at level/wave {level}.";
         }
 
         [Command("reward")]

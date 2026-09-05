@@ -403,6 +403,7 @@ namespace MHServerEmu.Games.MythicRifts
         public bool Enabled { get; set; } = true;
         public ulong ItemPrototypeRuntimeId { get; set; }
         public string ItemPrototypeName { get; set; }
+        public string ItemRarityPrototype { get; set; }
         public int Quantity { get; set; } = 1;
         public bool QuantityMatchesRewardWave { get; set; }
         public bool CumulativeWaveQuantity { get; set; }
@@ -428,6 +429,7 @@ namespace MHServerEmu.Games.MythicRifts
                     : ItemPrototypeRuntimeId.ToString();
 
             ItemPrototypeName = ItemPrototypeName?.Trim() ?? string.Empty;
+            ItemRarityPrototype = ItemRarityPrototype?.Trim() ?? string.Empty;
             Quantity = Math.Max(Quantity, 1);
             QuantityCap = Math.Max(QuantityCap, 0);
             ItemLevel = Math.Max(ItemLevel, 0);

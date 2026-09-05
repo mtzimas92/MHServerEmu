@@ -213,7 +213,20 @@ namespace MHServerEmu.Games.OmegaTierItems
         public bool ClearExistingAffixes { get; set; } = false;
         public List<string> DisabledAffixes { get; set; } = new();
         public List<OmegaTierForcedAffixTuning> ForcedAffixes { get; set; } = new();
+        public List<OmegaTierAffixReplacementTuning> AffixReplacements { get; set; } = new();
         public List<OmegaTierRandomAffixTuning> RandomAffixes { get; set; } = new();
+        public string OverrideRarity { get; set; }
+        public int OverrideItemLevel { get; set; }
+        public bool MaximizeAffixRolls { get; set; }
+        public bool ClearBuiltInProperties { get; set; }
+        public bool MaximizeBuiltInPropertyRolls { get; set; }
+        public bool ReplaceBuiltInPropertiesFromTemplate { get; set; }
+        public string BuiltInPropertyTemplateItemPrototype { get; set; }
+        public bool CopyTemplateProcProperties { get; set; }
+        public bool DisableTriggeredItemActions { get; set; }
+        public List<string> DisabledProcPowers { get; set; } = new();
+        public List<OmegaTierBuiltInPropertyTuning> BuiltInProperties { get; set; } = new();
+        public List<OmegaTierProcKeywordPropertyTuning> ProcKeywordProperties { get; set; } = new();
 
         public void Normalize()
         {
@@ -221,14 +234,30 @@ namespace MHServerEmu.Games.OmegaTierItems
             ItemPrototypes = NormalizeStringList(ItemPrototypes);
             Rarities = NormalizeStringList(Rarities);
             DisabledAffixes = NormalizeStringList(DisabledAffixes);
+            OverrideRarity = string.IsNullOrWhiteSpace(OverrideRarity) ? string.Empty : OverrideRarity.Trim();
+            OverrideItemLevel = Math.Max(OverrideItemLevel, 0);
+            BuiltInPropertyTemplateItemPrototype = string.IsNullOrWhiteSpace(BuiltInPropertyTemplateItemPrototype) ? string.Empty : BuiltInPropertyTemplateItemPrototype.Trim();
+            DisabledProcPowers = NormalizeStringList(DisabledProcPowers);
             ForcedAffixes ??= new();
+            AffixReplacements ??= new();
             RandomAffixes ??= new();
+            BuiltInProperties ??= new();
+            ProcKeywordProperties ??= new();
 
             foreach (OmegaTierForcedAffixTuning forcedAffix in ForcedAffixes)
                 forcedAffix?.Normalize();
 
+            foreach (OmegaTierAffixReplacementTuning affixReplacement in AffixReplacements)
+                affixReplacement?.Normalize();
+
             foreach (OmegaTierRandomAffixTuning randomAffix in RandomAffixes)
                 randomAffix?.Normalize();
+
+            foreach (OmegaTierBuiltInPropertyTuning builtInProperty in BuiltInProperties)
+                builtInProperty?.Normalize();
+
+            foreach (OmegaTierProcKeywordPropertyTuning procKeywordProperty in ProcKeywordProperties)
+                procKeywordProperty?.Normalize();
         }
 
         public bool Matches(PrototypeId itemProtoRef, PrototypeId rarityProtoRef)
@@ -302,6 +331,106 @@ namespace MHServerEmu.Games.OmegaTierItems
         }
     }
 
+    public sealed class OmegaTierAffixReplacementTuning
+    {
+        public string Prototype { get; set; }
+        public int Count { get; set; } = 1;
+        public bool AllowInvalidAttachment { get; set; } = false;
+        public bool PreserveProcAffixes { get; set; } = true;
+        public bool PreserveConfiguredPreferredAffixes { get; set; } = true;
+        public List<string> ReplaceAffixes { get; set; } = new();
+        public List<string> ReplacePositions { get; set; } = new();
+        public List<string> PreserveAffixes { get; set; } = new();
+        public List<string> PreservePositions { get; set; } = new()
+        {
+            "Metadata",
+            "Visual",
+            "Cosmic",
+            "Blessing",
+            "Runeword",
+            "TeamUp",
+            "Socket1",
+            "Socket2",
+            "Socket3"
+        };
+
+        public void Normalize()
+        {
+            Prototype = string.IsNullOrWhiteSpace(Prototype) ? string.Empty : Prototype.Trim();
+            Count = Math.Max(Count, 0);
+            ReplaceAffixes = NormalizeStringList(ReplaceAffixes);
+            ReplacePositions = NormalizeStringList(ReplacePositions);
+            PreserveAffixes = NormalizeStringList(PreserveAffixes);
+            PreservePositions = NormalizeStringList(PreservePositions);
+        }
+
+        public bool AllowsPosition(AffixPosition position)
+        {
+            if (ReplacePositions.Count == 0)
+                return true;
+
+            foreach (string positionName in ReplacePositions)
+            {
+                if (Enum.TryParse(positionName, ignoreCase: true, out AffixPosition configuredPosition) &&
+                    configuredPosition == position)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public bool PreservesPosition(AffixPosition position)
+        {
+            foreach (string positionName in PreservePositions)
+            {
+                if (Enum.TryParse(positionName, ignoreCase: true, out AffixPosition configuredPosition) &&
+                    configuredPosition == position)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public bool MatchesReplaceAffix(PrototypeId affixRef)
+        {
+            return MatchesConfiguredAffix(ReplaceAffixes, affixRef);
+        }
+
+        public bool PreservesAffix(PrototypeId affixRef)
+        {
+            return MatchesConfiguredAffix(PreserveAffixes, affixRef);
+        }
+
+        private static bool MatchesConfiguredAffix(List<string> affixNames, PrototypeId affixRef)
+        {
+            if (affixRef == PrototypeId.Invalid || affixNames == null || affixNames.Count == 0)
+                return false;
+
+            foreach (string affixName in affixNames)
+            {
+                if (GameDatabase.GetPrototypeRefByName(affixName) == affixRef)
+                    return true;
+            }
+
+            return false;
+        }
+
+        private static List<string> NormalizeStringList(List<string> values)
+        {
+            return values == null
+                ? new()
+                : values
+                    .Where(value => string.IsNullOrWhiteSpace(value) == false)
+                    .Select(value => value.Trim())
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .ToList();
+        }
+    }
+
     public sealed class OmegaTierRandomAffixTuning
     {
         public string Position { get; set; }
@@ -312,6 +441,64 @@ namespace MHServerEmu.Games.OmegaTierItems
         {
             Position = string.IsNullOrWhiteSpace(Position) ? string.Empty : Position.Trim();
             Count = Math.Max(Count, 0);
+        }
+    }
+
+    public sealed class OmegaTierBuiltInPropertyTuning
+    {
+        public JsonElement Property { get; set; }
+        public float ValueMin { get; set; }
+        public float ValueMax { get; set; }
+        public bool RollAsInteger { get; set; }
+
+        public void Normalize()
+        {
+            if (float.IsNaN(ValueMin) || float.IsInfinity(ValueMin))
+                ValueMin = 0f;
+
+            if (float.IsNaN(ValueMax) || float.IsInfinity(ValueMax))
+                ValueMax = 0f;
+        }
+    }
+
+    public sealed class OmegaTierProcKeywordPropertyTuning
+    {
+        public string Trigger { get; set; }
+        public string Power { get; set; }
+        public string Keyword { get; set; }
+        public float? Chance { get; set; }
+        public float ChanceMin { get; set; } = 0f;
+        public float ChanceMax { get; set; } = 0f;
+        public int? ItemLevelOverride { get; set; }
+        public float? ItemVariationOverride { get; set; }
+        public int? PowerRankOverride { get; set; }
+
+        public void Normalize()
+        {
+            Trigger = string.IsNullOrWhiteSpace(Trigger) ? string.Empty : Trigger.Trim();
+            Power = string.IsNullOrWhiteSpace(Power) ? string.Empty : Power.Trim();
+            Keyword = string.IsNullOrWhiteSpace(Keyword) ? string.Empty : Keyword.Trim();
+            ChanceMin = Math.Max(ChanceMin, 0f);
+            ChanceMax = Math.Max(ChanceMax, 0f);
+
+            if (Chance.HasValue)
+                Chance = Math.Max(Chance.Value, 0f);
+        }
+
+        public float GetChance(float randomMult, bool maximizeRoll)
+        {
+            if (Chance.HasValue)
+                return Chance.Value;
+
+            if (ChanceMax <= 0f)
+                return ChanceMin;
+
+            float min = Math.Min(ChanceMin, ChanceMax);
+            float max = Math.Max(ChanceMin, ChanceMax);
+            if (maximizeRoll || min == max)
+                return max;
+
+            return min + ((max - min) * randomMult);
         }
     }
 }

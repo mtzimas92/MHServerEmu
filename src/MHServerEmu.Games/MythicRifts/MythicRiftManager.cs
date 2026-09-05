@@ -122,6 +122,7 @@ namespace MHServerEmu.Games.MythicRifts
         private const int RiftCompletionCrafterCosmicMinimumItemLevel = 63;
         private const int RiftCompletionCrafterMaximumItemLevel = 75;
         private const string RiftCompletionCrafterCurrencyPrototypeName = "Entity/Items/CurrencyItems/CurrencyPrototypes/GenoshaRaidCurrency.prototype";
+        private const string OmegaRewardRarityPrototypeName = "Entity/Items/Rarity/R6Omega.prototype";
         private const float RiftCompletionArtifactVendorSpawnOffset = -260f;
         private const float RiftCompletionCrafterSpawnOffset = 390f;
         private const float RiftCompletionEnchanterSpawnOffset = 65f;
@@ -698,6 +699,11 @@ namespace MHServerEmu.Games.MythicRifts
         // the completion crafter without playing a full run.
         public bool DebugCompleteRunForPlayer(Player player, out string errorMessage)
         {
+            return DebugCompleteRunForPlayer(player, riftLevel: 1, requestedPlayerCount: 1, mode: MythicRiftMode.Standard, out errorMessage);
+        }
+
+        public bool DebugCompleteRunForPlayer(Player player, int riftLevel, int requestedPlayerCount, MythicRiftMode mode, out string errorMessage)
+        {
             errorMessage = string.Empty;
 
             Region region = player?.CurrentAvatar?.Region;
@@ -707,7 +713,10 @@ namespace MHServerEmu.Games.MythicRifts
                 return false;
             }
 
-            MythicRiftRunState runState = CreateRandomDebugRun(riftLevel: 1, requestedPlayerCount: 1, killQuota: 1, timeLimit: TimeSpan.FromMinutes(30));
+            riftLevel = Math.Max(1, riftLevel);
+            requestedPlayerCount = Math.Max(1, requestedPlayerCount);
+            TimeSpan timeLimit = mode == MythicRiftMode.BossGauntlet ? TimeSpan.FromDays(1) : TimeSpan.FromMinutes(30);
+            MythicRiftRunState runState = CreateRandomDebugRun(riftLevel, requestedPlayerCount, killQuota: 1, timeLimit: timeLimit, mode: mode);
             if (runState == null)
             {
                 errorMessage = "Failed to create a debug Mythic Rift run.";
@@ -729,7 +738,12 @@ namespace MHServerEmu.Games.MythicRifts
                 return false;
             }
 
-            Logger.Info($"Mythic Rift debug run {runState.Config.RunId} force-completed for playerDbId=0x{player.DatabaseUniqueId:X} in regionId=0x{region.Id:X}.");
+            runState.SnapshotRewardEligiblePlayers(new[] { player.DatabaseUniqueId });
+            GrantCompletionCrafterAttempts(runState);
+            if (mode == MythicRiftMode.BossGauntlet && runState.RewardsGranted == false)
+                TryAutoGrantCompletionRewards(runState);
+
+            Logger.Info($"Mythic Rift debug run {runState.Config.RunId} force-completed for playerDbId=0x{player.DatabaseUniqueId:X} in regionId=0x{region.Id:X}. mode={mode} level={riftLevel} players={requestedPlayerCount}");
             return true;
         }
 
@@ -1990,6 +2004,77 @@ namespace MHServerEmu.Games.MythicRifts
             return grantedCount;
         }
 
+        public int DebugDropOmegaRewardPoolItems(Player player, MythicRiftMode mode, int level, int requestedPlayerCount, int rewardSets, out string errorMessage)
+        {
+            errorMessage = string.Empty;
+
+            Avatar avatar = player?.CurrentAvatar;
+            if (player == null || avatar?.IsInWorld != true)
+            {
+                errorMessage = "Player/avatar not found or not in world.";
+                return 0;
+            }
+
+            level = Math.Max(level, 1);
+            requestedPlayerCount = Math.Max(requestedPlayerCount, 1);
+            rewardSets = Math.Clamp(rewardSets, 1, 50);
+
+            TimeSpan timeLimit = mode == MythicRiftMode.BossGauntlet
+                ? TimeSpan.FromDays(1)
+                : TimeSpan.FromMinutes(10);
+
+            PrototypeId omegaRarityProtoRef = ResolvePrototype(OmegaRewardRarityPrototypeName);
+            if (omegaRarityProtoRef == PrototypeId.Invalid)
+            {
+                errorMessage = $"Failed to resolve {OmegaRewardRarityPrototypeName}.";
+                return 0;
+            }
+
+            int droppedCount = 0;
+            for (int set = 0; set < rewardSets; set++)
+            {
+                MythicRiftRunConfig config = CreateRandomDebugRunConfig(level, requestedPlayerCount, 0, timeLimit, mode: mode);
+                MythicRiftRunState runState = CreateRunState(config);
+                if (runState == null)
+                    continue;
+
+                runState.RegisterParticipant(player.DatabaseUniqueId);
+                runState.SnapshotRewardEligiblePlayers(new[] { player.DatabaseUniqueId });
+                runState.Start(Game.CurrentTime);
+
+                if (mode == MythicRiftMode.BossGauntlet)
+                {
+                    runState.MarkBossGauntletWaveCompleted();
+                    runState.MarkFailed(Game.CurrentTime);
+                }
+                else
+                {
+                    runState.MarkSuccess(Game.CurrentTime);
+                }
+
+                MythicRiftRewardOutcome rewardOutcome = ResolveRewardOutcome(runState);
+                if (rewardOutcome?.GuaranteedItems == null)
+                    continue;
+
+                foreach (MythicRiftRewardGuaranteedItem item in rewardOutcome.GuaranteedItems)
+                {
+                    if (item?.RarityProtoRef != omegaRarityProtoRef)
+                        continue;
+
+                    for (int quantity = 0; quantity < Math.Max(item.Quantity, 1); quantity++)
+                    {
+                        GrantRewardItem(item, player, avatar, sourceEntity: avatar, positionOverride: avatar.RegionLocation.Position, deliveryOverride: "ground");
+                        droppedCount++;
+                    }
+                }
+            }
+
+            if (droppedCount == 0)
+                errorMessage = $"No Omega reward-pool items resolved for {GetModeDisplayName(mode)} level/wave {level}.";
+
+            return droppedCount;
+        }
+
         public bool TryReloadContentPool(out string message)
         {
             string configPath = MythicRiftContentPoolTuning.ConfigPath;
@@ -2153,7 +2238,7 @@ namespace MHServerEmu.Games.MythicRifts
                 string maxLevelText = item.MaxRiftLevel > 0 ? item.MaxRiftLevel.ToString() : "none";
                 string maxWaveText = item.MaxWave > 0 ? item.MaxWave.ToString() : "none";
                 lines.Add(
-                    $"guaranteedItem id={item.Id} | enabled={item.Enabled} | runtimeId={item.ItemPrototypeRuntimeId} | prototype={item.ItemPrototypeName} | quantity={item.Quantity} | quantityMatchesWave={item.QuantityMatchesRewardWave} | cumulativeWaveQuantity={item.CumulativeWaveQuantity} | quantityCap={item.QuantityCap} | delivery={item.Delivery} | minLevel={item.MinRiftLevel} | maxLevel={maxLevelText} | minWave={item.MinWave} | maxWave={maxWaveText} | checkpointOnly={item.CheckpointOnly}");
+                    $"guaranteedItem id={item.Id} | enabled={item.Enabled} | runtimeId={item.ItemPrototypeRuntimeId} | prototype={item.ItemPrototypeName} | rarity={item.ItemRarityPrototype} | quantity={item.Quantity} | quantityMatchesWave={item.QuantityMatchesRewardWave} | cumulativeWaveQuantity={item.CumulativeWaveQuantity} | quantityCap={item.QuantityCap} | delivery={item.Delivery} | minLevel={item.MinRiftLevel} | maxLevel={maxLevelText} | minWave={item.MinWave} | maxWave={maxWaveText} | checkpointOnly={item.CheckpointOnly}");
             }
 
             if (tuning.GuaranteedItems.Count > 20)
@@ -4422,6 +4507,9 @@ namespace MHServerEmu.Games.MythicRifts
                     IsAgentReward = isAgentReward,
                     Quantity = GetGuaranteedRewardQuantity(entry, runState),
                     ItemLevel = entry.ItemLevel,
+                    RarityProtoRef = string.IsNullOrWhiteSpace(entry.ItemRarityPrototype)
+                        ? PrototypeId.Invalid
+                        : ResolvePrototype(entry.ItemRarityPrototype),
                     Delivery = MythicRiftRewardTuning.NormalizeDelivery(entry.Delivery)
                 });
             }

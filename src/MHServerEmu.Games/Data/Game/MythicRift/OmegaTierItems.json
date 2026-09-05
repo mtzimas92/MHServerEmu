@@ -36,19 +36,355 @@
       "clearExistingAffixes": false,
       "disabledAffixes": [
       ],
-      "forcedAffixes": [
+      "affixReplacements": [
         {
           "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/CritChance/CritChanceT3.prototype",
           "count": 1,
-          "allowInvalidAttachment": true,
-          "replaceExistingSamePosition": false
+          "allowInvalidAttachment": true
         },
         {
           "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/BrutalStrike/BrutalStrikeT3.prototype",
           "count": 1,
+          "allowInvalidAttachment": true
+        }
+      ],
+      "forcedAffixes": [
+      ],
+      "randomAffixes": [
+      ]
+    },
+    {
+      "id": "slot5-strength-visible-t3-affixes",
+      "enabled": true,
+      "itemPrototypes": [
+        "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot5/Unique238.prototype"
+      ],
+      "rarities": [
+        "Entity/Items/Rarity/R6Unique.prototype"
+      ],
+      "overrideItemLevel": 75,
+      "maximizeAffixRolls": true,
+      "clearBuiltInProperties": true,
+      "disableTriggeredItemActions": true,
+      "clearExistingAffixes": true,
+      "disabledAffixes": [
+      ],
+      "disabledProcPowers": [
+      ],
+      "builtInProperties": [
+        {
+          "property": "DamageRating",
+          "valueMin": 1200,
+          "valueMax": 1200,
+          "rollAsInteger": true
+        },
+        {
+          "property": {
+            "Property": "DamageRatingBonusForPowerKeyword",
+            "Params": [
+              "Powers/Blueprints/Keywords/Melee.defaults"
+            ]
+          },
+          "valueMin": 300,
+          "valueMax": 300,
+          "rollAsInteger": true
+        },
+        {
+          "property": {
+            "Property": "DamageRatingBonusForPowerKeyword",
+            "Params": [
+              "Powers/Blueprints/Keywords/Area.defaults"
+            ]
+          },
+          "valueMin": 300,
+          "valueMax": 300,
+          "rollAsInteger": true
+        },
+        {
+          "property": "CritRatingBonusAdd",
+          "valueMin": 295,
+          "valueMax": 295,
+          "rollAsInteger": true
+        },
+        {
+          "property": "CritDamageRating",
+          "valueMin": 1000,
+          "valueMax": 1000,
+          "rollAsInteger": true
+        },
+        {
+          "property": "OmniDurationBonusPct",
+          "valueMin": 0.1,
+          "valueMax": 0.1,
+          "rollAsInteger": false
+        }
+      ],
+      "forcedAffixes": [
+        {
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/BonusHealth/BonusHealthT3.prototype",
+          "count": 1,
           "allowInvalidAttachment": true,
           "replaceExistingSamePosition": false
         }
+      ],
+      "procKeywordProperties": [
+        {
+          "trigger": "OnCrit",
+          "power": "Powers/ItemPowers/UniquesPowers/Unique400StackingProc.prototype",
+          "keyword": "Powers/Blueprints/Keywords/Melee.defaults",
+          "chance": 0.2
+        }
+      ],
+      "affixReplacements": [
+      ],
+      "randomAffixes": [
+      ]
+    },
+    {
+      "id": "unique304-summon-flat-stat-package",
+      "enabled": true,
+      "itemPrototypes": [
+        "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot5/Unique304.prototype"
+      ],
+      "rarities": [
+        "Entity/Items/Rarity/R6Unique.prototype"
+      ],
+      "overrideItemLevel": 75,
+      "clearBuiltInProperties": true,
+      "clearExistingAffixes": true,
+      "disabledAffixes": [
+      ],
+      "builtInProperties": [
+        {
+          "property": "DamageRating",
+          "valueMin": 600,
+          "valueMax": 900,
+          "rollAsInteger": true
+        },
+        {
+          "property": "HealthAddBonus",
+          "valueMin": 1500,
+          "valueMax": 2500,
+          "rollAsInteger": true
+        },
+        {
+          "property": "CritRatingBonusAdd",
+          "valueMin": 540,
+          "valueMax": 540,
+          "rollAsInteger": true
+        },
+        {
+          "property": "SuperCritRatingBonusAdd",
+          "valueMin": 540,
+          "valueMax": 540,
+          "rollAsInteger": true
+        },
+        {
+          "property": "StatFightingSkillsModifier",
+          "valueMin": 3,
+          "valueMax": 3,
+          "rollAsInteger": true
+        },
+        {
+          "property": "StatSpeedModifier",
+          "valueMin": 3,
+          "valueMax": 3,
+          "rollAsInteger": true
+        },
+        {
+          "property": {
+            "Property": "DamageRatingBonusForPowerKeyword",
+            "Params": [
+              "Powers/Blueprints/Keywords/Summon.defaults"
+            ]
+          },
+          "valueMin": 375,
+          "valueMax": 375,
+          "rollAsInteger": true
+        },
+        {
+          "property": "PetLifetimeChangePct",
+          "valueMin": 0.06,
+          "valueMax": 0.2,
+          "rollAsInteger": false
+        }
+      ],
+      "forcedAffixes": [
+      ],
+      "procKeywordProperties": [
+      ],
+      "affixReplacements": [
+      ],
+      "randomAffixes": [
+      ]
+    },
+    {
+      "id": "unique298-energy-mental-duration-package",
+      "enabled": true,
+      "itemPrototypes": [
+        "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot4/Unique298.prototype"
+      ],
+      "rarities": [
+        "Entity/Items/Rarity/R6Unique.prototype"
+      ],
+      "overrideItemLevel": 75,
+      "clearBuiltInProperties": true,
+      "clearExistingAffixes": true,
+      "disabledAffixes": [
+      ],
+      "builtInProperties": [
+        {
+          "property": {
+            "Property": "DamageRatingBonusByType",
+            "Params": [
+              1
+            ]
+          },
+          "valueMin": 300,
+          "valueMax": 529,
+          "rollAsInteger": true
+        },
+        {
+          "property": {
+            "Property": "DamageRatingBonusByType",
+            "Params": [
+              2
+            ]
+          },
+          "valueMin": 300,
+          "valueMax": 529,
+          "rollAsInteger": true
+        },
+        {
+          "property": "HealthAddBonus",
+          "valueMin": 2000,
+          "valueMax": 3000,
+          "rollAsInteger": true
+        },
+        {
+          "property": "StatAllModifier",
+          "valueMin": 1,
+          "valueMax": 1,
+          "rollAsInteger": true
+        },
+        {
+          "property": "CritRatingBonusAdd",
+          "valueMin": 354,
+          "valueMax": 354,
+          "rollAsInteger": true
+        },
+        {
+          "property": "CritDamageRating",
+          "valueMin": 1000,
+          "valueMax": 1000,
+          "rollAsInteger": true
+        },
+        {
+          "property": "OmniDurationBonusPct",
+          "valueMin": 0.15,
+          "valueMax": 0.15,
+          "rollAsInteger": false
+        },
+        {
+          "property": "MovementSpeedIncrPct",
+          "valueMin": 0.06,
+          "valueMax": 0.09,
+          "rollAsInteger": false
+        }
+      ],
+      "forcedAffixes": [
+      ],
+      "procKeywordProperties": [
+      ],
+      "affixReplacements": [
+      ],
+      "randomAffixes": [
+      ]
+    },
+    {
+      "id": "unique294-burn-defense-supercrit-package",
+      "enabled": true,
+      "itemPrototypes": [
+        "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot2/Unique294.prototype"
+      ],
+      "rarities": [
+        "Entity/Items/Rarity/R6Unique.prototype"
+      ],
+      "overrideItemLevel": 75,
+      "clearBuiltInProperties": true,
+      "clearExistingAffixes": true,
+      "disabledAffixes": [
+      ],
+      "builtInProperties": [
+        {
+          "property": {
+            "Property": "Defense",
+            "Params": [
+              4
+            ]
+          },
+          "valueMin": 300,
+          "valueMax": 588,
+          "rollAsInteger": true
+        },
+        {
+          "property": {
+            "Property": "DamageRatingBonusVsConditionKeyword",
+            "Params": [
+              "Powers/Blueprints/Keywords/Burn.defaults"
+            ]
+          },
+          "valueMin": 300,
+          "valueMax": 588,
+          "rollAsInteger": true
+        },
+        {
+          "property": "HealthAddBonus",
+          "valueMin": 800,
+          "valueMax": 2000,
+          "rollAsInteger": true
+        },
+        {
+          "property": {
+            "Property": "EnduranceCostChangePct",
+            "Params": [
+              3
+            ]
+          },
+          "valueMin": -0.08,
+          "valueMax": -0.04,
+          "rollAsInteger": false
+        },
+        {
+          "property": "StatStrengthModifier",
+          "valueMin": 1,
+          "valueMax": 4,
+          "rollAsInteger": true
+        },
+        {
+          "property": "StatEnergyProjectionModifier",
+          "valueMin": 1,
+          "valueMax": 4,
+          "rollAsInteger": true
+        },
+        {
+          "property": "SuperCritRatingBonusAdd",
+          "valueMin": 100,
+          "valueMax": 400,
+          "rollAsInteger": true
+        },
+        {
+          "property": "SuperCritDamageRating",
+          "valueMin": 600,
+          "valueMax": 1200,
+          "rollAsInteger": true
+        }
+      ],
+      "forcedAffixes": [
+      ],
+      "procKeywordProperties": [
+      ],
+      "affixReplacements": [
       ],
       "randomAffixes": [
       ]

@@ -41,9 +41,6 @@ namespace MHServerEmu.Games.Entities
         private const ulong OmegaForgeSpeedButtonLocale = 18000000000000040120UL;
         private const ulong OmegaForgeIntelligenceButtonLocale = 18000000000000040121UL;
         private const ulong OmegaForgeDurabilityButtonLocale = 18000000000000040122UL;
-        private const ulong OmegaForgeActionLocale = 18000000000000040123UL;
-        private const ulong OmegaForgeChallengeButtonLocale = 18000000000000040124UL;
-        private const ulong OmegaForgeEnchantButtonLocale = 18000000000000040125UL;
         private const ulong OmegaForgeRecipeLocale = 18000000000000040126UL;
         private const ulong OmegaForgeNoRecipesLocale = 18000000000000040127UL;
         private const ulong OmegaForgeApplyRecipeButtonLocale = 18000000000000040128UL;
@@ -55,6 +52,7 @@ namespace MHServerEmu.Games.Entities
         private const string OmegaForgeRunewordsCategoryName = "UI/LocalizedInfo/CraftingPanel/TabLabelRunewords.prototype";
 
         private static PrototypeId _omegaForgeRarityProtoRef = PrototypeId.Invalid;
+        private static PrototypeId _omegaForgeUniqueRarityProtoRef = PrototypeId.Invalid;
         private static PrototypeId _omegaForgeEnchantmentsCategoryRef = PrototypeId.Invalid;
         private static PrototypeId _omegaForgeRunewordsCategoryRef = PrototypeId.Invalid;
 
@@ -228,15 +226,15 @@ namespace MHServerEmu.Games.Entities
                 Game.ChatManager?.SendChatFromCustomSystem(
                     this,
                     Game.MythicRiftManager.IsCompletionEnchanterOrRewardRoomEnchanter(vendor)
-                        ? "[Mythic Rift] Omega Forge enchanter available. Choose the equipped Omega gear slot, then choose an unlocked enchantment."
-                        : "[Mythic Rift] Omega Forge crafter available. Choose the equipped Omega gear slot, then choose the challenge bonus.",
+                        ? "[Mythic Rift] Omega Forge enchanter available. Choose the equipped Omega or Unique gear slot, then choose an unlocked enchantment."
+                        : "[Mythic Rift] Omega Forge crafter available. Choose the equipped Omega or Unique gear slot, then choose a challenge bonus.",
                     showSender: false);
             }
 
-            OmegaForgeAction action = Game.MythicRiftManager.IsCompletionEnchanterOrRewardRoomEnchanter(vendor)
-                ? OmegaForgeAction.EnchantOrRuneword
-                : OmegaForgeAction.ChallengeBonus;
-            PostOmegaForgeGearPage(vendor, action, 0);
+            if (Game.MythicRiftManager.IsCompletionEnchanterOrRewardRoomEnchanter(vendor))
+                PostOmegaForgeGearPage(vendor, OmegaForgeAction.EnchantOrRuneword, 0);
+            else
+                PostOmegaForgeGearPage(vendor, OmegaForgeAction.ChallengeBonus, 0);
             return true;
         }
 
@@ -272,14 +270,14 @@ namespace MHServerEmu.Games.Entities
             {
                 if (response.ButtonIndex == GameDialogResultEnum.eGDR_Option1)
                 {
-                    Item sourceItem = FindEquippedOmegaForgeGearItem(choice.Slot);
+                    Item sourceItem = FindEquippedOmegaOrUniqueForgeGearItem(choice.Slot);
                     if (sourceItem == null)
                     {
                         Game.ChatManager?.SendChatFromCustomSystem(
                             this,
-                            $"[Mythic Rift] Omega Forge: no equipped Omega gear found in {choice.Slot}.",
+                            $"[Mythic Rift] Omega Forge: no equipped Omega or Unique gear found in {choice.Slot}.",
                             showSender: false);
-                        Logger.Info($"[OmegaCraftingTrace] gear selection failed playerDbId=0x{DatabaseUniqueId:X} vendor={vendor.PrototypeDataRef.GetNameFormatted()} reason=no-equipped-omega slot={choice.Slot}");
+                        Logger.Info($"[OmegaCraftingTrace] gear selection failed playerDbId=0x{DatabaseUniqueId:X} vendor={vendor.PrototypeDataRef.GetNameFormatted()} reason=no-equipped-forge-gear slot={choice.Slot}");
                         ClearActiveOmegaForgeDialog(vendor);
                         return;
                     }
@@ -295,40 +293,6 @@ namespace MHServerEmu.Games.Entities
                 else if (response.ButtonIndex == GameDialogResultEnum.eGDR_Option2)
                 {
                     PostOmegaForgeGearSelectionPrompt(vendor, (page + 1) % OmegaForgeGearChoices.Length);
-                }
-                else
-                {
-                    ClearActiveOmegaForgeDialog(vendor);
-                }
-            };
-
-            PostOmegaForgeDialog(vendor, dialog);
-        }
-
-        private void PostOmegaForgeActionPage(WorldEntity vendor, int page)
-        {
-            if (vendor == null)
-                return;
-
-            page = Math.Clamp(page, 0, 1);
-            GameDialogInstance dialog = CreateOmegaForgeDialog(vendor);
-            dialog.Message.LocaleString = (LocaleStringId)OmegaForgeActionLocale;
-            dialog.AddButton(
-                GameDialogResultEnum.eGDR_Option1,
-                page == 0 ? (LocaleStringId)OmegaForgeChallengeButtonLocale : (LocaleStringId)OmegaForgeEnchantButtonLocale,
-                ButtonStyle.SecondaryPositive,
-                false);
-            dialog.AddButton(GameDialogResultEnum.eGDR_Option2, (LocaleStringId)OmegaForgeMoreButtonLocale, ButtonStyle.SecondaryPositive, false);
-            dialog.OnResponse = (_, response) =>
-            {
-                if (response.ButtonIndex == GameDialogResultEnum.eGDR_Option1)
-                {
-                    OmegaForgeAction action = page == 0 ? OmegaForgeAction.ChallengeBonus : OmegaForgeAction.EnchantOrRuneword;
-                    PostOmegaForgeGearPage(vendor, action, 0);
-                }
-                else if (response.ButtonIndex == GameDialogResultEnum.eGDR_Option2)
-                {
-                    PostOmegaForgeActionPage(vendor, (page + 1) % 2);
                 }
                 else
                 {
@@ -541,11 +505,11 @@ namespace MHServerEmu.Games.Entities
 
         private bool TryCraftOmegaForgeChallengeBonus(WorldEntity vendor, EquipmentInvUISlot slot, OmegaForgeBonus bonus)
         {
-            Item sourceItem = FindEquippedOmegaForgeGearItem(slot);
+            Item sourceItem = FindEquippedOmegaOrUniqueForgeGearItem(slot);
             if (sourceItem == null)
             {
-                Game.ChatManager?.SendChatFromCustomSystem(this, $"[Mythic Rift] Omega Forge: no equipped Omega gear found in {slot}.", showSender: false);
-                Logger.Info($"[OmegaCraftingTrace] prompt failed playerDbId=0x{DatabaseUniqueId:X} reason=no-equipped-omega slot={slot} bonus={bonus}");
+                Game.ChatManager?.SendChatFromCustomSystem(this, $"[Mythic Rift] Omega Forge: no equipped Omega or Unique gear found in {slot}.", showSender: false);
+                Logger.Info($"[OmegaCraftingTrace] prompt failed playerDbId=0x{DatabaseUniqueId:X} reason=no-equipped-forge-gear slot={slot} bonus={bonus}");
                 return false;
             }
 
@@ -593,11 +557,11 @@ namespace MHServerEmu.Games.Entities
             if (vendor == null)
                 return;
 
-            Item sourceItem = FindEquippedOmegaForgeGearItem(slot);
+            Item sourceItem = FindEquippedOmegaOrUniqueForgeGearItem(slot);
             if (sourceItem == null)
             {
-                Game.ChatManager?.SendChatFromCustomSystem(this, $"[Mythic Rift] Omega Forge: no equipped Omega gear found in {slot}.", showSender: false);
-                Logger.Info($"[OmegaCraftingTrace] learned-recipe prompt failed playerDbId=0x{DatabaseUniqueId:X} vendor={vendor.PrototypeDataRef.GetNameFormatted()} reason=no-equipped-omega slot={slot}");
+                Game.ChatManager?.SendChatFromCustomSystem(this, $"[Mythic Rift] Omega Forge: no equipped Omega or Unique gear found in {slot}.", showSender: false);
+                Logger.Info($"[OmegaCraftingTrace] learned-recipe prompt failed playerDbId=0x{DatabaseUniqueId:X} vendor={vendor.PrototypeDataRef.GetNameFormatted()} reason=no-equipped-forge-gear slot={slot}");
                 ClearActiveOmegaForgeDialog(vendor);
                 return;
             }
@@ -647,7 +611,7 @@ namespace MHServerEmu.Games.Entities
         {
             recipeRefs.Clear();
 
-            Item sourceItem = FindEquippedOmegaForgeGearItem(slot);
+            Item sourceItem = FindEquippedOmegaOrUniqueForgeGearItem(slot);
             if (sourceItem == null)
                 return;
 
@@ -897,11 +861,11 @@ namespace MHServerEmu.Games.Entities
 
         private bool TryCraftOmegaForgeLearnedRecipe(WorldEntity vendor, EquipmentInvUISlot slot, PrototypeId recipeProtoRef)
         {
-            Item sourceItem = FindEquippedOmegaForgeGearItem(slot);
+            Item sourceItem = FindEquippedOmegaOrUniqueForgeGearItem(slot);
             if (sourceItem == null)
             {
-                Game.ChatManager?.SendChatFromCustomSystem(this, $"[Mythic Rift] Omega Forge: no equipped Omega gear found in {slot}.", showSender: false);
-                Logger.Info($"[OmegaCraftingTrace] learned-recipe failed playerDbId=0x{DatabaseUniqueId:X} reason=no-equipped-omega slot={slot} recipe={recipeProtoRef.GetNameFormatted()}");
+                Game.ChatManager?.SendChatFromCustomSystem(this, $"[Mythic Rift] Omega Forge: no equipped Omega or Unique gear found in {slot}.", showSender: false);
+                Logger.Info($"[OmegaCraftingTrace] learned-recipe failed playerDbId=0x{DatabaseUniqueId:X} reason=no-equipped-forge-gear slot={slot} recipe={recipeProtoRef.GetNameFormatted()}");
                 return false;
             }
 
@@ -914,7 +878,7 @@ namespace MHServerEmu.Games.Entities
                 return false;
             }
 
-            if (TryBuildOmegaForgeRecipeIngredientIds(recipeProto, sourceItem, out List<ulong> ingredientIds, out CraftingResult ingredientFailure) == false)
+            if (TryBuildOmegaForgeRecipeIngredientIds(recipeProto, sourceItem, out List<ulong> ingredientIds, out CraftingResult ingredientFailure, allowUniqueSource: true) == false)
             {
                 Game.ChatManager?.SendChatFromCustomSystem(this, $"[Mythic Rift] Omega Forge: missing or invalid recipe ingredients ({ingredientFailure}).", showSender: false);
                 Logger.Info($"[OmegaCraftingTrace] learned-recipe failed playerDbId=0x{DatabaseUniqueId:X} reason=ingredients result={ingredientFailure} source={sourceItem.PrototypeDataRef.GetNameFormatted()} recipe={recipeProtoRef.GetNameFormatted()}");
@@ -929,7 +893,7 @@ namespace MHServerEmu.Games.Entities
                 return false;
             }
 
-            CraftingResult result = CraftOmegaForgeRecipe(recipeProto, ingredientIds, vendor, resultsInv, allowChallengeTokenOverride: false, out Item outputItem);
+            CraftingResult result = CraftOmegaForgeRecipe(recipeProto, ingredientIds, vendor, resultsInv, allowChallengeTokenOverride: false, allowUniqueSource: true, restoreOmegaRarity: true, out Item outputItem);
             if (result != CraftingResult.Success)
             {
                 Game.ChatManager?.SendChatFromCustomSystem(this, $"[Mythic Rift] Omega Forge recipe failed: {result}.", showSender: false);
@@ -976,10 +940,15 @@ namespace MHServerEmu.Games.Entities
                 return CraftingResult.CraftingFailed;
 
             List<ulong> ingredientIds = [sourceItem.Id, tokenItem.Id];
-            return CraftOmegaForgeRecipe(recipeProto, ingredientIds, vendor, resultsInv, allowChallengeTokenOverride: true, out outputItem);
+            return CraftOmegaForgeRecipe(recipeProto, ingredientIds, vendor, resultsInv, allowChallengeTokenOverride: true, allowUniqueSource: true, restoreOmegaRarity: true, out outputItem);
         }
 
         private CraftingResult CraftOmegaForgeRecipe(CraftingRecipePrototype recipeProto, List<ulong> ingredientIds, WorldEntity vendor, Inventory resultsInv, bool allowChallengeTokenOverride, out Item outputItem)
+        {
+            return CraftOmegaForgeRecipe(recipeProto, ingredientIds, vendor, resultsInv, allowChallengeTokenOverride, allowUniqueSource: false, restoreOmegaRarity: true, out outputItem);
+        }
+
+        private CraftingResult CraftOmegaForgeRecipe(CraftingRecipePrototype recipeProto, List<ulong> ingredientIds, WorldEntity vendor, Inventory resultsInv, bool allowChallengeTokenOverride, bool allowUniqueSource, bool restoreOmegaRarity, out Item outputItem)
         {
             outputItem = null;
             if (recipeProto == null || ingredientIds == null || ingredientIds.Count == 0 || resultsInv == null)
@@ -989,7 +958,8 @@ namespace MHServerEmu.Games.Entities
             if (sourceItem == null || sourceItem.GetOwnerOfType<Player>() != this)
                 return CraftingResult.IngredientInvalid;
 
-            if (sourceItem.ItemPrototype is not ArmorPrototype || IsOmegaForgeRarity(sourceItem) == false || IsEquippedOnCurrentAvatar(sourceItem) == false)
+            bool sourceRarityAllowed = IsOmegaForgeRarity(sourceItem) || allowUniqueSource && IsUniqueForgeRarity(sourceItem);
+            if (sourceItem.ItemPrototype is not ArmorPrototype || sourceRarityAllowed == false || IsEquippedOnCurrentAvatar(sourceItem) == false)
                 return CraftingResult.IngredientInvalid;
 
             for (int i = 1; i < ingredientIds.Count; i++)
@@ -1003,7 +973,7 @@ namespace MHServerEmu.Games.Entities
                     return CraftingResult.IngredientInvalid;
             }
 
-            CraftingResult ingredientResult = ValidateOmegaForgeRecipeIngredients(recipeProto, ingredientIds, sourceItem);
+            CraftingResult ingredientResult = ValidateOmegaForgeRecipeIngredients(recipeProto, ingredientIds, sourceItem, allowUniqueSource);
             if (ingredientResult != CraftingResult.Success &&
                 (allowChallengeTokenOverride == false || ingredientIds.Count < 2 || IsAllowedOmegaForgeToken(Game.EntityManager.GetEntity<Item>(ingredientIds[1]), recipeProto.DataRef) == false))
             {
@@ -1065,7 +1035,8 @@ namespace MHServerEmu.Games.Entities
 
             using var summaryHandle = LootResultSummaryPool.Get(out LootResultSummary summary);
             resolver.FillLootResultSummary(summary);
-            RestoreOmegaForgeCraftOutputRarity(summary);
+            if (restoreOmegaRarity && IsOmegaForgeRarity(sourceItem))
+                RestoreOmegaForgeCraftOutputRarity(summary);
 
             const LootType LootTypeFilter = LootType.Item | LootType.LootMutation | LootType.VendorXP | LootType.CallbackNode;
             if ((summary.Types & ~LootTypeFilter) != LootType.None)
@@ -1191,7 +1162,7 @@ namespace MHServerEmu.Games.Entities
             }
         }
 
-        private CraftingResult ValidateOmegaForgeRecipeIngredients(CraftingRecipePrototype recipeProto, List<ulong> ingredientIds, Item sourceItem)
+        private CraftingResult ValidateOmegaForgeRecipeIngredients(CraftingRecipePrototype recipeProto, List<ulong> ingredientIds, Item sourceItem, bool allowUniqueSource = false)
         {
             if (recipeProto?.RecipeInputs.IsNullOrEmpty() != false || ingredientIds == null)
                 return CraftingResult.CraftingFailed;
@@ -1202,7 +1173,7 @@ namespace MHServerEmu.Games.Entities
             using var usedStackCountsHandle = DictionaryPool<ulong, int>.Get(out Dictionary<ulong, int> usedStackCounts);
             for (int slot = 0; slot < recipeProto.RecipeInputs.Length; slot++)
             {
-                CraftingResult slotResult = ValidateOmegaForgeRecipeIngredient(recipeProto, ingredientIds, slot, usedStackCounts, sourceItem);
+                CraftingResult slotResult = ValidateOmegaForgeRecipeIngredient(recipeProto, ingredientIds, slot, usedStackCounts, sourceItem, allowUniqueSource);
                 if (slotResult != CraftingResult.Success)
                     return slotResult;
             }
@@ -1210,7 +1181,7 @@ namespace MHServerEmu.Games.Entities
             return CraftingResult.Success;
         }
 
-        private CraftingResult ValidateOmegaForgeRecipeIngredient(CraftingRecipePrototype recipeProto, List<ulong> ingredientIds, int slot, Dictionary<ulong, int> usedStackCounts, Item sourceItem)
+        private CraftingResult ValidateOmegaForgeRecipeIngredient(CraftingRecipePrototype recipeProto, List<ulong> ingredientIds, int slot, Dictionary<ulong, int> usedStackCounts, Item sourceItem, bool allowUniqueSource = false)
         {
             if (slot == 0 &&
                 sourceItem != null &&
@@ -1218,7 +1189,7 @@ namespace MHServerEmu.Games.Entities
                 ingredientIds.Count > 0 &&
                 ingredientIds[0] == sourceItem.Id &&
                 sourceItem.ItemPrototype is ArmorPrototype &&
-                IsOmegaForgeRarity(sourceItem) &&
+                (IsOmegaForgeRarity(sourceItem) || allowUniqueSource && IsUniqueForgeRarity(sourceItem)) &&
                 IsEquippedOnCurrentAvatar(sourceItem))
             {
                 return CraftingResult.Success;
@@ -1227,7 +1198,7 @@ namespace MHServerEmu.Games.Entities
             return recipeProto.ValidateIngredient(this, ingredientIds, slot, usedStackCounts);
         }
 
-        private bool TryBuildOmegaForgeRecipeIngredientIds(CraftingRecipePrototype recipeProto, Item sourceItem, out List<ulong> ingredientIds, out CraftingResult failure)
+        private bool TryBuildOmegaForgeRecipeIngredientIds(CraftingRecipePrototype recipeProto, Item sourceItem, out List<ulong> ingredientIds, out CraftingResult failure, bool allowUniqueSource = false)
         {
             ingredientIds = null;
             failure = CraftingResult.CraftingFailed;
@@ -1243,7 +1214,7 @@ namespace MHServerEmu.Games.Entities
             ingredientIds[0] = sourceItem.Id;
             using var usedStackCountsHandle = DictionaryPool<ulong, int>.Get(out Dictionary<ulong, int> usedStackCounts);
 
-            failure = ValidateOmegaForgeRecipeIngredient(recipeProto, ingredientIds, 0, usedStackCounts, sourceItem);
+            failure = ValidateOmegaForgeRecipeIngredient(recipeProto, ingredientIds, 0, usedStackCounts, sourceItem, allowUniqueSource);
             if (failure != CraftingResult.Success)
                 return false;
 
@@ -1255,22 +1226,22 @@ namespace MHServerEmu.Games.Entities
 
                 if (inputProto.AutoPopulatedIngredientPrototype != null)
                 {
-                    failure = ValidateOmegaForgeRecipeIngredient(recipeProto, ingredientIds, slot, usedStackCounts, sourceItem);
+                    failure = ValidateOmegaForgeRecipeIngredient(recipeProto, ingredientIds, slot, usedStackCounts, sourceItem, allowUniqueSource);
                     if (failure != CraftingResult.Success)
                         return false;
 
                     continue;
                 }
 
-                if (TryFindOmegaForgeRecipeIngredient(recipeProto, ingredientIds, slot, usedStackCounts, out failure) == false)
+                if (TryFindOmegaForgeRecipeIngredient(recipeProto, ingredientIds, slot, usedStackCounts, allowUniqueSource, out failure) == false)
                     return false;
             }
 
-            failure = ValidateOmegaForgeRecipeIngredients(recipeProto, ingredientIds, sourceItem);
+            failure = ValidateOmegaForgeRecipeIngredients(recipeProto, ingredientIds, sourceItem, allowUniqueSource);
             return failure == CraftingResult.Success;
         }
 
-        private bool TryFindOmegaForgeRecipeIngredient(CraftingRecipePrototype recipeProto, List<ulong> ingredientIds, int slot, Dictionary<ulong, int> usedStackCounts, out CraftingResult failure)
+        private bool TryFindOmegaForgeRecipeIngredient(CraftingRecipePrototype recipeProto, List<ulong> ingredientIds, int slot, Dictionary<ulong, int> usedStackCounts, bool allowUniqueSource, out CraftingResult failure)
         {
             failure = CraftingResult.InsufficientIngredients;
 
@@ -1287,7 +1258,7 @@ namespace MHServerEmu.Games.Entities
                         continue;
 
                     ingredientIds[slot] = ingredient.Id;
-                    CraftingResult result = ValidateOmegaForgeRecipeIngredient(recipeProto, ingredientIds, slot, usedStackCounts, Game.EntityManager.GetEntity<Item>(ingredientIds[0]));
+                    CraftingResult result = ValidateOmegaForgeRecipeIngredient(recipeProto, ingredientIds, slot, usedStackCounts, Game.EntityManager.GetEntity<Item>(ingredientIds[0]), allowUniqueSource);
                     if (result == CraftingResult.Success)
                     {
                         failure = CraftingResult.Success;
@@ -1302,7 +1273,12 @@ namespace MHServerEmu.Games.Entities
             return false;
         }
 
-        private Item FindEquippedOmegaForgeGearItem(EquipmentInvUISlot slot)
+        private Item FindEquippedOmegaOrUniqueForgeGearItem(EquipmentInvUISlot slot)
+        {
+            return FindEquippedForgeGearItem(slot, IsOmegaOrUniqueForgeRarity);
+        }
+
+        private Item FindEquippedForgeGearItem(EquipmentInvUISlot slot, Func<Item, bool> rarityFilter)
         {
             Avatar avatar = CurrentAvatar;
             AvatarPrototype avatarProto = avatar?.AvatarPrototype;
@@ -1325,7 +1301,7 @@ namespace MHServerEmu.Games.Entities
                     item.InventoryLocation.ContainerId == avatar.Id &&
                     item.InventoryLocation.InventoryRef == inventory.PrototypeDataRef &&
                     item.InventoryLocation.Slot == 0 &&
-                    IsOmegaForgeRarity(item))
+                    rarityFilter(item))
                 {
                     return item;
                 }
@@ -1394,7 +1370,7 @@ namespace MHServerEmu.Games.Entities
                 if (item == null || item.IsScheduledToDestroy)
                     continue;
 
-                if (sourceItem == null && item.ItemPrototype is ArmorPrototype && IsOmegaForgeRarity(item) && IsEquippedOnCurrentAvatar(item))
+                if (sourceItem == null && item.ItemPrototype is ArmorPrototype && IsOmegaOrUniqueForgeRarity(item) && IsEquippedOnCurrentAvatar(item))
                     sourceItem = item;
                 else if (tokenItem == null && IsAllowedOmegaForgeToken(item, recipeProto.DataRef))
                     tokenItem = item;
@@ -1544,6 +1520,26 @@ namespace MHServerEmu.Games.Entities
                 rarityRef = item.Properties[PropertyEnum.ItemRarity];
 
             return rarityRef == _omegaForgeRarityProtoRef;
+        }
+
+        private static bool IsOmegaOrUniqueForgeRarity(Item item)
+        {
+            return IsOmegaForgeRarity(item) || IsUniqueForgeRarity(item);
+        }
+
+        private static bool IsUniqueForgeRarity(Item item)
+        {
+            if (item == null)
+                return false;
+
+            if (_omegaForgeUniqueRarityProtoRef == PrototypeId.Invalid)
+                _omegaForgeUniqueRarityProtoRef = GameDatabase.GetPrototypeRefByName("Entity/Items/Rarity/R6Unique.prototype");
+
+            PrototypeId rarityRef = item.ItemSpec?.RarityProtoRef ?? PrototypeId.Invalid;
+            if (rarityRef == PrototypeId.Invalid)
+                rarityRef = item.Properties[PropertyEnum.ItemRarity];
+
+            return rarityRef == _omegaForgeUniqueRarityProtoRef;
         }
 
         private static string GetOmegaForgeTokenLabel(OmegaForgeBonus bonus)

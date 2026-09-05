@@ -370,6 +370,9 @@ namespace MHServerEmu.Games.GameData.PatchManager
             switch (propInfo.GetParamType(index))
             {
                 case PropertyParamType.Asset:
+                    if (paramValue.TryGetInt64(out long enumValue))
+                        return (PropertyParam)(int)enumValue;
+
                     var assetParam = (AssetId)ParseJsonElement(paramValue, typeof(AssetId));
                     return Property.ToParam(assetParam);
 

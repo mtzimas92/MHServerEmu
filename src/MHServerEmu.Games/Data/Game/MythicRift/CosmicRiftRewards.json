@@ -2334,6 +2334,34 @@
                                 "delivery":  "ground"
                             },
                             {
+                                "id":  "omega-tier-slot5-strength-uniques-standard-levels-1-plus",
+                                "enabled":  false,
+                                "itemPrototypePaths":  [
+                                                           "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot5/Unique238.prototype"
+                                                       ],
+                                "itemRarityPrototype":  "Entity/Items/Rarity/R6Unique.prototype",
+                                "chancePercent":  100,
+                                "rolls":  1,
+                                "itemLevel":  69,
+                                "minRiftLevel":  1,
+                                "maxRiftLevel":  0,
+                                "minWave":  1,
+                                "maxWave":  0,
+                                "successOnly":  true,
+                                "checkpointOnly":  false,
+                                "classicOnly":  false,
+                                "modes":  [
+                                              "standard"
+                                          ],
+                                "contentIds":  [
+
+                                               ],
+                                "bossSourceIds":  [
+
+                                                  ],
+                                "delivery":  "ground"
+                            },
+                            {
                                 "id":  "omega-tier-armor-boss-gauntlet-wave-30-plus",
                                 "enabled":  true,
                                 "prototypeDirectoryPrefix":  "Entity/Items/Armor/Prototypes/",
@@ -2410,6 +2438,106 @@
                              }
                          ],
     "guaranteedItems":  [
+                            {
+                                "id":  "omega-unique238-standard-every-clear",
+                                "enabled":  true,
+                                "itemPrototypeName":  "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot5/Unique238.prototype",
+                                "itemRarityPrototype":  "Entity/Items/Rarity/R6Unique.prototype",
+                                "quantity":  1,
+                                "itemLevel":  69,
+                                "minRiftLevel":  1,
+                                "maxRiftLevel":  0,
+                                "minWave":  1,
+                                "maxWave":  0,
+                                "successOnly":  true,
+                                "checkpointOnly":  false,
+                                "classicOnly":  false,
+                                "modes":  [
+                                              "standard"
+                                          ],
+                                "contentIds":  [
+
+                                               ],
+                                "bossSourceIds":  [
+
+                                                  ],
+                                "delivery":  "ground"
+                            },
+                            {
+                                "id":  "omega-unique304-standard-every-clear",
+                                "enabled":  true,
+                                "itemPrototypeName":  "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot5/Unique304.prototype",
+                                "itemRarityPrototype":  "Entity/Items/Rarity/R6Unique.prototype",
+                                "quantity":  1,
+                                "itemLevel":  69,
+                                "minRiftLevel":  1,
+                                "maxRiftLevel":  0,
+                                "minWave":  1,
+                                "maxWave":  0,
+                                "successOnly":  true,
+                                "checkpointOnly":  false,
+                                "classicOnly":  false,
+                                "modes":  [
+                                              "standard"
+                                          ],
+                                "contentIds":  [
+
+                                               ],
+                                "bossSourceIds":  [
+
+                                                  ],
+                                "delivery":  "ground"
+                            },
+                            {
+                                "id":  "omega-unique298-standard-every-clear",
+                                "enabled":  true,
+                                "itemPrototypeName":  "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot4/Unique298.prototype",
+                                "itemRarityPrototype":  "Entity/Items/Rarity/R6Unique.prototype",
+                                "quantity":  1,
+                                "itemLevel":  69,
+                                "minRiftLevel":  1,
+                                "maxRiftLevel":  0,
+                                "minWave":  1,
+                                "maxWave":  0,
+                                "successOnly":  true,
+                                "checkpointOnly":  false,
+                                "classicOnly":  false,
+                                "modes":  [
+                                              "standard"
+                                          ],
+                                "contentIds":  [
+
+                                               ],
+                                "bossSourceIds":  [
+
+                                                  ],
+                                "delivery":  "ground"
+                            },
+                            {
+                                "id":  "omega-unique294-standard-every-clear",
+                                "enabled":  true,
+                                "itemPrototypeName":  "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot2/Unique294.prototype",
+                                "itemRarityPrototype":  "Entity/Items/Rarity/R6Unique.prototype",
+                                "quantity":  1,
+                                "itemLevel":  69,
+                                "minRiftLevel":  1,
+                                "maxRiftLevel":  0,
+                                "minWave":  1,
+                                "maxWave":  0,
+                                "successOnly":  true,
+                                "checkpointOnly":  false,
+                                "classicOnly":  false,
+                                "modes":  [
+                                              "standard"
+                                          ],
+                                "contentIds":  [
+
+                                               ],
+                                "bossSourceIds":  [
+
+                                                  ],
+                                "delivery":  "ground"
+                            },
                             {
                                 "id":  "cube-shards-cosmic-rift-every-clear",
                                 "enabled":  true,

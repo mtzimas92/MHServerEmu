@@ -1,10 +1,13 @@
 using MHServerEmu.Core.Collections;
 using MHServerEmu.Core.Extensions;
 using MHServerEmu.Core.Logging;
+using MHServerEmu.Core.System.Random;
+using System.Text.Json;
 using MHServerEmu.Games.Entities;
 using MHServerEmu.Games.Entities.Avatars;
 using MHServerEmu.Games.Entities.Items;
 using MHServerEmu.Games.GameData;
+using MHServerEmu.Games.GameData.PatchManager;
 using MHServerEmu.Games.GameData.Prototypes;
 using MHServerEmu.Games.GameData.Tables;
 using MHServerEmu.Games.Loot;
@@ -65,6 +68,31 @@ namespace MHServerEmu.Games.OmegaTierItems
 
             TryApplyItemOverrides(resolver, filterArgs, itemSpec, rollFor, tuning);
             return true;
+        }
+
+        public static void ApplyConfiguredRuntimeProperties(Item item)
+        {
+            if (item?.ItemPrototype == null || item.Properties == null)
+                return;
+
+            OmegaTierItemTuning tuning = OmegaTierItemTuning.Load();
+            if (tuning?.Enabled != true || tuning.ItemOverrides.Count == 0)
+                return;
+
+            PrototypeId itemProtoRef = item.ItemPrototype.DataRef;
+            PrototypeId rarityProtoRef = item.Properties[PropertyEnum.ItemRarity];
+            foreach (OmegaTierItemOverrideTuning itemOverride in tuning.ItemOverrides)
+            {
+                if (itemOverride?.Matches(itemProtoRef, rarityProtoRef) != true)
+                    continue;
+
+                RemoveConfiguredProcPowers(item, itemOverride);
+                foreach (OmegaTierBuiltInPropertyTuning builtInProperty in itemOverride.BuiltInProperties)
+                    TryApplyBuiltInProperty(item, itemOverride, builtInProperty);
+
+                foreach (OmegaTierProcKeywordPropertyTuning procKeywordProperty in itemOverride.ProcKeywordProperties)
+                    TryApplyProcKeywordProperty(item, itemOverride, procKeywordProperty);
+            }
         }
 
         public static ItemSpec CreateItemSpec(
@@ -370,6 +398,19 @@ namespace MHServerEmu.Games.OmegaTierItems
                     continue;
 
                 bool changed = false;
+                PrototypeId overrideRarityRef = ResolvePrototype(itemOverride.OverrideRarity);
+                if (overrideRarityRef != PrototypeId.Invalid && itemSpec.RarityProtoRef != overrideRarityRef)
+                {
+                    itemSpec.RarityProtoRef = overrideRarityRef;
+                    changed = true;
+                }
+
+                if (itemOverride.OverrideItemLevel > 0 && itemSpec.ItemLevel != itemOverride.OverrideItemLevel)
+                {
+                    itemSpec.ItemLevel = itemOverride.OverrideItemLevel;
+                    changed = true;
+                }
+
                 if (itemOverride.ClearExistingAffixes)
                 {
                     itemSpec.SetAffixes(Array.Empty<AffixSpec>());
@@ -377,6 +418,7 @@ namespace MHServerEmu.Games.OmegaTierItems
                 }
 
                 changed |= RemoveDisabledOverrideAffixes(itemSpec, itemOverride);
+                changed |= TryApplyAffixReplacements(resolver, filterArgs, itemSpec, tuning, itemOverride);
 
                 foreach (OmegaTierForcedAffixTuning forcedAffix in itemOverride.ForcedAffixes)
                 {
@@ -395,7 +437,7 @@ namespace MHServerEmu.Games.OmegaTierItems
                         if (forcedAffix.ReplaceExistingSamePosition)
                             changed |= RemoveAffixesAtPosition(itemSpec, affixProto.Position);
 
-                        if (TryAddAffixSpec(resolver, filterArgs, itemSpec, affixProto, forcedAffix.AllowInvalidAttachment))
+                        if (TryAddAffixSpec(resolver, filterArgs, itemSpec, affixProto, forcedAffix.AllowInvalidAttachment, itemOverride.MaximizeAffixRolls))
                             changed = true;
                     }
                 }
@@ -433,6 +475,275 @@ namespace MHServerEmu.Games.OmegaTierItems
                 itemSpec.SetAffixes(affixSpecs);
 
             return removed;
+        }
+
+        private static bool TryApplyAffixReplacements(
+            ItemResolver resolver,
+            DropFilterArguments filterArgs,
+            ItemSpec itemSpec,
+            OmegaTierItemTuning tuning,
+            OmegaTierItemOverrideTuning itemOverride)
+        {
+            if (resolver == null || filterArgs == null || itemSpec == null || itemOverride?.AffixReplacements == null ||
+                itemOverride.AffixReplacements.Count == 0 || itemSpec.AffixSpecs.Count == 0)
+            {
+                return false;
+            }
+
+            List<AffixSpec> affixSpecs = new(itemSpec.AffixSpecs.Count);
+            foreach (AffixSpec affixSpec in itemSpec.AffixSpecs)
+                affixSpecs.Add(new(affixSpec));
+
+            bool changed = false;
+            int replacedCount = 0;
+            foreach (OmegaTierAffixReplacementTuning replacement in itemOverride.AffixReplacements)
+            {
+                if (replacement == null || replacement.Count <= 0)
+                    continue;
+
+                AffixPrototype replacementAffixProto = ResolveAffix(replacement.Prototype);
+                if (replacementAffixProto == null)
+                {
+                    Logger.Warn($"Omega item override replacement affix could not resolve: override={itemOverride.Id} item={itemSpec.ItemProtoRef.GetNameFormatted()} affix={replacement.Prototype}");
+                    continue;
+                }
+
+                for (int i = 0; i < replacement.Count; i++)
+                {
+                    int replacementIndex = FindOverrideReplacementAffixIndex(affixSpecs, replacementAffixProto, tuning, replacement);
+                    if (replacementIndex < 0)
+                    {
+                        Logger.Warn($"Omega item override replacement had no eligible affix slot: override={itemOverride.Id} item={itemSpec.ItemProtoRef.GetNameFormatted()} affix={replacementAffixProto.DataRef.GetNameFormatted()} affixes={affixSpecs.Count}");
+                        continue;
+                    }
+
+                    AffixSpec replacementSpec = CreateReplacementAffixSpec(resolver, filterArgs, itemSpec, affixSpecs, replacementIndex, replacementAffixProto, replacement.AllowInvalidAttachment, itemOverride.MaximizeAffixRolls);
+                    if (replacementSpec == null || replacementSpec.IsValid == false)
+                    {
+                        Logger.Warn($"Omega item override replacement failed to roll: override={itemOverride.Id} item={itemSpec.ItemProtoRef.GetNameFormatted()} affix={replacementAffixProto.DataRef.GetNameFormatted()}");
+                        continue;
+                    }
+
+                    string oldAffixName = affixSpecs[replacementIndex]?.AffixProto?.DataRef.GetNameFormatted() ?? string.Empty;
+                    affixSpecs[replacementIndex] = replacementSpec;
+                    changed = true;
+                    replacedCount++;
+                    Logger.Info($"Omega item override replaced affix: override={itemOverride.Id} item={itemSpec.ItemProtoRef.GetNameFormatted()} old={oldAffixName} new={replacementAffixProto.DataRef.GetNameFormatted()} index={replacementIndex}");
+                }
+            }
+
+            if (changed)
+                itemSpec.SetAffixes(affixSpecs);
+
+            if (replacedCount > 0)
+                Logger.Info($"Omega item override selective affix replacements applied: override={itemOverride.Id} item={itemSpec.ItemProtoRef.GetNameFormatted()} replaced={replacedCount}");
+
+            return changed;
+        }
+
+        private static bool TryApplyBuiltInProperty(
+            Item item,
+            OmegaTierItemOverrideTuning itemOverride,
+            OmegaTierBuiltInPropertyTuning builtInProperty)
+        {
+            if (item == null || itemOverride == null || builtInProperty == null)
+                return false;
+
+            if (TryResolveBuiltInPropertyId(itemOverride, builtInProperty, out PropertyId propertyId) == false)
+                return false;
+
+            PropertyInfo propertyInfo = GameDatabase.PropertyInfoTable.LookupPropertyInfo(propertyId.Enum);
+            if (propertyInfo == null)
+            {
+                Logger.Warn($"Omega runtime built-in property override has no PropertyInfo: override={itemOverride.Id} item={item.ItemPrototype.DataRef.GetNameFormatted()} property={propertyId.Enum}");
+                return false;
+            }
+
+            float randomMult = itemOverride.MaximizeBuiltInPropertyRolls
+                ? 0.99999988f
+                : RollConfiguredBuiltInPropertyMult(item, propertyId);
+
+            switch (propertyInfo.DataType)
+            {
+                case PropertyDataType.Real:
+                    item.Properties[propertyId] = builtInProperty.RollAsInteger
+                        ? GenerateTruncatedFloatWithinRange(randomMult, builtInProperty.ValueMin, builtInProperty.ValueMax)
+                        : GenerateFloatWithinRange(randomMult, builtInProperty.ValueMin, builtInProperty.ValueMax);
+                    return true;
+
+                case PropertyDataType.Integer:
+                    item.Properties[propertyId] = GenerateIntWithinRange(randomMult, builtInProperty.ValueMin, builtInProperty.ValueMax);
+                    return true;
+
+                case PropertyDataType.Boolean:
+                    item.Properties[propertyId] = GenerateIntWithinRange(randomMult, builtInProperty.ValueMin, builtInProperty.ValueMax) != 0;
+                    return true;
+
+                default:
+                    Logger.Warn($"Omega runtime built-in property override skipped unsupported property type: override={itemOverride.Id} item={item.ItemPrototype.DataRef.GetNameFormatted()} property={propertyInfo.PropertyName} type={propertyInfo.DataType}");
+                    return false;
+            }
+        }
+
+        private static bool TryResolveBuiltInPropertyId(
+            OmegaTierItemOverrideTuning itemOverride,
+            OmegaTierBuiltInPropertyTuning builtInProperty,
+            out PropertyId propertyId)
+        {
+            propertyId = PropertyId.Invalid;
+
+            if (builtInProperty.Property.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null)
+            {
+                Logger.Warn($"Omega runtime built-in property override has no property: override={itemOverride.Id}");
+                return false;
+            }
+
+            try
+            {
+                propertyId = PatchEntryConverter.ParseJsonPropertyIdSinglePublic(builtInProperty.Property);
+            }
+            catch (Exception e)
+            {
+                Logger.Warn($"Omega runtime built-in property override could not parse property: override={itemOverride.Id} property={builtInProperty.Property} exception={e.Message}");
+                return false;
+            }
+
+            if (propertyId == PropertyId.Invalid)
+            {
+                Logger.Warn($"Omega runtime built-in property override resolved invalid property: override={itemOverride.Id} property={builtInProperty.Property}");
+                return false;
+            }
+
+            return true;
+        }
+
+        private static bool RemoveConfiguredProcPowers(Item item, OmegaTierItemOverrideTuning itemOverride)
+        {
+            if (item == null || itemOverride?.DisabledProcPowers == null || itemOverride.DisabledProcPowers.Count == 0)
+                return false;
+
+            HashSet<PrototypeId> disabledProcPowerRefs = new();
+            foreach (string disabledProcPower in itemOverride.DisabledProcPowers)
+            {
+                PrototypeId procPowerRef = ResolvePrototype(disabledProcPower);
+                if (procPowerRef != PrototypeId.Invalid)
+                    disabledProcPowerRefs.Add(procPowerRef);
+            }
+
+            if (disabledProcPowerRefs.Count == 0)
+                return false;
+
+            List<PropertyId> propertiesToRemove = new();
+            using var procPropertiesHandle = PropertyCollectionPool.Get(out PropertyCollection procProperties);
+            foreach (PropertyEnum procProperty in Property.ProcPropertyTypesAll)
+                procProperties.CopyPropertyRange(item.Properties, procProperty);
+
+            foreach (var kvp in procProperties)
+            {
+                Property.FromParam(kvp.Key, 1, out PrototypeId procPowerRef);
+                if (disabledProcPowerRefs.Contains(procPowerRef))
+                    propertiesToRemove.Add(kvp.Key);
+            }
+
+            foreach (PropertyId propertyId in propertiesToRemove)
+                item.Properties.RemoveProperty(propertyId);
+
+            return propertiesToRemove.Count > 0;
+        }
+
+        private static bool TryApplyProcKeywordProperty(
+            Item item,
+            OmegaTierItemOverrideTuning itemOverride,
+            OmegaTierProcKeywordPropertyTuning procKeywordProperty)
+        {
+            if (item == null || itemOverride == null || procKeywordProperty == null)
+                return false;
+
+            if (Enum.TryParse(procKeywordProperty.Trigger, ignoreCase: true, out ProcTriggerType triggerType) == false)
+            {
+                Logger.Warn($"Omega runtime proc override has invalid trigger: trigger={procKeywordProperty.Trigger}");
+                return false;
+            }
+
+            PrototypeId procPowerRef = ResolvePrototype(procKeywordProperty.Power);
+            PrototypeId keywordRef = ResolvePrototype(procKeywordProperty.Keyword);
+            if (procPowerRef == PrototypeId.Invalid || keywordRef == PrototypeId.Invalid)
+            {
+                Logger.Warn($"Omega runtime proc override could not resolve refs: power={procKeywordProperty.Power} keyword={procKeywordProperty.Keyword}");
+                return false;
+            }
+
+            PropertyId procPropertyId = new(
+                PropertyEnum.ProcKeyword,
+                (PropertyParam)(int)triggerType,
+                Property.ToParam(PropertyEnum.ProcKeyword, 1, procPowerRef),
+                Property.ToParam(PropertyEnum.ProcKeyword, 2, keywordRef));
+
+            float randomMult = RollConfiguredBuiltInPropertyMult(item, procPowerRef, keywordRef, triggerType);
+            item.Properties[procPropertyId] = procKeywordProperty.GetChance(randomMult, itemOverride.MaximizeBuiltInPropertyRolls);
+
+            if (procKeywordProperty.ItemLevelOverride.HasValue)
+                item.Properties[PropertyEnum.ProcPowerItemLevel, procPowerRef] = procKeywordProperty.ItemLevelOverride.Value;
+
+            if (procKeywordProperty.ItemVariationOverride.HasValue)
+                item.Properties[PropertyEnum.ProcPowerItemVariation, procPowerRef] = procKeywordProperty.ItemVariationOverride.Value;
+
+            if (procKeywordProperty.PowerRankOverride.HasValue)
+                item.Properties[PropertyEnum.ProcPowerRank, procPowerRef] = procKeywordProperty.PowerRankOverride.Value;
+
+            return true;
+        }
+
+        private static float RollConfiguredBuiltInPropertyMult(
+            Item item,
+            PrototypeId procPowerRef,
+            PrototypeId keywordRef,
+            ProcTriggerType triggerType)
+        {
+            int seed = item?.ItemSpec?.Seed ?? 0;
+
+            unchecked
+            {
+                seed = (seed * 397) ^ (int)triggerType;
+                seed = (seed * 397) ^ (int)(ulong)procPowerRef;
+                seed = (seed * 397) ^ (int)((ulong)procPowerRef >> 32);
+                seed = (seed * 397) ^ (int)(ulong)keywordRef;
+                seed = (seed * 397) ^ (int)((ulong)keywordRef >> 32);
+            }
+
+            return new GRandom(seed).NextFloat();
+        }
+
+        private static float RollConfiguredBuiltInPropertyMult(Item item, PropertyId propertyId)
+        {
+            int seed = item?.ItemSpec?.Seed ?? 0;
+
+            unchecked
+            {
+                seed = (seed * 397) ^ (int)propertyId.Raw;
+                seed = (seed * 397) ^ (int)(propertyId.Raw >> 32);
+            }
+
+            return new GRandom(seed).NextFloat();
+        }
+
+        private static float GenerateTruncatedFloatWithinRange(float randomMult, float min, float max)
+        {
+            float result = ((max - min + 1f) * randomMult) + min;
+            float lower = Math.Min(min, max);
+            float upper = Math.Max(min, max);
+            result = Math.Clamp(result, lower, upper);
+            return MathF.Floor(result);
+        }
+
+        private static float GenerateFloatWithinRange(float randomMult, float min, float max)
+        {
+            return ((max - min) * randomMult) + min;
+        }
+
+        private static int GenerateIntWithinRange(float randomMult, float min, float max)
+        {
+            return (int)GenerateTruncatedFloatWithinRange(randomMult, min, max);
         }
 
         private static bool RemoveAffixesAtPosition(ItemSpec itemSpec, AffixPosition position)
@@ -837,7 +1148,8 @@ namespace MHServerEmu.Games.OmegaTierItems
             DropFilterArguments filterArgs,
             ItemSpec itemSpec,
             AffixPrototype affixProto,
-            bool allowInvalidAttachment)
+            bool allowInvalidAttachment,
+            bool maximizeRolls = false)
         {
             if (resolver == null || filterArgs == null || itemSpec == null || affixProto == null)
                 return false;
@@ -852,12 +1164,111 @@ namespace MHServerEmu.Games.OmegaTierItems
             AffixSpec affixSpec = new();
             MutationResults result = affixSpec.RollAffix(resolver.Random, filterArgs.RollFor, itemSpec, picker, affixSet);
             if (result.HasFlag(MutationResults.Error) == false && affixSpec.IsValid)
+            {
+                if (maximizeRolls)
+                    affixSpec.Seed = CreateMaxRollAffixSeed(resolver.Random, affixProto);
+
                 return itemSpec.AddAffixSpec(affixSpec);
+            }
 
             if (allowInvalidAttachment == false)
                 return false;
 
-            return itemSpec.AddAffixSpec(new(affixProto, PrototypeId.Invalid, resolver.Random.Next(1, int.MaxValue)));
+            int seed = maximizeRolls
+                ? CreateMaxRollAffixSeed(resolver.Random, affixProto)
+                : resolver.Random.Next(1, int.MaxValue);
+            return itemSpec.AddAffixSpec(new(affixProto, PrototypeId.Invalid, seed));
+        }
+
+        private static AffixSpec CreateReplacementAffixSpec(
+            ItemResolver resolver,
+            DropFilterArguments filterArgs,
+            ItemSpec itemSpec,
+            List<AffixSpec> affixSpecs,
+            int replacementIndex,
+            AffixPrototype affixProto,
+            bool allowInvalidAttachment,
+            bool maximizeRolls = false)
+        {
+            if (resolver == null || filterArgs == null || itemSpec == null || affixSpecs == null || affixProto == null)
+                return null;
+
+            if (allowInvalidAttachment == false && affixProto.AllowAttachment(filterArgs) == false)
+                return null;
+
+            HashSet<ScopedAffixRef> affixSet = BuildScopedAffixSet(affixSpecs, replacementIndex);
+            using var pickerHandle = PickerPool<AffixPrototype>.Get(resolver.Random, out Picker<AffixPrototype> picker);
+            picker.Add(affixProto, Math.Max(affixProto.Weight, 1));
+
+            AffixSpec affixSpec = new();
+            MutationResults result = affixSpec.RollAffix(resolver.Random, filterArgs.RollFor, itemSpec, picker, affixSet);
+            if (result.HasFlag(MutationResults.Error) == false && affixSpec.IsValid)
+            {
+                if (maximizeRolls)
+                    affixSpec.Seed = CreateMaxRollAffixSeed(resolver.Random, affixProto);
+
+                return affixSpec;
+            }
+
+            return allowInvalidAttachment
+                ? new(affixProto, PrototypeId.Invalid, maximizeRolls ? CreateMaxRollAffixSeed(resolver.Random, affixProto) : resolver.Random.Next(1, int.MaxValue))
+                : null;
+        }
+
+        private static int CreateMaxRollAffixSeed(GRandom random, AffixPrototype affixProto)
+        {
+            const int LowMantissaMask = 0x7FFFFF;
+            const int LowMantissaModulo = 0x800000;
+            const int MultiplierLowBits = 698769069 & LowMantissaMask;
+            const int InitialCarry = 666;
+
+            int rollCount = Math.Max(1, affixProto?.PropertyEntries?.Length ?? 0);
+            int inverse = ModularInverse(MultiplierLowBits, LowMantissaModulo);
+            int seedLowBits = (int)(((long)((LowMantissaMask - InitialCarry) & LowMantissaMask) * inverse) & LowMantissaMask);
+
+            if (rollCount == 1)
+                return seedLowBits == 0 ? LowMantissaModulo : seedLowBits;
+
+            int bestSeed = seedLowBits == 0 ? LowMantissaModulo : seedLowBits;
+            float bestScore = -1f;
+            int startOffset = random?.Next(0, 256) ?? 0;
+            for (int i = 0; i < 256; i++)
+            {
+                int offset = (startOffset + i) % 256;
+                int seed = seedLowBits + (offset * LowMantissaModulo);
+                if (seed <= 0)
+                    continue;
+
+                GRandom candidateRandom = new(seed);
+                float score = 1f;
+                for (int roll = 0; roll < rollCount; roll++)
+                    score = Math.Min(score, candidateRandom.NextFloat());
+
+                if (score > bestScore)
+                {
+                    bestScore = score;
+                    bestSeed = seed;
+                }
+            }
+
+            return bestSeed;
+        }
+
+        private static int ModularInverse(int value, int modulo)
+        {
+            int t = 0;
+            int newT = 1;
+            int r = modulo;
+            int newR = value;
+
+            while (newR != 0)
+            {
+                int quotient = r / newR;
+                (t, newT) = (newT, t - quotient * newT);
+                (r, newR) = (newR, r - quotient * newR);
+            }
+
+            return t < 0 ? t + modulo : t;
         }
 
         private static HashSet<ScopedAffixRef> BuildScopedAffixSet(ItemSpec itemSpec)
@@ -877,7 +1288,143 @@ namespace MHServerEmu.Games.OmegaTierItems
             return affixSet;
         }
 
-        private static AffixPrototype ResolveAffix(string affixName)
+        private static HashSet<ScopedAffixRef> BuildScopedAffixSet(List<AffixSpec> affixSpecs, int indexToSkip)
+        {
+            HashSet<ScopedAffixRef> affixSet = new();
+            if (affixSpecs == null)
+                return affixSet;
+
+            for (int i = 0; i < affixSpecs.Count; i++)
+            {
+                if (i == indexToSkip)
+                    continue;
+
+                AffixSpec affixSpec = affixSpecs[i];
+                if (affixSpec?.AffixProto == null)
+                    continue;
+
+                affixSet.Add(new(affixSpec.AffixProto.DataRef, affixSpec.ScopeProtoRef));
+            }
+
+            return affixSet;
+        }
+
+        private static int FindOverrideReplacementAffixIndex(
+            List<AffixSpec> affixSpecs,
+            AffixPrototype replacementAffixProto,
+            OmegaTierItemTuning tuning,
+            OmegaTierAffixReplacementTuning replacement)
+        {
+            if (affixSpecs == null || replacementAffixProto == null || replacement == null)
+                return -1;
+
+            for (int i = 0; i < affixSpecs.Count; i++)
+            {
+                AffixPrototype existingAffixProto = affixSpecs[i]?.AffixProto;
+                if (CanReplaceOverrideAffix(existingAffixProto, replacementAffixProto, tuning, replacement, requireSamePosition: true))
+                    return i;
+            }
+
+            for (int i = 0; i < affixSpecs.Count; i++)
+            {
+                AffixPrototype existingAffixProto = affixSpecs[i]?.AffixProto;
+                if (CanReplaceOverrideAffix(existingAffixProto, replacementAffixProto, tuning, replacement, requireSamePosition: false))
+                    return i;
+            }
+
+            return -1;
+        }
+
+        internal static bool CanReplaceOverrideAffix(
+            AffixPrototype existingAffixProto,
+            AffixPrototype replacementAffixProto,
+            OmegaTierItemTuning tuning,
+            OmegaTierAffixReplacementTuning replacement,
+            bool requireSamePosition)
+        {
+            if (existingAffixProto == null || replacementAffixProto == null || replacement == null)
+                return false;
+
+            if (existingAffixProto.DataRef == replacementAffixProto.DataRef)
+                return false;
+
+            if (replacement.PreservesAffix(existingAffixProto.DataRef) || replacement.PreservesPosition(existingAffixProto.Position))
+                return false;
+
+            if (replacement.PreserveProcAffixes && IsProcAffix(existingAffixProto))
+                return false;
+
+            if (replacement.PreserveConfiguredPreferredAffixes && IsConfiguredPreferredAffix(existingAffixProto.DataRef, tuning))
+                return false;
+
+            if (replacement.ReplaceAffixes.Count > 0 && replacement.MatchesReplaceAffix(existingAffixProto.DataRef) == false)
+                return false;
+
+            if (replacement.AllowsPosition(existingAffixProto.Position) == false)
+                return false;
+
+            if (requireSamePosition && existingAffixProto.Position != replacementAffixProto.Position)
+                return false;
+
+            if (replacement.ReplacePositions.Count == 0 &&
+                existingAffixProto.Position != replacementAffixProto.Position &&
+                existingAffixProto.Position != AffixPosition.Prefix &&
+                existingAffixProto.Position != AffixPosition.Suffix &&
+                existingAffixProto.Position != AffixPosition.Unique)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        internal static bool IsProcAffix(AffixPrototype affixProto)
+        {
+            if (affixProto == null)
+                return false;
+
+            if (affixProto.Properties != null)
+            {
+                foreach (PropertyEnum procProperty in Property.ProcPropertyTypesAll)
+                {
+                    foreach (var _ in affixProto.Properties.IteratePropertyRange(procProperty))
+                        return true;
+                }
+
+                foreach (var kvp in affixProto.Properties)
+                {
+                    if (IsProcSupportProperty(kvp.Key.Enum))
+                        return true;
+                }
+            }
+
+            if (affixProto.PropertyEntries != null)
+            {
+                foreach (PropertyPickInRangeEntryPrototype propertyEntry in affixProto.PropertyEntries)
+                {
+                    if (propertyEntry != null &&
+                        (Property.ProcPropertyTypesAll.Contains(propertyEntry.Prop.Enum) || IsProcSupportProperty(propertyEntry.Prop.Enum)))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        private static bool IsProcSupportProperty(PropertyEnum propertyEnum)
+        {
+            return propertyEnum == PropertyEnum.ProcChanceOverride ||
+                propertyEnum == PropertyEnum.ProcPowerItemLevel ||
+                propertyEnum == PropertyEnum.ProcPowerItemVariation ||
+                propertyEnum == PropertyEnum.ProcPowerInvStackCount ||
+                propertyEnum == PropertyEnum.ProcPowerRank ||
+                propertyEnum == PropertyEnum.ProcCasterOverride ||
+                propertyEnum == PropertyEnum.ProcTargetOverride;
+        }
+
+        internal static AffixPrototype ResolveAffix(string affixName)
         {
             if (string.IsNullOrWhiteSpace(affixName))
                 return null;
@@ -886,7 +1433,14 @@ namespace MHServerEmu.Games.OmegaTierItems
             return affixRef.As<AffixPrototype>();
         }
 
-        private static bool IsOmegaRarity(PrototypeId rarityProtoRef)
+        internal static PrototypeId ResolvePrototype(string prototypeName)
+        {
+            return string.IsNullOrWhiteSpace(prototypeName)
+                ? PrototypeId.Invalid
+                : GameDatabase.GetPrototypeRefByName(prototypeName.Trim());
+        }
+
+        internal static bool IsOmegaRarity(PrototypeId rarityProtoRef)
         {
             PrototypeId omegaRarityRef = GameDatabase.GetPrototypeRefByName(OmegaRarityName);
             return omegaRarityRef != PrototypeId.Invalid && rarityProtoRef == omegaRarityRef;

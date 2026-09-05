@@ -23,6 +23,10 @@ namespace MHServerEmu.Games.Loot
     /// </summary>
     public class ItemResolver : IItemResolver, IPoolable
     {
+        private static readonly Logger Logger = LogManager.CreateLogger();
+
+        private const string OmegaCraftingRarityPrototypeName = "Entity/Items/Rarity/R6Omega.prototype";
+
         private readonly int _itemLevelMin;
         private readonly int _itemLevelMax;
 
@@ -384,16 +388,26 @@ namespace MHServerEmu.Games.Loot
         public bool CheckItem(DropFilterArguments filterArgs, RestrictionTestFlags restrictionFlags, bool arg2 = false, int stackCount = 1)
         {
             ItemPrototype itemProto = filterArgs.ItemProto as ItemPrototype;
-            if (!Verify.IsNotNull(itemProto)) return false;
+            if (!Verify.IsNotNull(itemProto))
+                return false;
 
             if (itemProto.ApprovedForUse() == false)
+            {
+                TraceOmegaCraftingCheckItemFailure(filterArgs, restrictionFlags, "approved-for-use", itemProto);
                 return false;
+            }
 
             if (itemProto.IsLiveTuningEnabled() == false)
+            {
+                TraceOmegaCraftingCheckItemFailure(filterArgs, restrictionFlags, "live-tuning-disabled", itemProto);
                 return false;
+            }
 
             if (itemProto.IsDroppableForRestrictions(filterArgs, restrictionFlags) == false)
+            {
+                TraceOmegaCraftingCheckItemFailure(filterArgs, restrictionFlags, "drop-restriction", itemProto);
                 return false;
+            }
 
             if (restrictionFlags.HasFlag(RestrictionTestFlags.Slot))
             {
@@ -402,7 +416,10 @@ namespace MHServerEmu.Games.Loot
                 {
                     AgentPrototype agentProto = filterArgs.RollFor.As<AgentPrototype>();
                     if (itemProto.GetInventorySlotForAgent(agentProto) != slot)
+                    {
+                        TraceOmegaCraftingCheckItemFailure(filterArgs, restrictionFlags, "slot", itemProto);
                         return false;
+                    }
                 }
             }
 
@@ -410,16 +427,57 @@ namespace MHServerEmu.Games.Loot
             {
                 AgentPrototype agentProto = filterArgs.RollFor.As<AgentPrototype>();
                 if (itemProto.IsDroppableForAgent(agentProto) == false)
+                {
+                    TraceOmegaCraftingCheckItemFailure(filterArgs, restrictionFlags, "usable-by", itemProto);
                     return false;
+                }
             }
 
             if (restrictionFlags.HasFlag(RestrictionTestFlags.Cooldown))
             {
                 if (CheckDropCooldown(itemProto.DataRef, stackCount))
+                {
+                    TraceOmegaCraftingCheckItemFailure(filterArgs, restrictionFlags, "cooldown", itemProto);
                     return false;
+                }
             }
 
             return true;
+        }
+
+        private static void TraceOmegaCraftingCheckItemFailure(DropFilterArguments filterArgs, RestrictionTestFlags restrictionFlags, string reason, ItemPrototype itemProto)
+        {
+            if (ShouldTraceOmegaCraftingCheckItem(filterArgs) == false || itemProto == null)
+                return;
+
+            string failedRestrictions = string.Empty;
+            if (itemProto.LootDropRestrictions.HasValue())
+            {
+                foreach (DropRestrictionPrototype restrictionProto in itemProto.LootDropRestrictions)
+                {
+                    if (restrictionProto == null || restrictionProto.Allow(filterArgs, restrictionFlags))
+                        continue;
+
+                    if (failedRestrictions.Length > 0)
+                        failedRestrictions += ", ";
+
+                    failedRestrictions += restrictionProto.DataRef.GetNameFormatted();
+                }
+            }
+
+            AgentPrototype agentProto = filterArgs.RollFor.As<AgentPrototype>();
+            EquipmentInvUISlot resolvedSlot = itemProto.GetInventorySlotForAgent(agentProto);
+
+            Logger.Warn($"[OmegaCraftingTrace] check item failed reason={reason} item={itemProto.DataRef.GetNameFormatted()} rarity={filterArgs.Rarity.GetNameFormatted()} level={filterArgs.Level} slot={filterArgs.Slot} resolvedSlot={resolvedSlot} rollFor={filterArgs.RollFor.GetNameFormatted()} restrictionFlags={restrictionFlags} failedRestrictions=[{failedRestrictions}]");
+        }
+
+        private static bool ShouldTraceOmegaCraftingCheckItem(DropFilterArguments filterArgs)
+        {
+            if (filterArgs == null || filterArgs.LootContext.HasFlag(LootContext.Crafting) == false)
+                return false;
+
+            PrototypeId omegaRarityRef = GameDatabase.GetPrototypeRefByName(OmegaCraftingRarityPrototypeName);
+            return omegaRarityRef != PrototypeId.Invalid && filterArgs.Rarity == omegaRarityRef;
         }
 
         public bool CheckAgent(PrototypeId agentProtoRef, RestrictionTestFlags restrictionFlags)
