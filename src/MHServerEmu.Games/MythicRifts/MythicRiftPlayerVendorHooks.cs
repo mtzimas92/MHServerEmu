@@ -44,18 +44,24 @@ namespace MHServerEmu.Games.Entities
 
         private bool BuyMythicRiftVendorItem(int avatarIndex, Item vendorItem)
         {
-            if (vendorItem == null) { Logger.Warn("BuyMythicRiftVendorItem(): vendorItem == null"); return false; }
+            if (vendorItem == null) {
+                // Logger.Warn("BuyMythicRiftVendorItem(): vendorItem == null");
+                return false; }
 
             ItemPrototype itemProto = vendorItem.ItemPrototype;
-            if (itemProto == null) { Logger.Warn("BuyMythicRiftVendorItem(): itemProto == null"); return false; }
+            if (itemProto == null) {
+                // Logger.Warn("BuyMythicRiftVendorItem(): itemProto == null");
+                return false; }
 
             Inventory destinationInventory = GetInventory(itemProto.DestinationFromVendor);
-            if (destinationInventory == null) { Logger.Warn("BuyMythicRiftVendorItem(): destinationInventory == null"); return false; }
+            if (destinationInventory == null) {
+                // Logger.Warn("BuyMythicRiftVendorItem(): destinationInventory == null");
+                return false; }
 
             uint destinationSlot = destinationInventory.GetFreeSlot(vendorItem, true);
             if (destinationSlot == Inventory.InvalidSlot)
                 {
-                    Logger.Warn("BuyMythicRiftVendorItem(): destinationSlot == Inventory.InvalidSlot");
+                    // Logger.Warn("BuyMythicRiftVendorItem(): destinationSlot == Inventory.InvalidSlot");
                     return false;
                 }
 
@@ -70,17 +76,17 @@ namespace MHServerEmu.Games.Entities
             Item clonedItem = Game.EntityManager.CreateEntity(settings) as Item;
             if (clonedItem == null)
                 {
-                    Logger.Warn($"BuyMythicRiftVendorItem(): Failed to clone item [{vendorItem}]");
+                    // Logger.Warn($"BuyMythicRiftVendorItem(): Failed to clone item [{vendorItem}]");
                     return false;
                 }
 
             if (Game.MythicRiftLauncherService.TryRegisterTrackedBeaconItem(this, clonedItem) == false)
                 {
-                    Logger.Warn($"BuyMythicRiftVendorItem(): Failed to register purchased Rift beacon [{clonedItem}]");
+                    // Logger.Warn($"BuyMythicRiftVendorItem(): Failed to register purchased Rift beacon [{clonedItem}]");
                     return false;
                 }
 
-            Logger.Info($"[MythicRiftVendor] Registered purchased beacon playerDbId={DatabaseUniqueId} itemId={clonedItem.Id} prototype={clonedItem.PrototypeDataRef.GetNameFormatted()} totalTrackedCharges={Game.MythicRiftLauncherService.GetTotalTrackedBeaconCharges(DatabaseUniqueId)}");
+            // Logger.Info($"[MythicRiftVendor] Registered purchased beacon playerDbId={DatabaseUniqueId} itemId={clonedItem.Id} prototype={clonedItem.PrototypeDataRef.GetNameFormatted()} totalTrackedCharges={Game.MythicRiftLauncherService.GetTotalTrackedBeaconCharges(DatabaseUniqueId)}");
 
             int count = clonedItem.CurrentStackSize;
             GetRegion()?.PlayerBoughtItemEvent.Invoke(new(this, clonedItem, count));
@@ -96,7 +102,7 @@ namespace MHServerEmu.Games.Entities
                 MythicRiftMode.BossGauntlet => BossGauntletRiftPurchaseHint,
                 _ => MythicRiftPurchaseHint
             };
-            Game.ChatManager?.SendChatFromCustomSystem(this, purchaseHint, showSender: false);
+            // Game.ChatManager?.SendChatFromCustomSystem(this, purchaseHint, showSender: false);
 
             return true;
         }
@@ -111,11 +117,11 @@ namespace MHServerEmu.Games.Entities
 
             if (Game.MythicRiftLauncherService.TryRegisterTrackedBeaconItem(this, item) == false)
                 {
-                    Logger.Warn($"TryRegisterPurchasedMythicRiftBeacon(): Failed to register purchased Rift beacon [{item}] from {source}");
+                    // Logger.Warn($"TryRegisterPurchasedMythicRiftBeacon(): Failed to register purchased Rift beacon [{item}] from {source}");
                     return false;
                 }
 
-            Logger.Info($"[MythicRiftVendor] Registered purchased beacon via {source} playerDbId={DatabaseUniqueId} vendor={vendor.PrototypeDataRef.GetNameFormatted()} itemId={item.Id} prototype={item.PrototypeDataRef.GetNameFormatted()} totalTrackedCharges={Game.MythicRiftLauncherService.GetTotalTrackedBeaconCharges(DatabaseUniqueId)}");
+            // Logger.Info($"[MythicRiftVendor] Registered purchased beacon via {source} playerDbId={DatabaseUniqueId} vendor={vendor.PrototypeDataRef.GetNameFormatted()} itemId={item.Id} prototype={item.PrototypeDataRef.GetNameFormatted()} totalTrackedCharges={Game.MythicRiftLauncherService.GetTotalTrackedBeaconCharges(DatabaseUniqueId)}");
             return true;
         }
 
@@ -222,7 +228,7 @@ namespace MHServerEmu.Games.Entities
                     if (Game.MythicRiftManager.TryResolveRewardShopOfferVendorStockItemPrototype(offer, out PrototypeId itemProtoRef) == false)
                     {
                         if (stockIndex == 0)
-                            Logger.Warn($"TryAddMythicRiftCompletionVendorOffers(): Failed to resolve concrete vendor item for offer {offer.Id}");
+                            ; // Logger.Warn($"TryAddMythicRiftCompletionVendorOffers(): Failed to resolve concrete vendor item for offer {offer.Id}");
 
                         break;
                     }
@@ -243,10 +249,10 @@ namespace MHServerEmu.Games.Entities
             if (addedAny)
             {
                 _initializedVendorTypeProtoRefs.Remove(vendorTypeProtoRef);
-                Game.ChatManager?.SendChatFromCustomSystem(
-                    this,
-                    $"[Mythic Rift] Rift artifact vendor loaded. Champion's Commendations={Game.MythicRiftManager.GetRiftSigilCount(this)}.",
-                    showSender: false);
+                // Game.ChatManager?.SendChatFromCustomSystem(
+                //     this,
+                //     $"[Mythic Rift] Rift artifact vendor loaded. Champion's Commendations={Game.MythicRiftManager.GetRiftSigilCount(this)}.",
+                //     showSender: false);
             }
 
             return addedAny || _mythicRiftCompletionVendorInventoriesFiltered;
@@ -274,7 +280,7 @@ namespace MHServerEmu.Games.Entities
                 ItemSpec itemSpec = Game.LootManager.CreateItemSpec(itemProtoRef, LootContext.Vendor, this, Math.Max(stockEntry.ItemLevel, 1));
                 if (itemSpec == null)
                     {
-                        Logger.Warn($"TryAddMythicRiftCompletionVendorOfferItem(): Failed to create ItemSpec for {itemProtoRef.GetNameFormatted()}");
+                        // Logger.Warn($"TryAddMythicRiftCompletionVendorOfferItem(): Failed to create ItemSpec for {itemProtoRef.GetNameFormatted()}");
                         return false;
                     }
 
@@ -288,7 +294,7 @@ namespace MHServerEmu.Games.Entities
                 Item item = Game.EntityManager.CreateEntity(settings) as Item;
                 if (item == null)
                     {
-                        Logger.Warn("TryAddMythicRiftCompletionVendorOfferItem(): item == null");
+                        // Logger.Warn("TryAddMythicRiftCompletionVendorOfferItem(): item == null");
                         return false;
                     }
 
@@ -297,17 +303,17 @@ namespace MHServerEmu.Games.Entities
                 {
                     item.Destroy();
                     {
-                        Logger.Warn($"TryAddMythicRiftCompletionVendorOfferItem(): Failed to add {itemProtoRef.GetNameFormatted()} to {inventory} for reason {inventoryResult}");
+                        // Logger.Warn($"TryAddMythicRiftCompletionVendorOfferItem(): Failed to add {itemProtoRef.GetNameFormatted()} to {inventory} for reason {inventoryResult}");
                         return false;
                     }
                 }
 
                 _mythicRiftCompletionVendorOfferItemIds[item.Id] = stockEntry;
-                Logger.Info($"[MythicRiftCompletionVendor] Added offer={stockEntry.OfferId} item={itemProtoRef.GetNameFormatted()} cost={stockEntry.Cost} vendorType={vendorTypeProto.DataRef.GetNameFormatted()} inventory={inventory.PrototypeDataRef.GetNameFormatted()} itemId=0x{item.Id:X}");
+                // Logger.Trace($"[MythicRiftCompletionVendor] Added offer={stockEntry.OfferId} item={itemProtoRef.GetNameFormatted()} cost={stockEntry.Cost} vendorType={vendorTypeProto.DataRef.GetNameFormatted()} inventory={inventory.PrototypeDataRef.GetNameFormatted()} itemId=0x{item.Id:X}");
                 return true;
             }
 
-            Logger.Warn($"TryAddMythicRiftCompletionVendorOfferItem(): No free completion vendor slot for offer {stockEntry.OfferId}");
+            // Logger.Warn($"TryAddMythicRiftCompletionVendorOfferItem(): No free completion vendor slot for offer {stockEntry.OfferId}");
             return false;
         }
 
@@ -330,7 +336,7 @@ namespace MHServerEmu.Games.Entities
             _mythicRiftCompletionVendorOfferItemIds.Clear();
             _mythicRiftCompletionVendorInventoriesFiltered = true;
             _initializedVendorTypeProtoRefs.Remove(vendorTypeProto.DataRef);
-            Logger.Trace($"[MythicRiftCompletionVendor] Isolated completion vendor inventories playerDbId={DatabaseUniqueId} vendorType={vendorTypeProto.DataRef.GetNameFormatted()} clearedInventories={clearedInventories}.");
+            // Logger.Trace($"[MythicRiftCompletionVendor] Isolated completion vendor inventories playerDbId={DatabaseUniqueId} vendorType={vendorTypeProto.DataRef.GetNameFormatted()} clearedInventories={clearedInventories}.");
         }
 
         private bool IsMythicRiftCompletionVendorAlreadyIsolated(List<PrototypeId> inventoryList)
@@ -510,7 +516,7 @@ namespace MHServerEmu.Games.Entities
                 CraftingRecipePrototype recipeProto = recipeProtoRef.As<CraftingRecipePrototype>();
                 if (recipeProtoRef == PrototypeId.Invalid || recipeProto == null)
                 {
-                    Logger.Warn($"TryAddMythicRiftCompletionCrafterRecipe(): completion recipe did not resolve: {recipeProtoRef.GetNameFormatted()}");
+                    // Logger.Warn($"TryAddMythicRiftCompletionCrafterRecipe(): completion recipe did not resolve: {recipeProtoRef.GetNameFormatted()}");
                     continue;
                 }
 
@@ -533,7 +539,7 @@ namespace MHServerEmu.Games.Entities
                     ItemSpec itemSpec = Game.LootManager.CreateItemSpec(recipeProtoRef, LootContext.Vendor, this);
                     if (itemSpec == null)
                         {
-                            Logger.Warn($"TryAddMythicRiftCompletionCrafterRecipe(): Failed to create ItemSpec for {recipeProtoRef.GetNameFormatted()}");
+                            // Logger.Warn($"TryAddMythicRiftCompletionCrafterRecipe(): Failed to create ItemSpec for {recipeProtoRef.GetNameFormatted()}");
                             return false;
                         }
 
@@ -549,7 +555,7 @@ namespace MHServerEmu.Games.Entities
                     Item recipeItem = entityManager.CreateEntity(settings) as Item;
                     if (recipeItem == null)
                         {
-                            Logger.Warn("TryAddMythicRiftCompletionCrafterRecipe(): recipeItem == null");
+                            // Logger.Warn("TryAddMythicRiftCompletionCrafterRecipe(): recipeItem == null");
                             return false;
                         }
 
@@ -557,17 +563,17 @@ namespace MHServerEmu.Games.Entities
                     InitializeCraftingIngredientAvailable(recipeProto, craftingIngredientSet);
                     _initializedVendorTypeProtoRefs.Remove(vendorTypeProtoRef);
                     addedAny = true;
-                    Logger.Trace($"[MythicRiftCompletionCrafter] Added recipe={recipeProtoRef.GetNameFormatted()} vendorType={vendorTypeProto.DataRef.GetNameFormatted()} inventory={inventory.PrototypeDataRef.GetNameFormatted()} itemId=0x{recipeItem.Id:X}");
+                    // Logger.Trace($"[MythicRiftCompletionCrafter] Added recipe={recipeProtoRef.GetNameFormatted()} vendorType={vendorTypeProto.DataRef.GetNameFormatted()} inventory={inventory.PrototypeDataRef.GetNameFormatted()} itemId=0x{recipeItem.Id:X}");
                     break;
                 }
             }
 
             UpdateCraftingIngredientAvailableStackCounts(craftingIngredientSet);
             if (addedAny == false && HasAnyTrackedMythicRiftCompletionCrafterRecipe(inventoryList) == false)
-                Logger.Warn("TryAddMythicRiftCompletionCrafterRecipe(): No free completion crafter slot or no completion recipes resolved.");
+                ; // Logger.Warn("TryAddMythicRiftCompletionCrafterRecipe(): No free completion crafter slot or no completion recipes resolved.");
 
             if (addedAny)
-                Logger.Info($"[MythicRiftCompletionCrafter] Stocked completion crafter vendorType={vendorTypeProto.DataRef.GetNameFormatted()} recipeCount={recipeProtoRefs.Count}");
+                ; // Logger.Trace($"[MythicRiftCompletionCrafter] Stocked completion crafter vendorType={vendorTypeProto.DataRef.GetNameFormatted()} recipeCount={recipeProtoRefs.Count}");
 
             return addedAny || filteredInventories;
         }
@@ -725,26 +731,28 @@ namespace MHServerEmu.Games.Entities
 
         private bool TryAddMythicRiftVendorItem(VendorTypePrototype vendorTypeProto)
         {
-            if (vendorTypeProto == null) { Logger.Warn("TryAddMythicRiftVendorItem(): vendorTypeProto == null"); return false; }
+            if (vendorTypeProto == null) {
+                // Logger.Warn("TryAddMythicRiftVendorItem(): vendorTypeProto == null");
+                return false; }
 
             PrototypeId standardItemProtoRef = Game.MythicRiftLauncherService.ResolveChosenBeaconPrototypeRef();
             if (standardItemProtoRef == PrototypeId.Invalid)
                 {
-                    Logger.Warn($"TryAddMythicRiftVendorItem(): Failed to resolve {MythicRiftLauncherService.CosmicRiftBeaconPrototypeName}");
+                    // Logger.Warn($"TryAddMythicRiftVendorItem(): Failed to resolve {MythicRiftLauncherService.CosmicRiftBeaconPrototypeName}");
                     return false;
                 }
 
             PrototypeId endlessItemProtoRef = Game.MythicRiftLauncherService.ResolveEndlessBeaconPrototypeRef();
             if (endlessItemProtoRef == PrototypeId.Invalid)
                 {
-                    Logger.Warn($"TryAddMythicRiftVendorItem(): Failed to resolve {MythicRiftLauncherService.EndlessRiftBeaconPrototypeName}");
+                    // Logger.Warn($"TryAddMythicRiftVendorItem(): Failed to resolve {MythicRiftLauncherService.EndlessRiftBeaconPrototypeName}");
                     return false;
                 }
 
             PrototypeId bossGauntletItemProtoRef = Game.MythicRiftLauncherService.ResolveBossGauntletBeaconPrototypeRef();
             if (bossGauntletItemProtoRef == PrototypeId.Invalid)
                 {
-                    Logger.Warn($"TryAddMythicRiftVendorItem(): Failed to resolve {MythicRiftLauncherService.BossGauntletRiftBeaconPrototypeName}");
+                    // Logger.Warn($"TryAddMythicRiftVendorItem(): Failed to resolve {MythicRiftLauncherService.BossGauntletRiftBeaconPrototypeName}");
                     return false;
                 }
 
@@ -784,9 +792,9 @@ namespace MHServerEmu.Games.Entities
                 {
                     if (presentationProtoRef != PrototypeId.Invalid && existingItem.PrototypeDataRef != presentationProtoRef)
                     {
-                        Logger.Info(
-                            $"[MythicRiftVendor] Replacing existing {mode} launcher stock " +
-                            $"{existingItem.PrototypeDataRef.GetNameFormatted()} with presentation {presentationProtoRef.GetNameFormatted()}.");
+                        // Logger.Info(
+                            // $"[MythicRiftVendor] Replacing existing {mode} launcher stock " +
+                            // $"{existingItem.PrototypeDataRef.GetNameFormatted()} with presentation {presentationProtoRef.GetNameFormatted()}.");
                         existingItem.Destroy();
                         continue;
                     }
@@ -799,14 +807,14 @@ namespace MHServerEmu.Games.Entities
             uint slot = inventory.GetFreeSlot(null, false);
             if (slot == Inventory.InvalidSlot)
                 {
-                    Logger.Warn($"TryAddMythicRiftVendorItem(): No free vendor slot available in {inventory.PrototypeDataRef.GetNameFormatted()}");
+                    // Logger.Warn($"TryAddMythicRiftVendorItem(): No free vendor slot available in {inventory.PrototypeDataRef.GetNameFormatted()}");
                     return false;
                 }
 
             ItemSpec itemSpec = Game.LootManager.CreateItemSpec(itemProtoRef, LootContext.Vendor, this);
             if (itemSpec == null)
                 {
-                    Logger.Warn($"TryAddMythicRiftVendorItem(): Failed to create ItemSpec for {itemProtoRef.GetNameFormatted()}");
+                    // Logger.Warn($"TryAddMythicRiftVendorItem(): Failed to create ItemSpec for {itemProtoRef.GetNameFormatted()}");
                     return false;
                 }
 
@@ -822,7 +830,7 @@ namespace MHServerEmu.Games.Entities
             Item item = Game.EntityManager.CreateEntity(settings) as Item;
             if (item == null)
                 {
-                    Logger.Warn("TryAddMythicRiftVendorItem(): item == null");
+                    // Logger.Warn("TryAddMythicRiftVendorItem(): item == null");
                     return false;
                 }
 
@@ -831,13 +839,13 @@ namespace MHServerEmu.Games.Entities
             {
                 item.Destroy();
                 {
-                    Logger.Warn($"TryAddMythicRiftVendorItem(): Failed to add item to {inventory} for reason {inventoryResult}");
+                    // Logger.Warn($"TryAddMythicRiftVendorItem(): Failed to add item to {inventory} for reason {inventoryResult}");
                     return false;
                 }
             }
 
             _mythicRiftVendorItemIds.Add(item.Id);
-            Logger.Info($"[MythicRiftVendor] Added {item.PrototypeDataRef.GetNameFormatted()} to vendorType={vendorTypeProto.DataRef.GetNameFormatted()} inventory={inventory.PrototypeDataRef.GetNameFormatted()} technicalBase={itemProtoRef.GetNameFormatted()} riftMode={mode}");
+            // Logger.Info($"[MythicRiftVendor] Added {item.PrototypeDataRef.GetNameFormatted()} to vendorType={vendorTypeProto.DataRef.GetNameFormatted()} inventory={inventory.PrototypeDataRef.GetNameFormatted()} technicalBase={itemProtoRef.GetNameFormatted()} riftMode={mode}");
             return true;
         }
 
@@ -896,7 +904,7 @@ namespace MHServerEmu.Games.Entities
                 return;
 
             _mythicRiftVendorHintSent = true;
-            Game.ChatManager.SendChatFromCustomSystem(this, MythicRiftVendorHint, showSender: false);
+            // Game.ChatManager.SendChatFromCustomSystem(this, MythicRiftVendorHint, showSender: false);
         }
     }
 }

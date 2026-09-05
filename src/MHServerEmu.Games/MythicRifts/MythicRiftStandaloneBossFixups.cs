@@ -46,7 +46,7 @@ namespace MHServerEmu.Games.MythicRifts
 
             blackboard[PropertyEnum.AICustomStateVal1] = 2; // ProceduralProfileMODOKPrototype.State.GenericProcedural
             blackboard[PropertyEnum.AICustomTimeVal1] = (long)agent.Game.CurrentTime.TotalMilliseconds + 3_600_000_000L;
-            Logger.Debug($"ApplyStandaloneBossFixups(): forced standalone MODOK {agent} into GenericProcedural with long aggro range.");
+            // Logger.Debug($"ApplyStandaloneBossFixups(): forced standalone MODOK {agent} into GenericProcedural with long aggro range.");
         }
 
         public static void Clear(ulong entityId)

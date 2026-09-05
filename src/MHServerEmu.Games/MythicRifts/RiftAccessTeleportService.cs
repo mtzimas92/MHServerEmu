@@ -188,7 +188,7 @@ namespace MHServerEmu.Games.MythicRifts
             PrototypeId targetRef = GameDatabase.GetPrototypeRefByName(targetPath);
             if (targetRef == PrototypeId.Invalid)
             {
-                Logger.Warn($"TeleportDialogPlayerToTarget(): Unable to find target {targetPath}.");
+                // Logger.Warn($"TeleportDialogPlayerToTarget(): Unable to find target {targetPath}.");
                 return;
             }
 
@@ -209,7 +209,7 @@ namespace MHServerEmu.Games.MythicRifts
             teleporter.DifficultyTierRef = difficultyTierRef;
 
             if (teleporter.TeleportToTarget(targetRef) == false)
-                Logger.Warn($"TeleportDialogPlayerToTarget(): Teleport failed for target {targetRef.GetNameFormatted()}.");
+                ; // Logger.Warn($"TeleportDialogPlayerToTarget(): Teleport failed for target {targetRef.GetNameFormatted()}.");
         }
     }
 }

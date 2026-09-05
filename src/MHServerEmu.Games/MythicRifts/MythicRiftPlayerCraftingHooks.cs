@@ -126,12 +126,12 @@ namespace MHServerEmu.Games.Entities
             region?.PlayerCraftedItemEvent.Invoke(new(this, outputItem, recipeProto.DataRef, count));
             OnScoringEvent(new(ScoringEventType.ItemCrafted, recipeProto, rarityProto, count));
 
-            Game.ChatManager?.SendChatFromCustomSystem(
-                this,
-                $"[Mythic Rift] Completion crafter upgraded {outputItem.PrototypeDataRef.GetNameFormatted()} from item level {sourceLevel} to {outputLevel}. This run's upgrade is complete.",
-                showSender: false);
+            // Game.ChatManager?.SendChatFromCustomSystem(
+            //     this,
+            //     $"[Mythic Rift] Completion crafter upgraded {outputItem.PrototypeDataRef.GetNameFormatted()} from item level {sourceLevel} to {outputLevel}. This run's upgrade is complete.",
+            //     showSender: false);
 
-            Logger.Info($"[MythicRiftCompletionCrafter] Crafted upgrade playerDbId=0x{DatabaseUniqueId:X} runId={runState.Config.RunId} source={sourceItem.PrototypeDataRef.GetNameFormatted()} sourceLevel={sourceLevel} outputLevel={outputLevel}");
+            // Logger.Info($"[MythicRiftCompletionCrafter] Crafted upgrade playerDbId=0x{DatabaseUniqueId:X} runId={runState.Config.RunId} source={sourceItem.PrototypeDataRef.GetNameFormatted()} sourceLevel={sourceLevel} outputLevel={outputLevel}");
             craftingResult = CraftingResult.Success;
             return true;
         }

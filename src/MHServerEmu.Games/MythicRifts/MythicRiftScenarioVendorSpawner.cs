@@ -34,7 +34,7 @@ namespace MHServerEmu.Games.MythicRifts
 
             if (moira == null)
             {
-                Logger.Warn("SpawnDangerRoomScenarioVendor(): Failed to find Moira MacTaggert in the Danger Room hub");
+                // Logger.Warn("SpawnDangerRoomScenarioVendor(): Failed to find Moira MacTaggert in the Danger Room hub");
                 return;
             }
 
@@ -50,7 +50,7 @@ namespace MHServerEmu.Games.MythicRifts
             entitySettings.RegionId = region.Id;
 
             if (region.Game.EntityManager.CreateEntity(entitySettings) == null)
-                Logger.Warn("SpawnDangerRoomScenarioVendor(): Failed to create the Danger Room Scenario Vendor entity");
+                ; // Logger.Warn("SpawnDangerRoomScenarioVendor(): Failed to create the Danger Room Scenario Vendor entity");
         }
     }
 }

@@ -153,11 +153,11 @@ namespace MHServerEmu.Games.Entities
             if (TryGetSelectedOmegaForgeGearSlot(vendor, out EquipmentInvUISlot slot) == false)
             {
                 PostOmegaForgeSelectedRecipeGearPage(vendor, recipeProto.DataRef, 0);
-                Logger.Info($"[OmegaCraftingTrace] recipe vendor item deferred to gear prompt playerDbId=0x{DatabaseUniqueId:X} vendor={vendor.PrototypeDataRef.GetNameFormatted()} recipe={recipeProto.DataRef.GetNameFormatted()} itemId=0x{recipeItem.Id:X}");
+                // Logger.Trace($"[OmegaCraftingTrace] recipe vendor item deferred to gear prompt playerDbId=0x{DatabaseUniqueId:X} vendor={vendor.PrototypeDataRef.GetNameFormatted()} recipe={recipeProto.DataRef.GetNameFormatted()} itemId=0x{recipeItem.Id:X}");
                 return true;
             }
 
-            Logger.Info($"[OmegaCraftingTrace] crafting selected recipe from vendor item playerDbId=0x{DatabaseUniqueId:X} vendor={vendor.PrototypeDataRef.GetNameFormatted()} recipe={recipeProto.DataRef.GetNameFormatted()} slot={slot} itemId=0x{recipeItem.Id:X}");
+            // Logger.Trace($"[OmegaCraftingTrace] crafting selected recipe from vendor item playerDbId=0x{DatabaseUniqueId:X} vendor={vendor.PrototypeDataRef.GetNameFormatted()} recipe={recipeProto.DataRef.GetNameFormatted()} slot={slot} itemId=0x{recipeItem.Id:X}");
             TryCraftOmegaForgeSelectedRecipe(vendor, slot, recipeProto.DataRef);
             return true;
         }
@@ -178,11 +178,11 @@ namespace MHServerEmu.Games.Entities
             if (TryGetSelectedOmegaForgeGearSlot(vendor, out EquipmentInvUISlot slot) == false)
             {
                 PostOmegaForgeSelectedRecipeGearPage(vendor, recipeProto.DataRef, 0);
-                Logger.Info($"[OmegaCraftingTrace] craft request deferred to gear prompt playerDbId=0x{DatabaseUniqueId:X} vendor={vendor.PrototypeDataRef.GetNameFormatted()} recipe={recipeProto.DataRef.GetNameFormatted()}");
+                // Logger.Trace($"[OmegaCraftingTrace] craft request deferred to gear prompt playerDbId=0x{DatabaseUniqueId:X} vendor={vendor.PrototypeDataRef.GetNameFormatted()} recipe={recipeProto.DataRef.GetNameFormatted()}");
                 return true;
             }
 
-            Logger.Info($"[OmegaCraftingTrace] crafting selected recipe from craft request playerDbId=0x{DatabaseUniqueId:X} vendor={vendor.PrototypeDataRef.GetNameFormatted()} recipe={recipeProto.DataRef.GetNameFormatted()} slot={slot}");
+            // Logger.Trace($"[OmegaCraftingTrace] crafting selected recipe from craft request playerDbId=0x{DatabaseUniqueId:X} vendor={vendor.PrototypeDataRef.GetNameFormatted()} recipe={recipeProto.DataRef.GetNameFormatted()} slot={slot}");
             TryCraftOmegaForgeSelectedRecipe(vendor, slot, recipeProto.DataRef);
             return true;
         }
@@ -223,12 +223,12 @@ namespace MHServerEmu.Games.Entities
 
             if (_mythicRiftOmegaForgePromptedVendorIds.Add(vendor.Id))
             {
-                Game.ChatManager?.SendChatFromCustomSystem(
-                    this,
-                    Game.MythicRiftManager.IsCompletionEnchanterOrRewardRoomEnchanter(vendor)
-                        ? "[Mythic Rift] Omega Forge enchanter available. Choose the equipped Omega or Unique gear slot, then choose an unlocked enchantment."
-                        : "[Mythic Rift] Omega Forge crafter available. Choose the equipped Omega or Unique gear slot, then choose a challenge bonus.",
-                    showSender: false);
+                // Game.ChatManager?.SendChatFromCustomSystem(
+                //     this,
+                //     Game.MythicRiftManager.IsCompletionEnchanterOrRewardRoomEnchanter(vendor)
+                //         ? "[Mythic Rift] Omega Forge enchanter available. Choose the equipped Omega or Unique gear slot, then choose an unlocked enchantment."
+                //         : "[Mythic Rift] Omega Forge crafter available. Choose the equipped Omega or Unique gear slot, then choose a challenge bonus.",
+                //     showSender: false);
             }
 
             if (Game.MythicRiftManager.IsCompletionEnchanterOrRewardRoomEnchanter(vendor))
@@ -277,17 +277,17 @@ namespace MHServerEmu.Games.Entities
                             this,
                             $"[Mythic Rift] Omega Forge: no equipped Omega or Unique gear found in {choice.Slot}.",
                             showSender: false);
-                        Logger.Info($"[OmegaCraftingTrace] gear selection failed playerDbId=0x{DatabaseUniqueId:X} vendor={vendor.PrototypeDataRef.GetNameFormatted()} reason=no-equipped-forge-gear slot={choice.Slot}");
+                        // Logger.Trace($"[OmegaCraftingTrace] gear selection failed playerDbId=0x{DatabaseUniqueId:X} vendor={vendor.PrototypeDataRef.GetNameFormatted()} reason=no-equipped-forge-gear slot={choice.Slot}");
                         ClearActiveOmegaForgeDialog(vendor);
                         return;
                     }
 
                     _mythicRiftOmegaForgeSelectedGearSlots[vendor.Id] = choice.Slot;
                     PrimeOmegaForgeCraftingUiSelection(vendor, choice.Slot, sourceItem);
-                    Game.ChatManager?.SendChatFromCustomSystem(
-                        this,
-                        $"[Mythic Rift] Omega Forge target set to {choice.Slot}. Now select a recipe from this vendor's UI.",
-                        showSender: false);
+                    // Game.ChatManager?.SendChatFromCustomSystem(
+                    //     this,
+                    //     $"[Mythic Rift] Omega Forge target set to {choice.Slot}. Now select a recipe from this vendor's UI.",
+                    //     showSender: false);
                     ClearActiveOmegaForgeDialog(vendor);
                 }
                 else if (response.ButtonIndex == GameDialogResultEnum.eGDR_Option2)
@@ -401,7 +401,7 @@ namespace MHServerEmu.Games.Entities
             if (recipeProto == null)
             {
                 Game.ChatManager?.SendChatFromCustomSystem(this, "[Mythic Rift] Omega Forge: selected recipe did not resolve.", showSender: false);
-                Logger.Warn($"[OmegaCraftingTrace] selected-recipe failed playerDbId=0x{DatabaseUniqueId:X} reason=recipe-missing slot={slot} recipe={recipeProtoRef.GetNameFormatted()}");
+                // Logger.Warn($"[OmegaCraftingTrace] selected-recipe failed playerDbId=0x{DatabaseUniqueId:X} reason=recipe-missing slot={slot} recipe={recipeProtoRef.GetNameFormatted()}");
                 return false;
             }
 
@@ -412,7 +412,7 @@ namespace MHServerEmu.Games.Entities
                 return TryCraftOmegaForgeLearnedRecipe(vendor, slot, recipeProtoRef);
 
             Game.ChatManager?.SendChatFromCustomSystem(this, "[Mythic Rift] Omega Forge: selected recipe is not supported for Omega gear.", showSender: false);
-            Logger.Info($"[OmegaCraftingTrace] selected-recipe failed playerDbId=0x{DatabaseUniqueId:X} reason=unsupported-recipe slot={slot} recipe={recipeProtoRef.GetNameFormatted()}");
+            // Logger.Trace($"[OmegaCraftingTrace] selected-recipe failed playerDbId=0x{DatabaseUniqueId:X} reason=unsupported-recipe slot={slot} recipe={recipeProtoRef.GetNameFormatted()}");
             return false;
         }
 
@@ -488,10 +488,10 @@ namespace MHServerEmu.Games.Entities
             Properties.SyncProperty(ingredientSlotPropertyId, out _);
             Properties.SyncProperty(cursorSelectedPropertyId, out _);
 
-            Logger.Info(
-                $"[OmegaCraftingTrace] primed crafting UI playerDbId=0x{DatabaseUniqueId:X} " +
-                $"vendor={vendor.PrototypeDataRef.GetNameFormatted()} slot={slot} source={sourceItem.PrototypeDataRef.GetNameFormatted()} " +
-                $"sourceId=0x{sourceItem.Id:X} ingredientProp={ingredientSlotPropertyId} cursorProp={cursorSelectedPropertyId}");
+            // Logger.Trace(
+                // $"[OmegaCraftingTrace] primed crafting UI playerDbId=0x{DatabaseUniqueId:X} " +
+                // $"vendor={vendor.PrototypeDataRef.GetNameFormatted()} slot={slot} source={sourceItem.PrototypeDataRef.GetNameFormatted()} " +
+                // $"sourceId=0x{sourceItem.Id:X} ingredientProp={ingredientSlotPropertyId} cursorProp={cursorSelectedPropertyId}");
         }
 
         private static PropertyId BuildOmegaForgeUiPropertyId(PropertyEnum propertyEnum, int slot)
@@ -509,7 +509,7 @@ namespace MHServerEmu.Games.Entities
             if (sourceItem == null)
             {
                 Game.ChatManager?.SendChatFromCustomSystem(this, $"[Mythic Rift] Omega Forge: no equipped Omega or Unique gear found in {slot}.", showSender: false);
-                Logger.Info($"[OmegaCraftingTrace] prompt failed playerDbId=0x{DatabaseUniqueId:X} reason=no-equipped-forge-gear slot={slot} bonus={bonus}");
+                // Logger.Trace($"[OmegaCraftingTrace] prompt failed playerDbId=0x{DatabaseUniqueId:X} reason=no-equipped-forge-gear slot={slot} bonus={bonus}");
                 return false;
             }
 
@@ -517,7 +517,7 @@ namespace MHServerEmu.Games.Entities
             if (recipeProto == null)
             {
                 Game.ChatManager?.SendChatFromCustomSystem(this, $"[Mythic Rift] Omega Forge: challenge recipe for {bonus} did not resolve.", showSender: false);
-                Logger.Warn($"[OmegaCraftingTrace] prompt failed playerDbId=0x{DatabaseUniqueId:X} reason=recipe-missing slot={slot} bonus={bonus}");
+                // Logger.Warn($"[OmegaCraftingTrace] prompt failed playerDbId=0x{DatabaseUniqueId:X} reason=recipe-missing slot={slot} bonus={bonus}");
                 return false;
             }
 
@@ -525,7 +525,7 @@ namespace MHServerEmu.Games.Entities
             if (tokenItem == null)
             {
                 Game.ChatManager?.SendChatFromCustomSystem(this, $"[Mythic Rift] Omega Forge: no matching {GetOmegaForgeTokenLabel(bonus)} challenge token found.", showSender: false);
-                Logger.Info($"[OmegaCraftingTrace] prompt failed playerDbId=0x{DatabaseUniqueId:X} reason=no-token source={sourceItem.PrototypeDataRef.GetNameFormatted()} slot={slot} bonus={bonus}");
+                // Logger.Trace($"[OmegaCraftingTrace] prompt failed playerDbId=0x{DatabaseUniqueId:X} reason=no-token source={sourceItem.PrototypeDataRef.GetNameFormatted()} slot={slot} bonus={bonus}");
                 return false;
             }
 
@@ -533,7 +533,7 @@ namespace MHServerEmu.Games.Entities
             if (IsOmegaForgeResultSlotBlocked(resultsInv))
             {
                 Game.ChatManager?.SendChatFromCustomSystem(this, "[Mythic Rift] Omega Forge: clear the crafting result slot first.", showSender: false);
-                Logger.Info($"[OmegaCraftingTrace] prompt failed playerDbId=0x{DatabaseUniqueId:X} reason=result-slot-blocked source={sourceItem.PrototypeDataRef.GetNameFormatted()} token={tokenItem.PrototypeDataRef.GetNameFormatted()} slot={slot} bonus={bonus}");
+                // Logger.Trace($"[OmegaCraftingTrace] prompt failed playerDbId=0x{DatabaseUniqueId:X} reason=result-slot-blocked source={sourceItem.PrototypeDataRef.GetNameFormatted()} token={tokenItem.PrototypeDataRef.GetNameFormatted()} slot={slot} bonus={bonus}");
                 return false;
             }
 
@@ -544,10 +544,10 @@ namespace MHServerEmu.Games.Entities
                 return false;
             }
 
-            Game.ChatManager?.SendChatFromCustomSystem(
-                this,
-                $"[Mythic Rift] Omega Forge applied {bonus} challenge bonus to {outputItem.PrototypeDataRef.GetNameFormatted()}.",
-                showSender: false);
+            // Game.ChatManager?.SendChatFromCustomSystem(
+            //     this,
+            //     $"[Mythic Rift] Omega Forge applied {bonus} challenge bonus to {outputItem.PrototypeDataRef.GetNameFormatted()}.",
+            //     showSender: false);
 
             return true;
         }
@@ -561,7 +561,7 @@ namespace MHServerEmu.Games.Entities
             if (sourceItem == null)
             {
                 Game.ChatManager?.SendChatFromCustomSystem(this, $"[Mythic Rift] Omega Forge: no equipped Omega or Unique gear found in {slot}.", showSender: false);
-                Logger.Info($"[OmegaCraftingTrace] learned-recipe prompt failed playerDbId=0x{DatabaseUniqueId:X} vendor={vendor.PrototypeDataRef.GetNameFormatted()} reason=no-equipped-forge-gear slot={slot}");
+                // Logger.Trace($"[OmegaCraftingTrace] learned-recipe prompt failed playerDbId=0x{DatabaseUniqueId:X} vendor={vendor.PrototypeDataRef.GetNameFormatted()} reason=no-equipped-forge-gear slot={slot}");
                 ClearActiveOmegaForgeDialog(vendor);
                 return;
             }
@@ -723,7 +723,7 @@ namespace MHServerEmu.Games.Entities
             Inventory learnedRecipeInv = GetInventory(InventoryConvenienceLabel.CraftingRecipesLearned);
             if (learnedRecipeInv == null)
             {
-                Logger.Info($"[OmegaCraftingTrace] learned-recipe audit playerDbId=0x{DatabaseUniqueId:X} reason=no-learned-recipe-inventory slot={slot}");
+                // Logger.Trace($"[OmegaCraftingTrace] learned-recipe audit playerDbId=0x{DatabaseUniqueId:X} reason=no-learned-recipe-inventory slot={slot}");
                 return;
             }
 
@@ -856,7 +856,7 @@ namespace MHServerEmu.Games.Entities
                 }
             }
 
-            Logger.Info($"[OmegaCraftingTrace] learned-recipe audit playerDbId=0x{DatabaseUniqueId:X} reason=no-available-enchantments slot={slot} learnedEntries={learnedEntries} craftingRecipes={craftingRecipes} enchantCategoryMatches={enchantCategoryMatches} enchantCategoryAllowedSlotMatches={enchantCategoryAllowedSlotMatches} enchantNameMatches={enchantNameMatches} allowedSlotMatches={allowedSlotMatches} directRecipeMatches={directRecipeMatches} directAllowedSlotMatches={directAllowedSlotMatches} vendorEnchantCategoryMatches={vendorCategoryMatches} vendorEnchantCategoryAllowedSlotMatches={vendorCategoryAllowedSlotMatches} vendorEnchantMatches={vendorRecipeMatches} vendorAllowedSlotMatches={vendorAllowedSlotMatches} learnedSample=[{learnedSample}] matches=[{sampleMatches}] vendorMatches=[{vendorSampleMatches}]");
+            // Logger.Trace($"[OmegaCraftingTrace] learned-recipe audit playerDbId=0x{DatabaseUniqueId:X} reason=no-available-enchantments slot={slot} learnedEntries={learnedEntries} craftingRecipes={craftingRecipes} enchantCategoryMatches={enchantCategoryMatches} enchantCategoryAllowedSlotMatches={enchantCategoryAllowedSlotMatches} enchantNameMatches={enchantNameMatches} allowedSlotMatches={allowedSlotMatches} directRecipeMatches={directRecipeMatches} directAllowedSlotMatches={directAllowedSlotMatches} vendorEnchantCategoryMatches={vendorCategoryMatches} vendorEnchantCategoryAllowedSlotMatches={vendorCategoryAllowedSlotMatches} vendorEnchantMatches={vendorRecipeMatches} vendorAllowedSlotMatches={vendorAllowedSlotMatches} learnedSample=[{learnedSample}] matches=[{sampleMatches}] vendorMatches=[{vendorSampleMatches}]");
         }
 
         private bool TryCraftOmegaForgeLearnedRecipe(WorldEntity vendor, EquipmentInvUISlot slot, PrototypeId recipeProtoRef)
@@ -865,7 +865,7 @@ namespace MHServerEmu.Games.Entities
             if (sourceItem == null)
             {
                 Game.ChatManager?.SendChatFromCustomSystem(this, $"[Mythic Rift] Omega Forge: no equipped Omega or Unique gear found in {slot}.", showSender: false);
-                Logger.Info($"[OmegaCraftingTrace] learned-recipe failed playerDbId=0x{DatabaseUniqueId:X} reason=no-equipped-forge-gear slot={slot} recipe={recipeProtoRef.GetNameFormatted()}");
+                // Logger.Trace($"[OmegaCraftingTrace] learned-recipe failed playerDbId=0x{DatabaseUniqueId:X} reason=no-equipped-forge-gear slot={slot} recipe={recipeProtoRef.GetNameFormatted()}");
                 return false;
             }
 
@@ -874,14 +874,14 @@ namespace MHServerEmu.Games.Entities
                 IsOmegaForgeEnchantmentRecipeAllowedForSlot(recipeProtoRef, slot) == false)
             {
                 Game.ChatManager?.SendChatFromCustomSystem(this, "[Mythic Rift] Omega Forge: that enchantment recipe is not available for this gear slot.", showSender: false);
-                Logger.Info($"[OmegaCraftingTrace] learned-recipe failed playerDbId=0x{DatabaseUniqueId:X} reason=recipe-not-available slot={slot} recipe={recipeProtoRef.GetNameFormatted()}");
+                // Logger.Trace($"[OmegaCraftingTrace] learned-recipe failed playerDbId=0x{DatabaseUniqueId:X} reason=recipe-not-available slot={slot} recipe={recipeProtoRef.GetNameFormatted()}");
                 return false;
             }
 
             if (TryBuildOmegaForgeRecipeIngredientIds(recipeProto, sourceItem, out List<ulong> ingredientIds, out CraftingResult ingredientFailure, allowUniqueSource: true) == false)
             {
                 Game.ChatManager?.SendChatFromCustomSystem(this, $"[Mythic Rift] Omega Forge: missing or invalid recipe ingredients ({ingredientFailure}).", showSender: false);
-                Logger.Info($"[OmegaCraftingTrace] learned-recipe failed playerDbId=0x{DatabaseUniqueId:X} reason=ingredients result={ingredientFailure} source={sourceItem.PrototypeDataRef.GetNameFormatted()} recipe={recipeProtoRef.GetNameFormatted()}");
+                // Logger.Trace($"[OmegaCraftingTrace] learned-recipe failed playerDbId=0x{DatabaseUniqueId:X} reason=ingredients result={ingredientFailure} source={sourceItem.PrototypeDataRef.GetNameFormatted()} recipe={recipeProtoRef.GetNameFormatted()}");
                 return false;
             }
 
@@ -889,7 +889,7 @@ namespace MHServerEmu.Games.Entities
             if (IsOmegaForgeResultSlotBlocked(resultsInv))
             {
                 Game.ChatManager?.SendChatFromCustomSystem(this, "[Mythic Rift] Omega Forge: clear the crafting result slot first.", showSender: false);
-                Logger.Info($"[OmegaCraftingTrace] learned-recipe failed playerDbId=0x{DatabaseUniqueId:X} reason=result-slot-blocked source={sourceItem.PrototypeDataRef.GetNameFormatted()} recipe={recipeProtoRef.GetNameFormatted()}");
+                // Logger.Trace($"[OmegaCraftingTrace] learned-recipe failed playerDbId=0x{DatabaseUniqueId:X} reason=result-slot-blocked source={sourceItem.PrototypeDataRef.GetNameFormatted()} recipe={recipeProtoRef.GetNameFormatted()}");
                 return false;
             }
 
@@ -900,10 +900,10 @@ namespace MHServerEmu.Games.Entities
                 return false;
             }
 
-            Game.ChatManager?.SendChatFromCustomSystem(
-                this,
-                $"[Mythic Rift] Omega Forge crafted {recipeProto.DataRef.GetNameFormatted()} on {outputItem.PrototypeDataRef.GetNameFormatted()}.",
-                showSender: false);
+            // Game.ChatManager?.SendChatFromCustomSystem(
+            //     this,
+            //     $"[Mythic Rift] Omega Forge crafted {recipeProto.DataRef.GetNameFormatted()} on {outputItem.PrototypeDataRef.GetNameFormatted()}.",
+            //     showSender: false);
 
             return true;
         }
@@ -1023,13 +1023,13 @@ namespace MHServerEmu.Games.Entities
                 if (rollResult == LootRollResult.Success)
                     break;
 
-                Logger.Trace($"[OmegaCraftingTrace] loot roll failed attempt={i + 1}/{MaxRollAttempts} playerDbId=0x{DatabaseUniqueId:X} recipe={recipeProto.DataRef.GetNameFormatted()} source={sourceItem.PrototypeDataRef.GetNameFormatted()} result={rollResult}");
+                // Logger.Trace($"[OmegaCraftingTrace] loot roll failed attempt={i + 1}/{MaxRollAttempts} playerDbId=0x{DatabaseUniqueId:X} recipe={recipeProto.DataRef.GetNameFormatted()} source={sourceItem.PrototypeDataRef.GetNameFormatted()} result={rollResult}");
                 resolver.SetContext(LootContext.Crafting, this);
             }
 
             if (rollResult != LootRollResult.Success)
             {
-                Logger.Warn($"[OmegaCraftingTrace] craft failed playerDbId=0x{DatabaseUniqueId:X} reason=loot-roll recipe={recipeProto.DataRef.GetNameFormatted()} source={sourceItem.PrototypeDataRef.GetNameFormatted()} result={rollResult}");
+                // Logger.Warn($"[OmegaCraftingTrace] craft failed playerDbId=0x{DatabaseUniqueId:X} reason=loot-roll recipe={recipeProto.DataRef.GetNameFormatted()} source={sourceItem.PrototypeDataRef.GetNameFormatted()} result={rollResult}");
                 return CraftingResult.LootRollFailed;
             }
 
@@ -1047,7 +1047,7 @@ namespace MHServerEmu.Games.Entities
                 foreach (Item item in outputItems)
                     item?.Destroy();
 
-                Logger.Warn($"[OmegaCraftingTrace] craft failed playerDbId=0x{DatabaseUniqueId:X} reason=create-output recipe={recipeProto.DataRef.GetNameFormatted()} source={sourceItem.PrototypeDataRef.GetNameFormatted()}");
+                // Logger.Warn($"[OmegaCraftingTrace] craft failed playerDbId=0x{DatabaseUniqueId:X} reason=create-output recipe={recipeProto.DataRef.GetNameFormatted()} source={sourceItem.PrototypeDataRef.GetNameFormatted()}");
                 return CraftingResult.CraftingFailed;
             }
 
@@ -1056,7 +1056,7 @@ namespace MHServerEmu.Games.Entities
             CraftPayCost(creditsCost, legendaryMarksCost, currencyCost);
             CraftProcessVendorLoot(summary, vendor);
 
-            Logger.Info($"[OmegaCraftingTrace] craft success playerDbId=0x{DatabaseUniqueId:X} recipe={recipeProto.DataRef.GetNameFormatted()} source={sourceItem.PrototypeDataRef.GetNameFormatted()} output={outputItem.PrototypeDataRef.GetNameFormatted()} outputId=0x{outputItem.Id:X}");
+            // Logger.Trace($"[OmegaCraftingTrace] craft success playerDbId=0x{DatabaseUniqueId:X} recipe={recipeProto.DataRef.GetNameFormatted()} source={sourceItem.PrototypeDataRef.GetNameFormatted()} output={outputItem.PrototypeDataRef.GetNameFormatted()} outputId=0x{outputItem.Id:X}");
             return CraftingResult.Success;
         }
 

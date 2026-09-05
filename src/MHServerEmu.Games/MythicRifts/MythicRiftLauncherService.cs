@@ -606,7 +606,7 @@ namespace MHServerEmu.Games.MythicRifts
                     _lastArmedLaunchResultsByPlayerDbId[player.DatabaseUniqueId] = rejectedResult;
 
                 NotifyLauncherUse(player, rejectedResult);
-                Logger.Info($"[MythicRiftLauncher] Rejected beacon use outside allowed Mythic Rift launch regions playerDbId=0x{player?.DatabaseUniqueId ?? 0UL:X} itemId={item?.Id ?? 0UL} prototype={item?.PrototypeDataRef.GetNameFormatted() ?? "unknown"} currentRegion={player?.GetRegion()?.PrototypeDataRef.GetNameFormatted() ?? "none"}");
+                // Logger.Info($"[MythicRiftLauncher] Rejected beacon use outside allowed Mythic Rift launch regions playerDbId=0x{player?.DatabaseUniqueId ?? 0UL:X} itemId={item?.Id ?? 0UL} prototype={item?.PrototypeDataRef.GetNameFormatted() ?? "unknown"} currentRegion={player?.GetRegion()?.PrototypeDataRef.GetNameFormatted() ?? "none"}");
                 return rejectedResult;
             }
 
@@ -727,7 +727,7 @@ namespace MHServerEmu.Games.MythicRifts
                     _armedLaunchesByPlayerDbId.Remove(player.DatabaseUniqueId);
             }
 
-            Logger.Info($"[MythicRiftLauncher] Intercepted beacon use playerDbId=0x{player.DatabaseUniqueId:X} itemId={item.Id} prototype={item.PrototypeDataRef.GetNameFormatted()} trackedCharges={availableCharges} directChosenFallback={usingDirectChosenBeaconFallback} success={result.Success} teleportAttempted={result.TeleportAttempted} teleportSucceeded={result.TeleportSucceeded} teleportError={result.TeleportErrorMessage ?? string.Empty}");
+            // Logger.Info($"[MythicRiftLauncher] Intercepted beacon use playerDbId=0x{player.DatabaseUniqueId:X} itemId={item.Id} prototype={item.PrototypeDataRef.GetNameFormatted()} trackedCharges={availableCharges} directChosenFallback={usingDirectChosenBeaconFallback} success={result.Success} teleportAttempted={result.TeleportAttempted} teleportSucceeded={result.TeleportSucceeded} teleportError={result.TeleportErrorMessage ?? string.Empty}");
 
             NotifyLauncherUse(player, result);
 
@@ -746,7 +746,7 @@ namespace MHServerEmu.Games.MythicRifts
             }
 
             if (item.DecrementStack() == false)
-                Logger.Warn($"[MythicRiftLauncher] Failed to consume launcher item stack itemId={item.Id} prototype={item.PrototypeDataRef.GetNameFormatted()} stack={item.CurrentStackSize}");
+                ; // Logger.Warn($"[MythicRiftLauncher] Failed to consume launcher item stack itemId={item.Id} prototype={item.PrototypeDataRef.GetNameFormatted()} stack={item.CurrentStackSize}");
         }
 
         private MythicRiftLauncherUseResult TryRequestRunFromArmedFixedContent(Player player, Item item, string contentId, int riftLevel, TimeSpan timeLimit)
@@ -943,7 +943,7 @@ namespace MHServerEmu.Games.MythicRifts
                     member,
                     $"[Mythic Rift] You were not admitted to run {runState.Config.RunId} because the Rift teleport failed.",
                     showSender: false);
-                Logger.Warn($"[MythicRiftLauncher] Failed to teleport party member playerDbId=0x{memberDbId:X} into run {runState.Config.RunId}: {errorMessage}");
+                // Logger.Warn($"[MythicRiftLauncher] Failed to teleport party member playerDbId=0x{memberDbId:X} into run {runState.Config.RunId}: {errorMessage}");
             }
         }
 
@@ -989,10 +989,14 @@ namespace MHServerEmu.Games.MythicRifts
             string timeText = config.Mode == MythicRiftMode.BossGauntlet
                 ? "No timer."
                 : $"Time limit: {FormatDuration(config.TimeLimit)}.";
-            string message = result.TeleportSucceeded
-                ? $"[Mythic Rift] {launcherName} activated. Opening {config.Content.DisplayName}. Rift level {config.RiftLevel}.{waveText} {timeText} Final boss: {bossName}."
-                : $"[Mythic Rift] {launcherName} activated, but the teleport did not complete. Please try again with a new Scenario.";
-            Game.ChatManager.SendChatFromCustomSystem(player, message, showSender: false);
+            if (result.TeleportSucceeded == false)
+            {
+                string message = $"[Mythic Rift] {launcherName} activated, but the teleport did not complete. Please try again with a new Scenario.";
+                Game.ChatManager.SendChatFromCustomSystem(player, message, showSender: false);
+            }
+
+            // string message = $"[Mythic Rift] {launcherName} activated. Opening {config.Content.DisplayName}. Rift level {config.RiftLevel}.{waveText} {timeText} Final boss: {bossName}.";
+            // Game.ChatManager.SendChatFromCustomSystem(player, message, showSender: false);
         }
 
         private static string ResolveBossDisplayName(MythicRiftRunConfig config)

@@ -28,7 +28,7 @@ namespace MHServerEmu.Games.MythicRifts
                 if (_reflectionWarningLogged == false)
                 {
                     _reflectionWarningLogged = true;
-                    Logger.Warn("Mythic Rift UI controller could not inspect UIDataProvider widgets; native HUD cleanup is unavailable.");
+                    // Logger.Warn("Mythic Rift UI controller could not inspect UIDataProvider widgets; native HUD cleanup is unavailable.");
                 }
 
                 return 0;

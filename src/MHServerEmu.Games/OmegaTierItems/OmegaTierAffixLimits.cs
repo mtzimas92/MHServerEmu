@@ -66,7 +66,7 @@ namespace MHServerEmu.Games.OmegaTierItems
             PrototypeId omegaRarityRef = GameDatabase.GetPrototypeRefByName(OmegaRarityName);
             if (cosmicRarityRef == PrototypeId.Invalid || omegaRarityRef == PrototypeId.Invalid)
             {
-                Logger.Warn("Apply(): R5Cosmic or R6Omega not found, skipping Omega item normalization");
+                // Logger.Warn("Apply(): R5Cosmic or R6Omega not found, skipping Omega item normalization");
                 return;
             }
 
@@ -87,7 +87,7 @@ namespace MHServerEmu.Games.OmegaTierItems
                 ringOffenseT3CategoryRef == PrototypeId.Invalid ||
                 ringDefenseT3CategoryRef == PrototypeId.Invalid)
             {
-                Logger.Warn("Apply(): one or more Omega affix categories were not found, skipping Omega item normalization");
+                // Logger.Warn("Apply(): one or more Omega affix categories were not found, skipping Omega item normalization");
                 return;
             }
 
@@ -134,7 +134,7 @@ namespace MHServerEmu.Games.OmegaTierItems
             OmegaTierItemFactory.ApplyConfiguredBuiltInPropertyPrototypeOverrides();
 
             stopwatch.Stop();
-            Logger.Info($"Normalized R6Omega item affix limits on {rowsChanged} rows ({categoriesPromoted} T2 categories promoted, {entriesAdjusted} required category counts adjusted, {entriesAdded} required categories added) in {stopwatch.ElapsedMilliseconds} ms");
+            // Logger.Info($"Normalized R6Omega item affix limits on {rowsChanged} rows ({categoriesPromoted} T2 categories promoted, {entriesAdjusted} required category counts adjusted, {entriesAdded} required categories added) in {stopwatch.ElapsedMilliseconds} ms");
 #endif
         }
 
@@ -300,11 +300,11 @@ namespace MHServerEmu.Games.OmegaTierItems
             {
                 int ringsEnabled = EnableOmegaOnRings(omegaRarityRef);
                 if (ringsEnabled > 0)
-                    Logger.Info($"Permitted R6Omega on {ringsEnabled} ring drop restriction(s)");
+                    ; // Logger.Info($"Permitted R6Omega on {ringsEnabled} ring drop restriction(s)");
             }
             catch (Exception e)
             {
-                Logger.Warn($"TryEnableOmegaOnRings(): failed, Omega rings will remain disabled - {e.Message}");
+                // Logger.Warn($"TryEnableOmegaOnRings(): failed, Omega rings will remain disabled - {e.Message}");
             }
         }
 
@@ -314,11 +314,11 @@ namespace MHServerEmu.Games.OmegaTierItems
             {
                 int recipesChanged = EnableOmegaOnCraftingRecipeInputs(cosmicRarityRef, omegaRarityRef, out int restrictionsChanged);
                 if (restrictionsChanged > 0)
-                    Logger.Info($"Permitted R6Omega on {restrictionsChanged} crafting recipe input rarity restriction(s) across {recipesChanged} recipe(s)");
+                    ; // Logger.Info($"Permitted R6Omega on {restrictionsChanged} crafting recipe input rarity restriction(s) across {recipesChanged} recipe(s)");
             }
             catch (Exception e)
             {
-                Logger.Warn($"TryEnableOmegaOnCraftingRecipeInputs(): failed, Omega crafting inputs may remain disabled - {e.Message}");
+                // Logger.Warn($"TryEnableOmegaOnCraftingRecipeInputs(): failed, Omega crafting inputs may remain disabled - {e.Message}");
             }
         }
 
@@ -447,7 +447,7 @@ namespace MHServerEmu.Games.OmegaTierItems
             }
             catch (Exception e)
             {
-                Logger.Warn($"TryRepairInvertedAffixBands(): failed - {e.Message}");
+                // Logger.Warn($"TryRepairInvertedAffixBands(): failed - {e.Message}");
             }
         }
 
@@ -472,7 +472,7 @@ namespace MHServerEmu.Games.OmegaTierItems
                     int high = min.Value;
                     LoadIntValueProperty.SetValue(min, low);
                     LoadIntValueProperty.SetValue(max, high);
-                    Logger.Info($"Repaired inverted affix band on {GameDatabase.GetPrototypeName(affixRef)}: now {low}..{high}");
+                    // Logger.Info($"Repaired inverted affix band on {GameDatabase.GetPrototypeName(affixRef)}: now {low}..{high}");
                 }
             }
         }
