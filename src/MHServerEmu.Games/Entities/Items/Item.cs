@@ -1071,16 +1071,19 @@ namespace MHServerEmu.Games.Entities.Items
                 if (itemOverride?.Matches(_itemSpec.ItemProtoRef, _itemSpec.RarityProtoRef) != true)
                     continue;
 
+                if (OmegaTierItemFactory.HasConfiguredBuiltInPropertyPrototypeOverride(_itemSpec.ItemProtoRef, _itemSpec.RarityProtoRef))
+                    continue;
+
                 bool shouldClearBuiltIns = itemOverride.ClearBuiltInProperties || itemOverride.ReplaceBuiltInPropertiesFromTemplate;
                 if (shouldClearBuiltIns == false)
                     continue;
 
-                RemoveBuiltInPropertyValues(ItemPrototype.PropertiesBuiltIn, removeProcProperties: false);
+                RemoveBuiltInPropertyValues(ItemPrototype.PropertiesBuiltIn, itemOverride);
                 changed = true;
 
                 if (itemOverride.ReplaceBuiltInPropertiesFromTemplate == false)
                 {
-                    Logger.Info($"Omega item override cleared built-in properties: override={itemOverride.Id} item={_itemSpec.ItemProtoRef.GetNameFormatted()} preserveProcProperties=True");
+                    Logger.Info($"Omega item override cleared built-in properties: override={itemOverride.Id} item={_itemSpec.ItemProtoRef.GetNameFormatted()} preserveProcProperties={itemOverride.PreserveProcBuiltInProperties}");
                     continue;
                 }
 
@@ -1118,18 +1121,22 @@ namespace MHServerEmu.Games.Entities.Items
             return changed;
         }
 
-        private void RemoveBuiltInPropertyValues(PropertyEntryPrototype[] propertyEntries, bool removeProcProperties)
+        private void RemoveBuiltInPropertyValues(PropertyEntryPrototype[] propertyEntries, OmegaTierItemOverrideTuning itemOverride)
         {
             if (propertyEntries.HasValue() == false)
                 return;
 
-            foreach (PropertyEntryPrototype propertyEntryProto in propertyEntries)
+            for (int i = 0; i < propertyEntries.Length; i++)
             {
+                PropertyEntryPrototype propertyEntryProto = propertyEntries[i];
                 PropertyId propertyId = GetBuiltInPropertyId(propertyEntryProto);
                 if (propertyId == PropertyId.Invalid)
                     continue;
 
-                if (removeProcProperties == false && IsProcProperty(propertyId.Enum))
+                if (itemOverride?.PreservesBuiltInPropertyIndex(i) == true)
+                    continue;
+
+                if (itemOverride?.PreserveProcBuiltInProperties != false && IsProcProperty(propertyId.Enum))
                     continue;
 
                 Properties.RemoveProperty(propertyId);
@@ -1230,6 +1237,21 @@ namespace MHServerEmu.Games.Entities.Items
             OmegaTierItemTuning tuning,
             OmegaTierAffixReplacementTuning replacement)
         {
+            if (replacement.ReplaceAffixIndexes.Count > 0)
+            {
+                foreach (int index in replacement.ReplaceAffixIndexes)
+                {
+                    if (index < 0 || index >= _affixProperties.Count)
+                        continue;
+
+                    AffixPrototype existingAffixProto = _affixProperties[index].AffixProto;
+                    if (OmegaTierItemFactory.CanReplaceOverrideAffix(existingAffixProto, replacementAffixProto, tuning, replacement, requireSamePosition: false, requireConfiguredIndex: true))
+                        return index;
+                }
+
+                return -1;
+            }
+
             for (int i = 0; i < _affixProperties.Count; i++)
             {
                 AffixPrototype existingAffixProto = _affixProperties[i].AffixProto;

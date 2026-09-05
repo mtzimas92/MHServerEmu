@@ -211,6 +211,8 @@ namespace MHServerEmu.Games.OmegaTierItems
         public List<string> ItemPrototypes { get; set; } = new();
         public List<string> Rarities { get; set; } = new();
         public bool ClearExistingAffixes { get; set; } = false;
+        public bool PreserveProcAffixes { get; set; } = false;
+        public List<string> PreserveExistingAffixes { get; set; } = new();
         public List<string> DisabledAffixes { get; set; } = new();
         public List<OmegaTierForcedAffixTuning> ForcedAffixes { get; set; } = new();
         public List<OmegaTierAffixReplacementTuning> AffixReplacements { get; set; } = new();
@@ -219,6 +221,8 @@ namespace MHServerEmu.Games.OmegaTierItems
         public int OverrideItemLevel { get; set; }
         public bool MaximizeAffixRolls { get; set; }
         public bool ClearBuiltInProperties { get; set; }
+        public bool PreserveProcBuiltInProperties { get; set; } = true;
+        public List<int> PreserveBuiltInPropertyIndexes { get; set; } = new();
         public bool MaximizeBuiltInPropertyRolls { get; set; }
         public bool ReplaceBuiltInPropertiesFromTemplate { get; set; }
         public string BuiltInPropertyTemplateItemPrototype { get; set; }
@@ -233,11 +237,18 @@ namespace MHServerEmu.Games.OmegaTierItems
             Id = string.IsNullOrWhiteSpace(Id) ? "unnamed-item-override" : Id.Trim();
             ItemPrototypes = NormalizeStringList(ItemPrototypes);
             Rarities = NormalizeStringList(Rarities);
+            PreserveExistingAffixes = NormalizeStringList(PreserveExistingAffixes);
             DisabledAffixes = NormalizeStringList(DisabledAffixes);
             OverrideRarity = string.IsNullOrWhiteSpace(OverrideRarity) ? string.Empty : OverrideRarity.Trim();
             OverrideItemLevel = Math.Max(OverrideItemLevel, 0);
             BuiltInPropertyTemplateItemPrototype = string.IsNullOrWhiteSpace(BuiltInPropertyTemplateItemPrototype) ? string.Empty : BuiltInPropertyTemplateItemPrototype.Trim();
             DisabledProcPowers = NormalizeStringList(DisabledProcPowers);
+            PreserveBuiltInPropertyIndexes ??= new();
+            PreserveBuiltInPropertyIndexes = PreserveBuiltInPropertyIndexes
+                .Where(index => index >= 0)
+                .Distinct()
+                .OrderBy(index => index)
+                .ToList();
             ForcedAffixes ??= new();
             AffixReplacements ??= new();
             RandomAffixes ??= new();
@@ -305,6 +316,26 @@ namespace MHServerEmu.Games.OmegaTierItems
             return false;
         }
 
+        public bool PreservesExistingAffix(PrototypeId affixRef)
+        {
+            if (affixRef == PrototypeId.Invalid || PreserveExistingAffixes.Count == 0)
+                return false;
+
+            foreach (string affixName in PreserveExistingAffixes)
+            {
+                PrototypeId preserveAffixRef = GameDatabase.GetPrototypeRefByName(affixName);
+                if (preserveAffixRef != PrototypeId.Invalid && preserveAffixRef == affixRef)
+                    return true;
+            }
+
+            return false;
+        }
+
+        public bool PreservesBuiltInPropertyIndex(int index)
+        {
+            return index >= 0 && PreserveBuiltInPropertyIndexes.Contains(index);
+        }
+
         private static List<string> NormalizeStringList(List<string> values)
         {
             return values == null
@@ -338,6 +369,7 @@ namespace MHServerEmu.Games.OmegaTierItems
         public bool AllowInvalidAttachment { get; set; } = false;
         public bool PreserveProcAffixes { get; set; } = true;
         public bool PreserveConfiguredPreferredAffixes { get; set; } = true;
+        public List<int> ReplaceAffixIndexes { get; set; } = new();
         public List<string> ReplaceAffixes { get; set; } = new();
         public List<string> ReplacePositions { get; set; } = new();
         public List<string> PreserveAffixes { get; set; } = new();
@@ -358,6 +390,12 @@ namespace MHServerEmu.Games.OmegaTierItems
         {
             Prototype = string.IsNullOrWhiteSpace(Prototype) ? string.Empty : Prototype.Trim();
             Count = Math.Max(Count, 0);
+            ReplaceAffixIndexes ??= new();
+            ReplaceAffixIndexes = ReplaceAffixIndexes
+                .Where(index => index >= 0)
+                .Distinct()
+                .OrderBy(index => index)
+                .ToList();
             ReplaceAffixes = NormalizeStringList(ReplaceAffixes);
             ReplacePositions = NormalizeStringList(ReplacePositions);
             PreserveAffixes = NormalizeStringList(PreserveAffixes);
@@ -393,6 +431,11 @@ namespace MHServerEmu.Games.OmegaTierItems
             }
 
             return false;
+        }
+
+        public bool AllowsIndex(int index)
+        {
+            return ReplaceAffixIndexes.Count == 0 || ReplaceAffixIndexes.Contains(index);
         }
 
         public bool MatchesReplaceAffix(PrototypeId affixRef)

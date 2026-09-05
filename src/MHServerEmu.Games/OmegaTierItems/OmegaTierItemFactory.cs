@@ -7,11 +7,13 @@ using MHServerEmu.Games.Entities;
 using MHServerEmu.Games.Entities.Avatars;
 using MHServerEmu.Games.Entities.Items;
 using MHServerEmu.Games.GameData;
+using MHServerEmu.Games.GameData.Calligraphy;
 using MHServerEmu.Games.GameData.PatchManager;
 using MHServerEmu.Games.GameData.Prototypes;
 using MHServerEmu.Games.GameData.Tables;
 using MHServerEmu.Games.Loot;
 using MHServerEmu.Games.Properties;
+using ReflectionPropertyInfo = System.Reflection.PropertyInfo;
 
 namespace MHServerEmu.Games.OmegaTierItems
 {
@@ -28,6 +30,28 @@ namespace MHServerEmu.Games.OmegaTierItems
         private const string RingOmegaAffixName = "Entity/Items/Affixes/RingAffixes/RingLoot20/BuiltInHP/RingHealthOmega.prototype";
         private const string RingOffenseT3CategoryName = "Entity/Items/Affixes/AffixCategories/RingOffenseT3.prototype";
         private const string RingDefenseT3CategoryName = "Entity/Items/Affixes/AffixCategories/RingDefenseT3.prototype";
+        private const string PropertyPickInRangeEntryName = "Property/PropertyPickInRangeEntry.defaults";
+        private const string LoadFloatName = "Eval/Constants/LoadFloat.defaults";
+
+        private static readonly ReflectionPropertyInfo ItemPropertiesBuiltInProperty =
+            typeof(ItemPrototype).GetProperty(nameof(ItemPrototype.PropertiesBuiltIn));
+
+        private static readonly ReflectionPropertyInfo PropertyPickPropProperty =
+            typeof(PropertyPickInRangeEntryPrototype).GetProperty(nameof(PropertyPickInRangeEntryPrototype.Prop));
+
+        private static readonly ReflectionPropertyInfo PropertyPickValueMinProperty =
+            typeof(PropertyPickInRangeEntryPrototype).GetProperty(nameof(PropertyPickInRangeEntryPrototype.ValueMin));
+
+        private static readonly ReflectionPropertyInfo PropertyPickValueMaxProperty =
+            typeof(PropertyPickInRangeEntryPrototype).GetProperty(nameof(PropertyPickInRangeEntryPrototype.ValueMax));
+
+        private static readonly ReflectionPropertyInfo PropertyPickRollAsIntegerProperty =
+            typeof(PropertyPickInRangeEntryPrototype).GetProperty(nameof(PropertyPickInRangeEntryPrototype.RollAsInteger));
+
+        private static readonly ReflectionPropertyInfo LoadFloatValueProperty =
+            typeof(LoadFloatPrototype).GetProperty(nameof(LoadFloatPrototype.Value));
+
+        private static readonly HashSet<PrototypeId> ConfiguredBuiltInPrototypeOverrideRefs = new();
 
         public static bool ShouldUseFactory(PrototypeId itemProtoRef, PrototypeId rarityProtoRef)
         {
@@ -35,6 +59,61 @@ namespace MHServerEmu.Games.OmegaTierItems
                 return true;
 
             return OmegaTierItemTuning.Load().HasItemOverride(itemProtoRef, rarityProtoRef);
+        }
+
+        public static bool HasConfiguredBuiltInPropertyPrototypeOverride(PrototypeId itemProtoRef, PrototypeId rarityProtoRef)
+        {
+            if (ConfiguredBuiltInPrototypeOverrideRefs.Contains(itemProtoRef) == false)
+                return false;
+
+            return OmegaTierItemTuning.Load().HasItemOverride(itemProtoRef, rarityProtoRef);
+        }
+
+        public static void ApplyConfiguredBuiltInPropertyPrototypeOverrides()
+        {
+            OmegaTierItemTuning tuning = OmegaTierItemTuning.Load();
+            if (tuning?.Enabled != true || tuning.ItemOverrides.Count == 0)
+                return;
+
+            if (ItemPropertiesBuiltInProperty == null ||
+                PropertyPickPropProperty == null ||
+                PropertyPickValueMinProperty == null ||
+                PropertyPickValueMaxProperty == null ||
+                PropertyPickRollAsIntegerProperty == null ||
+                LoadFloatValueProperty == null)
+            {
+                Logger.Warn("Omega built-in property prototype overrides skipped because required prototype fields were not available.");
+                return;
+            }
+
+            int itemCount = 0;
+            int entryCount = 0;
+            foreach (OmegaTierItemOverrideTuning itemOverride in tuning.ItemOverrides)
+            {
+                if (itemOverride?.Enabled != true || itemOverride.BuiltInProperties.Count == 0)
+                    continue;
+
+                foreach (string itemPrototypeName in itemOverride.ItemPrototypes)
+                {
+                    PrototypeId itemProtoRef = ResolvePrototype(itemPrototypeName);
+                    ItemPrototype itemProto = itemProtoRef.As<ItemPrototype>();
+                    if (itemProto == null)
+                    {
+                        Logger.Warn($"Omega built-in property prototype override skipped unknown item: override={itemOverride.Id} item={itemPrototypeName}");
+                        continue;
+                    }
+
+                    if (TryApplyConfiguredBuiltInPropertyPrototypeOverride(itemProto, itemOverride, out int appliedEntries) == false)
+                        continue;
+
+                    ConfiguredBuiltInPrototypeOverrideRefs.Add(itemProtoRef);
+                    itemCount++;
+                    entryCount += appliedEntries;
+                }
+            }
+
+            if (entryCount > 0)
+                Logger.Info($"Applied Omega built-in property prototype overrides to {itemCount} item prototype(s), entries={entryCount}.");
         }
 
         public static bool TryApplyConfiguredUniqueOverrideForOmegaDifficulty(ItemResolver resolver, ItemSpec itemSpec, LootRollSettings settings = null)
@@ -87,8 +166,11 @@ namespace MHServerEmu.Games.OmegaTierItems
                     continue;
 
                 RemoveConfiguredProcPowers(item, itemOverride);
-                foreach (OmegaTierBuiltInPropertyTuning builtInProperty in itemOverride.BuiltInProperties)
-                    TryApplyBuiltInProperty(item, itemOverride, builtInProperty);
+                if (HasConfiguredBuiltInPropertyPrototypeOverride(itemProtoRef, rarityProtoRef) == false)
+                {
+                    foreach (OmegaTierBuiltInPropertyTuning builtInProperty in itemOverride.BuiltInProperties)
+                        TryApplyBuiltInProperty(item, itemOverride, builtInProperty);
+                }
 
                 foreach (OmegaTierProcKeywordPropertyTuning procKeywordProperty in itemOverride.ProcKeywordProperties)
                     TryApplyProcKeywordProperty(item, itemOverride, procKeywordProperty);
@@ -413,8 +495,7 @@ namespace MHServerEmu.Games.OmegaTierItems
 
                 if (itemOverride.ClearExistingAffixes)
                 {
-                    itemSpec.SetAffixes(Array.Empty<AffixSpec>());
-                    changed = true;
+                    changed |= ClearExistingAffixes(itemSpec, itemOverride);
                 }
 
                 changed |= RemoveDisabledOverrideAffixes(itemSpec, itemOverride);
@@ -435,7 +516,7 @@ namespace MHServerEmu.Games.OmegaTierItems
                     for (int i = 0; i < forcedAffix.Count; i++)
                     {
                         if (forcedAffix.ReplaceExistingSamePosition)
-                            changed |= RemoveAffixesAtPosition(itemSpec, affixProto.Position);
+                            changed |= RemoveAffixesAtPosition(itemSpec, affixProto.Position, itemOverride);
 
                         if (TryAddAffixSpec(resolver, filterArgs, itemSpec, affixProto, forcedAffix.AllowInvalidAttachment, itemOverride.MaximizeAffixRolls))
                             changed = true;
@@ -469,6 +550,44 @@ namespace MHServerEmu.Games.OmegaTierItems
                 }
 
                 affixSpecs.Add(new(affixSpec));
+            }
+
+            if (removed)
+                itemSpec.SetAffixes(affixSpecs);
+
+            return removed;
+        }
+
+        private static bool ClearExistingAffixes(ItemSpec itemSpec, OmegaTierItemOverrideTuning itemOverride)
+        {
+            if (itemSpec == null || itemOverride == null || itemSpec.AffixSpecs.Count == 0)
+                return false;
+
+            if (itemOverride.PreserveExistingAffixes.Count == 0 && itemOverride.PreserveProcAffixes == false)
+            {
+                itemSpec.SetAffixes(Array.Empty<AffixSpec>());
+                return true;
+            }
+
+            List<AffixSpec> affixSpecs = new();
+            bool removed = false;
+            foreach (AffixSpec affixSpec in itemSpec.AffixSpecs)
+            {
+                AffixPrototype affixProto = affixSpec?.AffixProto;
+                PrototypeId affixRef = affixProto?.DataRef ?? PrototypeId.Invalid;
+                if (itemOverride.PreserveProcAffixes && IsProcAffix(affixProto))
+                {
+                    affixSpecs.Add(new(affixSpec));
+                    continue;
+                }
+
+                if (itemOverride.PreservesExistingAffix(affixRef))
+                {
+                    affixSpecs.Add(new(affixSpec));
+                    continue;
+                }
+
+                removed = true;
             }
 
             if (removed)
@@ -539,6 +658,124 @@ namespace MHServerEmu.Games.OmegaTierItems
                 Logger.Info($"Omega item override selective affix replacements applied: override={itemOverride.Id} item={itemSpec.ItemProtoRef.GetNameFormatted()} replaced={replacedCount}");
 
             return changed;
+        }
+
+        private static bool TryApplyConfiguredBuiltInPropertyPrototypeOverride(
+            ItemPrototype itemProto,
+            OmegaTierItemOverrideTuning itemOverride,
+            out int appliedEntries)
+        {
+            appliedEntries = 0;
+            if (itemProto == null || itemOverride?.BuiltInProperties == null || itemOverride.BuiltInProperties.Count == 0)
+                return false;
+
+            List<PropertyEntryPrototype> propertyEntries = new();
+            if (itemProto.PropertiesBuiltIn.HasValue())
+            {
+                for (int i = 0; i < itemProto.PropertiesBuiltIn.Length; i++)
+                {
+                    PropertyEntryPrototype propertyEntry = itemProto.PropertiesBuiltIn[i];
+                    if (propertyEntry == null)
+                        continue;
+
+                    if (itemOverride.ClearBuiltInProperties == false ||
+                        itemOverride.PreservesBuiltInPropertyIndex(i) ||
+                        (itemOverride.PreserveProcBuiltInProperties && IsProcBuiltInProperty(propertyEntry)))
+                    {
+                        propertyEntries.Add(propertyEntry);
+                    }
+                }
+            }
+
+            foreach (OmegaTierBuiltInPropertyTuning builtInProperty in itemOverride.BuiltInProperties)
+            {
+                PropertyPickInRangeEntryPrototype propertyEntry = CreateBuiltInPropertyEntry(itemOverride, builtInProperty);
+                if (propertyEntry == null)
+                    continue;
+
+                propertyEntries.Add(propertyEntry);
+                appliedEntries++;
+            }
+
+            if (appliedEntries == 0)
+                return false;
+
+            ItemPropertiesBuiltInProperty.SetValue(itemProto, propertyEntries.ToArray());
+            Logger.Info($"Omega built-in property prototype override applied: override={itemOverride.Id} item={itemProto.DataRef.GetNameFormatted()} entries={appliedEntries} preservedEntries={propertyEntries.Count - appliedEntries}");
+            return true;
+        }
+
+        private static PropertyPickInRangeEntryPrototype CreateBuiltInPropertyEntry(
+            OmegaTierItemOverrideTuning itemOverride,
+            OmegaTierBuiltInPropertyTuning builtInProperty)
+        {
+            if (TryResolveBuiltInPropertyId(itemOverride, builtInProperty, out PropertyId propertyId) == false)
+                return null;
+
+            PropertyPickInRangeEntryPrototype propertyEntry = AllocatePrototypeFromDefaults<PropertyPickInRangeEntryPrototype>(PropertyPickInRangeEntryName);
+            if (propertyEntry == null)
+            {
+                Logger.Warn($"Omega built-in property prototype override could not allocate property entry: override={itemOverride.Id}");
+                return null;
+            }
+
+            PropertyPickPropProperty.SetValue(propertyEntry, propertyId);
+            PropertyPickValueMinProperty.SetValue(propertyEntry, CreateLoadFloat(builtInProperty.ValueMin));
+            PropertyPickValueMaxProperty.SetValue(propertyEntry, CreateLoadFloat(builtInProperty.ValueMax));
+            PropertyPickRollAsIntegerProperty.SetValue(propertyEntry, builtInProperty.RollAsInteger);
+            propertyEntry.PostProcess();
+            return propertyEntry;
+        }
+
+        private static LoadFloatPrototype CreateLoadFloat(float value)
+        {
+            LoadFloatPrototype eval = AllocatePrototypeFromDefaults<LoadFloatPrototype>(LoadFloatName);
+            if (eval == null)
+                return null;
+
+            LoadFloatValueProperty.SetValue(eval, value);
+            eval.PostProcess();
+            return eval;
+        }
+
+        private static T AllocatePrototypeFromDefaults<T>(string defaultsPrototypeName) where T : Prototype
+        {
+            Prototype instance = GameDatabase.PrototypeClassManager.AllocatePrototype(typeof(T));
+            if (instance is not T typedInstance)
+                return null;
+
+            PrototypeId parentRef = ResolvePrototype(defaultsPrototypeName);
+            if (parentRef != PrototypeId.Invalid)
+            {
+                CalligraphySerializer.CopyPrototypeDataRefFields(typedInstance, parentRef);
+                typedInstance.ParentDataRef = parentRef;
+            }
+
+            return typedInstance;
+        }
+
+        private static bool IsProcBuiltInProperty(PropertyEntryPrototype propertyEntryProto)
+        {
+            PropertyId propertyId = propertyEntryProto switch
+            {
+                PropertyPickInRangeEntryPrototype pickInRangeProto => pickInRangeProto.Prop,
+                PropertySetEntryPrototype setProto => setProto.Prop,
+                _ => PropertyId.Invalid
+            };
+
+            return propertyId != PropertyId.Invalid && IsProcProperty(propertyId.Enum);
+        }
+
+        private static bool IsProcProperty(PropertyEnum propertyEnum)
+        {
+            return Property.ProcPropertyTypesAll.Contains(propertyEnum) ||
+                propertyEnum == PropertyEnum.ProcChanceOverride ||
+                propertyEnum == PropertyEnum.ProcPowerItemLevel ||
+                propertyEnum == PropertyEnum.ProcPowerItemVariation ||
+                propertyEnum == PropertyEnum.ProcPowerInvStackCount ||
+                propertyEnum == PropertyEnum.ProcPowerRank ||
+                propertyEnum == PropertyEnum.ProcCasterOverride ||
+                propertyEnum == PropertyEnum.ProcTargetOverride;
         }
 
         private static bool TryApplyBuiltInProperty(
@@ -746,7 +983,7 @@ namespace MHServerEmu.Games.OmegaTierItems
             return (int)GenerateTruncatedFloatWithinRange(randomMult, min, max);
         }
 
-        private static bool RemoveAffixesAtPosition(ItemSpec itemSpec, AffixPosition position)
+        private static bool RemoveAffixesAtPosition(ItemSpec itemSpec, AffixPosition position, OmegaTierItemOverrideTuning itemOverride = null)
         {
             if (itemSpec == null || itemSpec.AffixSpecs.Count == 0)
                 return false;
@@ -757,6 +994,18 @@ namespace MHServerEmu.Games.OmegaTierItems
             {
                 if (affixSpec?.AffixProto != null && affixSpec.AffixProto.Position == position)
                 {
+                    if (itemOverride?.PreserveProcAffixes == true && IsProcAffix(affixSpec.AffixProto))
+                    {
+                        affixSpecs.Add(new(affixSpec));
+                        continue;
+                    }
+
+                    if (itemOverride?.PreservesExistingAffix(affixSpec.AffixProto.DataRef) == true)
+                    {
+                        affixSpecs.Add(new(affixSpec));
+                        continue;
+                    }
+
                     removed = true;
                     continue;
                 }
@@ -1318,6 +1567,21 @@ namespace MHServerEmu.Games.OmegaTierItems
             if (affixSpecs == null || replacementAffixProto == null || replacement == null)
                 return -1;
 
+            if (replacement.ReplaceAffixIndexes.Count > 0)
+            {
+                foreach (int index in replacement.ReplaceAffixIndexes)
+                {
+                    if (index < 0 || index >= affixSpecs.Count)
+                        continue;
+
+                    AffixPrototype existingAffixProto = affixSpecs[index]?.AffixProto;
+                    if (CanReplaceOverrideAffix(existingAffixProto, replacementAffixProto, tuning, replacement, requireSamePosition: false, requireConfiguredIndex: true))
+                        return index;
+                }
+
+                return -1;
+            }
+
             for (int i = 0; i < affixSpecs.Count; i++)
             {
                 AffixPrototype existingAffixProto = affixSpecs[i]?.AffixProto;
@@ -1340,7 +1604,8 @@ namespace MHServerEmu.Games.OmegaTierItems
             AffixPrototype replacementAffixProto,
             OmegaTierItemTuning tuning,
             OmegaTierAffixReplacementTuning replacement,
-            bool requireSamePosition)
+            bool requireSamePosition,
+            bool requireConfiguredIndex = false)
         {
             if (existingAffixProto == null || replacementAffixProto == null || replacement == null)
                 return false;
@@ -1366,7 +1631,8 @@ namespace MHServerEmu.Games.OmegaTierItems
             if (requireSamePosition && existingAffixProto.Position != replacementAffixProto.Position)
                 return false;
 
-            if (replacement.ReplacePositions.Count == 0 &&
+            if (requireConfiguredIndex == false &&
+                replacement.ReplacePositions.Count == 0 &&
                 existingAffixProto.Position != replacementAffixProto.Position &&
                 existingAffixProto.Position != AffixPosition.Prefix &&
                 existingAffixProto.Position != AffixPosition.Suffix &&

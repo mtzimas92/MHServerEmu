@@ -131,6 +131,7 @@ namespace MHServerEmu.Games.OmegaTierItems
             TryEnableOmegaOnRings(omegaRarityRef);
             TryEnableOmegaOnCraftingRecipeInputs(cosmicRarityRef, omegaRarityRef);
             TryRepairInvertedAffixBands();
+            OmegaTierItemFactory.ApplyConfiguredBuiltInPropertyPrototypeOverrides();
 
             stopwatch.Stop();
             Logger.Info($"Normalized R6Omega item affix limits on {rowsChanged} rows ({categoriesPromoted} T2 categories promoted, {entriesAdjusted} required category counts adjusted, {entriesAdded} required categories added) in {stopwatch.ElapsedMilliseconds} ms");

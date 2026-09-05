@@ -67,59 +67,50 @@
       "clearBuiltInProperties": true,
       "disableTriggeredItemActions": true,
       "clearExistingAffixes": true,
+      "preserveProcAffixes": true,
       "disabledAffixes": [
       ],
       "disabledProcPowers": [
       ],
       "builtInProperties": [
-        {
-          "property": "DamageRating",
-          "valueMin": 1200,
-          "valueMax": 1200,
-          "rollAsInteger": true
-        },
-        {
-          "property": {
-            "Property": "DamageRatingBonusForPowerKeyword",
-            "Params": [
-              "Powers/Blueprints/Keywords/Melee.defaults"
-            ]
-          },
-          "valueMin": 300,
-          "valueMax": 300,
-          "rollAsInteger": true
-        },
-        {
-          "property": {
-            "Property": "DamageRatingBonusForPowerKeyword",
-            "Params": [
-              "Powers/Blueprints/Keywords/Area.defaults"
-            ]
-          },
-          "valueMin": 300,
-          "valueMax": 300,
-          "rollAsInteger": true
-        },
-        {
-          "property": "CritRatingBonusAdd",
-          "valueMin": 295,
-          "valueMax": 295,
-          "rollAsInteger": true
-        },
-        {
-          "property": "CritDamageRating",
-          "valueMin": 1000,
-          "valueMax": 1000,
-          "rollAsInteger": true
-        },
-        {
-          "property": "OmniDurationBonusPct",
-          "valueMin": 0.1,
-          "valueMax": 0.1,
-          "rollAsInteger": false
-        }
       ],
       "forcedAffixes": [
+        {
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/DamageRating/DamageRatingT3.prototype",
+          "count": 1,
+          "allowInvalidAttachment": true,
+          "replaceExistingSamePosition": false
+        },
+        {
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/CritChance/CritChanceT3.prototype",
+          "count": 1,
+          "allowInvalidAttachment": true,
+          "replaceExistingSamePosition": false
+        },
+        {
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/CritDamage/CritDamageT3.prototype",
+          "count": 1,
+          "allowInvalidAttachment": true,
+          "replaceExistingSamePosition": false
+        },
+        {
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Duration/DurationBonus09to15.prototype",
+          "count": 1,
+          "allowInvalidAttachment": true,
+          "replaceExistingSamePosition": false
+        },
+        {
+          "prototype": "Entity/Items/Affixes/RingAffixes/Prefixes/MeleeDamage.prototype",
+          "count": 1,
+          "allowInvalidAttachment": true,
+          "replaceExistingSamePosition": false
+        },
+        {
+          "prototype": "Entity/Items/Affixes/RingAffixes/Prefixes/AoeDamage.prototype",
+          "count": 1,
+          "allowInvalidAttachment": true,
+          "replaceExistingSamePosition": false
+        },
         {
           "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/BonusHealth/BonusHealthT3.prototype",
           "count": 1,
@@ -150,66 +141,63 @@
         "Entity/Items/Rarity/R6Unique.prototype"
       ],
       "overrideItemLevel": 75,
+      "maximizeAffixRolls": false,
       "clearBuiltInProperties": true,
       "clearExistingAffixes": true,
+      "preserveProcAffixes": true,
       "disabledAffixes": [
       ],
       "builtInProperties": [
-        {
-          "property": "DamageRating",
-          "valueMin": 600,
-          "valueMax": 900,
-          "rollAsInteger": true
-        },
-        {
-          "property": "HealthAddBonus",
-          "valueMin": 1500,
-          "valueMax": 2500,
-          "rollAsInteger": true
-        },
-        {
-          "property": "CritRatingBonusAdd",
-          "valueMin": 540,
-          "valueMax": 540,
-          "rollAsInteger": true
-        },
-        {
-          "property": "SuperCritRatingBonusAdd",
-          "valueMin": 540,
-          "valueMax": 540,
-          "rollAsInteger": true
-        },
-        {
-          "property": "StatFightingSkillsModifier",
-          "valueMin": 3,
-          "valueMax": 3,
-          "rollAsInteger": true
-        },
-        {
-          "property": "StatSpeedModifier",
-          "valueMin": 3,
-          "valueMax": 3,
-          "rollAsInteger": true
-        },
-        {
-          "property": {
-            "Property": "DamageRatingBonusForPowerKeyword",
-            "Params": [
-              "Powers/Blueprints/Keywords/Summon.defaults"
-            ]
-          },
-          "valueMin": 375,
-          "valueMax": 375,
-          "rollAsInteger": true
-        },
-        {
-          "property": "PetLifetimeChangePct",
-          "valueMin": 0.06,
-          "valueMax": 0.2,
-          "rollAsInteger": false
-        }
       ],
       "forcedAffixes": [
+        {
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/DamageRating/DamageRatingT3.prototype",
+          "count": 1,
+          "allowInvalidAttachment": true,
+          "replaceExistingSamePosition": false
+        },
+        {
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/BonusHealth/BonusHealthT3.prototype",
+          "count": 1,
+          "allowInvalidAttachment": true,
+          "replaceExistingSamePosition": false
+        },
+        {
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/CritChance/CritChanceT3.prototype",
+          "count": 1,
+          "allowInvalidAttachment": true,
+          "replaceExistingSamePosition": false
+        },
+        {
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/BrutalStrike/BrutalStrikeT3.prototype",
+          "count": 1,
+          "allowInvalidAttachment": true,
+          "replaceExistingSamePosition": false
+        },
+        {
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/Attributes/FightingT3.prototype",
+          "count": 1,
+          "allowInvalidAttachment": true,
+          "replaceExistingSamePosition": false
+        },
+        {
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/Attributes/SpeedT3.prototype",
+          "count": 1,
+          "allowInvalidAttachment": true,
+          "replaceExistingSamePosition": false
+        },
+        {
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/DamageSummoner/DamageSummonerT3.prototype",
+          "count": 1,
+          "allowInvalidAttachment": true,
+          "replaceExistingSamePosition": false
+        },
+        {
+          "prototype": "Entity/Items/Affixes/RingAffixes/BloodstoneAffixes/BloodstoneSummonDuration.prototype",
+          "count": 1,
+          "allowInvalidAttachment": true,
+          "replaceExistingSamePosition": false
+        }
       ],
       "procKeywordProperties": [
       ],
@@ -228,71 +216,63 @@
         "Entity/Items/Rarity/R6Unique.prototype"
       ],
       "overrideItemLevel": 75,
+      "maximizeAffixRolls": false,
       "clearBuiltInProperties": true,
       "clearExistingAffixes": true,
+      "preserveProcAffixes": true,
       "disabledAffixes": [
       ],
       "builtInProperties": [
-        {
-          "property": {
-            "Property": "DamageRatingBonusByType",
-            "Params": [
-              1
-            ]
-          },
-          "valueMin": 300,
-          "valueMax": 529,
-          "rollAsInteger": true
-        },
-        {
-          "property": {
-            "Property": "DamageRatingBonusByType",
-            "Params": [
-              2
-            ]
-          },
-          "valueMin": 300,
-          "valueMax": 529,
-          "rollAsInteger": true
-        },
-        {
-          "property": "HealthAddBonus",
-          "valueMin": 2000,
-          "valueMax": 3000,
-          "rollAsInteger": true
-        },
-        {
-          "property": "StatAllModifier",
-          "valueMin": 1,
-          "valueMax": 1,
-          "rollAsInteger": true
-        },
-        {
-          "property": "CritRatingBonusAdd",
-          "valueMin": 354,
-          "valueMax": 354,
-          "rollAsInteger": true
-        },
-        {
-          "property": "CritDamageRating",
-          "valueMin": 1000,
-          "valueMax": 1000,
-          "rollAsInteger": true
-        },
-        {
-          "property": "OmniDurationBonusPct",
-          "valueMin": 0.15,
-          "valueMax": 0.15,
-          "rollAsInteger": false
-        },
-        {
-          "property": "MovementSpeedIncrPct",
-          "valueMin": 0.06,
-          "valueMax": 0.09,
-          "rollAsInteger": false
-        }
       ],
       "forcedAffixes": [
+        {
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/DamageEnergy/DamageEnergyT3.prototype",
+          "count": 1,
+          "allowInvalidAttachment": true,
+          "replaceExistingSamePosition": false
+        },
+        {
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/DamageMental/DamageMentalT3.prototype",
+          "count": 1,
+          "allowInvalidAttachment": true,
+          "replaceExistingSamePosition": false
+        },
+        {
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/BonusHealth/BonusHealthT3.prototype",
+          "count": 1,
+          "allowInvalidAttachment": true,
+          "replaceExistingSamePosition": false
+        },
+        {
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/CritChance/CritChanceT3.prototype",
+          "count": 1,
+          "allowInvalidAttachment": true,
+          "replaceExistingSamePosition": false
+        },
+        {
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/CritDamage/CritDamageT3.prototype",
+          "count": 1,
+          "allowInvalidAttachment": true,
+          "replaceExistingSamePosition": false
+        },
+        {
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Duration/DurationBonus09to15.prototype",
+          "count": 1,
+          "allowInvalidAttachment": true,
+          "replaceExistingSamePosition": false
+        },
+        {
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/MovementSpeed/MovementSpeedT3.prototype",
+          "count": 1,
+          "allowInvalidAttachment": true,
+          "replaceExistingSamePosition": false
+        },
+        {
+          "prototype": "Entity/Items/Affixes/LegendaryAffixes/StatAllAttributesBonus.prototype",
+          "count": 1,
+          "allowInvalidAttachment": true,
+          "replaceExistingSamePosition": false
+        }
       ],
       "procKeywordProperties": [
       ],
@@ -311,76 +291,52 @@
         "Entity/Items/Rarity/R6Unique.prototype"
       ],
       "overrideItemLevel": 75,
+      "maximizeAffixRolls": false,
       "clearBuiltInProperties": true,
+      "preserveBuiltInPropertyIndexes": [ 2, 4 ],
       "clearExistingAffixes": true,
+      "preserveProcAffixes": true,
       "disabledAffixes": [
       ],
       "builtInProperties": [
-        {
-          "property": {
-            "Property": "Defense",
-            "Params": [
-              4
-            ]
-          },
-          "valueMin": 300,
-          "valueMax": 588,
-          "rollAsInteger": true
-        },
-        {
-          "property": {
-            "Property": "DamageRatingBonusVsConditionKeyword",
-            "Params": [
-              "Powers/Blueprints/Keywords/Burn.defaults"
-            ]
-          },
-          "valueMin": 300,
-          "valueMax": 588,
-          "rollAsInteger": true
-        },
-        {
-          "property": "HealthAddBonus",
-          "valueMin": 800,
-          "valueMax": 2000,
-          "rollAsInteger": true
-        },
-        {
-          "property": {
-            "Property": "EnduranceCostChangePct",
-            "Params": [
-              3
-            ]
-          },
-          "valueMin": -0.08,
-          "valueMax": -0.04,
-          "rollAsInteger": false
-        },
-        {
-          "property": "StatStrengthModifier",
-          "valueMin": 1,
-          "valueMax": 4,
-          "rollAsInteger": true
-        },
-        {
-          "property": "StatEnergyProjectionModifier",
-          "valueMin": 1,
-          "valueMax": 4,
-          "rollAsInteger": true
-        },
-        {
-          "property": "SuperCritRatingBonusAdd",
-          "valueMin": 100,
-          "valueMax": 400,
-          "rollAsInteger": true
-        },
-        {
-          "property": "SuperCritDamageRating",
-          "valueMin": 600,
-          "valueMax": 1200,
-          "rollAsInteger": true
-        }
       ],
       "forcedAffixes": [
+        {
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/DefenseAll/DefenseAllT3.prototype",
+          "count": 1,
+          "allowInvalidAttachment": true,
+          "replaceExistingSamePosition": false
+        },
+        {
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/BonusHealth/BonusHealthT3.prototype",
+          "count": 1,
+          "allowInvalidAttachment": true,
+          "replaceExistingSamePosition": false
+        },
+        {
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/Attributes/StrengthT3.prototype",
+          "count": 1,
+          "allowInvalidAttachment": true,
+          "replaceExistingSamePosition": false
+        },
+        {
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/Attributes/EnergyT3.prototype",
+          "count": 1,
+          "allowInvalidAttachment": true,
+          "replaceExistingSamePosition": false
+        },
+        {
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/BrutalStrike/BrutalStrikeT3.prototype",
+          "count": 1,
+          "allowInvalidAttachment": true,
+          "replaceExistingSamePosition": false
+        },
+        {
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/BrutalDamage/BrutalDamageT3.prototype",
+          "count": 1,
+          "allowInvalidAttachment": true,
+          "replaceExistingSamePosition": false
+        }
       ],
       "procKeywordProperties": [
       ],
