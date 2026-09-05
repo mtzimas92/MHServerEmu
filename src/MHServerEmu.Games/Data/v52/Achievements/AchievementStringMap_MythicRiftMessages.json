@@ -186,7 +186,7 @@
     "en_us": "Omega Forge: choose an unlocked enchantment or runeword recipe."
   },
   "18000000000000040127": {
-    "en_us": "Omega Forge: no learned enchantment or runeword recipes are currently valid for that equipped Omega item, or the required glyphs/runes are missing."
+    "en_us": "Omega Forge: no learned enchantment or runeword recipes are currently valid for that equipped Omega or Unique item, or the required glyphs/runes are missing."
   },
   "18000000000000040128": {
     "en_us": "Apply Recipe"
