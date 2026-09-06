@@ -111,6 +111,7 @@ namespace MHServerEmu.Games.MythicRifts
         private const string RiftCompletionEnchanterTypePrototypeName = "Entity/Characters/Vendors/VendorTypes/VendorEnchanter.prototype";
         private static readonly PrototypeId RiftCompletionCrafterRecipePrototypeRef = (PrototypeId)9691334961261451315UL;
         private const string RiftCompletionCrafterCosmicRecipePrototypeName = "Entity/Items/Crafting/Recipes/Tab3Gear/RerollCosmicReplacement.prototype";
+        private static readonly PrototypeId CosmicRiftProgressionLeaderboardRef = (PrototypeId)8025666577633582290UL;
         // One place to switch the post-run artifact vendor economy if we later decide to split it
         // from the completion crafter. Currently both use Genosha/Champion's Commendations.
         private static readonly PrototypeId RiftArtifactVendorCurrencyItemPrototypeRef = (PrototypeId)2852929430040615658UL;
@@ -481,7 +482,28 @@ namespace MHServerEmu.Games.MythicRifts
             GetHighestUnlockedCache(mode)[playerDbId] = nextUnlockedLevel;
             GetPreferredLaunchCache(mode).Remove(playerDbId);
             SyncOnlinePlayerRiftLevel(playerDbId, nextUnlockedLevel, mode);
+
+            if (mode == MythicRiftMode.Standard)
+                ReportRiftLevelToProgressionLeaderboard(playerDbId);
+
             return nextUnlockedLevel;
+        }
+
+        private void ReportRiftLevelToProgressionLeaderboard(ulong playerDbId)
+        {
+            Player onlinePlayer = Game.EntityManager.GetEntityByDbGuid<Player>(playerDbId);
+            if (onlinePlayer == null)
+                return;
+
+            LeaderboardPrototype leaderboardProto = GameDatabase.GetPrototype<LeaderboardPrototype>(CosmicRiftProgressionLeaderboardRef);
+            if (leaderboardProto?.ScoringRules.HasValue() != true)
+                return;
+
+            ScoringEventPrototype scoringEvent = leaderboardProto.ScoringRules[0].Event;
+            if (scoringEvent == null)
+                return;
+
+            onlinePlayer.OnScoringEvent(new(ScoringEventType.EntityDeath, scoringEvent.Proto0, 1));
         }
 
         private static int NormalizeStoredRiftLevel(int riftLevel, MythicRiftMode mode)

@@ -153,14 +153,6 @@
   },
   {
     "Enabled": true,
-    "Prototype": "Regions/EndGame/TierX/PatrolMidtown/XManhattanRegionBand.prototype",
-    "Path": "AccessDifficulties[]",
-    "Description": "[Rift Access] Allow Omega Midtown Patrol at Tier5Omega1.",
-    "ValueType": "PrototypeId",
-    "Value": 424700179461639950
-  },
-  {
-    "Enabled": true,
     "Prototype": "Regions/EndGame/TierX/PatrolMidtown/AltRegions/XManhattanRegion60Cosmic.prototype",
     "Path": "AccessDifficulties[]",
     "Description": "[Rift Access] Allow Omega Midtown Patrol cosmic alt at Tier5Omega1.",
@@ -169,25 +161,9 @@
   },
   {
     "Enabled": true,
-    "Prototype": "Regions/EndGame/TierX/PatrolBrooklyn/BrooklynPatrolRegionBand.prototype",
-    "Path": "AccessDifficulties[]",
-    "Description": "[Rift Access] Allow Omega Industry City Patrol at Tier5Omega1.",
-    "ValueType": "PrototypeId",
-    "Value": 424700179461639950
-  },
-  {
-    "Enabled": true,
     "Prototype": "Regions/EndGame/TierX/PatrolBrooklyn/AltRegions/BrooklynPatrolRegionL60Cosmic.prototype",
     "Path": "AccessDifficulties[]",
     "Description": "[Rift Access] Allow Omega Industry City Patrol cosmic alt at Tier5Omega1.",
-    "ValueType": "PrototypeId",
-    "Value": 424700179461639950
-  },
-  {
-    "Enabled": true,
-    "Prototype": "Regions/EndGame/TierX/PatrolHightown/UpperMadripoorRegionBand.prototype",
-    "Path": "AccessDifficulties[]",
-    "Description": "[Rift Access] Allow Omega Hightown Patrol at Tier5Omega1.",
     "ValueType": "PrototypeId",
     "Value": 424700179461639950
   },

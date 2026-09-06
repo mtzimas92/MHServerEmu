@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Linq;
 using System.Text.Json;
 using Gazillion;
 using MHServerEmu.Core.Collections;
@@ -321,57 +322,12 @@ namespace MHServerEmu.Leaderboards
 
             foreach (PrototypeId dataRef in GameDatabase.DataDirectory.IteratePrototypesInHierarchy<LeaderboardPrototype>(PrototypeIterateFlags.NoAbstractApprovedOnly))
             {
-                LeaderboardPrototype proto = GameDatabase.GetPrototype<LeaderboardPrototype>(dataRef);
-                if (proto == null || proto.DesignState != DesignWorkflowState.Live || proto.Public == false)
+                if (BuildDatabaseRecord(dataRef, startTime, out DBLeaderboard dbLeaderboard, out DBLeaderboardInstance dbInstance) == false)
                     continue;
-
-                PrototypeGuid leaderboardId = GameDatabase.GetPrototypeGuid(dataRef);
-                ulong instanceId = Leaderboard.GenerateInitialInstanceId(leaderboardId);
-
-                // Enabled all permanent leaderboards except for Anniversary2016 by default
-                bool isEnabled = proto.ResetFrequency == LeaderboardResetFrequency.NeverReset;
-                if (leaderboardId == (PrototypeGuid)16486420054343424221)   // Anniversary2016
-                    isEnabled = false;
-
-                DBLeaderboard dbLeaderboard = new()
-                {
-                    LeaderboardId = (long)leaderboardId,
-                    PrototypeName = dataRef.GetNameFormatted(),
-                    ActiveInstanceId = (long)instanceId,
-                    IsEnabled = isEnabled,
-                    StartTime = startTime,
-                    MaxResetCount = 0
-                };
 
                 dbLeaderboards.Add(dbLeaderboard);
                 schedule.Add(new(dbLeaderboard));
-
-                dbInstances.Add(new DBLeaderboardInstance
-                {
-                    InstanceId = (long)instanceId,
-                    LeaderboardId = (long)leaderboardId,
-                    State = isEnabled ? LeaderboardState.eLBS_Created : LeaderboardState.eLBS_Rewarded,
-                    ActivationDate = 0,
-                    Visible = isEnabled
-                });
-
-                if (proto.IsMetaLeaderboard)
-                {
-                    List<DBMetaEntry> dbMetaEntries = new();
-                    foreach (MetaLeaderboardEntryPrototype meta in proto.MetaLeaderboardEntries)
-                    {
-                        PrototypeGuid subLeaderboardId = GameDatabase.GetPrototypeGuid(meta.Leaderboard);
-                        ulong subInstanceId = Leaderboard.GenerateInitialInstanceId(subLeaderboardId);
-                        dbMetaEntries.Add(new DBMetaEntry
-                        {
-                            LeaderboardId = (long)leaderboardId,
-                            InstanceId = (long)instanceId,
-                            SubLeaderboardId = (long)subLeaderboardId,
-                            SubInstanceId = (long)subInstanceId
-                        });
-                    }
-                    DBManager.InsertMetaEntries(dbMetaEntries);
-                }
+                dbInstances.Add(dbInstance);
             }
 
             string scheduleJson = JsonSerializer.Serialize(schedule, LeaderboardScheduler.JsonSerializerOptions);
@@ -379,6 +335,95 @@ namespace MHServerEmu.Leaderboards
 
             DBManager.InsertLeaderboards(dbLeaderboards);
             DBManager.UpdateOrInsertInstances(dbInstances);
+        }
+
+        private bool BuildDatabaseRecord(PrototypeId dataRef, long startTime, out DBLeaderboard dbLeaderboard, out DBLeaderboardInstance dbInstance)
+        {
+            dbLeaderboard = null;
+            dbInstance = null;
+
+            LeaderboardPrototype proto = GameDatabase.GetPrototype<LeaderboardPrototype>(dataRef);
+            if (proto == null || proto.DesignState != DesignWorkflowState.Live || proto.Public == false)
+                return false;
+
+            PrototypeGuid leaderboardId = GameDatabase.GetPrototypeGuid(dataRef);
+            ulong instanceId = Leaderboard.GenerateInitialInstanceId(leaderboardId);
+
+            bool isEnabled = proto.ResetFrequency == LeaderboardResetFrequency.NeverReset;
+            if (leaderboardId == (PrototypeGuid)16486420054343424221)   // Anniversary2016
+                isEnabled = false;
+
+            dbLeaderboard = new()
+            {
+                LeaderboardId = (long)leaderboardId,
+                PrototypeName = dataRef.GetNameFormatted(),
+                ActiveInstanceId = (long)instanceId,
+                IsEnabled = isEnabled,
+                StartTime = startTime,
+                MaxResetCount = 0
+            };
+
+            dbInstance = new DBLeaderboardInstance
+            {
+                InstanceId = (long)instanceId,
+                LeaderboardId = (long)leaderboardId,
+                State = isEnabled ? LeaderboardState.eLBS_Created : LeaderboardState.eLBS_Rewarded,
+                ActivationDate = 0,
+                Visible = isEnabled
+            };
+
+            if (proto.IsMetaLeaderboard)
+            {
+                List<DBMetaEntry> dbMetaEntries = new();
+                foreach (MetaLeaderboardEntryPrototype meta in proto.MetaLeaderboardEntries)
+                {
+                    PrototypeGuid subLeaderboardId = GameDatabase.GetPrototypeGuid(meta.Leaderboard);
+                    ulong subInstanceId = Leaderboard.GenerateInitialInstanceId(subLeaderboardId);
+                    dbMetaEntries.Add(new DBMetaEntry
+                    {
+                        LeaderboardId = (long)leaderboardId,
+                        InstanceId = (long)instanceId,
+                        SubLeaderboardId = (long)subLeaderboardId,
+                        SubInstanceId = (long)subInstanceId
+                    });
+                }
+                DBManager.InsertMetaEntries(dbMetaEntries);
+            }
+
+            return true;
+        }
+
+        public bool CreateMissingDatabaseRecord(PrototypeId dataRef)
+        {
+            lock (_leaderboardLock)
+            {
+                PrototypeGuid leaderboardId = GameDatabase.GetPrototypeGuid(dataRef);
+                DBLeaderboard[] existing = DBManager.GetLeaderboards();
+                if (existing.Any(lb => lb.LeaderboardId == (long)leaderboardId))
+                    return false;
+
+                DateTime currentYear = new(DateTime.Now.Year, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+                long startTime = Clock.DateTimeToTimestamp(currentYear);
+
+                if (BuildDatabaseRecord(dataRef, startTime, out DBLeaderboard dbLeaderboard, out DBLeaderboardInstance dbInstance) == false)
+                    return false;
+
+                DBManager.InsertLeaderboards(new List<DBLeaderboard> { dbLeaderboard });
+                DBManager.UpdateOrInsertInstances(new List<DBLeaderboardInstance> { dbInstance });
+
+                LeaderboardPrototype proto = dataRef.As<LeaderboardPrototype>();
+                if (proto == null)
+                    return true;
+
+                Leaderboard leaderboard = new(proto, dbLeaderboard);
+                if (proto.IsMetaLeaderboard)
+                    _metaLeaderboards.TryAdd(leaderboardId, leaderboard);
+                else
+                    _leaderboards.TryAdd(leaderboardId, leaderboard);
+
+                SendLeaderboardsToGames();
+                return true;
+            }
         }
 
         /// <summary>

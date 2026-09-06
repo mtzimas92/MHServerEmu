@@ -1,0 +1,50 @@
+[
+  {
+    "Enabled": true,
+    "Prototype": "Leaderboards/Prototypes/Leaderboards/CivilWar/CivilWarAntiReg.prototype",
+    "Path": "ScoringRules[0].Event.EntityKeyword",
+    "Description": "[Cosmic Rift Progression] Repurpose the dormant CivilWarAntiReg leaderboard as a synthetic Standard Rift progression board. The marker keyword is only used by the server-side Mythic Rift level-up report.",
+    "ValueType": "PrototypeId",
+    "Value": 14574478248157977338
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Leaderboards/Prototypes/Leaderboards/CivilWar/CivilWarAntiReg.prototype",
+    "Path": "ScoringRules[0].Event.Rank",
+    "Description": "[Cosmic Rift Progression] Remove the native boss-rank filter so only the synthetic marker controls scoring.",
+    "ValueType": "PrototypeId",
+    "Value": 0
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Leaderboards/Prototypes/Leaderboards/CivilWar/CivilWarAntiReg.prototype",
+    "Path": "ScoringRules[0].Event.Context",
+    "Description": "[Cosmic Rift Progression] Remove the native event context so the synthetic server-side score event can match.",
+    "ValueType": "PrototypeId",
+    "Value": 0
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Leaderboards/Prototypes/Leaderboards/CivilWar/CivilWarAntiReg.prototype",
+    "Path": "Public",
+    "Description": "[Cosmic Rift Progression] Make the repurposed leaderboard visible.",
+    "ValueType": "Boolean",
+    "Value": true
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Leaderboards/Prototypes/Leaderboards/CivilWar/CivilWarAntiReg.prototype",
+    "Path": "ResetFrequency",
+    "Description": "[Cosmic Rift Progression] Temporarily reset every 4 hours for test-center validation, matching the Industry City Patrol cadence.",
+    "ValueType": "Enum",
+    "Value": "Every4hours"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Leaderboards/Prototypes/Leaderboards/CivilWar/CivilWarAntiReg.prototype",
+    "Path": "Duration",
+    "Description": "[Cosmic Rift Progression] Temporarily keep each active board open for 4 hours, matching the Industry City Patrol cadence.",
+    "ValueType": "Enum",
+    "Value": "_4hours"
+  }
+]

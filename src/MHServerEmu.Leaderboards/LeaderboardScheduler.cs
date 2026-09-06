@@ -74,9 +74,8 @@ namespace MHServerEmu.Leaderboards
         /// </summary>
         public static void ValidateMetaLeaderboards(LeaderboardScheduler[] schedulers)
         {
-            // HACK: This affects only Civil War leaderboards. See LeaderboardInstance.AddNewMetaEntries() for context why we need this.
-            const int NumMetaSchedulers = 3;
-
+            // HACK: This affects only native Civil War leaderboards. See LeaderboardInstance.AddNewMetaEntries() for context why we need this.
+            LeaderboardScheduler civilWar = null;
             List<LeaderboardScheduler> metaSchedulers = new();
 
             foreach (LeaderboardScheduler schedule in schedulers)
@@ -85,12 +84,19 @@ namespace MHServerEmu.Leaderboards
                 {
                     case 4526141029363356341:   // CivilWarAntiReg
                     case 1775041796111535192:   // CivilWarProReg
+                        metaSchedulers.Add(schedule);
+                        break;
                     case -556417788383984134:   // CivilWar
+                        civilWar = schedule;
                         metaSchedulers.Add(schedule);
                         break;
                 }
             }
 
+            if (civilWar == null)
+                return;
+
+            const int NumMetaSchedulers = 3;
             if (metaSchedulers.Count != NumMetaSchedulers)
                 throw new InvalidDataException($"Expected {NumMetaSchedulers} meta schedulers, but found {metaSchedulers.Count}.");
 

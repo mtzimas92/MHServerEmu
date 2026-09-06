@@ -47,7 +47,7 @@ namespace MHServerEmu.Games.MythicRifts
         private const int ThirtyWaveOmegaDifficultyStartWave = 20;
         private const int BossGauntletOmegaDifficultyStartWave = 50;
         private const string BaseRiftDifficultyTierPrototypeName = "Difficulty/Tiers/Tier3Superheroic.prototype";
-        private const string HighRiftDifficultyTierPrototypeName = "Difficulty/Tiers/Tier4Cosmic.prototype";
+        private const string HighRiftDifficultyTierPrototypeName = "Difficulty/Tiers/Tier5Omega1.prototype";
         private static PrototypeId _cachedBaseRiftDifficultyTierRef = PrototypeId.Invalid;
         private static PrototypeId _cachedHighRiftDifficultyTierRef = PrototypeId.Invalid;
         private static readonly string[] SupportedCosmicRiftBeaconPrototypeNames =

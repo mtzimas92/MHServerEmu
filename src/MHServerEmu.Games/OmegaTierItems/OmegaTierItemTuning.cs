@@ -70,27 +70,86 @@ namespace MHServerEmu.Games.OmegaTierItems
             {
                 ProfileName = "default-omega-items",
                 PreferredAffixChancePct = 100f,
-                MaxPreferredAffixesPerItem = 2,
+                MaxPreferredAffixesPerItem = 1,
                 PreferredAffixes =
                 [
                     new()
                     {
-                        Prototype = "Entity/Items/Affixes/ArmorAffixes/Loot20/CritChance/CritChanceT3.prototype",
-                        Weight = 10,
-                        Slots = ["Gear02", "Gear04"]
+                        Prototype = "Entity/Items/Affixes/ArmorAffixes/Loot20/BonusSpirit/BonusSpiritT1.prototype",
+                        Weight = 1,
+                        Slots = ["Gear01", "Gear02", "Gear03", "Gear04", "Gear05"]
                     },
                     new()
                     {
-                        Prototype = "Entity/Items/Affixes/ArmorAffixes/Loot20/CritDamage/CritDamageT3.prototype",
-                        Weight = 10,
-                        Slots = ["Gear02", "Gear04"]
+                        Prototype = "Entity/Items/Affixes/ArmorAffixes/Loot20/BonusHealth/BonusHealthT2.prototype",
+                        Weight = 1,
+                        Slots = ["Gear01", "Gear02", "Gear03", "Gear04", "Gear05"]
                     },
                     new()
                     {
-                        Prototype = "Entity/Items/Affixes/ArmorAffixes/Loot20/BrutalDamage/BrutalDamageT3.prototype",
-                        Weight = 10,
-                        Slots = ["Gear02", "Gear04"]
+                        Prototype = "Entity/Items/Affixes/ArmorAffixes/Loot20/Complex/CostReduction/CostReductionArea.prototype",
+                        Weight = 1,
+                        Slots = ["Gear01", "Gear02", "Gear03", "Gear04", "Gear05"]
+                    },
+                    new()
+                    {
+                        Prototype = "Entity/Items/Affixes/ArmorAffixes/Loot20/Complex/CostReduction/CostReductionMelee.prototype",
+                        Weight = 1,
+                        Slots = ["Gear01", "Gear02", "Gear03", "Gear04", "Gear05"]
+                    },
+                    new()
+                    {
+                        Prototype = "Entity/Items/Affixes/ArmorAffixes/Loot20/Complex/CostReduction/CostReductionMovement.prototype",
+                        Weight = 1,
+                        Slots = ["Gear01", "Gear02", "Gear03", "Gear04", "Gear05"]
+                    },
+                    new()
+                    {
+                        Prototype = "Entity/Items/Affixes/ArmorAffixes/Loot20/Complex/CostReduction/CostReductionRanged.prototype",
+                        Weight = 1,
+                        Slots = ["Gear01", "Gear02", "Gear03", "Gear04", "Gear05"]
+                    },
+                    new()
+                    {
+                        Prototype = "Entity/Items/Affixes/ArmorAffixes/Loot20/DefenseAll/DefenseAllT2.prototype",
+                        Weight = 1,
+                        Slots = ["Gear01", "Gear02", "Gear03", "Gear04", "Gear05"]
+                    },
+                    new()
+                    {
+                        Prototype = "Entity/Items/Affixes/ArmorAffixes/Loot20/Dodge/DodgeT2.prototype",
+                        Weight = 1,
+                        Slots = ["Gear01", "Gear02", "Gear03", "Gear04", "Gear05"]
+                    },
+                    new()
+                    {
+                        Prototype = "Entity/Items/Affixes/ArmorAffixes/Loot20/Block/BlockT2.prototype",
+                        Weight = 1,
+                        Slots = ["Gear01", "Gear02", "Gear03", "Gear04", "Gear05"]
+                    },
+                    new()
+                    {
+                        Prototype = "Entity/Items/Affixes/UltimateAffixes/TripleBoost.prototype",
+                        Weight = 1,
+                        Slots = ["Gear01", "Gear02", "Gear03", "Gear04", "Gear05"]
+                    },
+                    new()
+                    {
+                        Prototype = "Entity/Items/Affixes/ArmorAffixes/Loot20/CritDamage/CritDamageT2.prototype",
+                        Weight = 1,
+                        Slots = ["Gear01", "Gear02", "Gear03", "Gear04", "Gear05"]
+                    },
+                    new()
+                    {
+                        Prototype = "Entity/Items/Affixes/ArmorAffixes/Loot20/BrutalDamage/BrutalDamageT2.prototype",
+                        Weight = 1,
+                        Slots = ["Gear01", "Gear02", "Gear03", "Gear04", "Gear05"]
                     }
+                ],
+                DisabledAffixes =
+                [
+                    "Entity/Items/Affixes/ArmorAffixes/Loot20/CosmicAffixes/CosmicMissileDampening.prototype",
+                    "Entity/Items/Affixes/ArmorAffixes/Loot20/CosmicAffixes/CosmicReflectOnDash.prototype"
                 ]
             };
 

@@ -2,25 +2,60 @@
   "profileName": "omega-tier-items-v1",
   "enabled": true,
   "preferredAffixChancePct": 100,
-  "maxPreferredAffixesPerItem": 2,
+  "maxPreferredAffixesPerItem": 1,
   "preferredAffixes": [
     {
-      "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/CritChance/CritChanceT3.prototype",
-      "weight": 10,
-      "slots": [ "Gear02", "Gear04" ]
+      "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/BonusSpirit/BonusSpiritT1.prototype",
+      "slots": [ "Gear01", "Gear02", "Gear03", "Gear04", "Gear05" ]
     },
     {
-      "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/CritDamage/CritDamageT3.prototype",
-      "weight": 10,
-      "slots": [ "Gear02", "Gear04" ]
+      "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/BonusHealth/BonusHealthT2.prototype",
+      "slots": [ "Gear01", "Gear02", "Gear03", "Gear04", "Gear05" ]
     },
     {
-      "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/BrutalDamage/BrutalDamageT3.prototype",
-      "weight": 10,
-      "slots": [ "Gear02", "Gear04" ]
+      "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/Complex/CostReduction/CostReductionArea.prototype",
+      "slots": [ "Gear01", "Gear02", "Gear03", "Gear04", "Gear05" ]
+    },
+    {
+      "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/Complex/CostReduction/CostReductionMelee.prototype",
+      "slots": [ "Gear01", "Gear02", "Gear03", "Gear04", "Gear05" ]
+    },
+    {
+      "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/Complex/CostReduction/CostReductionMovement.prototype",
+      "slots": [ "Gear01", "Gear02", "Gear03", "Gear04", "Gear05" ]
+    },
+    {
+      "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/Complex/CostReduction/CostReductionRanged.prototype",
+      "slots": [ "Gear01", "Gear02", "Gear03", "Gear04", "Gear05" ]
+    },
+    {
+      "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/DefenseAll/DefenseAllT2.prototype",
+      "slots": [ "Gear01", "Gear02", "Gear03", "Gear04", "Gear05" ]
+    },
+    {
+      "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/Dodge/DodgeT2.prototype",
+      "slots": [ "Gear01", "Gear02", "Gear03", "Gear04", "Gear05" ]
+    },
+    {
+      "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/Block/BlockT2.prototype",
+      "slots": [ "Gear01", "Gear02", "Gear03", "Gear04", "Gear05" ]
+    },
+    {
+      "prototype": "Entity/Items/Affixes/UltimateAffixes/TripleBoost.prototype",
+      "slots": [ "Gear01", "Gear02", "Gear03", "Gear04", "Gear05" ]
+    },
+    {
+      "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/CritDamage/CritDamageT2.prototype",
+      "slots": [ "Gear01", "Gear02", "Gear03", "Gear04", "Gear05" ]
+    },
+    {
+      "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/BrutalDamage/BrutalDamageT2.prototype",
+      "slots": [ "Gear01", "Gear02", "Gear03", "Gear04", "Gear05" ]
     }
   ],
   "disabledAffixes": [
+    "Entity/Items/Affixes/ArmorAffixes/Loot20/CosmicAffixes/CosmicMissileDampening.prototype",
+    "Entity/Items/Affixes/ArmorAffixes/Loot20/CosmicAffixes/CosmicReflectOnDash.prototype"
   ],
   "disabledAffixCategories": [
   ],

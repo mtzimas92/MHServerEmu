@@ -1,0 +1,114 @@
+[
+  {
+    "Enabled": true,
+    "Prototype": "Leaderboards/Prototypes/Leaderboards/CivilWar/CivilWarAntiReg.prototype",
+    "Path": "Rewards",
+    "Description": "[Cosmic Rift Progression rewards] Four Rift leaderboard reward tiers using CivilWar reward containers whose loot tables are patched below.",
+    "ValueType": "PrototypeArray",
+    "Value": [
+      {
+        "ParentDataRef": 13336755512767289921,
+        "RewardItem": "Entity/Items/Consumables/Prototypes/LeaderboardRewards/CivilWarProRegWinBox.prototype",
+        "Position": 1
+      },
+      {
+        "ParentDataRef": 619897566873983735,
+        "RewardItem": "Entity/Items/Consumables/Prototypes/LeaderboardRewards/CivilWarProRegLoseBox.prototype",
+        "PercentileBucket": "Within10Percent"
+      },
+      {
+        "ParentDataRef": 619897566873983735,
+        "RewardItem": "Entity/Items/Consumables/Prototypes/LeaderboardRewards/CivilWarAntiRegWinBox.prototype",
+        "PercentileBucket": "Within50Percent"
+      },
+      {
+        "ParentDataRef": 619897566873983735,
+        "RewardItem": "Entity/Items/Consumables/Prototypes/LeaderboardRewards/CivilWarAntiRegLoseBox.prototype",
+        "PercentileBucket": "Within90Percent"
+      },
+      {
+        "ParentDataRef": 619897566873983735,
+        "RewardItem": "Entity/Items/Consumables/Prototypes/LeaderboardRewards/CivilWarAntiRegLoseBox.prototype",
+        "PercentileBucket": "Over90Percent"
+      }
+    ]
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Loot/Tables/Events/CivilWarProRegWinBoxTable.prototype",
+    "Path": "Choices",
+    "Description": "[Cosmic Rift Progression rewards] First place container: 5 SSB boxes plus 3 random cosmic artifact boxes.",
+    "ValueType": "PrototypeArray",
+    "Value": [
+      {
+        "ParentDataRef": 1071992662862269383,
+        "Item": 17453078341229814587,
+        "NumMin": 5,
+        "NumMax": 5
+      },
+      {
+        "ParentDataRef": 1071992662862269383,
+        "Item": 342102974677656257,
+        "NumMin": 3,
+        "NumMax": 3
+      }
+    ]
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Loot/Tables/Events/CivilWarProRegWinLoseTable.prototype",
+    "Path": "Choices",
+    "Description": "[Cosmic Rift Progression rewards] Top 10% container: 4 SSB boxes plus 2 random cosmic artifact boxes.",
+    "ValueType": "PrototypeArray",
+    "Value": [
+      {
+        "ParentDataRef": 1071992662862269383,
+        "Item": 17453078341229814587,
+        "NumMin": 4,
+        "NumMax": 4
+      },
+      {
+        "ParentDataRef": 1071992662862269383,
+        "Item": 342102974677656257,
+        "NumMin": 2,
+        "NumMax": 2
+      }
+    ]
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Loot/Tables/Events/CivilWarAntiRegWinBoxTable.prototype",
+    "Path": "Choices",
+    "Description": "[Cosmic Rift Progression rewards] Top 50% container: 3 SSB boxes plus 1 random cosmic artifact box.",
+    "ValueType": "PrototypeArray",
+    "Value": [
+      {
+        "ParentDataRef": 1071992662862269383,
+        "Item": 17453078341229814587,
+        "NumMin": 3,
+        "NumMax": 3
+      },
+      {
+        "ParentDataRef": 1071992662862269383,
+        "Item": 342102974677656257,
+        "NumMin": 1,
+        "NumMax": 1
+      }
+    ]
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Loot/Tables/Events/CivilWarAntiRegWinLoseTable.prototype",
+    "Path": "Choices",
+    "Description": "[Cosmic Rift Progression rewards] Placement container: 2 SSB boxes.",
+    "ValueType": "PrototypeArray",
+    "Value": [
+      {
+        "ParentDataRef": 1071992662862269383,
+        "Item": 17453078341229814587,
+        "NumMin": 2,
+        "NumMax": 2
+      }
+    ]
+  }
+]

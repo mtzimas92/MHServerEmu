@@ -17,6 +17,7 @@ using MHServerEmu.Games.GameData.Prototypes;
 using MHServerEmu.Games.Loot;
 using MHServerEmu.Games.Missions.Actions;
 using MHServerEmu.Games.Missions.Conditions;
+using MHServerEmu.Games.MythicRifts;
 using MHServerEmu.Games.Populations;
 using MHServerEmu.Games.Properties;
 using MHServerEmu.Games.Regions;
@@ -1063,6 +1064,8 @@ namespace MHServerEmu.Games.Missions
 
                             if (isAchievement)
                                 activity.Player.OnScoringEvent(new(ScoringEventType.CompleteMission, Prototype));
+
+                            RiftAccessTeleportService.TryGrantOmegaPatrolAccessForCompletedMission(activity.Player, region, missionRef);
                         }
                     }
                 }

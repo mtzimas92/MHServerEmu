@@ -131,6 +131,8 @@ namespace MHServerEmu.Games.Loot
 
         public LootRollResult PushItem(DropFilterArguments filterArgs, RestrictionTestFlags restrictionFlags, int stackCount, LootMutationPrototype[] mutations)
         {
+            OmegaTierItemFactory.TryPromoteCosmicDropFilterToOmegaDifficulty(this, filterArgs);
+
             if (CheckItem(filterArgs, restrictionFlags, false, stackCount) == false)
                 return LootRollResult.Failure;
 
@@ -601,6 +603,7 @@ namespace MHServerEmu.Games.Loot
                             if (adjustResultFlags.HasFlag(RestrictionTestFlags.OutputRarity))
                                 itemSpec.RarityProtoRef = restrictionArgs.Rarity;
 
+                            OmegaTierItemFactory.TryFinalizeOmegaDropForOmegaDifficulty(this, itemSpec, settings, pendingItem.RollFor);
                             OmegaTierItemFactory.TryApplyConfiguredUniqueOverrideForOmegaDifficulty(this, itemSpec, settings);
 
                             // Push the final processed item

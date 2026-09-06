@@ -6,6 +6,7 @@ using MHServerEmu.Games.Entities;
 using MHServerEmu.Games.Entities.Avatars;
 using MHServerEmu.Games.GameData;
 using MHServerEmu.Games.GameData.Prototypes;
+using MHServerEmu.Games.Properties;
 using MHServerEmu.Games.Regions;
 using MHServerEmu.Games.UI;
 
@@ -19,12 +20,18 @@ namespace MHServerEmu.Games.MythicRifts
         public static readonly PrototypeId OmegaPatrolTeleporterRef = (PrototypeId)1753661696525930987;
         public static readonly PrototypeId RaidAccessTeleporterRef = (PrototypeId)13792587214021661359;
         private static readonly PrototypeId UltronRaidTargetRef = (PrototypeId)6101407482858775734;
-
+        private static readonly PrototypeId MidtownPatrolTargetCosmicRef = (PrototypeId)10267419782939942783;
+        private static readonly PrototypeId ICPPatrolTargetCosmicRef = (PrototypeId)1301013882718790217;
+        private static readonly PrototypeId HightownPatrolTargetCosmicRef = (PrototypeId)3715467830624070844;
         private static readonly PrototypeId Tier3SuperheroicRef = (PrototypeId)586640101754933627;
+        private static readonly PrototypeId Tier4CosmicRef = (PrototypeId)1087474643293441873;
         private static readonly PrototypeId Tier5Omega1Ref = (PrototypeId)424700179461639950;
+        private const string CosmicGateFinalMissionPrototypeName = "Missions/Prototypes/PVEEndgame/PatrolCosmicGate/Events/PatrolCosmicGateEventTrialP3B.prototype";
 
         private static readonly LocaleStringId RaidAccessDialogTextRef = (LocaleStringId)18000000000000080200;
         private static readonly LocaleStringId OmegaPatrolDialogTextRef = (LocaleStringId)18000000000000080201;
+        private static readonly LocaleStringId OmegaPatrolLockedMessageRef = (LocaleStringId)18000000000000080202;
+        private static readonly LocaleStringId OmegaPatrolUnlockedMessageRef = (LocaleStringId)18000000000000080203;
         private static readonly LocaleStringId CosmicAxisButtonRef = (LocaleStringId)18000000000000080210;
         private static readonly LocaleStringId OmegaMuspelheimButtonRef = (LocaleStringId)18000000000000080211;
         private static readonly LocaleStringId OmegaUltronButtonRef = (LocaleStringId)18000000000000080212;
@@ -118,6 +125,12 @@ namespace MHServerEmu.Games.MythicRifts
 
         private static void UseOmegaPatrolTeleporter(Player player, WorldEntity npc)
         {
+            if (HasOmegaPatrolAccessForCurrentAvatar(player) == false)
+            {
+                player.SendBannerMessage(OmegaPatrolLockedMessageRef);
+                return;
+            }
+
             Game game = player.Game;
 
             GameDialogInstance dialog = game.GameDialogManager.CreateInstance(player.DatabaseUniqueId);
@@ -135,7 +148,7 @@ namespace MHServerEmu.Games.MythicRifts
             {
                 if (response.ButtonIndex == GameDialogResultEnum.eGDR_Option1)
                 {
-                    TeleportDialogPlayerToTarget(game, playerGuid, "Regions/EndGame/TierX/PatrolMidtown/ConnectionTargets/XManhattanEntryTarget01.prototype", Tier5Omega1Ref);
+                    TeleportDialogPlayerToTarget(game, playerGuid, MidtownPatrolTargetCosmicRef, Tier5Omega1Ref, TeleportContextEnum.TeleportContext_Waypoint);
                     return;
                 }
 
@@ -165,14 +178,14 @@ namespace MHServerEmu.Games.MythicRifts
 
             void OnOmegaPatrolMoreTeleporterDialogResponse(ulong playerGuid, DialogResponse response)
             {
-                string targetPath = response.ButtonIndex switch
+                PrototypeId targetRef = response.ButtonIndex switch
                 {
-                    GameDialogResultEnum.eGDR_Option1 => "Regions/EndGame/TierX/PatrolBrooklyn/Targets/DocksPatrolEntryTarget01.prototype",
-                    GameDialogResultEnum.eGDR_Option2 => "Regions/EndGame/TierX/PatrolHightown/ConnectionTargets/WaypointTargets/HightownPatrolWPTarget.prototype",
-                    _ => null
+                    GameDialogResultEnum.eGDR_Option1 => ICPPatrolTargetCosmicRef,
+                    GameDialogResultEnum.eGDR_Option2 => HightownPatrolTargetCosmicRef,
+                    _ => PrototypeId.Invalid
                 };
 
-                TeleportDialogPlayerToTarget(game, playerGuid, targetPath, Tier5Omega1Ref);
+                TeleportDialogPlayerToTarget(game, playerGuid, targetRef, Tier5Omega1Ref, TeleportContextEnum.TeleportContext_Waypoint);
             }
         }
 
@@ -195,7 +208,7 @@ namespace MHServerEmu.Games.MythicRifts
             TeleportDialogPlayerToTarget(game, playerGuid, targetRef, difficultyTierRef);
         }
 
-        private static void TeleportDialogPlayerToTarget(Game game, ulong playerGuid, PrototypeId targetRef, PrototypeId difficultyTierRef)
+        private static void TeleportDialogPlayerToTarget(Game game, ulong playerGuid, PrototypeId targetRef, PrototypeId difficultyTierRef, TeleportContextEnum teleportContext = TeleportContextEnum.TeleportContext_Debug)
         {
             if (targetRef == PrototypeId.Invalid || difficultyTierRef == PrototypeId.Invalid)
                 return;
@@ -205,11 +218,45 @@ namespace MHServerEmu.Games.MythicRifts
                 return;
 
             using var teleporterHandle = TeleporterPool.Get(out Teleporter teleporter);
-            teleporter.Initialize(responsePlayer, TeleportContextEnum.TeleportContext_Debug);
+            teleporter.Initialize(responsePlayer, teleportContext);
             teleporter.DifficultyTierRef = difficultyTierRef;
 
             if (teleporter.TeleportToTarget(targetRef) == false)
                 ; // Logger.Warn($"TeleportDialogPlayerToTarget(): Teleport failed for target {targetRef.GetNameFormatted()}.");
+        }
+
+        public static void TryGrantOmegaPatrolAccessForCompletedMission(Player player, Region region, PrototypeId missionRef)
+        {
+            if (player == null || region == null || HasOmegaPatrolAccessForCurrentAvatar(player))
+                return;
+
+            PrototypeId finalMissionRef = GameDatabase.GetPrototypeRefByName(CosmicGateFinalMissionPrototypeName);
+            if (missionRef != finalMissionRef && missionRef.GetNameFormatted().Contains("PatrolCosmicGateEventTrialP3") == false)
+                return;
+
+            if (region.DifficultyTierRef != Tier4CosmicRef)
+                return;
+
+            GrantOmegaPatrolAccessForCurrentAvatar(player);
+            player.SendBannerMessage(OmegaPatrolUnlockedMessageRef);
+        }
+
+        private static bool HasOmegaPatrolAccessForCurrentAvatar(Player player)
+        {
+            Avatar avatar = player?.CurrentAvatar;
+            if (avatar == null)
+                return false;
+
+            return avatar.Properties[PropertyEnum.MissionCompleted, OmegaPatrolTeleporterRef];
+        }
+
+        private static void GrantOmegaPatrolAccessForCurrentAvatar(Player player)
+        {
+            Avatar avatar = player?.CurrentAvatar;
+            if (avatar == null)
+                return;
+
+            avatar.Properties[PropertyEnum.MissionCompleted, OmegaPatrolTeleporterRef] = true;
         }
     }
 }
