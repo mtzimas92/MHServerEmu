@@ -493,9 +493,11 @@ namespace MHServerEmu.Games.Regions
         private static readonly PrototypeId NPEAvengersTowerHUBRegionRef = (PrototypeId)9142075282174842340;
         private static readonly PrototypeId EGPVEManhattanRef = (PrototypeId)6460789910415087113;
         private static readonly PrototypeId ShannaPortalGuideRef = (PrototypeId)12454068879284506634;
+        private const string SilverSableOmegaTrialGuidePrototypeName = "Entity/Characters/NPCs/SilverSableHelicarrier.prototype";
 
         // Distance to the side of the landing spot Shanna stands at, so returning players don't materialize on top of her.
         private const float ShannaPortalGuideSideOffset = 200f;
+        private const float SilverSableOmegaTrialGuideXOffset = 125f;
         // Confirmed in-game (NPEAvengersTowerHUBRegion, AvengersTowerNPE_HUB.cell) - the landing spot's own Y (573.625)
         // put her slightly into a wall/prop; 570 is the clear spot beside it.
         private const float ShannaPortalGuideY = 570f;
@@ -517,13 +519,29 @@ namespace MHServerEmu.Games.Regions
             Orientation shannaOrientation = Orientation.FromDeltaVector(landingPosition - shannaPosition);
 
             using var entitySettingsHandle = EntitySettingsPool.Get(out EntitySettings entitySettings);
-	    entitySettings.EntityRef = ShannaPortalGuideRef;
+            entitySettings.EntityRef = ShannaPortalGuideRef;
             entitySettings.Position = shannaPosition;
             entitySettings.Orientation = shannaOrientation;
             entitySettings.RegionId = Id;
 
             if (Game.EntityManager.CreateEntity(entitySettings) == null)
                 Logger.Warn("SpawnShannaPortalGuide(): Failed to create the Shanna portal guide entity");
+
+            PrototypeId silverSableRef = GameDatabase.GetPrototypeRefByName(SilverSableOmegaTrialGuidePrototypeName);
+            if (silverSableRef == PrototypeId.Invalid)
+                return;
+
+            Vector3 silverSablePosition = new(shannaPosition.X + SilverSableOmegaTrialGuideXOffset, ShannaPortalGuideY, shannaPosition.Z);
+            Orientation silverSableOrientation = Orientation.FromDeltaVector(landingPosition - silverSablePosition);
+
+            using var silverSableSettingsHandle = EntitySettingsPool.Get(out EntitySettings silverSableSettings);
+            silverSableSettings.EntityRef = silverSableRef;
+            silverSableSettings.Position = silverSablePosition;
+            silverSableSettings.Orientation = silverSableOrientation;
+            silverSableSettings.RegionId = Id;
+
+            if (Game.EntityManager.CreateEntity(silverSableSettings) == null)
+                Logger.Warn("SpawnShannaPortalGuide(): Failed to create the Silver Sable Omega Trial guide entity");
         }
 
         public bool TestStatus(RegionStatus status)
