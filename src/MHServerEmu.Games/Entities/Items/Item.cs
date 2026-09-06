@@ -1083,7 +1083,7 @@ namespace MHServerEmu.Games.Entities.Items
 
                 if (itemOverride.ReplaceBuiltInPropertiesFromTemplate == false)
                 {
-                    Logger.Info($"Omega item override cleared built-in properties: override={itemOverride.Id} item={_itemSpec.ItemProtoRef.GetNameFormatted()} preserveProcProperties={itemOverride.PreserveProcBuiltInProperties}");
+                    // Logger.Trace($"Omega item override cleared built-in properties: override={itemOverride.Id} item={_itemSpec.ItemProtoRef.GetNameFormatted()} preserveProcProperties={itemOverride.PreserveProcBuiltInProperties}");
                     continue;
                 }
 

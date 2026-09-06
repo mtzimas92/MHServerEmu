@@ -2272,7 +2272,7 @@
     "randomItemPools":  [
                             {
                                 "id":  "omega-tier-armor-standard-levels-1-plus",
-                                "enabled":  true,
+                                "enabled":  false,
                                 "prototypeDirectoryPrefix":  "Entity/Items/Armor/Prototypes/",
                                 "itemRarityPrototype":  "Entity/Items/Rarity/R6Omega.prototype",
                                 "allowedEquipmentSlots":  [
@@ -2306,7 +2306,7 @@
                             },
                             {
                                 "id":  "omega-tier-ring-standard-levels-1-plus",
-                                "enabled":  true,
+                                "enabled":  false,
                                 "itemPrototypePaths":  [
                                                            "Entity/Items/Rings/RingOffenseLoot20.prototype",
                                                            "Entity/Items/Rings/RingDefenseLoot20.prototype"
@@ -2363,7 +2363,7 @@
                             },
                             {
                                 "id":  "omega-tier-armor-boss-gauntlet-wave-30-plus",
-                                "enabled":  true,
+                                "enabled":  false,
                                 "prototypeDirectoryPrefix":  "Entity/Items/Armor/Prototypes/",
                                 "itemRarityPrototype":  "Entity/Items/Rarity/R6Omega.prototype",
                                 "allowedEquipmentSlots":  [
@@ -2396,7 +2396,7 @@
                             },
                             {
                                 "id":  "omega-tier-ring-boss-gauntlet-wave-30-plus",
-                                "enabled":  true,
+                                "enabled":  false,
                                 "itemPrototypePaths":  [
                                                            "Entity/Items/Rings/RingOffenseLoot20.prototype",
                                                            "Entity/Items/Rings/RingDefenseLoot20.prototype"
@@ -2440,7 +2440,7 @@
     "guaranteedItems":  [
                             {
                                 "id":  "omega-unique238-standard-every-clear",
-                                "enabled":  true,
+                                "enabled":  false,
                                 "itemPrototypeName":  "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot5/Unique238.prototype",
                                 "itemRarityPrototype":  "Entity/Items/Rarity/R6Unique.prototype",
                                 "quantity":  1,
@@ -2465,7 +2465,7 @@
                             },
                             {
                                 "id":  "omega-unique304-standard-every-clear",
-                                "enabled":  true,
+                                "enabled":  false,
                                 "itemPrototypeName":  "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot5/Unique304.prototype",
                                 "itemRarityPrototype":  "Entity/Items/Rarity/R6Unique.prototype",
                                 "quantity":  1,
@@ -2490,7 +2490,7 @@
                             },
                             {
                                 "id":  "omega-unique298-standard-every-clear",
-                                "enabled":  true,
+                                "enabled":  false,
                                 "itemPrototypeName":  "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot4/Unique298.prototype",
                                 "itemRarityPrototype":  "Entity/Items/Rarity/R6Unique.prototype",
                                 "quantity":  1,
@@ -2515,7 +2515,7 @@
                             },
                             {
                                 "id":  "omega-unique294-standard-every-clear",
-                                "enabled":  true,
+                                "enabled":  false,
                                 "itemPrototypeName":  "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot2/Unique294.prototype",
                                 "itemRarityPrototype":  "Entity/Items/Rarity/R6Unique.prototype",
                                 "quantity":  1,
