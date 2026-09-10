@@ -746,7 +746,9 @@ namespace MHServerEmu.Games.MythicRifts
             }
 
             if (item.DecrementStack() == false)
-                ; // Logger.Warn($"[MythicRiftLauncher] Failed to consume launcher item stack itemId={item.Id} prototype={item.PrototypeDataRef.GetNameFormatted()} stack={item.CurrentStackSize}");
+            {
+                // Logger.Warn($"[MythicRiftLauncher] Failed to consume launcher item stack itemId={item.Id} prototype={item.PrototypeDataRef.GetNameFormatted()} stack={item.CurrentStackSize}");
+            }
         }
 
         private MythicRiftLauncherUseResult TryRequestRunFromArmedFixedContent(Player player, Item item, string contentId, int riftLevel, TimeSpan timeLimit)

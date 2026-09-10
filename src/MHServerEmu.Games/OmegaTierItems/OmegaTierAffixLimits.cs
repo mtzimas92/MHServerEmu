@@ -300,9 +300,9 @@ namespace MHServerEmu.Games.OmegaTierItems
             {
                 int ringsEnabled = EnableOmegaOnRings(omegaRarityRef);
                 if (ringsEnabled > 0)
-                    ; // Logger.Info($"Permitted R6Omega on {ringsEnabled} ring drop restriction(s)");
+                    { } // Logger.Info($"Permitted R6Omega on {ringsEnabled} ring drop restriction(s)");
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 // Logger.Warn($"TryEnableOmegaOnRings(): failed, Omega rings will remain disabled - {e.Message}");
             }
@@ -314,9 +314,9 @@ namespace MHServerEmu.Games.OmegaTierItems
             {
                 int recipesChanged = EnableOmegaOnCraftingRecipeInputs(cosmicRarityRef, omegaRarityRef, out int restrictionsChanged);
                 if (restrictionsChanged > 0)
-                    ; // Logger.Info($"Permitted R6Omega on {restrictionsChanged} crafting recipe input rarity restriction(s) across {recipesChanged} recipe(s)");
+                    { } // Logger.Info($"Permitted R6Omega on {restrictionsChanged} crafting recipe input rarity restriction(s) across {recipesChanged} recipe(s)");
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 // Logger.Warn($"TryEnableOmegaOnCraftingRecipeInputs(): failed, Omega crafting inputs may remain disabled - {e.Message}");
             }
@@ -445,7 +445,7 @@ namespace MHServerEmu.Games.OmegaTierItems
             {
                 RepairInvertedAffixBands();
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 // Logger.Warn($"TryRepairInvertedAffixBands(): failed - {e.Message}");
             }

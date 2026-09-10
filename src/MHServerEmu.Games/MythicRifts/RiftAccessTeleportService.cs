@@ -222,7 +222,9 @@ namespace MHServerEmu.Games.MythicRifts
             teleporter.DifficultyTierRef = difficultyTierRef;
 
             if (teleporter.TeleportToTarget(targetRef) == false)
-                ; // Logger.Warn($"TeleportDialogPlayerToTarget(): Teleport failed for target {targetRef.GetNameFormatted()}.");
+            {
+                // Logger.Warn($"TeleportDialogPlayerToTarget(): Teleport failed for target {targetRef.GetNameFormatted()}.");
+            }
         }
 
         public static void TryGrantOmegaPatrolAccessForCompletedMission(Player player, Region region, PrototypeId missionRef)

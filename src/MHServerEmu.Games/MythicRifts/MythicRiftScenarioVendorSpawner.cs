@@ -54,7 +54,9 @@ namespace MHServerEmu.Games.MythicRifts
             entitySettings.RegionId = region.Id;
 
             if (region.Game.EntityManager.CreateEntity(entitySettings) == null)
-                ; // Logger.Warn("SpawnDangerRoomScenarioVendor(): Failed to create the Danger Room Scenario Vendor entity");
+            {
+                // Logger.Warn("SpawnDangerRoomScenarioVendor(): Failed to create the Danger Room Scenario Vendor entity");
+            }
         }
     }
 }

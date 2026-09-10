@@ -193,7 +193,8 @@ namespace MHServerEmu.Games.OmegaTierItems
             }
 
             if (entryCount > 0)
-                ; // Logger.Info($"Applied Omega built-in property prototype overrides to {itemCount} item prototype(s), entries={entryCount}.");
+
+                { } // Logger.Info($"Applied Omega built-in property prototype overrides to {itemCount} item prototype(s), entries={entryCount}.");
         }
 
         public static bool TryApplyConfiguredUniqueOverrideForOmegaDifficulty(ItemResolver resolver, ItemSpec itemSpec, LootRollSettings settings = null)
@@ -285,7 +286,7 @@ namespace MHServerEmu.Games.OmegaTierItems
             if (GameDatabase.DataDirectory.PrototypeIsAbstract(itemProtoRef))
             {
                 if (logFailures)
-                    ; // Logger.Warn($"CreateItemSpec(): cannot create abstract item {itemProtoRef.GetNameFormatted()}");
+                    { } // Logger.Warn($"CreateItemSpec(): cannot create abstract item {itemProtoRef.GetNameFormatted()}");
                 return null;
             }
 
@@ -310,7 +311,7 @@ namespace MHServerEmu.Games.OmegaTierItems
                 itemProto.IsDroppableForRestrictions(filterArgs, RestrictionTestFlags.Rarity) == false)
             {
                 if (logFailures)
-                    ; // Logger.Warn($"CreateItemSpec(): {itemProtoRef.GetNameFormatted()} cannot drop as {rarityProtoRef.GetNameFormatted()} at level {filterArgs.Level}");
+                    { } // Logger.Warn($"CreateItemSpec(): {itemProtoRef.GetNameFormatted()} cannot drop as {rarityProtoRef.GetNameFormatted()} at level {filterArgs.Level}");
                 return null;
             }
 
@@ -326,7 +327,7 @@ namespace MHServerEmu.Games.OmegaTierItems
             if (mutationResults.HasFlag(MutationResults.Error))
             {
                 if (logFailures)
-                    ; // Logger.Warn($"CreateItemSpec(): failed to roll affixes for {itemProtoRef.GetNameFormatted()} as {rarityProtoRef.GetNameFormatted()}");
+                    { } // Logger.Warn($"CreateItemSpec(): failed to roll affixes for {itemProtoRef.GetNameFormatted()} as {rarityProtoRef.GetNameFormatted()}");
                 return null;
             }
 
@@ -741,7 +742,8 @@ namespace MHServerEmu.Games.OmegaTierItems
                 itemSpec.SetAffixes(affixSpecs);
 
             if (replacedCount > 0)
-                ; // Logger.Info($"Omega item override selective affix replacements applied: override={itemOverride.Id} item={itemSpec.ItemProtoRef.GetNameFormatted()} replaced={replacedCount}");
+
+                { } // Logger.Info($"Omega item override selective affix replacements applied: override={itemOverride.Id} item={itemSpec.ItemProtoRef.GetNameFormatted()} replaced={replacedCount}");
 
             return changed;
         }
@@ -925,7 +927,7 @@ namespace MHServerEmu.Games.OmegaTierItems
             {
                 propertyId = PatchEntryConverter.ParseJsonPropertyIdSinglePublic(builtInProperty.Property);
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 // Logger.Warn($"Omega runtime built-in property override could not parse property: override={itemOverride.Id} property={builtInProperty.Property} exception={e.Message}");
                 return false;

@@ -228,7 +228,7 @@ namespace MHServerEmu.Games.Entities
                     if (Game.MythicRiftManager.TryResolveRewardShopOfferVendorStockItemPrototype(offer, out PrototypeId itemProtoRef) == false)
                     {
                         if (stockIndex == 0)
-                            ; // Logger.Warn($"TryAddMythicRiftCompletionVendorOffers(): Failed to resolve concrete vendor item for offer {offer.Id}");
+                            { } // Logger.Warn($"TryAddMythicRiftCompletionVendorOffers(): Failed to resolve concrete vendor item for offer {offer.Id}");
 
                         break;
                     }
@@ -570,10 +570,11 @@ namespace MHServerEmu.Games.Entities
 
             UpdateCraftingIngredientAvailableStackCounts(craftingIngredientSet);
             if (addedAny == false && HasAnyTrackedMythicRiftCompletionCrafterRecipe(inventoryList) == false)
-                ; // Logger.Warn("TryAddMythicRiftCompletionCrafterRecipe(): No free completion crafter slot or no completion recipes resolved.");
+                { } // Logger.Warn("TryAddMythicRiftCompletionCrafterRecipe(): No free completion crafter slot or no completion recipes resolved.");
 
             if (addedAny)
-                ; // Logger.Trace($"[MythicRiftCompletionCrafter] Stocked completion crafter vendorType={vendorTypeProto.DataRef.GetNameFormatted()} recipeCount={recipeProtoRefs.Count}");
+
+                { } // Logger.Trace($"[MythicRiftCompletionCrafter] Stocked completion crafter vendorType={vendorTypeProto.DataRef.GetNameFormatted()} recipeCount={recipeProtoRefs.Count}");
 
             return addedAny || filteredInventories;
         }
