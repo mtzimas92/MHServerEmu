@@ -93,6 +93,9 @@ namespace MHServerEmu.Leaderboards
                 }
             }
 
+            if (HasRepurposedCivilWarSubLeaderboard(metaSchedulers))
+                return;
+
             if (civilWar == null)
                 return;
 
@@ -109,6 +112,30 @@ namespace MHServerEmu.Leaderboards
                 if (!Verify.IsTrue(scheduler.IsEnabled == isEnabled, $"Schedule entry {scheduler} is out of sync, forcing IsEnabled = {isEnabled}"))
                     scheduler.IsEnabled = isEnabled;
             }
+        }
+
+        private static bool HasRepurposedCivilWarSubLeaderboard(List<LeaderboardScheduler> metaSchedulers)
+        {
+            foreach (LeaderboardScheduler scheduler in metaSchedulers)
+            {
+                if (scheduler.IsRepurposedCivilWarSubLeaderboard())
+                    return true;
+            }
+
+            return false;
+        }
+
+        private bool IsRepurposedCivilWarSubLeaderboard()
+        {
+            LeaderboardPrototype leaderboardProto = GetPrototype();
+            if (leaderboardProto?.ScoringRules == null || leaderboardProto.ScoringRules.Length == 0)
+                return false;
+
+            ScoringEventEntityDeathPrototype scoringEvent = leaderboardProto.ScoringRules[0]?.Event as ScoringEventEntityDeathPrototype;
+            if (scoringEvent == null)
+                return false;
+
+            return scoringEvent.Context == null || scoringEvent.Context.ContextPublicEventTeam == null;
         }
 
         public DateTime CalcNextUtcActivationDate(DateTime? referenceTimeArg = null, DateTime? currentTimeArg = null)
