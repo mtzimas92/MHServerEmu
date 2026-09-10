@@ -460,6 +460,31 @@ namespace MHServerEmu.Commands.Implementations
             return $"Player {MythicRiftManager.GetModeDisplayName(mode)} progression reset. Highest unlocked Rift level={appliedLevel} | next launch level={game.MythicRiftManager.GetPreferredLaunchRiftLevel(player.DatabaseUniqueId, mode)} | clearedBeaconOverride={disarmed}.";
         }
 
+        [Command("passomegatrial")]
+        [CommandDescription("Debug-unlocks Omega Patrol access for the invoking player's current avatar.")]
+        [CommandUsage("rift passomegatrial")]
+        [CommandUserLevel(AccountUserLevel.Admin)]
+        [CommandInvokerType(CommandInvokerType.Client)]
+        public string PassOmegaTrial(string[] @params, NetClient client)
+        {
+            if (@params.Length != 0)
+                return "Usage: rift passomegatrial";
+
+            PlayerConnection playerConnection = (PlayerConnection)client;
+            Player player = playerConnection?.Player;
+            Avatar avatar = player?.CurrentAvatar;
+            if (player == null || avatar == null)
+                return "Player or current avatar not found.";
+
+            if (RiftAccessTeleportService.HasOmegaPatrolAccessForCurrentAvatar(player))
+                return $"Omega Patrol access is already unlocked for {avatar.PrototypeName}.";
+
+            if (RiftAccessTeleportService.GrantOmegaPatrolAccessForCurrentAvatar(player) == false)
+                return "Failed to unlock Omega Patrol access for the current avatar.";
+
+            return $"Omega Trial marked complete for {avatar.PrototypeName}. Omega Patrol access is now unlocked for this hero.";
+        }
+
         [Command("debug")]
         [CommandDescription("Builds a debug run config for an existing Mythic Rift entry without starting a live run.")]
         [CommandUsage("rift debug [contentId] [level] [players] [killQuota] [minutes]")]

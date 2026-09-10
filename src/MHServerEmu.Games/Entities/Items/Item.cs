@@ -1197,7 +1197,7 @@ namespace MHServerEmu.Games.Entities.Items
                     if (replacement == null || replacement.Count <= 0)
                         continue;
 
-                    AffixPrototype replacementAffixProto = OmegaTierItemFactory.ResolveAffix(replacement.Prototype);
+                    AffixPrototype replacementAffixProto = replacement.ResolvedAffixPrototype ?? OmegaTierItemFactory.ResolveAffix(replacement.Prototype);
                     if (replacementAffixProto == null)
                         continue;
 

@@ -159,6 +159,8 @@ namespace MHServerEmu.Games.MythicRifts
             "Entity/Characters/Mobs/EndGameRandoms01/MoloidEG01.prototype"
         };
         private readonly List<MythicRiftContentEntry> _contentPool = new();
+        private readonly List<MythicRiftContentEntry> _randomMapEligibleContentPool = new();
+        private readonly List<MythicRiftContentEntry> _randomBossEligibleContentPool = new();
         private readonly Dictionary<ulong, MythicRiftRunState> _activeRuns = new();
         private readonly Dictionary<ulong, Event<EntityDeadGameEvent>.Action> _regionEntityDeadActions = new();
         private readonly Dictionary<ulong, int> _highestUnlockedRiftLevelByPlayer = new();
@@ -225,8 +227,8 @@ namespace MHServerEmu.Games.MythicRifts
 
         public IReadOnlyList<MythicRiftContentEntry> ContentPool => _contentPool;
         public IReadOnlyList<MythicRiftContentEntry> RandomEligibleContentPool => RandomMapEligibleContentPool;
-        public IReadOnlyList<MythicRiftContentEntry> RandomMapEligibleContentPool => _contentPool.Where(entry => entry.RandomMapEligible).ToList();
-        public IReadOnlyList<MythicRiftContentEntry> RandomBossEligibleContentPool => _contentPool.Where(entry => entry.RandomBossEligible && entry.HasValidBossSource).ToList();
+        public IReadOnlyList<MythicRiftContentEntry> RandomMapEligibleContentPool => _randomMapEligibleContentPool;
+        public IReadOnlyList<MythicRiftContentEntry> RandomBossEligibleContentPool => _randomBossEligibleContentPool;
         public IReadOnlyCollection<MythicRiftRunState> ActiveRuns => _activeRuns.Values;
         public MythicRiftRewardTuning RewardTuning => _rewardTuning;
         public IReadOnlyList<MythicRiftRewardShopOfferTuning> RewardShopOffers => (_rewardTuning ?? MythicRiftRewardTuning.CreateDefault()).RewardShopOffers;
@@ -553,12 +555,12 @@ namespace MHServerEmu.Games.MythicRifts
 
         private void ResetStandardRiftAccountBestForLeaderboardInstance(Player player, int activeSeasonMarker, ulong activeInstanceId)
         {
-            if (player.HasStandardRiftLeaderboardSeasonReset(activeSeasonMarker))
+            if (player.MythicRiftProgress.HasStandardLeaderboardSeasonReset(activeSeasonMarker))
                 return;
 
             int previousAccountBest = player.MythicRiftHighestUnlockedLevel;
             player.MythicRiftHighestUnlockedLevel = 1;
-            player.SetStandardRiftLeaderboardSeasonReset(activeSeasonMarker);
+            player.MythicRiftProgress.SetStandardLeaderboardSeasonReset(activeSeasonMarker);
 
             Logger.Info($"Standard Rift leaderboard season reset account progress for playerDbId=0x{player.DatabaseUniqueId:X}. leaderboardInstanceId={activeInstanceId} seasonMarker={activeSeasonMarker} previousAccountBest={previousAccountBest} newAccountBest=1.");
         }
@@ -569,15 +571,15 @@ namespace MHServerEmu.Games.MythicRifts
             if (avatar == null)
                 return;
 
-            if (player.HasCurrentAvatarStandardRiftLeaderboardSeasonReset(activeSeasonMarker))
+            if (player.MythicRiftProgress.HasStandardLeaderboardSeasonReset(avatar, activeSeasonMarker))
                 return;
 
             ulong cacheKey = GetProgressionCacheKey(player.DatabaseUniqueId, MythicRiftMode.Standard);
-            int previousAvatarLevel = player.GetMythicRiftHighestUnlockedLevelForCurrentAvatar();
+            int previousAvatarLevel = player.MythicRiftProgress.GetStandardHighestUnlockedLevel(avatar);
             _highestUnlockedRiftLevelByPlayer.Remove(cacheKey);
             _preferredLaunchRiftLevelByPlayer.Remove(cacheKey);
-            player.SetMythicRiftHighestUnlockedLevelForCurrentAvatar(1);
-            player.SetCurrentAvatarStandardRiftLeaderboardSeasonReset(activeSeasonMarker);
+            player.MythicRiftProgress.SetStandardHighestUnlockedLevel(avatar, 1);
+            player.MythicRiftProgress.SetStandardLeaderboardSeasonReset(avatar, activeSeasonMarker);
 
             Logger.Info($"Standard Rift leaderboard season reset avatar progress for playerDbId=0x{player.DatabaseUniqueId:X}. leaderboardInstanceId={activeInstanceId} seasonMarker={activeSeasonMarker} avatar={avatar.PrototypeName} previousAvatarLevel={previousAvatarLevel} newAvatarLevel=1.");
         }
@@ -655,13 +657,13 @@ namespace MHServerEmu.Games.MythicRifts
         private static int GetPersistentAvatarRiftLevel(Player player, MythicRiftMode mode)
         {
             return mode == MythicRiftMode.Endless
-                ? player.GetEndlessRiftHighestUnlockedLevelForCurrentAvatar()
-                : player.GetMythicRiftHighestUnlockedLevelForCurrentAvatar();
+                ? player.MythicRiftProgress.GetEndlessHighestUnlockedLevel(player.CurrentAvatar)
+                : player.MythicRiftProgress.GetStandardHighestUnlockedLevel(player.CurrentAvatar);
         }
 
         private static int GetPersistentEndlessRiftCompletedCycles(Player player)
         {
-            return player?.GetEndlessRiftCompletedCyclesForCurrentAvatar() ?? 0;
+            return player?.MythicRiftProgress.GetEndlessCompletedCycles(player.CurrentAvatar) ?? 0;
         }
 
         private static void SetPersistentAvatarRiftLevel(Player player, int unlockedLevel, MythicRiftMode mode)
@@ -671,9 +673,9 @@ namespace MHServerEmu.Games.MythicRifts
 
             int normalizedLevel = NormalizeStoredRiftLevel(unlockedLevel, mode);
             if (mode == MythicRiftMode.Endless)
-                player.SetEndlessRiftHighestUnlockedLevelForCurrentAvatar(normalizedLevel);
+                player.MythicRiftProgress.SetEndlessHighestUnlockedLevel(player.CurrentAvatar, normalizedLevel);
             else
-                player.SetMythicRiftHighestUnlockedLevelForCurrentAvatar(normalizedLevel);
+                player.MythicRiftProgress.SetStandardHighestUnlockedLevel(player.CurrentAvatar, normalizedLevel);
         }
 
         private static void SetPersistentEndlessRiftCompletedCycles(Player player, int completedCycles)
@@ -681,7 +683,7 @@ namespace MHServerEmu.Games.MythicRifts
             if (player == null)
                 return;
 
-            player.SetEndlessRiftCompletedCyclesForCurrentAvatar(completedCycles);
+            player.MythicRiftProgress.SetEndlessCompletedCycles(player.CurrentAvatar, completedCycles);
         }
 
         public int GetCompletedEndlessCycles(ulong playerDbId)
@@ -2237,6 +2239,7 @@ namespace MHServerEmu.Games.MythicRifts
             if (File.Exists(configPath) == false)
             {
                 _contentPool.Clear();
+                RebuildContentPoolCaches();
                 message = $"Content pool file not found at {FileHelper.GetRelativePath(configPath)}; content pool is empty.";
                 _contentPoolLastLoadMessage = message;
                 return false;
@@ -2258,11 +2261,27 @@ namespace MHServerEmu.Games.MythicRifts
                 if (RegisterContentEntry(entry) == false)
                     failedCount++;
             }
+            RebuildContentPoolCaches();
 
             message = $"Loaded {_contentPool.Count} content pool entries from {FileHelper.GetRelativePath(configPath)}"
                 + (failedCount > 0 ? $" ({failedCount} entries failed to resolve, see warnings above)." : ".");
             _contentPoolLastLoadMessage = message;
             return failedCount == 0;
+        }
+
+        private void RebuildContentPoolCaches()
+        {
+            _randomMapEligibleContentPool.Clear();
+            _randomBossEligibleContentPool.Clear();
+
+            foreach (MythicRiftContentEntry entry in _contentPool)
+            {
+                if (entry.RandomMapEligible)
+                    _randomMapEligibleContentPool.Add(entry);
+
+                if (entry.RandomBossEligible && entry.HasValidBossSource)
+                    _randomBossEligibleContentPool.Add(entry);
+            }
         }
 
         public bool TryReloadRewardTuning(out string message)
@@ -3939,13 +3958,11 @@ namespace MHServerEmu.Games.MythicRifts
 
             PrototypeId contextRef = GetRiftWidgetContextRef(runState);
             PrototypeId rewardContextRef = GetRiftRewardTrackWidgetContextRef(runState);
-            List<(PrototypeId WidgetRef, PrototypeId ContextRef)> extraOwnedWidgets = new()
-            {
-                (GetRiftDangerRoomQuotaWidgetPrototypeRef(), rewardContextRef),
-                (GetRiftReadyCheckWidgetPrototypeRef(), contextRef),
-                (GetRiftBossIconsWidgetPrototypeRef(), contextRef),
-                (GetRiftModifierButtonWidgetPrototypeRef(), contextRef)
-            };
+            using var extraOwnedWidgetsHandle = ListPool<(PrototypeId WidgetRef, PrototypeId ContextRef)>.Get(out List<(PrototypeId WidgetRef, PrototypeId ContextRef)> extraOwnedWidgets);
+            AddOwnedWidget(extraOwnedWidgets, GetRiftDangerRoomQuotaWidgetPrototypeRef(), rewardContextRef);
+            AddOwnedWidget(extraOwnedWidgets, GetRiftReadyCheckWidgetPrototypeRef(), contextRef);
+            AddOwnedWidget(extraOwnedWidgets, GetRiftBossIconsWidgetPrototypeRef(), contextRef);
+            AddOwnedWidget(extraOwnedWidgets, GetRiftModifierButtonWidgetPrototypeRef(), contextRef);
 
             return MythicRiftUiController.RemoveNativeWidgets(
                 uiDataProvider,
@@ -3953,7 +3970,15 @@ namespace MHServerEmu.Games.MythicRifts
                 GetRiftDangerRoomLevelWidgetPrototypeRef(),
                 GetRiftDangerRoomQuotaWidgetPrototypeRef(),
                 GetRiftDangerRoomTimerWidgetPrototypeRef(),
-                extraOwnedWidgets.Where(widget => widget.WidgetRef != PrototypeId.Invalid && widget.ContextRef != PrototypeId.Invalid).ToArray());
+                extraOwnedWidgets);
+        }
+
+        private static void AddOwnedWidget(List<(PrototypeId WidgetRef, PrototypeId ContextRef)> ownedWidgets, PrototypeId widgetRef, PrototypeId contextRef)
+        {
+            if (ownedWidgets == null || widgetRef == PrototypeId.Invalid || contextRef == PrototypeId.Invalid)
+                return;
+
+            ownedWidgets.Add((widgetRef, contextRef));
         }
 
         private void TrySuspendNativeObjectiveMissionForRun(MythicRiftRunState runState, Mission mission)
@@ -8175,7 +8200,9 @@ namespace MHServerEmu.Games.MythicRifts
             if (runState == null)
                 yield break;
 
-            HashSet<ulong> recipientDbIds = new(runState.ParticipantPlayerDbIds);
+            using var recipientDbIdsHandle = HashSetPool<ulong>.Get(out HashSet<ulong> recipientDbIds);
+            foreach (ulong participantPlayerDbId in runState.ParticipantPlayerDbIds)
+                recipientDbIds.Add(participantPlayerDbId);
             if (runState.RegionId != 0)
             {
                 Region region = Game.RegionManager.GetRegion(runState.RegionId);

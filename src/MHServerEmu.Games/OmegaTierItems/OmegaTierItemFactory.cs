@@ -1,6 +1,7 @@
 using MHServerEmu.Core.Collections;
 using MHServerEmu.Core.Extensions;
 using MHServerEmu.Core.Logging;
+using MHServerEmu.Core.Memory;
 using MHServerEmu.Core.System.Random;
 using System.Text.Json;
 using MHServerEmu.Games.Entities;
@@ -593,7 +594,7 @@ namespace MHServerEmu.Games.OmegaTierItems
                     if (forcedAffix == null || forcedAffix.Count <= 0)
                         continue;
 
-                    AffixPrototype affixProto = ResolveAffix(forcedAffix.Prototype);
+                    AffixPrototype affixProto = forcedAffix.ResolvedAffixPrototype ?? ResolveAffix(forcedAffix.Prototype);
                     if (affixProto == null)
                     {
                         // Logger.Warn($"Omega item override forced affix could not resolve: override={itemOverride.Id} item={itemSpec.ItemProtoRef.GetNameFormatted()} affix={forcedAffix.Prototype}");
@@ -707,7 +708,7 @@ namespace MHServerEmu.Games.OmegaTierItems
                 if (replacement == null || replacement.Count <= 0)
                     continue;
 
-                AffixPrototype replacementAffixProto = ResolveAffix(replacement.Prototype);
+                AffixPrototype replacementAffixProto = replacement.ResolvedAffixPrototype ?? ResolveAffix(replacement.Prototype);
                 if (replacementAffixProto == null)
                 {
                     // Logger.Warn($"Omega item override replacement affix could not resolve: override={itemOverride.Id} item={itemSpec.ItemProtoRef.GetNameFormatted()} affix={replacement.Prototype}");
@@ -944,21 +945,10 @@ namespace MHServerEmu.Games.OmegaTierItems
 
         private static bool RemoveConfiguredProcPowers(Item item, OmegaTierItemOverrideTuning itemOverride)
         {
-            if (item == null || itemOverride?.DisabledProcPowers == null || itemOverride.DisabledProcPowers.Count == 0)
+            if (item == null || itemOverride?.DisabledProcPowerRefs == null || itemOverride.DisabledProcPowerRefs.Count == 0)
                 return false;
 
-            HashSet<PrototypeId> disabledProcPowerRefs = new();
-            foreach (string disabledProcPower in itemOverride.DisabledProcPowers)
-            {
-                PrototypeId procPowerRef = ResolvePrototype(disabledProcPower);
-                if (procPowerRef != PrototypeId.Invalid)
-                    disabledProcPowerRefs.Add(procPowerRef);
-            }
-
-            if (disabledProcPowerRefs.Count == 0)
-                return false;
-
-            List<PropertyId> propertiesToRemove = new();
+            using var propertiesToRemoveHandle = ListPool<PropertyId>.Get(out List<PropertyId> propertiesToRemove);
             using var procPropertiesHandle = PropertyCollectionPool.Get(out PropertyCollection procProperties);
             foreach (PropertyEnum procProperty in Property.ProcPropertyTypesAll)
                 procProperties.CopyPropertyRange(item.Properties, procProperty);
@@ -966,7 +956,7 @@ namespace MHServerEmu.Games.OmegaTierItems
             foreach (var kvp in procProperties)
             {
                 Property.FromParam(kvp.Key, 1, out PrototypeId procPowerRef);
-                if (disabledProcPowerRefs.Contains(procPowerRef))
+                if (itemOverride.DisabledProcPowerRefs.Contains(procPowerRef))
                     propertiesToRemove.Add(kvp.Key);
             }
 
@@ -1271,7 +1261,7 @@ namespace MHServerEmu.Games.OmegaTierItems
                     continue;
 
                 hasConfiguredForSlot = true;
-                AffixPrototype affixProto = ResolveAffix(preferredAffix.Prototype);
+                AffixPrototype affixProto = preferredAffix.ResolvedAffixPrototype ?? ResolveAffix(preferredAffix.Prototype);
                 if (affixProto == null || affixProto.Weight <= 0)
                     continue;
 
@@ -1359,7 +1349,7 @@ namespace MHServerEmu.Games.OmegaTierItems
                 if (preferredAffix == null || preferredAffix.AllowsSlot(slot) == false)
                     continue;
 
-                PrototypeId preferredAffixRef = GameDatabase.GetPrototypeRefByName(preferredAffix.Prototype);
+                PrototypeId preferredAffixRef = preferredAffix.ResolvedAffixPrototype?.DataRef ?? ResolvePrototype(preferredAffix.Prototype);
                 if (preferredAffixRef != PrototypeId.Invalid && affixProto.DataRef == preferredAffixRef)
                     return true;
             }
@@ -1377,7 +1367,8 @@ namespace MHServerEmu.Games.OmegaTierItems
                 if (preferredAffix == null || string.IsNullOrWhiteSpace(preferredAffix.Prototype))
                     continue;
 
-                if (GameDatabase.GetPrototypeRefByName(preferredAffix.Prototype) == affixRef)
+                PrototypeId preferredAffixRef = preferredAffix.ResolvedAffixPrototype?.DataRef ?? ResolvePrototype(preferredAffix.Prototype);
+                if (preferredAffixRef == affixRef)
                     return true;
             }
 

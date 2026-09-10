@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Reflection;
 using MHServerEmu.Core.Logging;
+using MHServerEmu.Core.Memory;
 using MHServerEmu.Games.GameData;
 using MHServerEmu.Games.UI;
 
@@ -34,7 +35,7 @@ namespace MHServerEmu.Games.MythicRifts
                 return 0;
             }
 
-            List<(PrototypeId WidgetRef, PrototypeId ContextRef)> widgetsToDelete = new();
+            using var widgetsToDeleteHandle = ListPool<(PrototypeId WidgetRef, PrototypeId ContextRef)>.Get(out List<(PrototypeId WidgetRef, PrototypeId ContextRef)> widgetsToDelete);
             foreach (DictionaryEntry entry in widgetDictionary)
             {
                 if (entry.Key is not ValueTuple<PrototypeId, PrototypeId> key)

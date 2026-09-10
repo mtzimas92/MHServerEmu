@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using MHServerEmu.Core.Helpers;
 using MHServerEmu.Games.GameData;
 using MHServerEmu.Games.GameData.Prototypes;
@@ -29,6 +30,8 @@ namespace MHServerEmu.Games.OmegaTierItems
         public List<string> DisabledAffixes { get; set; } = new();
         public List<string> DisabledAffixCategories { get; set; } = new();
         public List<OmegaTierItemOverrideTuning> ItemOverrides { get; set; } = new();
+        [JsonIgnore] public HashSet<PrototypeId> DisabledAffixRefs { get; } = new();
+        [JsonIgnore] public List<AffixCategoryPrototype> DisabledAffixCategoryPrototypes { get; } = new();
 
         public static string ConfigPath => Path.Combine(FileHelper.DataDirectory, RelativeConfigPath);
 
@@ -179,12 +182,27 @@ namespace MHServerEmu.Games.OmegaTierItems
                 .Select(name => name.Trim())
                 .Distinct(StringComparer.OrdinalIgnoreCase)
                 .ToList();
+            DisabledAffixRefs.Clear();
+            foreach (string affixName in DisabledAffixes)
+            {
+                PrototypeId disabledAffixRef = GameDatabase.GetPrototypeRefByName(affixName);
+                if (disabledAffixRef != PrototypeId.Invalid)
+                    DisabledAffixRefs.Add(disabledAffixRef);
+            }
 
             DisabledAffixCategories = DisabledAffixCategories
                 .Where(name => string.IsNullOrWhiteSpace(name) == false)
                 .Select(name => name.Trim())
                 .Distinct(StringComparer.OrdinalIgnoreCase)
                 .ToList();
+            DisabledAffixCategoryPrototypes.Clear();
+            foreach (string categoryName in DisabledAffixCategories)
+            {
+                PrototypeId categoryRef = GameDatabase.GetPrototypeRefByName(categoryName);
+                AffixCategoryPrototype categoryProto = GameDatabase.GetPrototype<AffixCategoryPrototype>(categoryRef);
+                if (categoryProto != null)
+                    DisabledAffixCategoryPrototypes.Add(categoryProto);
+            }
         }
 
         public bool IsAffixDisabled(AffixPrototype affixProto)
@@ -192,18 +210,12 @@ namespace MHServerEmu.Games.OmegaTierItems
             if (affixProto == null)
                 return false;
 
-            foreach (string affixName in DisabledAffixes)
-            {
-                PrototypeId disabledAffixRef = GameDatabase.GetPrototypeRefByName(affixName);
-                if (disabledAffixRef != PrototypeId.Invalid && disabledAffixRef == affixProto.DataRef)
-                    return true;
-            }
+            if (DisabledAffixRefs.Contains(affixProto.DataRef))
+                return true;
 
 #if GAME_VERSION_1_52 || GAME_VERSION_1_53
-            foreach (string categoryName in DisabledAffixCategories)
+            foreach (AffixCategoryPrototype categoryProto in DisabledAffixCategoryPrototypes)
             {
-                PrototypeId categoryRef = GameDatabase.GetPrototypeRefByName(categoryName);
-                AffixCategoryPrototype categoryProto = GameDatabase.GetPrototype<AffixCategoryPrototype>(categoryRef);
                 if (categoryProto != null && affixProto.HasCategory(categoryProto))
                     return true;
             }
@@ -232,6 +244,8 @@ namespace MHServerEmu.Games.OmegaTierItems
         public string Prototype { get; set; }
         public int Weight { get; set; } = 1;
         public List<string> Slots { get; set; } = new();
+        [JsonIgnore] public AffixPrototype ResolvedAffixPrototype { get; private set; }
+        [JsonIgnore] public HashSet<EquipmentInvUISlot> SlotRefs { get; } = new();
 
         public void Normalize()
         {
@@ -243,23 +257,21 @@ namespace MHServerEmu.Games.OmegaTierItems
                 .Select(slot => slot.Trim())
                 .Distinct(StringComparer.OrdinalIgnoreCase)
                 .ToList();
+            ResolvedAffixPrototype = GameDatabase.GetPrototypeRefByName(Prototype).As<AffixPrototype>();
+            SlotRefs.Clear();
+            foreach (string slotName in Slots)
+            {
+                if (Enum.TryParse(slotName, ignoreCase: true, out EquipmentInvUISlot configuredSlot))
+                    SlotRefs.Add(configuredSlot);
+            }
         }
 
         public bool AllowsSlot(EquipmentInvUISlot slot)
         {
-            if (Slots.Count == 0)
+            if (SlotRefs.Count == 0)
                 return true;
 
-            foreach (string slotName in Slots)
-            {
-                if (Enum.TryParse(slotName, ignoreCase: true, out EquipmentInvUISlot configuredSlot) &&
-                    configuredSlot == slot)
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            return SlotRefs.Contains(slot);
         }
     }
 
@@ -290,6 +302,11 @@ namespace MHServerEmu.Games.OmegaTierItems
         public List<string> DisabledProcPowers { get; set; } = new();
         public List<OmegaTierBuiltInPropertyTuning> BuiltInProperties { get; set; } = new();
         public List<OmegaTierProcKeywordPropertyTuning> ProcKeywordProperties { get; set; } = new();
+        [JsonIgnore] public HashSet<PrototypeId> ItemPrototypeRefs { get; } = new();
+        [JsonIgnore] public HashSet<PrototypeId> RarityRefs { get; } = new();
+        [JsonIgnore] public HashSet<PrototypeId> PreserveExistingAffixRefs { get; } = new();
+        [JsonIgnore] public HashSet<PrototypeId> DisabledAffixRefs { get; } = new();
+        [JsonIgnore] public HashSet<PrototypeId> DisabledProcPowerRefs { get; } = new();
 
         public void Normalize()
         {
@@ -302,6 +319,11 @@ namespace MHServerEmu.Games.OmegaTierItems
             OverrideItemLevel = Math.Max(OverrideItemLevel, 0);
             BuiltInPropertyTemplateItemPrototype = string.IsNullOrWhiteSpace(BuiltInPropertyTemplateItemPrototype) ? string.Empty : BuiltInPropertyTemplateItemPrototype.Trim();
             DisabledProcPowers = NormalizeStringList(DisabledProcPowers);
+            ResolvePrototypeRefs(ItemPrototypes, ItemPrototypeRefs);
+            ResolvePrototypeRefs(Rarities, RarityRefs);
+            ResolvePrototypeRefs(PreserveExistingAffixes, PreserveExistingAffixRefs);
+            ResolvePrototypeRefs(DisabledAffixes, DisabledAffixRefs);
+            ResolvePrototypeRefs(DisabledProcPowers, DisabledProcPowerRefs);
             PreserveBuiltInPropertyIndexes ??= new();
             PreserveBuiltInPropertyIndexes = PreserveBuiltInPropertyIndexes
                 .Where(index => index >= 0)
@@ -335,29 +357,13 @@ namespace MHServerEmu.Games.OmegaTierItems
             if (Enabled == false || itemProtoRef == PrototypeId.Invalid || ItemPrototypes.Count == 0)
                 return false;
 
-            bool itemMatches = false;
-            foreach (string itemName in ItemPrototypes)
-            {
-                if (GameDatabase.GetPrototypeRefByName(itemName) == itemProtoRef)
-                {
-                    itemMatches = true;
-                    break;
-                }
-            }
-
-            if (itemMatches == false)
+            if (ItemPrototypeRefs.Contains(itemProtoRef) == false)
                 return false;
 
             if (Rarities.Count == 0)
                 return true;
 
-            foreach (string rarityName in Rarities)
-            {
-                if (GameDatabase.GetPrototypeRefByName(rarityName) == rarityProtoRef)
-                    return true;
-            }
-
-            return false;
+            return RarityRefs.Contains(rarityProtoRef);
         }
 
         public bool IsAffixDisabled(AffixPrototype affixProto)
@@ -365,14 +371,7 @@ namespace MHServerEmu.Games.OmegaTierItems
             if (affixProto == null)
                 return false;
 
-            foreach (string affixName in DisabledAffixes)
-            {
-                PrototypeId disabledAffixRef = GameDatabase.GetPrototypeRefByName(affixName);
-                if (disabledAffixRef != PrototypeId.Invalid && disabledAffixRef == affixProto.DataRef)
-                    return true;
-            }
-
-            return false;
+            return DisabledAffixRefs.Contains(affixProto.DataRef);
         }
 
         public bool PreservesExistingAffix(PrototypeId affixRef)
@@ -380,14 +379,7 @@ namespace MHServerEmu.Games.OmegaTierItems
             if (affixRef == PrototypeId.Invalid || PreserveExistingAffixes.Count == 0)
                 return false;
 
-            foreach (string affixName in PreserveExistingAffixes)
-            {
-                PrototypeId preserveAffixRef = GameDatabase.GetPrototypeRefByName(affixName);
-                if (preserveAffixRef != PrototypeId.Invalid && preserveAffixRef == affixRef)
-                    return true;
-            }
-
-            return false;
+            return PreserveExistingAffixRefs.Contains(affixRef);
         }
 
         public bool PreservesBuiltInPropertyIndex(int index)
@@ -405,6 +397,20 @@ namespace MHServerEmu.Games.OmegaTierItems
                     .Distinct(StringComparer.OrdinalIgnoreCase)
                     .ToList();
         }
+
+        private static void ResolvePrototypeRefs(List<string> prototypeNames, HashSet<PrototypeId> prototypeRefs)
+        {
+            prototypeRefs.Clear();
+            if (prototypeNames == null)
+                return;
+
+            foreach (string prototypeName in prototypeNames)
+            {
+                PrototypeId prototypeRef = GameDatabase.GetPrototypeRefByName(prototypeName);
+                if (prototypeRef != PrototypeId.Invalid)
+                    prototypeRefs.Add(prototypeRef);
+            }
+        }
     }
 
     public sealed class OmegaTierForcedAffixTuning
@@ -413,10 +419,12 @@ namespace MHServerEmu.Games.OmegaTierItems
         public int Count { get; set; } = 1;
         public bool AllowInvalidAttachment { get; set; } = false;
         public bool ReplaceExistingSamePosition { get; set; } = false;
+        [JsonIgnore] public AffixPrototype ResolvedAffixPrototype { get; private set; }
 
         public void Normalize()
         {
             Prototype = string.IsNullOrWhiteSpace(Prototype) ? string.Empty : Prototype.Trim();
+            ResolvedAffixPrototype = GameDatabase.GetPrototypeRefByName(Prototype).As<AffixPrototype>();
             Count = Math.Max(Count, 0);
         }
     }
@@ -444,10 +452,17 @@ namespace MHServerEmu.Games.OmegaTierItems
             "Socket2",
             "Socket3"
         };
+        [JsonIgnore] public AffixPrototype ResolvedAffixPrototype { get; private set; }
+        [JsonIgnore] public HashSet<int> ReplaceAffixIndexSet { get; } = new();
+        [JsonIgnore] public HashSet<PrototypeId> ReplaceAffixRefs { get; } = new();
+        [JsonIgnore] public HashSet<PrototypeId> PreserveAffixRefs { get; } = new();
+        [JsonIgnore] public HashSet<AffixPosition> ReplacePositionRefs { get; } = new();
+        [JsonIgnore] public HashSet<AffixPosition> PreservePositionRefs { get; } = new();
 
         public void Normalize()
         {
             Prototype = string.IsNullOrWhiteSpace(Prototype) ? string.Empty : Prototype.Trim();
+            ResolvedAffixPrototype = GameDatabase.GetPrototypeRefByName(Prototype).As<AffixPrototype>();
             Count = Math.Max(Count, 0);
             ReplaceAffixIndexes ??= new();
             ReplaceAffixIndexes = ReplaceAffixIndexes
@@ -455,70 +470,72 @@ namespace MHServerEmu.Games.OmegaTierItems
                 .Distinct()
                 .OrderBy(index => index)
                 .ToList();
+            ReplaceAffixIndexSet.Clear();
+            foreach (int index in ReplaceAffixIndexes)
+                ReplaceAffixIndexSet.Add(index);
             ReplaceAffixes = NormalizeStringList(ReplaceAffixes);
             ReplacePositions = NormalizeStringList(ReplacePositions);
             PreserveAffixes = NormalizeStringList(PreserveAffixes);
             PreservePositions = NormalizeStringList(PreservePositions);
+            ResolvePrototypeRefs(ReplaceAffixes, ReplaceAffixRefs);
+            ResolvePrototypeRefs(PreserveAffixes, PreserveAffixRefs);
+            ResolvePositionRefs(ReplacePositions, ReplacePositionRefs);
+            ResolvePositionRefs(PreservePositions, PreservePositionRefs);
         }
 
         public bool AllowsPosition(AffixPosition position)
         {
-            if (ReplacePositions.Count == 0)
+            if (ReplacePositionRefs.Count == 0)
                 return true;
 
-            foreach (string positionName in ReplacePositions)
-            {
-                if (Enum.TryParse(positionName, ignoreCase: true, out AffixPosition configuredPosition) &&
-                    configuredPosition == position)
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            return ReplacePositionRefs.Contains(position);
         }
 
         public bool PreservesPosition(AffixPosition position)
         {
-            foreach (string positionName in PreservePositions)
-            {
-                if (Enum.TryParse(positionName, ignoreCase: true, out AffixPosition configuredPosition) &&
-                    configuredPosition == position)
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            return PreservePositionRefs.Contains(position);
         }
 
         public bool AllowsIndex(int index)
         {
-            return ReplaceAffixIndexes.Count == 0 || ReplaceAffixIndexes.Contains(index);
+            return ReplaceAffixIndexSet.Count == 0 || ReplaceAffixIndexSet.Contains(index);
         }
 
         public bool MatchesReplaceAffix(PrototypeId affixRef)
         {
-            return MatchesConfiguredAffix(ReplaceAffixes, affixRef);
+            return affixRef != PrototypeId.Invalid && ReplaceAffixRefs.Contains(affixRef);
         }
 
         public bool PreservesAffix(PrototypeId affixRef)
         {
-            return MatchesConfiguredAffix(PreserveAffixes, affixRef);
+            return affixRef != PrototypeId.Invalid && PreserveAffixRefs.Contains(affixRef);
         }
 
-        private static bool MatchesConfiguredAffix(List<string> affixNames, PrototypeId affixRef)
+        private static void ResolvePrototypeRefs(List<string> prototypeNames, HashSet<PrototypeId> prototypeRefs)
         {
-            if (affixRef == PrototypeId.Invalid || affixNames == null || affixNames.Count == 0)
-                return false;
+            prototypeRefs.Clear();
+            if (prototypeNames == null)
+                return;
 
-            foreach (string affixName in affixNames)
+            foreach (string prototypeName in prototypeNames)
             {
-                if (GameDatabase.GetPrototypeRefByName(affixName) == affixRef)
-                    return true;
+                PrototypeId prototypeRef = GameDatabase.GetPrototypeRefByName(prototypeName);
+                if (prototypeRef != PrototypeId.Invalid)
+                    prototypeRefs.Add(prototypeRef);
             }
+        }
 
-            return false;
+        private static void ResolvePositionRefs(List<string> positionNames, HashSet<AffixPosition> positionRefs)
+        {
+            positionRefs.Clear();
+            if (positionNames == null)
+                return;
+
+            foreach (string positionName in positionNames)
+            {
+                if (Enum.TryParse(positionName, ignoreCase: true, out AffixPosition position))
+                    positionRefs.Add(position);
+            }
         }
 
         private static List<string> NormalizeStringList(List<string> values)

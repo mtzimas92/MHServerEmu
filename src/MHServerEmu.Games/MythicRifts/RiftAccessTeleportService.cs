@@ -6,7 +6,6 @@ using MHServerEmu.Games.Entities;
 using MHServerEmu.Games.Entities.Avatars;
 using MHServerEmu.Games.GameData;
 using MHServerEmu.Games.GameData.Prototypes;
-using MHServerEmu.Games.Properties;
 using MHServerEmu.Games.Regions;
 using MHServerEmu.Games.UI;
 
@@ -232,33 +231,35 @@ namespace MHServerEmu.Games.MythicRifts
             if (player == null || region == null || HasOmegaPatrolAccessForCurrentAvatar(player))
                 return;
 
-            PrototypeId finalMissionRef = GameDatabase.GetPrototypeRefByName(CosmicGateFinalMissionPrototypeName);
+            PrototypeId finalMissionRef = GetOmegaPatrolAccessMissionRef();
             if (missionRef != finalMissionRef && missionRef.GetNameFormatted().Contains("PatrolCosmicGateEventTrialP3") == false)
                 return;
 
             if (region.DifficultyTierRef != Tier4CosmicRef)
                 return;
 
-            GrantOmegaPatrolAccessForCurrentAvatar(player);
-            player.SendBannerMessage(OmegaPatrolUnlockedMessageRef);
+            if (GrantOmegaPatrolAccessForCurrentAvatar(player))
+                player.SendBannerMessage(OmegaPatrolUnlockedMessageRef);
         }
 
-        private static bool HasOmegaPatrolAccessForCurrentAvatar(Player player)
+        public static bool HasOmegaPatrolAccessForCurrentAvatar(Player player)
+        {
+            return player?.MythicRiftProgress.HasOmegaPatrolAccess(player.CurrentAvatar) == true;
+        }
+
+        public static bool GrantOmegaPatrolAccessForCurrentAvatar(Player player)
         {
             Avatar avatar = player?.CurrentAvatar;
             if (avatar == null)
                 return false;
 
-            return avatar.Properties[PropertyEnum.MissionCompleted, OmegaPatrolTeleporterRef];
+            player.MythicRiftProgress.SetOmegaPatrolAccess(avatar);
+            return true;
         }
 
-        private static void GrantOmegaPatrolAccessForCurrentAvatar(Player player)
+        private static PrototypeId GetOmegaPatrolAccessMissionRef()
         {
-            Avatar avatar = player?.CurrentAvatar;
-            if (avatar == null)
-                return;
-
-            avatar.Properties[PropertyEnum.MissionCompleted, OmegaPatrolTeleporterRef] = true;
+            return GameDatabase.GetPrototypeRefByName(CosmicGateFinalMissionPrototypeName);
         }
     }
 }
