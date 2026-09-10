@@ -547,7 +547,7 @@ namespace MHServerEmu.Games.MythicRifts
 
         private void ResetStandardRiftAccountBestForLeaderboardInstance(Player player, ulong activeInstanceId)
         {
-            PropertyId resetPropertyId = new(PropertyEnum.EndlessLevelStartTime, CosmicRiftProgressionLeaderboardRef);
+            PropertyId resetPropertyId = new(PropertyEnum.EndlessLevelStartTime);
             if (player.Properties.HasProperty(resetPropertyId) && (ulong)player.Properties[resetPropertyId] == activeInstanceId)
                 return;
 
@@ -562,7 +562,7 @@ namespace MHServerEmu.Games.MythicRifts
             if (avatar == null || keyRef == PrototypeId.Invalid)
                 return;
 
-            PropertyId resetPropertyId = new(PropertyEnum.EndlessLevelStartTime, keyRef);
+            PropertyId resetPropertyId = new(PropertyEnum.EndlessLevelStartTime);
             if (avatar.Properties.HasProperty(resetPropertyId) && (ulong)avatar.Properties[resetPropertyId] == activeInstanceId)
                 return;
 
