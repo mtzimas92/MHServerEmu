@@ -1,0 +1,10 @@
+{
+  "enabled": true,
+  "vendorEnabled": true,
+  "disabledMessage": "Mythic Rifts are temporarily disabled.",
+  "modes": {
+    "Standard": true,
+    "Endless": true,
+    "BossGauntlet": true
+  }
+}

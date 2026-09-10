@@ -16,7 +16,7 @@ namespace MHServerEmu.Games.MythicRifts
     {
         private static readonly Logger Logger = LogManager.CreateLogger();
 
-        // Avengers Tower NPCs for direct access to higher difficulty raid/patrol content.
+        // Hub NPCs for direct access to higher difficulty raid/patrol content.
         public static readonly PrototypeId OmegaPatrolTeleporterRef = (PrototypeId)1753661696525930987;
         public static readonly PrototypeId RaidAccessTeleporterRef = (PrototypeId)13792587214021661359;
         private static readonly PrototypeId UltronRaidTargetRef = (PrototypeId)6101407482858775734;

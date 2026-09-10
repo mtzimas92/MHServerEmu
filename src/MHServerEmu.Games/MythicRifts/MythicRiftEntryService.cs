@@ -99,6 +99,16 @@ namespace MHServerEmu.Games.MythicRifts
             MythicRiftMode mode = entryPoint.Id == DefaultEntryPointId
                 ? request.Mode
                 : entryPoint.Mode;
+
+            MythicRiftFeatureTuning featureTuning = MythicRiftFeatureTuning.Load();
+            if (featureTuning.IsModeEnabled(mode) == false)
+            {
+                return new MythicRiftEntryResult
+                {
+                    ErrorMessage = featureTuning.GetDisabledMessage(mode)
+                };
+            }
+
             MythicRiftRunState runState = request.HasFixedContent
                 ? Manager.RequestFixedRun(player, request.ContentId, request.RiftLevel, killQuota, timeLimit, mode, out string errorMessage)
                 : Manager.RequestRun(player, request.RiftLevel, killQuota, timeLimit, mode, out errorMessage);

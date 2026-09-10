@@ -186,6 +186,8 @@ namespace MHServerEmu.Games.MythicRifts
         private static PrototypeId _cachedRiftReadyCheckWidgetPrototypeRef = PrototypeId.Invalid;
         private static PrototypeId _cachedRiftBossIconsWidgetPrototypeRef = PrototypeId.Invalid;
         private static PrototypeId _cachedRiftModifierButtonWidgetPrototypeRef = PrototypeId.Invalid;
+        private static PrototypeId _cachedStandardRiftAvatarProgressPropertyKeyRef = PrototypeId.Invalid;
+        private static PrototypeId _cachedEndlessRiftAvatarProgressPropertyKeyRef = PrototypeId.Invalid;
         private static PrototypeId[] _cachedCustomRiftPopulationMobPrototypeRefs;
         private IReadOnlyList<PrototypeId> _cachedRiftHazardPrototypeRefs;
         private readonly Dictionary<(ulong RunId, ulong PlayerDbId), GameDialogInstance> _readyCheckDialogs = new();
@@ -304,18 +306,19 @@ namespace MHServerEmu.Games.MythicRifts
             if (mode == MythicRiftMode.BossGauntlet)
                 return 1;
 
+            ulong cacheKey = GetProgressionCacheKey(playerDbId, mode);
             Dictionary<ulong, int> unlockedCache = GetHighestUnlockedCache(mode);
             Player onlinePlayer = Game.EntityManager.GetEntityByDbGuid<Player>(playerDbId);
             if (onlinePlayer != null)
             {
                 int persistentLevel = NormalizeStoredRiftLevel(GetPersistentUnlockedRiftLevel(onlinePlayer, mode), mode);
-                if (unlockedCache.TryGetValue(playerDbId, out int cachedUnlockedLevel))
+                if (unlockedCache.TryGetValue(cacheKey, out int cachedUnlockedLevel))
                     return Math.Max(NormalizeStoredRiftLevel(cachedUnlockedLevel, mode), persistentLevel);
 
                 return persistentLevel;
             }
 
-            return unlockedCache.TryGetValue(playerDbId, out int unlockedLevel)
+            return unlockedCache.TryGetValue(cacheKey, out int unlockedLevel)
                 ? NormalizeStoredRiftLevel(unlockedLevel, mode)
                 : 1;
         }
@@ -343,8 +346,9 @@ namespace MHServerEmu.Games.MythicRifts
             if (mode == MythicRiftMode.BossGauntlet)
                 return 1;
 
+            ulong cacheKey = GetProgressionCacheKey(playerDbId, mode);
             Dictionary<ulong, int> preferredCache = GetPreferredLaunchCache(mode);
-            if (preferredCache.TryGetValue(playerDbId, out int preferredLevel) == false || preferredLevel <= 0)
+            if (preferredCache.TryGetValue(cacheKey, out int preferredLevel) == false || preferredLevel <= 0)
                 return highestUnlockedLevel;
 
             return Math.Min(Math.Max(preferredLevel, 1), highestUnlockedLevel);
@@ -391,7 +395,7 @@ namespace MHServerEmu.Games.MythicRifts
                 return false;
             }
 
-            GetPreferredLaunchCache(mode)[playerDbId] = riftLevel;
+            GetPreferredLaunchCache(mode)[GetProgressionCacheKey(playerDbId, mode)] = riftLevel;
             appliedLevel = riftLevel;
             return true;
         }
@@ -404,7 +408,7 @@ namespace MHServerEmu.Games.MythicRifts
             if (mode == MythicRiftMode.BossGauntlet)
                 return 1;
 
-            GetPreferredLaunchCache(mode).Remove(playerDbId);
+            GetPreferredLaunchCache(mode).Remove(GetProgressionCacheKey(playerDbId, mode));
             return GetHighestUnlockedRiftLevel(playerDbId, mode);
         }
 
@@ -416,7 +420,7 @@ namespace MHServerEmu.Games.MythicRifts
             if (mode == MythicRiftMode.BossGauntlet)
                 return false;
 
-            return GetPreferredLaunchCache(mode).Remove(playerDbId);
+            return GetPreferredLaunchCache(mode).Remove(GetProgressionCacheKey(playerDbId, mode));
         }
 
         public int SetHighestUnlockedRiftLevel(
@@ -435,7 +439,7 @@ namespace MHServerEmu.Games.MythicRifts
             if (allowDecrease == false)
                 normalizedLevel = Math.Max(normalizedLevel, GetHighestUnlockedRiftLevel(playerDbId, mode));
 
-            GetHighestUnlockedCache(mode)[playerDbId] = normalizedLevel;
+            GetHighestUnlockedCache(mode)[GetProgressionCacheKey(playerDbId, mode)] = normalizedLevel;
             SyncOnlinePlayerRiftLevel(playerDbId, normalizedLevel, mode);
             return normalizedLevel;
         }
@@ -448,7 +452,17 @@ namespace MHServerEmu.Games.MythicRifts
             if (mode == MythicRiftMode.BossGauntlet)
                 return 1;
 
-            GetPreferredLaunchCache(mode).Remove(playerDbId);
+            ulong cacheKey = GetProgressionCacheKey(playerDbId, mode);
+            GetPreferredLaunchCache(mode).Remove(cacheKey);
+            if (mode == MythicRiftMode.Endless)
+            {
+                _completedEndlessCyclesByPlayer.Remove(cacheKey);
+
+                Player onlinePlayer = Game.EntityManager.GetEntityByDbGuid<Player>(playerDbId);
+                if (onlinePlayer != null)
+                    SetPersistentEndlessRiftCompletedCycles(onlinePlayer, 0);
+            }
+
             return SetHighestUnlockedRiftLevel(playerDbId, 1, allowDecrease: true, mode: mode);
         }
 
@@ -468,32 +482,41 @@ namespace MHServerEmu.Games.MythicRifts
             if (mode == MythicRiftMode.Endless &&
                 MythicRiftProgression.NormalizeEndlessCycleLevel(completedLevel) >= MythicRiftProgression.EndlessCycleLength)
             {
+                ulong cacheKey = GetProgressionCacheKey(playerDbId, mode);
                 int newCycleCount = GetCompletedEndlessCycles(playerDbId) + 1;
-                _completedEndlessCyclesByPlayer[playerDbId] = newCycleCount;
+                _completedEndlessCyclesByPlayer[cacheKey] = newCycleCount;
 
                 Player onlinePlayer = Game.EntityManager.GetEntityByDbGuid<Player>(playerDbId);
                 if (onlinePlayer != null)
-                    onlinePlayer.EndlessRiftCompletedCycles = newCycleCount;
+                    SetPersistentEndlessRiftCompletedCycles(onlinePlayer, newCycleCount);
             }
 
             if (nextUnlockedLevel == currentUnlockedLevel)
                 return currentUnlockedLevel;
 
-            GetHighestUnlockedCache(mode)[playerDbId] = nextUnlockedLevel;
-            GetPreferredLaunchCache(mode).Remove(playerDbId);
+            GetHighestUnlockedCache(mode)[GetProgressionCacheKey(playerDbId, mode)] = nextUnlockedLevel;
+            GetPreferredLaunchCache(mode).Remove(GetProgressionCacheKey(playerDbId, mode));
             SyncOnlinePlayerRiftLevel(playerDbId, nextUnlockedLevel, mode);
 
             if (mode == MythicRiftMode.Standard)
-                ReportRiftLevelToProgressionLeaderboard(playerDbId);
+                ReportStandardRiftAccountBestProgression(playerDbId, nextUnlockedLevel);
 
             return nextUnlockedLevel;
         }
 
-        private void ReportRiftLevelToProgressionLeaderboard(ulong playerDbId)
+        private void ReportStandardRiftAccountBestProgression(ulong playerDbId, int unlockedLevel)
         {
             Player onlinePlayer = Game.EntityManager.GetEntityByDbGuid<Player>(playerDbId);
             if (onlinePlayer == null)
                 return;
+
+            int accountBestLevel = Math.Max(onlinePlayer.MythicRiftHighestUnlockedLevel, 1);
+            int normalizedUnlockedLevel = Math.Max(unlockedLevel, 1);
+            if (normalizedUnlockedLevel <= accountBestLevel)
+                return;
+
+            int leaderboardProgress = normalizedUnlockedLevel - accountBestLevel;
+            onlinePlayer.MythicRiftHighestUnlockedLevel = normalizedUnlockedLevel;
 
             LeaderboardPrototype leaderboardProto = GameDatabase.GetPrototype<LeaderboardPrototype>(CosmicRiftProgressionLeaderboardRef);
             if (leaderboardProto?.ScoringRules.HasValue() != true)
@@ -503,7 +526,7 @@ namespace MHServerEmu.Games.MythicRifts
             if (scoringEvent == null)
                 return;
 
-            onlinePlayer.OnScoringEvent(new(ScoringEventType.EntityDeath, scoringEvent.Proto0, 1));
+            onlinePlayer.OnScoringEvent(new(ScoringEventType.EntityDeath, scoringEvent.Proto0, leaderboardProgress));
         }
 
         private static int NormalizeStoredRiftLevel(int riftLevel, MythicRiftMode mode)
@@ -527,6 +550,25 @@ namespace MHServerEmu.Games.MythicRifts
                 : _preferredLaunchRiftLevelByPlayer;
         }
 
+        private ulong GetProgressionCacheKey(ulong playerDbId, MythicRiftMode mode)
+        {
+            if (playerDbId == 0 || mode == MythicRiftMode.BossGauntlet)
+                return playerDbId;
+
+            Player onlinePlayer = Game.EntityManager.GetEntityByDbGuid<Player>(playerDbId);
+            PrototypeId avatarRef = onlinePlayer?.CurrentAvatar?.PrototypeDataRef ?? PrototypeId.Invalid;
+            if (avatarRef == PrototypeId.Invalid)
+                return playerDbId;
+
+            unchecked
+            {
+                ulong hash = 1469598103934665603UL;
+                hash = (hash ^ playerDbId) * 1099511628211UL;
+                hash = (hash ^ (ulong)avatarRef) * 1099511628211UL;
+                return hash == 0 ? playerDbId : hash;
+            }
+        }
+
         private static int GetPersistentUnlockedRiftLevel(Player player, MythicRiftMode mode)
         {
             if (player == null)
@@ -534,10 +576,96 @@ namespace MHServerEmu.Games.MythicRifts
 
             return mode switch
             {
-                MythicRiftMode.Endless => player.EndlessRiftHighestUnlockedLevel,
+                MythicRiftMode.Endless => GetPersistentAvatarRiftLevel(player, mode),
                 MythicRiftMode.BossGauntlet => 1,
-                _ => player.MythicRiftHighestUnlockedLevel
+                _ => GetPersistentAvatarRiftLevel(player, mode)
             };
+        }
+
+        private static int GetPersistentAvatarRiftLevel(Player player, MythicRiftMode mode)
+        {
+            Avatar avatar = player?.CurrentAvatar;
+            PrototypeId keyRef = GetRiftAvatarProgressPropertyKeyRef(mode);
+            if (avatar == null || keyRef == PrototypeId.Invalid)
+            {
+                return mode == MythicRiftMode.Endless
+                    ? player?.EndlessRiftHighestUnlockedLevel ?? 1
+                    : player?.MythicRiftHighestUnlockedLevel ?? 1;
+            }
+
+            PropertyId propertyId = new(PropertyEnum.EndlessLevel, keyRef);
+            return avatar.Properties.HasProperty(propertyId)
+                ? (int)avatar.Properties[propertyId]
+                : 1;
+        }
+
+        private static int GetPersistentEndlessRiftCompletedCycles(Player player)
+        {
+            Avatar avatar = player?.CurrentAvatar;
+            PrototypeId keyRef = GetRiftAvatarProgressPropertyKeyRef(MythicRiftMode.Endless);
+            if (avatar == null || keyRef == PrototypeId.Invalid)
+                return Math.Max(player?.EndlessRiftCompletedCycles ?? 0, 0);
+
+            PropertyId propertyId = new(PropertyEnum.EndlessLevelsTotal, keyRef);
+            return avatar.Properties.HasProperty(propertyId)
+                ? Math.Max((int)avatar.Properties[propertyId], 0)
+                : 0;
+        }
+
+        private static void SetPersistentAvatarRiftLevel(Player player, int unlockedLevel, MythicRiftMode mode)
+        {
+            Avatar avatar = player?.CurrentAvatar;
+            PrototypeId keyRef = GetRiftAvatarProgressPropertyKeyRef(mode);
+            if (avatar == null || keyRef == PrototypeId.Invalid)
+                return;
+
+            avatar.Properties[PropertyEnum.EndlessLevel, keyRef] = NormalizeStoredRiftLevel(unlockedLevel, mode);
+        }
+
+        private static void SetPersistentEndlessRiftCompletedCycles(Player player, int completedCycles)
+        {
+            Avatar avatar = player?.CurrentAvatar;
+            PrototypeId keyRef = GetRiftAvatarProgressPropertyKeyRef(MythicRiftMode.Endless);
+            if (avatar == null || keyRef == PrototypeId.Invalid)
+                return;
+
+            avatar.Properties[PropertyEnum.EndlessLevelsTotal, keyRef] = Math.Max(completedCycles, 0);
+        }
+
+        private static PrototypeId GetRiftAvatarProgressPropertyKeyRef(MythicRiftMode mode)
+        {
+            return mode == MythicRiftMode.Endless
+                ? GetEndlessRiftAvatarProgressPropertyKeyRef()
+                : GetStandardRiftAvatarProgressPropertyKeyRef();
+        }
+
+        private static PrototypeId GetStandardRiftAvatarProgressPropertyKeyRef()
+        {
+            if (_cachedStandardRiftAvatarProgressPropertyKeyRef != PrototypeId.Invalid)
+                return _cachedStandardRiftAvatarProgressPropertyKeyRef;
+
+            PrototypeId keyRef = ResolvePrototype(MythicRiftLauncherService.PresentationCosmicRiftBeaconPrototypePath);
+            if (keyRef == PrototypeId.Invalid)
+                keyRef = ResolvePrototype(MythicRiftLauncherService.PresentationCosmicRiftBeaconPrototypeName);
+
+            _cachedStandardRiftAvatarProgressPropertyKeyRef = keyRef != PrototypeId.Invalid
+                ? keyRef
+                : ResolvePrototype(MythicRiftLauncherService.CosmicRiftBeaconPrototypeName);
+
+            return _cachedStandardRiftAvatarProgressPropertyKeyRef;
+        }
+
+        private static PrototypeId GetEndlessRiftAvatarProgressPropertyKeyRef()
+        {
+            if (_cachedEndlessRiftAvatarProgressPropertyKeyRef != PrototypeId.Invalid)
+                return _cachedEndlessRiftAvatarProgressPropertyKeyRef;
+
+            PrototypeId keyRef = ResolvePrototype(MythicRiftLauncherService.EndlessRiftBeaconPrototypePath);
+            _cachedEndlessRiftAvatarProgressPropertyKeyRef = keyRef != PrototypeId.Invalid
+                ? keyRef
+                : ResolvePrototype(MythicRiftLauncherService.EndlessRiftBeaconPrototypeName);
+
+            return _cachedEndlessRiftAvatarProgressPropertyKeyRef;
         }
 
         public int GetCompletedEndlessCycles(ulong playerDbId)
@@ -545,25 +673,19 @@ namespace MHServerEmu.Games.MythicRifts
             if (playerDbId == 0)
                 return 0;
 
+            ulong cacheKey = GetProgressionCacheKey(playerDbId, MythicRiftMode.Endless);
             Player onlinePlayer = Game.EntityManager.GetEntityByDbGuid<Player>(playerDbId);
             if (onlinePlayer != null)
-                return Math.Max(onlinePlayer.EndlessRiftCompletedCycles, 0);
+                return Math.Max(GetPersistentEndlessRiftCompletedCycles(onlinePlayer), 0);
 
-            return _completedEndlessCyclesByPlayer.TryGetValue(playerDbId, out int cycleCount)
+            return _completedEndlessCyclesByPlayer.TryGetValue(cacheKey, out int cycleCount)
                 ? Math.Max(cycleCount, 0)
                 : 0;
         }
 
         public (float BonusRarityPct, float BonusSpecialPct) GetEndlessCycleBonus(ulong playerDbId)
         {
-            MythicRiftRewardTuning tuning = _rewardTuning ?? MythicRiftRewardTuning.CreateDefault();
-            int completedCycles = GetCompletedEndlessCycles(playerDbId);
-            if (completedCycles <= 0)
-                return (0f, 0f);
-
-            float bonusRarityPct = Math.Min(completedCycles * tuning.EndlessCycleBonusRarityPctPerCycle, tuning.EndlessCycleBonusRarityPctCap);
-            float bonusSpecialPct = Math.Min(completedCycles * tuning.EndlessCycleBonusSpecialPctPerCycle, tuning.EndlessCycleBonusSpecialPctCap);
-            return (bonusRarityPct, bonusSpecialPct);
+            return (0f, 0f);
         }
 
         public static string GetModeDisplayName(MythicRiftMode mode)
@@ -1527,14 +1649,10 @@ namespace MHServerEmu.Games.MythicRifts
             float originalSpecial = avatar.Properties[PropertyEnum.LootBonusSpecialPct];
             bool hadRarityProperty = avatar.Properties.HasProperty(PropertyEnum.LootBonusRarityPct);
             bool hadSpecialProperty = avatar.Properties.HasProperty(PropertyEnum.LootBonusSpecialPct);
-            (float endlessCycleBonusRarityPct, float endlessCycleBonusSpecialPct) = runState.Config.Mode == MythicRiftMode.Endless
-                ? GetEndlessCycleBonus(player.DatabaseUniqueId)
-                : (0f, 0f);
-
             try
             {
-                float totalBonusRarityPct = rewardOutcome.BonusRarityPct + endlessCycleBonusRarityPct;
-                float totalBonusSpecialPct = rewardOutcome.BonusSpecialPct + endlessCycleBonusSpecialPct;
+                float totalBonusRarityPct = rewardOutcome.BonusRarityPct;
+                float totalBonusSpecialPct = rewardOutcome.BonusSpecialPct;
 
                 if (totalBonusRarityPct > 0f)
                     avatar.Properties.AdjustProperty(totalBonusRarityPct, rarityPropertyId);
@@ -1609,8 +1727,7 @@ namespace MHServerEmu.Games.MythicRifts
                 }
 
                 runState.MarkRewardGrantedToPlayer(player.DatabaseUniqueId);
-                // Logger.Info($"Mythic Rift run {runState.Config.RunId} granted rewards to player {player}. profile={rewardOutcome.RewardProfileName ?? "default"} bossLootSource={rewardOutcome.BossLootTableSourceId ?? "native-boss"} bossDelivery={rewardOutcome.BossLootDelivery ?? "inventory"} extraTables={rewardOutcome.ExtraLootTables.Count} guaranteedItems={rewardOutcome.GuaranteedItems.Count}"
-                    // + (endlessCycleBonusRarityPct > 0f || endlessCycleBonusSpecialPct > 0f ? $" endlessCycleBonus=RIF+{endlessCycleBonusRarityPct:P1}/SIF+{endlessCycleBonusSpecialPct:P1} (cycles={GetCompletedEndlessCycles(player.DatabaseUniqueId)})" : ""));
+                // Logger.Info($"Mythic Rift run {runState.Config.RunId} granted rewards to player {player}. profile={rewardOutcome.RewardProfileName ?? "default"} bossLootSource={rewardOutcome.BossLootTableSourceId ?? "native-boss"} bossDelivery={rewardOutcome.BossLootDelivery ?? "inventory"} extraTables={rewardOutcome.ExtraLootTables.Count} guaranteedItems={rewardOutcome.GuaranteedItems.Count}");
                 return true;
             }
             finally
@@ -2210,7 +2327,6 @@ namespace MHServerEmu.Games.MythicRifts
                 $"timedSuccessBonusRIF={tuning.TimedSuccessBonusRarityPct:P0} | timedSuccessBonusSIF={tuning.TimedSuccessBonusSpecialPct:P0}",
                 $"checkpointBonusRIF={tuning.CheckpointSuccessBonusRarityPct:P0} | checkpointBonusSIF={tuning.CheckpointSuccessBonusSpecialPct:P0}",
                 $"failureBonusRIF={tuning.FailureBonusRarityPct:P0} | failureBonusSIF={tuning.FailureBonusSpecialPct:P0}",
-                $"endlessCycleBonusRIF={tuning.EndlessCycleBonusRarityPctPerCycle:P1}/cycle cap={tuning.EndlessCycleBonusRarityPctCap:P0} | endlessCycleBonusSIF={tuning.EndlessCycleBonusSpecialPctPerCycle:P1}/cycle cap={tuning.EndlessCycleBonusSpecialPctCap:P0}",
                 $"extraLootTables={tuning.ExtraLootTables.Count} | rewardRecipes={tuning.RewardRecipes.Count} | randomItemPools={tuning.RandomItemPools.Count} | guaranteedItems={tuning.GuaranteedItems.Count} | rewardShopOffers={tuning.RewardShopOffers.Count} | lootTableAliases={tuning.LootTableAliases.Count}"
             };
 
@@ -8342,12 +8458,12 @@ namespace MHServerEmu.Games.MythicRifts
             switch (mode)
             {
                 case MythicRiftMode.Endless:
-                    onlinePlayer.EndlessRiftHighestUnlockedLevel = unlockedLevel;
+                    SetPersistentAvatarRiftLevel(onlinePlayer, unlockedLevel, mode);
                     break;
                 case MythicRiftMode.BossGauntlet:
                     break;
                 default:
-                    onlinePlayer.MythicRiftHighestUnlockedLevel = unlockedLevel;
+                    SetPersistentAvatarRiftLevel(onlinePlayer, unlockedLevel, mode);
                     break;
             }
         }

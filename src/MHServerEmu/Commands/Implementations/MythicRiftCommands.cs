@@ -1826,11 +1826,11 @@ namespace MHServerEmu.Commands.Implementations
             {
                 int cosmicUnlockedLevel = game.MythicRiftManager.GetHighestUnlockedRiftLevel(player.DatabaseUniqueId, MythicRiftMode.Standard);
                 int cosmicSelectedLevel = game.MythicRiftManager.GetPreferredLaunchRiftLevel(player.DatabaseUniqueId, MythicRiftMode.Standard);
+                int cosmicAccountBestLevel = player.MythicRiftHighestUnlockedLevel;
                 int endlessUnlockedLevel = game.MythicRiftManager.GetHighestUnlockedRiftLevel(player.DatabaseUniqueId, MythicRiftMode.Endless);
                 int endlessSelectedLevel = game.MythicRiftManager.GetPreferredLaunchRiftLevel(player.DatabaseUniqueId, MythicRiftMode.Endless);
                 int endlessCycles = game.MythicRiftManager.GetCompletedEndlessCycles(player.DatabaseUniqueId);
-                (float cycleBonusRarity, float cycleBonusSpecial) = game.MythicRiftManager.GetEndlessCycleBonus(player.DatabaseUniqueId);
-                return $"No active Cosmic Rift run. Cosmic: highest={cosmicUnlockedLevel}, next={cosmicSelectedLevel}. Rift Gauntlet: highest={endlessUnlockedLevel}, next={endlessSelectedLevel}, completedCycles={endlessCycles}, cycleBonus=RIF+{cycleBonusRarity:P1}/SIF+{cycleBonusSpecial:P1}. Boss Gauntlet has no persisted progression. Use `rift level [level|max]` for Cosmic or `rift level gauntlet [level|max]` for Rift Gauntlet.";
+                return $"No active Cosmic Rift run. Cosmic: heroHighest={cosmicUnlockedLevel}, next={cosmicSelectedLevel}, accountBest={cosmicAccountBestLevel}. Rift Gauntlet: highest={endlessUnlockedLevel}, next={endlessSelectedLevel}, completedCycles={endlessCycles}. Boss Gauntlet has no persisted progression. Use `rift level [level|max]` for Cosmic or `rift level gauntlet [level|max]` for Rift Gauntlet.";
             }
 
             CommandHelper.SendMessages(client, BuildRunLines(runState, game.CurrentTime, includeResolvedRefs: false));
@@ -3016,14 +3016,19 @@ namespace MHServerEmu.Commands.Implementations
         {
             int unlockedLevel = game.MythicRiftManager.GetHighestUnlockedRiftLevel(player.DatabaseUniqueId, mode);
             int selectedLevel = game.MythicRiftManager.GetPreferredLaunchRiftLevel(player.DatabaseUniqueId, mode);
+            string accountBestText = mode == MythicRiftMode.Standard
+                ? $" | accountBestLeaderboardLevel={player.MythicRiftHighestUnlockedLevel}"
+                : string.Empty;
             string persistedLevel = mode switch
             {
-                MythicRiftMode.Endless => player.EndlessRiftHighestUnlockedLevel.ToString(CultureInfo.InvariantCulture),
+                MythicRiftMode.Endless => unlockedLevel.ToString(CultureInfo.InvariantCulture),
+                MythicRiftMode.Standard => unlockedLevel.ToString(CultureInfo.InvariantCulture),
                 MythicRiftMode.BossGauntlet => "n/a",
                 _ => player.MythicRiftHighestUnlockedLevel.ToString(CultureInfo.InvariantCulture)
             };
 
-            lines.Add($"{MythicRiftManager.GetModeDisplayName(mode)} | highestUnlockedRiftLevel={unlockedLevel} | nextLaunchRiftLevel={selectedLevel} | persistedPlayerValue={persistedLevel}");
+            string persistedLabel = mode == MythicRiftMode.BossGauntlet ? "persistedPlayerValue" : "persistedAvatarValue";
+            lines.Add($"{MythicRiftManager.GetModeDisplayName(mode)} | highestUnlockedRiftLevel={unlockedLevel} | nextLaunchRiftLevel={selectedLevel} | {persistedLabel}={persistedLevel}{accountBestText}");
         }
 
         private static bool TryParseOptionalModeArguments(

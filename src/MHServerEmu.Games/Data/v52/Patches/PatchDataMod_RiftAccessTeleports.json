@@ -1,33 +1,17 @@
 [
   {
     "Enabled": true,
-    "Prototype": "Resource/Cells/DistrictCells/Avengers_Tower/AvengersTowerNPE_HUB.cell",
-    "Path": "MarkerSet.Markers[30].EntityGuid",
-    "Description": "[Rift Access] Place Misty Knight as the Omega patrol selector NPC.",
-    "ValueType": "PrototypeGuid",
-    "Value": 4227756442550214266
-  },
-  {
-    "Enabled": true,
-    "Prototype": "Resource/Cells/DistrictCells/Avengers_Tower/AvengersTowerNPE_HUB.cell",
-    "Path": "MarkerSet.Markers[30].Position",
-    "Description": "[Rift Access] Omega patrol selector position in Avengers Tower.",
-    "ValueType": "Vector3",
-    "Value": [294.25, 858.375, 372]
-  },
-  {
-    "Enabled": true,
-    "Prototype": "Resource/Cells/DistrictCells/Avengers_Tower/AvengersTowerNPE_HUB.cell",
-    "Path": "MarkerSet.Markers[30].Rotation",
-    "Description": "[Rift Access] Omega patrol selector rotation.",
-    "ValueType": "Vector3",
-    "Value": [0, 0, 0]
-  },
-  {
-    "Enabled": true,
     "Prototype": "Entity/Characters/NPCs/SilverSableHelicarrier.prototype",
     "Path": "DesignState",
     "Description": "[Rift Access] Enable Silver Sable as the Omega Trial guide NPC.",
+    "ValueType": "Enum",
+    "Value": "Live"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Characters/NPCs/MistyKnight.prototype",
+    "Path": "DesignState",
+    "Description": "[Rift Access] Enable Misty Knight as the Omega patrol selector NPC.",
     "ValueType": "Enum",
     "Value": "Live"
   },
@@ -41,27 +25,67 @@
   },
   {
     "Enabled": true,
-    "Prototype": "Resource/Cells/DistrictCells/Avengers_Tower/AvengersTowerNPE_HUB.cell",
-    "Path": "MarkerSet.Markers[32].EntityGuid",
-    "Description": "[Rift Access] Place Doctor Strange as the Cosmic/Omega raid selector NPC.",
+    "Prototype": "Resource/Cells/DistrictCells/Helicarrier/Helicarrier_HUB.cell",
+    "Path": "MarkerSet.Markers[2].EntityGuid",
+    "Description": "[Rift Access] Place Misty Knight beside Silver Sable in the Helicarrier.",
+    "ValueType": "PrototypeGuid",
+    "Value": 4227756442550214266
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Resource/Cells/DistrictCells/Helicarrier/Helicarrier_HUB.cell",
+    "Path": "MarkerSet.Markers[2].Position",
+    "Description": "[Rift Access] Misty Knight Helicarrier position.",
+    "ValueType": "Vector3",
+    "Value": [-196, 1872, 48]
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Resource/Cells/DistrictCells/Helicarrier/Helicarrier_HUB.cell",
+    "Path": "MarkerSet.Markers[2].Rotation",
+    "Description": "[Rift Access] Misty Knight Helicarrier rotation.",
+    "ValueType": "Vector3",
+    "Value": [-1.5707963267948966, 0, 0]
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Resource/Cells/DistrictCells/Helicarrier/Helicarrier_HUB.cell",
+    "Path": "MarkerSet.Markers[26].Position",
+    "Description": "[Rift Access] Silver Sable Helicarrier position near Nick Fury.",
+    "ValueType": "Vector3",
+    "Value": [-16, 2084, 48]
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Resource/Cells/DistrictCells/Helicarrier/Helicarrier_HUB.cell",
+    "Path": "MarkerSet.Markers[26].Rotation",
+    "Description": "[Rift Access] Silver Sable Helicarrier rotation near Nick Fury.",
+    "ValueType": "Vector3",
+    "Value": [-1.5707963267948966, 0, 0]
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Resource/Cells/DistrictCells/Helicarrier/Helicarrier_HUB.cell",
+    "Path": "MarkerSet.Markers[3].EntityGuid",
+    "Description": "[Rift Access] Place Doctor Strange beside Silver Sable in the Helicarrier.",
     "ValueType": "PrototypeGuid",
     "Value": 4823431446756076203
   },
   {
     "Enabled": true,
-    "Prototype": "Resource/Cells/DistrictCells/Avengers_Tower/AvengersTowerNPE_HUB.cell",
-    "Path": "MarkerSet.Markers[32].Position",
-    "Description": "[Rift Access] Raid selector position in Avengers Tower.",
+    "Prototype": "Resource/Cells/DistrictCells/Helicarrier/Helicarrier_HUB.cell",
+    "Path": "MarkerSet.Markers[3].Position",
+    "Description": "[Rift Access] Doctor Strange Helicarrier position.",
     "ValueType": "Vector3",
-    "Value": [758.857, 580.75, 371]
+    "Value": [164, 1872, 48]
   },
   {
     "Enabled": true,
-    "Prototype": "Resource/Cells/DistrictCells/Avengers_Tower/AvengersTowerNPE_HUB.cell",
-    "Path": "MarkerSet.Markers[32].Rotation",
-    "Description": "[Rift Access] Raid selector rotation.",
+    "Prototype": "Resource/Cells/DistrictCells/Helicarrier/Helicarrier_HUB.cell",
+    "Path": "MarkerSet.Markers[3].Rotation",
+    "Description": "[Rift Access] Doctor Strange Helicarrier rotation.",
     "ValueType": "Vector3",
-    "Value": [1.5707963267948966, 0, 0]
+    "Value": [-1.5707963267948966, 0, 0]
   },
   {
     "Enabled": true,

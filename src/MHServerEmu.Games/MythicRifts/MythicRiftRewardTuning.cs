@@ -27,10 +27,10 @@ namespace MHServerEmu.Games.MythicRifts
         public float CheckpointSuccessBonusSpecialPct { get; set; } = 0.10f;
         public float FailureBonusRarityPct { get; set; } = 0f;
         public float FailureBonusSpecialPct { get; set; } = 0f;
-        public float EndlessCycleBonusRarityPctPerCycle { get; set; } = 0.015f;
-        public float EndlessCycleBonusRarityPctCap { get; set; } = 0.15f;
-        public float EndlessCycleBonusSpecialPctPerCycle { get; set; } = 0.015f;
-        public float EndlessCycleBonusSpecialPctCap { get; set; } = 0.15f;
+        public float EndlessCycleBonusRarityPctPerCycle { get; set; } = 0f;
+        public float EndlessCycleBonusRarityPctCap { get; set; } = 0f;
+        public float EndlessCycleBonusSpecialPctPerCycle { get; set; } = 0f;
+        public float EndlessCycleBonusSpecialPctCap { get; set; } = 0f;
         public string DefaultDelivery { get; set; } = "ground";
         public int CompletionCrafterUniqueRecipeCost { get; set; } = 100;
         public int CompletionCrafterCosmicRecipeCost { get; set; } = 100;

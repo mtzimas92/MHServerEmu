@@ -22,6 +22,10 @@ namespace MHServerEmu.Games.MythicRifts
             if (region == null)
                 return;
 
+            MythicRiftFeatureTuning featureTuning = MythicRiftFeatureTuning.Load();
+            if (featureTuning.Enabled == false || featureTuning.VendorEnabled == false)
+                return;
+
             WorldEntity moira = null;
             foreach (Entity entity in region.Entities)
             {
