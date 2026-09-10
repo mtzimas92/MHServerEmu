@@ -500,9 +500,9 @@ namespace MHServerEmu.Games.Entities
                 success &= Serializer.Transfer(archive, ref _loginCount);
                 success &= Serializer.Transfer(archive, ref _loginRewardCooldownTimeStart);
                 success &= Serializer.Transfer(archive, ref _mythicRiftHighestUnlockedLevel);
-                if (archive.IsPacking || archive.Version >= ArchiveVersion.AddedEndlessRiftProgression)
+                if (archive.IsPacking || archive.Version >= ArchiveVersion.AddedRiftContent)
                     success &= Serializer.Transfer(archive, ref _endlessRiftHighestUnlockedLevel);
-                if (archive.IsPacking || archive.Version >= ArchiveVersion.AddedEndlessRiftCycleCount)
+                if (archive.IsPacking || archive.Version >= ArchiveVersion.AddedRiftContent)
                     success &= Serializer.Transfer(archive, ref _endlessRiftCompletedCycles);
             }
 

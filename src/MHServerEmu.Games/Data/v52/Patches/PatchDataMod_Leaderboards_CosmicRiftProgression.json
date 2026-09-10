@@ -35,16 +35,16 @@
     "Enabled": true,
     "Prototype": "Leaderboards/Prototypes/Leaderboards/CivilWar/CivilWarAntiReg.prototype",
     "Path": "ResetFrequency",
-    "Description": "[Cosmic Rift Progression] Temporarily reset every 4 hours for test-center validation, matching the Industry City Patrol cadence.",
+    "Description": "[Cosmic Rift Progression] Reset weekly for Rift progression seasons.",
     "ValueType": "Enum",
-    "Value": "Every4hours"
+    "Value": "Weekly"
   },
   {
     "Enabled": true,
     "Prototype": "Leaderboards/Prototypes/Leaderboards/CivilWar/CivilWarAntiReg.prototype",
     "Path": "Duration",
-    "Description": "[Cosmic Rift Progression] Temporarily keep each active board open for 4 hours, matching the Industry City Patrol cadence.",
+    "Description": "[Cosmic Rift Progression] Keep each active Rift progression season open for one week.",
     "ValueType": "Enum",
-    "Value": "_4hours"
+    "Value": "Week"
   }
 ]

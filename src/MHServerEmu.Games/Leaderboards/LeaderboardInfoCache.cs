@@ -87,6 +87,28 @@ namespace MHServerEmu.Games.Leaderboards
             }
         }
 
+        public bool TryGetActiveLeaderboardInstanceId(PrototypeGuid guid, out ulong instanceId)
+        {
+            instanceId = 0;
+
+            lock (_leaderboardInfoMap)
+            {
+                if (_leaderboardInfoMap.TryGetValue(guid, out LeaderboardInfo info) == false)
+                    return false;
+
+                foreach (LeaderboardInstanceInfo instance in info.Instances)
+                {
+                    if (instance.State != LeaderboardState.eLBS_Active)
+                        continue;
+
+                    instanceId = instance.InstanceId;
+                    return instanceId != 0;
+                }
+            }
+
+            return false;
+        }
+
         public NetMessageLeaderboardInitializeRequestResponse BuildInitializeRequestResponse(NetMessageLeaderboardInitializeRequest initializeRequest)
         {
             var response = NetMessageLeaderboardInitializeRequestResponse.CreateBuilder();
