@@ -25,10 +25,10 @@ namespace MHServerEmu.Core.Serialization
         // Versions 1-8 were used in the 0.x branch, so we start at 9 here.
         Initial = 9,
         AddedMissionEventInstance = 10,
-        AddedRiftContent = 11,
+        AddedRiftAvatarProgress = 11,
 
         // Update the current version if you add any    <---------
-        Current = AddedRiftContent
+        Current = AddedRiftAvatarProgress
     }
 
     public enum GameBuildNumber : uint

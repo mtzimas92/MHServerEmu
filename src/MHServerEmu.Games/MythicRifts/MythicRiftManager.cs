@@ -187,8 +187,6 @@ namespace MHServerEmu.Games.MythicRifts
         private static PrototypeId _cachedRiftReadyCheckWidgetPrototypeRef = PrototypeId.Invalid;
         private static PrototypeId _cachedRiftBossIconsWidgetPrototypeRef = PrototypeId.Invalid;
         private static PrototypeId _cachedRiftModifierButtonWidgetPrototypeRef = PrototypeId.Invalid;
-        private static PrototypeId _cachedStandardRiftAvatarProgressPropertyKeyRef = PrototypeId.Invalid;
-        private static PrototypeId _cachedEndlessRiftAvatarProgressPropertyKeyRef = PrototypeId.Invalid;
         private static PrototypeId[] _cachedCustomRiftPopulationMobPrototypeRefs;
         private IReadOnlyList<PrototypeId> _cachedRiftHazardPrototypeRefs;
         private readonly Dictionary<(ulong RunId, ulong PlayerDbId), GameDialogInstance> _readyCheckDialogs = new();
@@ -541,36 +539,53 @@ namespace MHServerEmu.Games.MythicRifts
             if (TryGetActiveCosmicRiftProgressionLeaderboardInstanceId(out ulong activeInstanceId) == false)
                 return;
 
-            ResetStandardRiftAccountBestForLeaderboardInstance(player, activeInstanceId);
-            ResetCurrentAvatarStandardRiftProgressForLeaderboardInstance(player, activeInstanceId);
+            int activeSeasonMarker = GetLeaderboardSeasonMarker(activeInstanceId);
+            try
+            {
+                ResetStandardRiftAccountBestForLeaderboardInstance(player, activeSeasonMarker, activeInstanceId);
+                ResetCurrentAvatarStandardRiftProgressForLeaderboardInstance(player, activeSeasonMarker, activeInstanceId);
+            }
+            catch (Exception e)
+            {
+                Logger.WarnException(e, $"Standard Rift leaderboard season reset failed for playerDbId=0x{player.DatabaseUniqueId:X}. leaderboardInstanceId={activeInstanceId} seasonMarker={activeSeasonMarker}");
+            }
         }
 
-        private void ResetStandardRiftAccountBestForLeaderboardInstance(Player player, ulong activeInstanceId)
+        private void ResetStandardRiftAccountBestForLeaderboardInstance(Player player, int activeSeasonMarker, ulong activeInstanceId)
         {
-            PropertyId resetPropertyId = new(PropertyEnum.EndlessLevelStartTime);
-            if (player.Properties.HasProperty(resetPropertyId) && (ulong)player.Properties[resetPropertyId] == activeInstanceId)
+            if (player.HasStandardRiftLeaderboardSeasonReset(activeSeasonMarker))
                 return;
 
+            int previousAccountBest = player.MythicRiftHighestUnlockedLevel;
             player.MythicRiftHighestUnlockedLevel = 1;
-            player.Properties[resetPropertyId] = activeInstanceId;
+            player.SetStandardRiftLeaderboardSeasonReset(activeSeasonMarker);
+
+            Logger.Info($"Standard Rift leaderboard season reset account progress for playerDbId=0x{player.DatabaseUniqueId:X}. leaderboardInstanceId={activeInstanceId} seasonMarker={activeSeasonMarker} previousAccountBest={previousAccountBest} newAccountBest=1.");
         }
 
-        private void ResetCurrentAvatarStandardRiftProgressForLeaderboardInstance(Player player, ulong activeInstanceId)
+        private void ResetCurrentAvatarStandardRiftProgressForLeaderboardInstance(Player player, int activeSeasonMarker, ulong activeInstanceId)
         {
             Avatar avatar = player.CurrentAvatar;
-            PrototypeId keyRef = GetStandardRiftAvatarProgressPropertyKeyRef();
-            if (avatar == null || keyRef == PrototypeId.Invalid)
+            if (avatar == null)
                 return;
 
-            PropertyId resetPropertyId = new(PropertyEnum.EndlessLevelStartTime);
-            if (avatar.Properties.HasProperty(resetPropertyId) && (ulong)avatar.Properties[resetPropertyId] == activeInstanceId)
+            if (player.HasCurrentAvatarStandardRiftLeaderboardSeasonReset(activeSeasonMarker))
                 return;
 
             ulong cacheKey = GetProgressionCacheKey(player.DatabaseUniqueId, MythicRiftMode.Standard);
+            int previousAvatarLevel = player.GetMythicRiftHighestUnlockedLevelForCurrentAvatar();
             _highestUnlockedRiftLevelByPlayer.Remove(cacheKey);
             _preferredLaunchRiftLevelByPlayer.Remove(cacheKey);
-            avatar.Properties[PropertyEnum.EndlessLevel, keyRef] = 1;
-            avatar.Properties[resetPropertyId] = activeInstanceId;
+            player.SetMythicRiftHighestUnlockedLevelForCurrentAvatar(1);
+            player.SetCurrentAvatarStandardRiftLeaderboardSeasonReset(activeSeasonMarker);
+
+            Logger.Info($"Standard Rift leaderboard season reset avatar progress for playerDbId=0x{player.DatabaseUniqueId:X}. leaderboardInstanceId={activeInstanceId} seasonMarker={activeSeasonMarker} avatar={avatar.PrototypeName} previousAvatarLevel={previousAvatarLevel} newAvatarLevel=1.");
+        }
+
+        private static int GetLeaderboardSeasonMarker(ulong activeInstanceId)
+        {
+            int marker = unchecked((int)(activeInstanceId & int.MaxValue));
+            return marker != 0 ? marker : 1;
         }
 
         private static bool TryGetActiveCosmicRiftProgressionLeaderboardInstanceId(out ulong instanceId)
@@ -639,88 +654,34 @@ namespace MHServerEmu.Games.MythicRifts
 
         private static int GetPersistentAvatarRiftLevel(Player player, MythicRiftMode mode)
         {
-            Avatar avatar = player?.CurrentAvatar;
-            PrototypeId keyRef = GetRiftAvatarProgressPropertyKeyRef(mode);
-            if (avatar == null || keyRef == PrototypeId.Invalid)
-            {
-                return mode == MythicRiftMode.Endless
-                    ? player?.EndlessRiftHighestUnlockedLevel ?? 1
-                    : player?.MythicRiftHighestUnlockedLevel ?? 1;
-            }
-
-            PropertyId propertyId = new(PropertyEnum.EndlessLevel, keyRef);
-            return avatar.Properties.HasProperty(propertyId)
-                ? (int)avatar.Properties[propertyId]
-                : 1;
+            return mode == MythicRiftMode.Endless
+                ? player.GetEndlessRiftHighestUnlockedLevelForCurrentAvatar()
+                : player.GetMythicRiftHighestUnlockedLevelForCurrentAvatar();
         }
 
         private static int GetPersistentEndlessRiftCompletedCycles(Player player)
         {
-            Avatar avatar = player?.CurrentAvatar;
-            PrototypeId keyRef = GetRiftAvatarProgressPropertyKeyRef(MythicRiftMode.Endless);
-            if (avatar == null || keyRef == PrototypeId.Invalid)
-                return Math.Max(player?.EndlessRiftCompletedCycles ?? 0, 0);
-
-            PropertyId propertyId = new(PropertyEnum.EndlessLevelsTotal, keyRef);
-            return avatar.Properties.HasProperty(propertyId)
-                ? Math.Max((int)avatar.Properties[propertyId], 0)
-                : 0;
+            return player?.GetEndlessRiftCompletedCyclesForCurrentAvatar() ?? 0;
         }
 
         private static void SetPersistentAvatarRiftLevel(Player player, int unlockedLevel, MythicRiftMode mode)
         {
-            Avatar avatar = player?.CurrentAvatar;
-            PrototypeId keyRef = GetRiftAvatarProgressPropertyKeyRef(mode);
-            if (avatar == null || keyRef == PrototypeId.Invalid)
+            if (player == null)
                 return;
 
-            avatar.Properties[PropertyEnum.EndlessLevel, keyRef] = NormalizeStoredRiftLevel(unlockedLevel, mode);
+            int normalizedLevel = NormalizeStoredRiftLevel(unlockedLevel, mode);
+            if (mode == MythicRiftMode.Endless)
+                player.SetEndlessRiftHighestUnlockedLevelForCurrentAvatar(normalizedLevel);
+            else
+                player.SetMythicRiftHighestUnlockedLevelForCurrentAvatar(normalizedLevel);
         }
 
         private static void SetPersistentEndlessRiftCompletedCycles(Player player, int completedCycles)
         {
-            Avatar avatar = player?.CurrentAvatar;
-            PrototypeId keyRef = GetRiftAvatarProgressPropertyKeyRef(MythicRiftMode.Endless);
-            if (avatar == null || keyRef == PrototypeId.Invalid)
+            if (player == null)
                 return;
 
-            avatar.Properties[PropertyEnum.EndlessLevelsTotal, keyRef] = Math.Max(completedCycles, 0);
-        }
-
-        private static PrototypeId GetRiftAvatarProgressPropertyKeyRef(MythicRiftMode mode)
-        {
-            return mode == MythicRiftMode.Endless
-                ? GetEndlessRiftAvatarProgressPropertyKeyRef()
-                : GetStandardRiftAvatarProgressPropertyKeyRef();
-        }
-
-        private static PrototypeId GetStandardRiftAvatarProgressPropertyKeyRef()
-        {
-            if (_cachedStandardRiftAvatarProgressPropertyKeyRef != PrototypeId.Invalid)
-                return _cachedStandardRiftAvatarProgressPropertyKeyRef;
-
-            PrototypeId keyRef = ResolvePrototype(MythicRiftLauncherService.PresentationCosmicRiftBeaconPrototypePath);
-            if (keyRef == PrototypeId.Invalid)
-                keyRef = ResolvePrototype(MythicRiftLauncherService.PresentationCosmicRiftBeaconPrototypeName);
-
-            _cachedStandardRiftAvatarProgressPropertyKeyRef = keyRef != PrototypeId.Invalid
-                ? keyRef
-                : ResolvePrototype(MythicRiftLauncherService.CosmicRiftBeaconPrototypeName);
-
-            return _cachedStandardRiftAvatarProgressPropertyKeyRef;
-        }
-
-        private static PrototypeId GetEndlessRiftAvatarProgressPropertyKeyRef()
-        {
-            if (_cachedEndlessRiftAvatarProgressPropertyKeyRef != PrototypeId.Invalid)
-                return _cachedEndlessRiftAvatarProgressPropertyKeyRef;
-
-            PrototypeId keyRef = ResolvePrototype(MythicRiftLauncherService.EndlessRiftBeaconPrototypePath);
-            _cachedEndlessRiftAvatarProgressPropertyKeyRef = keyRef != PrototypeId.Invalid
-                ? keyRef
-                : ResolvePrototype(MythicRiftLauncherService.EndlessRiftBeaconPrototypeName);
-
-            return _cachedEndlessRiftAvatarProgressPropertyKeyRef;
+            player.SetEndlessRiftCompletedCyclesForCurrentAvatar(completedCycles);
         }
 
         public int GetCompletedEndlessCycles(ulong playerDbId)

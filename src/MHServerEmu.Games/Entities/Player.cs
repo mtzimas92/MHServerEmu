@@ -135,6 +135,11 @@ namespace MHServerEmu.Games.Entities
         private int _mythicRiftHighestUnlockedLevel = 1;
         private int _endlessRiftHighestUnlockedLevel = 1;
         private int _endlessRiftCompletedCycles = 0;
+        private int _standardRiftLeaderboardResetMarker = 0;
+        private Dictionary<ulong, int> _mythicRiftHighestUnlockedLevelByAvatar = new();
+        private Dictionary<ulong, int> _endlessRiftHighestUnlockedLevelByAvatar = new();
+        private Dictionary<ulong, int> _endlessRiftCompletedCyclesByAvatar = new();
+        private Dictionary<ulong, int> _standardRiftLeaderboardResetMarkerByAvatar = new();
 
         private TeleportData _teleportData;
         private SpawnGimbal _spawnGimbal;
@@ -203,6 +208,63 @@ namespace MHServerEmu.Games.Entities
         {
             get => Math.Max(_endlessRiftCompletedCycles, 0);
             set => _endlessRiftCompletedCycles = Math.Max(value, 0);
+        }
+
+        public int GetMythicRiftHighestUnlockedLevelForCurrentAvatar()
+        {
+            return GetRiftProgressValueForCurrentAvatar(_mythicRiftHighestUnlockedLevelByAvatar, 1, 1);
+        }
+
+        public void SetMythicRiftHighestUnlockedLevelForCurrentAvatar(int unlockedLevel)
+        {
+            SetRiftProgressValueForCurrentAvatar(_mythicRiftHighestUnlockedLevelByAvatar, unlockedLevel, 1);
+        }
+
+        public int GetEndlessRiftHighestUnlockedLevelForCurrentAvatar()
+        {
+            return GetRiftProgressValueForCurrentAvatar(_endlessRiftHighestUnlockedLevelByAvatar, 1, 1);
+        }
+
+        public void SetEndlessRiftHighestUnlockedLevelForCurrentAvatar(int unlockedLevel)
+        {
+            SetRiftProgressValueForCurrentAvatar(_endlessRiftHighestUnlockedLevelByAvatar, unlockedLevel, 1);
+        }
+
+        public int GetEndlessRiftCompletedCyclesForCurrentAvatar()
+        {
+            return GetRiftProgressValueForCurrentAvatar(_endlessRiftCompletedCyclesByAvatar, 0, 0);
+        }
+
+        public void SetEndlessRiftCompletedCyclesForCurrentAvatar(int completedCycles)
+        {
+            SetRiftProgressValueForCurrentAvatar(_endlessRiftCompletedCyclesByAvatar, completedCycles, 0);
+        }
+
+        public bool HasStandardRiftLeaderboardSeasonReset(int seasonMarker)
+        {
+            return _standardRiftLeaderboardResetMarker == seasonMarker;
+        }
+
+        public void SetStandardRiftLeaderboardSeasonReset(int seasonMarker)
+        {
+            _standardRiftLeaderboardResetMarker = seasonMarker;
+        }
+
+        public bool HasCurrentAvatarStandardRiftLeaderboardSeasonReset(int seasonMarker)
+        {
+            ulong avatarKey = GetCurrentAvatarRiftProgressKey();
+            return avatarKey != 0
+                && _standardRiftLeaderboardResetMarkerByAvatar.TryGetValue(avatarKey, out int storedMarker)
+                && storedMarker == seasonMarker;
+        }
+
+        public void SetCurrentAvatarStandardRiftLeaderboardSeasonReset(int seasonMarker)
+        {
+            ulong avatarKey = GetCurrentAvatarRiftProgressKey();
+            if (avatarKey == 0)
+                return;
+
+            _standardRiftLeaderboardResetMarkerByAvatar[avatarKey] = seasonMarker;
         }
 
         public override ulong PartyId { get => _partyId.Get(); }
@@ -500,10 +562,82 @@ namespace MHServerEmu.Games.Entities
                 success &= Serializer.Transfer(archive, ref _loginCount);
                 success &= Serializer.Transfer(archive, ref _loginRewardCooldownTimeStart);
                 success &= Serializer.Transfer(archive, ref _mythicRiftHighestUnlockedLevel);
-                if (archive.IsPacking || archive.Version >= ArchiveVersion.AddedRiftContent)
+                if (archive.IsPacking || archive.Version >= ArchiveVersion.AddedRiftAvatarProgress)
                     success &= Serializer.Transfer(archive, ref _endlessRiftHighestUnlockedLevel);
-                if (archive.IsPacking || archive.Version >= ArchiveVersion.AddedRiftContent)
+                if (archive.IsPacking || archive.Version >= ArchiveVersion.AddedRiftAvatarProgress)
                     success &= Serializer.Transfer(archive, ref _endlessRiftCompletedCycles);
+                if (archive.IsPacking || archive.Version >= ArchiveVersion.AddedRiftAvatarProgress)
+                {
+                    success &= Serializer.Transfer(archive, ref _standardRiftLeaderboardResetMarker);
+                    success &= TransferRiftProgressDictionary(archive, _mythicRiftHighestUnlockedLevelByAvatar);
+                    success &= TransferRiftProgressDictionary(archive, _endlessRiftHighestUnlockedLevelByAvatar);
+                    success &= TransferRiftProgressDictionary(archive, _endlessRiftCompletedCyclesByAvatar);
+                    success &= TransferRiftProgressDictionary(archive, _standardRiftLeaderboardResetMarkerByAvatar);
+                }
+            }
+
+            return success;
+        }
+
+        private ulong GetCurrentAvatarRiftProgressKey()
+        {
+            return CurrentAvatar != null && CurrentAvatar.PrototypeDataRef != PrototypeId.Invalid
+                ? (ulong)CurrentAvatar.PrototypeDataRef
+                : 0;
+        }
+
+        private int GetRiftProgressValueForCurrentAvatar(Dictionary<ulong, int> valuesByAvatar, int defaultValue, int minValue)
+        {
+            ulong avatarKey = GetCurrentAvatarRiftProgressKey();
+            if (avatarKey == 0)
+                return Math.Max(defaultValue, minValue);
+
+            return valuesByAvatar.TryGetValue(avatarKey, out int value)
+                ? Math.Max(value, minValue)
+                : Math.Max(defaultValue, minValue);
+        }
+
+        private void SetRiftProgressValueForCurrentAvatar(Dictionary<ulong, int> valuesByAvatar, int value, int minValue)
+        {
+            ulong avatarKey = GetCurrentAvatarRiftProgressKey();
+            if (avatarKey == 0)
+                return;
+
+            valuesByAvatar[avatarKey] = Math.Max(value, minValue);
+        }
+
+        private static bool TransferRiftProgressDictionary(Archive archive, Dictionary<ulong, int> valuesByAvatar)
+        {
+            bool success = true;
+            uint count = (uint)(valuesByAvatar?.Count ?? 0);
+            success &= Serializer.Transfer(archive, ref count);
+
+            if (archive.IsPacking)
+            {
+                if (valuesByAvatar == null)
+                    return success;
+
+                foreach (var kvp in valuesByAvatar)
+                {
+                    ulong avatarPrototypeRef = kvp.Key;
+                    int value = kvp.Value;
+                    success &= Serializer.Transfer(archive, ref avatarPrototypeRef);
+                    success &= Serializer.Transfer(archive, ref value);
+                }
+
+                return success;
+            }
+
+            valuesByAvatar.Clear();
+            for (uint i = 0; i < count; i++)
+            {
+                ulong avatarPrototypeRef = 0;
+                int value = 0;
+                success &= Serializer.Transfer(archive, ref avatarPrototypeRef);
+                success &= Serializer.Transfer(archive, ref value);
+
+                if (avatarPrototypeRef != 0)
+                    valuesByAvatar[avatarPrototypeRef] = value;
             }
 
             return success;
