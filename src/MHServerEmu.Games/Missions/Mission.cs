@@ -1065,7 +1065,6 @@ namespace MHServerEmu.Games.Missions
                             if (isAchievement)
                                 activity.Player.OnScoringEvent(new(ScoringEventType.CompleteMission, Prototype));
 
-                            RiftAccessTeleportService.TryGrantOmegaPatrolAccessForCompletedMission(activity.Player, region, missionRef);
                         }
                     }
                 }

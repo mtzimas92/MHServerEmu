@@ -145,6 +145,38 @@
   },
   {
     "Enabled": true,
+    "Prototype": "Regions/RAIDS/MuspelheimRaid/SurturRaidRegionBand.prototype",
+    "Path": "AccessDifficulties[]",
+    "Description": "[Rift Access] Allow Silver Sable's Omega Trial entry at Tier4Cosmic.",
+    "ValueType": "PrototypeId",
+    "Value": 1087474643293441873
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Regions/RAIDS/MuspelheimRaid/SurturRaidRegionGreen.prototype",
+    "Path": "AccessDifficulties[]",
+    "Description": "[Rift Access] Keep Omega Trial Muspelheim Green transitions at Tier4Cosmic.",
+    "ValueType": "PrototypeId",
+    "Value": 1087474643293441873
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Regions/RAIDS/MuspelheimRaid/SurturRaidRegionRed.prototype",
+    "Path": "AccessDifficulties[]",
+    "Description": "[Rift Access] Keep Omega Trial Muspelheim Red transitions at Tier4Cosmic.",
+    "ValueType": "PrototypeId",
+    "Value": 1087474643293441873
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Regions/RAIDS/MuspelheimRaid/SurturRaidRegionBase.prototype",
+    "Path": "AccessDifficulties[]",
+    "Description": "[Rift Access] Keep Omega Trial Muspelheim base-region transitions at Tier4Cosmic.",
+    "ValueType": "PrototypeId",
+    "Value": 1087474643293441873
+  },
+  {
+    "Enabled": true,
     "Prototype": "Regions/EndGame/TierX/UltronGameMode/UltronRaidRegionCosmic.prototype",
     "Path": "AccessDifficulties[]",
     "Description": "[Rift Access] Allow Cosmic Ultron raid entry and internal transitions at Tier3Superheroic.",
@@ -166,14 +198,6 @@
     "Description": "[Rift Access] Allow Ultron raid entry and internal transitions at Tier5Omega1 for the !Ultron t5 command.",
     "ValueType": "PrototypeId",
     "Value": 424700179461639950
-  },
-  {
-    "Enabled": true,
-    "Prototype": "Regions/EndGame/TierX/CosmicGate/CosmicGateRegion.prototype",
-    "Path": "AccessDifficulties[]",
-    "Description": "[Rift Access] Allow Silver Sable's Omega Trial entry to run Cosmic Gate at Tier4Cosmic.",
-    "ValueType": "PrototypeId",
-    "Value": 1087474643293441873
   },
   {
     "Enabled": true,

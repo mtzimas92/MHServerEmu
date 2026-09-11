@@ -193,5 +193,14 @@
   },
   "18000000000000040200": {
     "en_us": "Travel to the Omega Trial?"
+  },
+  "18000000000000040201": {
+    "en_us": "Omega Trial"
+  },
+  "18000000000000040202": {
+    "en_us": "Defeat Loki"
+  },
+  "18000000000000040203": {
+    "en_us": "Defeat Surtur"
   }
 }

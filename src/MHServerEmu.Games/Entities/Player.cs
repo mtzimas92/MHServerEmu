@@ -3936,6 +3936,7 @@ namespace MHServerEmu.Games.Entities
         public void SendStoryNotification(StoryNotificationPrototype storyNotification, PrototypeId missionRef = PrototypeId.Invalid)
         {
             if (storyNotification == null) return;
+            if (OmegaTrialService.ShouldSuppressNativeTrialMissionNotification(this, missionRef)) return;
 
             var message = NetMessageStoryNotification.CreateBuilder();
             message.SetDisplayTextStringId((ulong)storyNotification.DisplayText);
@@ -3973,6 +3974,7 @@ namespace MHServerEmu.Games.Entities
         public bool SendBannerMessage(BannerMessagePrototype bannerMessageProto)
         {
             if (!Verify.IsNotNull(bannerMessageProto)) return false;
+            if (OmegaTrialService.ShouldSuppressNativeTrialBannerMessage(this, bannerMessageProto)) return false;
 
             return SendBannerMessage(bannerMessageProto.BannerText, bannerMessageProto.TextStyle, bannerMessageProto.TimeToLiveMS,
                 bannerMessageProto.MessageStyle, bannerMessageProto.DoNotQueue, bannerMessageProto.ShowImmediately);

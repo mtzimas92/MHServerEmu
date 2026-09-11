@@ -23,14 +23,10 @@ namespace MHServerEmu.Games.MythicRifts
         private static readonly PrototypeId ICPPatrolTargetCosmicRef = (PrototypeId)1301013882718790217;
         private static readonly PrototypeId HightownPatrolTargetCosmicRef = (PrototypeId)3715467830624070844;
         private static readonly PrototypeId Tier3SuperheroicRef = (PrototypeId)586640101754933627;
-        private static readonly PrototypeId Tier4CosmicRef = (PrototypeId)1087474643293441873;
         private static readonly PrototypeId Tier5Omega1Ref = (PrototypeId)424700179461639950;
-        private const string CosmicGateFinalMissionPrototypeName = "Missions/Prototypes/PVEEndgame/PatrolCosmicGate/Events/PatrolCosmicGateEventTrialP3B.prototype";
-
         private static readonly LocaleStringId RaidAccessDialogTextRef = (LocaleStringId)18000000000000080200;
         private static readonly LocaleStringId OmegaPatrolDialogTextRef = (LocaleStringId)18000000000000080201;
         private static readonly LocaleStringId OmegaPatrolLockedMessageRef = (LocaleStringId)18000000000000080202;
-        private static readonly LocaleStringId OmegaPatrolUnlockedMessageRef = (LocaleStringId)18000000000000080203;
         private static readonly LocaleStringId CosmicAxisButtonRef = (LocaleStringId)18000000000000080210;
         private static readonly LocaleStringId OmegaMuspelheimButtonRef = (LocaleStringId)18000000000000080211;
         private static readonly LocaleStringId OmegaUltronButtonRef = (LocaleStringId)18000000000000080212;
@@ -226,22 +222,6 @@ namespace MHServerEmu.Games.MythicRifts
             }
         }
 
-        public static void TryGrantOmegaPatrolAccessForCompletedMission(Player player, Region region, PrototypeId missionRef)
-        {
-            if (player == null || region == null || HasOmegaPatrolAccessForCurrentAvatar(player))
-                return;
-
-            PrototypeId finalMissionRef = GetOmegaPatrolAccessMissionRef();
-            if (missionRef != finalMissionRef && missionRef.GetNameFormatted().Contains("PatrolCosmicGateEventTrialP3") == false)
-                return;
-
-            if (region.DifficultyTierRef != Tier4CosmicRef)
-                return;
-
-            if (GrantOmegaPatrolAccessForCurrentAvatar(player))
-                player.SendBannerMessage(OmegaPatrolUnlockedMessageRef);
-        }
-
         public static bool HasOmegaPatrolAccessForCurrentAvatar(Player player)
         {
             return player?.MythicRiftProgress.HasOmegaPatrolAccess(player.CurrentAvatar) == true;
@@ -257,9 +237,5 @@ namespace MHServerEmu.Games.MythicRifts
             return true;
         }
 
-        private static PrototypeId GetOmegaPatrolAccessMissionRef()
-        {
-            return GameDatabase.GetPrototypeRefByName(CosmicGateFinalMissionPrototypeName);
-        }
     }
 }

@@ -59,11 +59,6 @@ namespace MHServerEmu.Games.Entities.Avatars
         // (and therefore different) region instances, since everyone entering via Shanna now gets the same
         // explicit tier no matter what.
         private static readonly PrototypeId UESvsDinosDifficultyTierRef = (PrototypeId)7540373722300157771;
-        private const string SilverSableOmegaTrialGuidePrototypeName = "Entity/Characters/NPCs/SilverSableHelicarrier.prototype";
-        private const string CosmicGateStartTargetPrototypeName = "Regions/EndGame/TierX/CosmicGate/CosmicGateStartTarget.prototype";
-        private static readonly PrototypeId OmegaTrialDifficultyTierRef = (PrototypeId)1087474643293441873;
-
-
         private static readonly Logger Logger = LogManager.CreateLogger();
         private static readonly TimeSpan StandardContinuousPowerRecheckDelay = TimeSpan.FromMilliseconds(150);
 
@@ -4488,9 +4483,7 @@ namespace MHServerEmu.Games.Entities.Avatars
                 transition.UseTransition(player);
             else if (interactableObject.PrototypeDataRef == ShannaPortalGuideRef)
                 UseShannaPortalGuide(player, interactableObject);
-            else if (IsSilverSableOmegaTrialGuide(interactableObject))
-                UseSilverSableOmegaTrialGuide(player, interactableObject);
-            else
+            else if (OmegaTrialService.TryUseOmegaTrialGuide(player, interactableObject) == false)
                 RiftAccessTeleportService.TryUseRiftAccessTeleporter(player, interactableObject);
 
             interactableObject.OnInteractedWith(this);
@@ -4505,19 +4498,11 @@ namespace MHServerEmu.Games.Entities.Avatars
         // overridden via AchievementStringMap_99_DinosInvadeManhattan.json (see [[achievement-string-override-global-text-fix]])
         // to actually mention Manhattan instead of the generic native line.
         private static readonly LocaleStringId ShannaDinosaurFlavorTextRef = (LocaleStringId)423133379684795656;
-        private static readonly LocaleStringId SilverSableOmegaTrialFlavorTextRef = (LocaleStringId)18000000000000040200;
-        
 	// Localization/Translations/Dialogs/Yes.prototype and No.prototype - dedicated generic Yes/No button text,
         // each referenced by nothing else in the game's data, so reusing them here can't collide with any other
         // dialog's wording. Matches the real "Travel to X? Yes/No" pattern used by native portal NPCs.
         private static readonly LocaleStringId YesButtonRef = (LocaleStringId)14959079863731815684;
         private static readonly LocaleStringId NoButtonRef = (LocaleStringId)16244338063872951558;
-
-        private static bool IsSilverSableOmegaTrialGuide(WorldEntity interactableObject)
-        {
-            PrototypeId silverSableRef = GameDatabase.GetPrototypeRefByName(SilverSableOmegaTrialGuidePrototypeName);
-            return silverSableRef != PrototypeId.Invalid && interactableObject.PrototypeDataRef == silverSableRef;
-        }
 
         private static void UseShannaPortalGuide(Player player, WorldEntity shanna)
         {
@@ -4550,39 +4535,6 @@ namespace MHServerEmu.Games.Entities.Avatars
                 teleporter.TeleportToTarget(UESvsDinosEntryTargetRef);
             }
         }
-
-        private static void UseSilverSableOmegaTrialGuide(Player player, WorldEntity silverSable)
-        {
-            Game game = player.Game;
-
-            GameDialogInstance dialog = game.GameDialogManager.CreateInstance(player.DatabaseUniqueId);
-            dialog.OnResponse = OnSilverSableOmegaTrialGuideDialogResponse;
-            dialog.Message.LocaleString = SilverSableOmegaTrialFlavorTextRef;
-            dialog.Options = DialogOptionEnum.WorldClick;
-            dialog.TargetId = silverSable.Id;
-            dialog.InteractorId = player.CurrentAvatar?.Id ?? InvalidId;
-            dialog.AddButton(GameDialogResultEnum.eGDR_Option1, YesButtonRef, ButtonStyle.SecondaryPositive, false, true);
-            dialog.AddButton(GameDialogResultEnum.eGDR_Option2, NoButtonRef, ButtonStyle.SecondaryNegative, false, true);
-            game.GameDialogManager.PostDialogToClient(dialog);
-
-            void OnSilverSableOmegaTrialGuideDialogResponse(ulong playerGuid, DialogResponse response)
-            {
-                if (response.ButtonIndex != GameDialogResultEnum.eGDR_Option1) return;
-
-                Player responsePlayer = game.EntityManager.GetEntityByDbGuid<Player>(playerGuid);
-                if (responsePlayer == null) return;
-
-                PrototypeId cosmicGateStartTargetRef = GameDatabase.GetPrototypeRefByName(CosmicGateStartTargetPrototypeName);
-                if (cosmicGateStartTargetRef == PrototypeId.Invalid)
-                    return;
-
-                using var teleporterHandle = TeleporterPool.Get(out Teleporter teleporter);
-                teleporter.Initialize(responsePlayer, TeleportContextEnum.TeleportContext_Transition);
-                teleporter.DifficultyTierRef = OmegaTrialDifficultyTierRef;
-                teleporter.TeleportToTarget(cosmicGateStartTargetRef);
-            }
-        }
-
 
         private bool CanInteract(Player player, WorldEntity interactableObject)
         {
@@ -7819,6 +7771,7 @@ namespace MHServerEmu.Games.Entities.Avatars
 
             var region = Region;
             region?.AvatarEnteredRegionEvent.Invoke(new(player, region.PrototypeDataRef));
+            OmegaTrialService.OnAvatarEnteredRegion(player, region);
             player.OnScoringEvent(new(ScoringEventType.RegionEnter));
         }
 

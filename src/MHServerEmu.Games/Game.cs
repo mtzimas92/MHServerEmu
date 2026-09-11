@@ -355,6 +355,7 @@ namespace MHServerEmu.Games
 
             GameEventScheduler.TriggerEvents(_currentGameTime);
             MythicRiftManager.Update(_currentGameTime);
+            OmegaTrialService.Update(_currentGameTime);
 
             EntityManager.LocomoteEntities();
 
