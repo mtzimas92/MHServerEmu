@@ -1,6 +1,5 @@
 using Gazillion;
 using MHServerEmu.Core.Extensions;
-using MHServerEmu.Core.Logging;
 using MHServerEmu.Core.Memory;
 using MHServerEmu.Core.VectorMath;
 using MHServerEmu.Games.Entities;
@@ -59,7 +58,10 @@ namespace MHServerEmu.Games.MythicRifts
         private static readonly Vector3 SurturFinalBossEncounterExportPosition = new(12193.019f, 14205.562f, 255.99998f);
 
         private static readonly object SyncRoot = new();
+        private static readonly object PrototypeCacheLock = new();
+        private static readonly Dictionary<string, PrototypeId> PrototypeRefCache = new();
         private static readonly Dictionary<ulong, OmegaTrialState> TrialStates = new();
+        private static readonly Dictionary<ulong, OmegaTrialState> RegionTrialStates = new();
         private static readonly Dictionary<ulong, Event<EntityDeadGameEvent>.Action> RegionEntityDeadActions = new();
 
         private enum OmegaTrialStage
@@ -138,7 +140,7 @@ namespace MHServerEmu.Games.MythicRifts
             state.RegionId = region.Id;
             state.CachedRegion = region;
             ApplyTrialRegionScaling(state, region);
-            EnsureRegionListeners(region);
+            RegisterRegionTrialState(region, state);
             SuppressNativeTrialContent(player, region, state);
             SchedulePostEntryNativeSuppression(player, state);
             bool movedToArena = TryMoveAvatarToFinalArena(player, region, state);
@@ -161,54 +163,9 @@ namespace MHServerEmu.Games.MythicRifts
             RefreshTrialWidgets(region.UIDataProvider, state, player.Game.CurrentTime);
         }
 
-        public static void Update(TimeSpan currentTime)
-        {
-            List<OmegaTrialState> activeStates;
-            lock (SyncRoot)
-            {
-                if (TrialStates.Count == 0)
-                    return;
-
-                activeStates = new(TrialStates.Values);
-            }
-
-            foreach (OmegaTrialState state in activeStates)
-            {
-                lock (SyncRoot)
-                {
-                    if (TrialStates.ContainsKey(state.PlayerDbId) == false)
-                        continue;
-                }
-
-                Region region = state.CachedRegion;
-                Game game = region?.Game;
-                Player player = game?.EntityManager.GetEntityByDbGuid<Player>(state.PlayerDbId);
-
-                if (player?.CurrentAvatar == null || region == null || region.ShutdownRequested)
-                    continue;
-
-                if (state.PostEntryNativeSuppressionPending && currentTime >= state.PostEntryNativeSuppressionAt)
-                {
-                    state.PostEntryNativeSuppressionPending = false;
-                    SuppressNativeTrialContent(player, region, state);
-                }
-
-                if (state.PhaseExpiresAt <= TimeSpan.Zero || currentTime < state.PhaseExpiresAt)
-                    continue;
-
-                if (IsTimedStage(state.Stage) == false)
-                    continue;
-
-                // Logger.Info($"[OmegaTrialTrace] stage=phase-timeout playerDbId=0x{state.PlayerDbId:X} trialStage={state.Stage} regionId=0x{region.Id:X}");
-                SendStopTrialTimer(player, state);
-                TrySpawnReturnPortal(player, region, state);
-                EndTrial(state.PlayerDbId);
-            }
-        }
-
         private static bool IsSilverSableOmegaTrialGuide(WorldEntity interactableObject)
         {
-            PrototypeId silverSableRef = GameDatabase.GetPrototypeRefByName(SilverSableOmegaTrialGuidePrototypeName);
+            PrototypeId silverSableRef = GetPrototypeRefByName(SilverSableOmegaTrialGuidePrototypeName);
             return silverSableRef != PrototypeId.Invalid && interactableObject.PrototypeDataRef == silverSableRef;
         }
 
@@ -281,14 +238,16 @@ namespace MHServerEmu.Games.MythicRifts
             }
         }
 
-        private static void EnsureRegionListeners(Region region)
+        private static void RegisterRegionTrialState(Region region, OmegaTrialState state)
         {
-            if (region == null)
+            if (region == null || state == null)
                 return;
 
             Event<EntityDeadGameEvent>.Action deadAction = (in EntityDeadGameEvent evt) => OnRegionEntityDead(region.Game, region.Id, evt);
             lock (SyncRoot)
             {
+                RegionTrialStates[region.Id] = state;
+
                 if (RegionEntityDeadActions.ContainsKey(region.Id) == false)
                 {
                     region.EntityDeadEvent.AddActionBack(deadAction);
@@ -302,51 +261,41 @@ namespace MHServerEmu.Games.MythicRifts
             if (game == null || evt.Defender == null)
                 return;
 
-            List<OmegaTrialState> activeRegionStates = null;
+            OmegaTrialState state;
             lock (SyncRoot)
             {
-                foreach (OmegaTrialState state in TrialStates.Values)
-                {
-                    if (state.RegionId == regionId)
-                    {
-                        activeRegionStates ??= new();
-                        activeRegionStates.Add(state);
-                    }
-                }
+                RegionTrialStates.TryGetValue(regionId, out state);
             }
 
-            if (activeRegionStates == null)
+            if (state == null)
                 return;
 
-            foreach (OmegaTrialState state in activeRegionStates)
+            Player player = game.EntityManager.GetEntityByDbGuid<Player>(state.PlayerDbId);
+            if (player?.CurrentAvatar == null || player.CurrentAvatar.Region?.Id != regionId)
             {
-                Player player = game.EntityManager.GetEntityByDbGuid<Player>(state.PlayerDbId);
-                if (player?.CurrentAvatar == null || player.CurrentAvatar.Region?.Id != regionId)
-                {
-                    // Logger.Info($"[OmegaTrialTrace] stage=ending-missing-player playerDbId=0x{state.PlayerDbId:X} regionId=0x{regionId:X}");
-                    EndTrial(state.PlayerDbId);
-                    continue;
-                }
+                // Logger.Info($"[OmegaTrialTrace] stage=ending-missing-player playerDbId=0x{state.PlayerDbId:X} regionId=0x{regionId:X}");
+                EndTrial(state.PlayerDbId);
+                return;
+            }
 
-                if (state.Stage == OmegaTrialStage.LokiPhase1Active && IsTrackedDeath(evt.Defender, state.LokiEntityId, LokiPhase1PrototypeName))
-                {
-                    // Logger.Info($"[OmegaTrialTrace] stage=loki-phase1-dead playerDbId=0x{state.PlayerDbId:X} entityId=0x{evt.Defender.Id:X} prototype={evt.Defender.PrototypeDataRef.GetNameFormatted()}");
-                    SpawnLokiPhase2(player, player.CurrentAvatar.Region, state);
-                    continue;
-                }
+            if (state.Stage == OmegaTrialStage.LokiPhase1Active && IsTrackedDeath(evt.Defender, state.LokiEntityId, LokiPhase1PrototypeName))
+            {
+                // Logger.Info($"[OmegaTrialTrace] stage=loki-phase1-dead playerDbId=0x{state.PlayerDbId:X} entityId=0x{evt.Defender.Id:X} prototype={evt.Defender.PrototypeDataRef.GetNameFormatted()}");
+                SpawnLokiPhase2(player, player.CurrentAvatar.Region, state);
+                return;
+            }
 
-                if (state.Stage == OmegaTrialStage.LokiActive && IsTrackedDeath(evt.Defender, state.LokiEntityId, LokiPhase2PrototypeName))
-                {
-                    // Logger.Info($"[OmegaTrialTrace] stage=loki-phase2-dead playerDbId=0x{state.PlayerDbId:X} entityId=0x{evt.Defender.Id:X} prototype={evt.Defender.PrototypeDataRef.GetNameFormatted()}");
-                    SpawnSurturPhase(player, player.CurrentAvatar.Region, state);
-                    continue;
-                }
+            if (state.Stage == OmegaTrialStage.LokiActive && IsTrackedDeath(evt.Defender, state.LokiEntityId, LokiPhase2PrototypeName))
+            {
+                // Logger.Info($"[OmegaTrialTrace] stage=loki-phase2-dead playerDbId=0x{state.PlayerDbId:X} entityId=0x{evt.Defender.Id:X} prototype={evt.Defender.PrototypeDataRef.GetNameFormatted()}");
+                SpawnSurturPhase(player, player.CurrentAvatar.Region, state);
+                return;
+            }
 
-                if (state.Stage == OmegaTrialStage.SurturActive && IsTrackedDeath(evt.Defender, state.SurturEntityId, SurturBossPrototypeName))
-                {
-                    // Logger.Info($"[OmegaTrialTrace] stage=surtur-dead playerDbId=0x{state.PlayerDbId:X} entityId=0x{evt.Defender.Id:X} prototype={evt.Defender.PrototypeDataRef.GetNameFormatted()}");
-                    CompleteTrial(player, state);
-                }
+            if (state.Stage == OmegaTrialStage.SurturActive && IsTrackedDeath(evt.Defender, state.SurturEntityId, SurturBossPrototypeName))
+            {
+                // Logger.Info($"[OmegaTrialTrace] stage=surtur-dead playerDbId=0x{state.PlayerDbId:X} entityId=0x{evt.Defender.Id:X} prototype={evt.Defender.PrototypeDataRef.GetNameFormatted()}");
+                CompleteTrial(player, state);
             }
         }
 
@@ -417,8 +366,9 @@ namespace MHServerEmu.Games.MythicRifts
             if (player?.Game == null || state == null)
                 return;
 
-            state.PostEntryNativeSuppressionPending = true;
-            state.PostEntryNativeSuppressionAt = player.Game.CurrentTime + PostEntryNativeSuppressionDelay;
+            player.Game.GameEventScheduler.CancelEvent(state.PostEntryNativeSuppressionEvent);
+            player.Game.GameEventScheduler.ScheduleEvent(state.PostEntryNativeSuppressionEvent, PostEntryNativeSuppressionDelay);
+            state.PostEntryNativeSuppressionEvent.Get().PlayerDbId = state.PlayerDbId;
         }
 
         private static bool IsTimedStage(OmegaTrialStage stage)
@@ -444,7 +394,62 @@ namespace MHServerEmu.Games.MythicRifts
             state.PhaseStartedAt = player.Game.CurrentTime;
             state.PhaseExpiresAt = state.PhaseStartedAt + duration;
             state.TimerMetaGameId = state.RegionId != 0 ? state.RegionId : state.PlayerDbId;
+            ReschedulePhaseTimeout(player, state, duration);
             SendStartTrialTimer(player, state, duration);
+        }
+
+        private static void ReschedulePhaseTimeout(Player player, OmegaTrialState state, TimeSpan duration)
+        {
+            if (player?.Game == null || state == null || duration <= TimeSpan.Zero || IsTimedStage(state.Stage) == false)
+                return;
+
+            player.Game.GameEventScheduler.CancelEvent(state.PhaseTimeoutEvent);
+            player.Game.GameEventScheduler.ScheduleEvent(state.PhaseTimeoutEvent, duration);
+
+            OmegaTrialPhaseTimeoutEvent timeoutEvent = state.PhaseTimeoutEvent.Get();
+            timeoutEvent.PlayerDbId = state.PlayerDbId;
+            timeoutEvent.Stage = state.Stage;
+        }
+
+        private static void HandlePostEntryNativeSuppression(ulong playerDbId)
+        {
+            OmegaTrialState state;
+            lock (SyncRoot)
+            {
+                TrialStates.TryGetValue(playerDbId, out state);
+            }
+
+            Region region = state?.CachedRegion;
+            Player player = region?.Game?.EntityManager.GetEntityByDbGuid<Player>(playerDbId);
+            if (player?.CurrentAvatar == null || region == null || region.ShutdownRequested)
+                return;
+
+            SuppressNativeTrialContent(player, region, state);
+        }
+
+        private static void HandlePhaseTimeout(ulong playerDbId, OmegaTrialStage stage)
+        {
+            OmegaTrialState state;
+            lock (SyncRoot)
+            {
+                TrialStates.TryGetValue(playerDbId, out state);
+            }
+
+            if (state == null || IsTimedStage(state.Stage) == false)
+                return;
+
+            if (state.Stage != stage && (stage != OmegaTrialStage.LokiPhase1Active || state.Stage != OmegaTrialStage.LokiActive))
+                return;
+
+            Region region = state.CachedRegion;
+            Player player = region?.Game?.EntityManager.GetEntityByDbGuid<Player>(playerDbId);
+            if (player?.CurrentAvatar == null || region == null || region.ShutdownRequested)
+                return;
+
+            // Logger.Info($"[OmegaTrialTrace] stage=phase-timeout playerDbId=0x{state.PlayerDbId:X} trialStage={state.Stage} regionId=0x{region.Id:X}");
+            SendStopTrialTimer(player, state);
+            TrySpawnReturnPortal(player, region, state);
+            EndTrial(state.PlayerDbId);
         }
 
         private static void SendStartTrialTimer(Player player, OmegaTrialState state, TimeSpan duration)
@@ -485,6 +490,7 @@ namespace MHServerEmu.Games.MythicRifts
 
                 player.SendMessage(message);
                 state.PhaseExpiresAt = TimeSpan.Zero;
+                player.Game?.GameEventScheduler?.CancelEvent(state.PhaseTimeoutEvent);
             }
             catch (Exception)
             {
@@ -983,20 +989,6 @@ namespace MHServerEmu.Games.MythicRifts
             return surturRef != PrototypeId.Invalid && entity.PrototypeDataRef == surturRef;
         }
 
-        private static OmegaTrialState GetActiveStateForRegion(ulong regionId)
-        {
-            lock (SyncRoot)
-            {
-                foreach (OmegaTrialState state in TrialStates.Values)
-                {
-                    if (state.RegionId == regionId)
-                        return state;
-                }
-            }
-
-            return null;
-        }
-
         private static WorldEntity FindEntityByPrototype(Region region, PrototypeId prototypeRef)
         {
             if (region == null || prototypeRef == PrototypeId.Invalid)
@@ -1243,7 +1235,18 @@ namespace MHServerEmu.Games.MythicRifts
 
         private static PrototypeId GetPrototypeRefByName(string prototypeName)
         {
-            return GameDatabase.GetPrototypeRefByName(prototypeName);
+            if (string.IsNullOrWhiteSpace(prototypeName))
+                return PrototypeId.Invalid;
+
+            lock (PrototypeCacheLock)
+            {
+                if (PrototypeRefCache.TryGetValue(prototypeName, out PrototypeId prototypeRef))
+                    return prototypeRef;
+
+                prototypeRef = GameDatabase.GetPrototypeRefByName(prototypeName);
+                PrototypeRefCache[prototypeName] = prototypeRef;
+                return prototypeRef;
+            }
         }
 
         private static void ApplyTrialRegionScaling(OmegaTrialState state, Region region)
@@ -1297,6 +1300,8 @@ namespace MHServerEmu.Games.MythicRifts
             }
 
             RestoreTrialRegionScaling(state);
+            state.CachedRegion?.Game?.GameEventScheduler?.CancelEvent(state.PostEntryNativeSuppressionEvent);
+            state.CachedRegion?.Game?.GameEventScheduler?.CancelEvent(state.PhaseTimeoutEvent);
             if (clearWidgets)
                 ClearTrialWidgets(state.CachedRegion?.UIDataProvider);
             TryRemoveRegionListeners(state.RegionId, state.CachedRegion);
@@ -1316,6 +1321,7 @@ namespace MHServerEmu.Games.MythicRifts
                         return;
                 }
 
+                RegionTrialStates.Remove(regionId);
                 RegionEntityDeadActions.TryGetValue(regionId, out deadAction);
                 RegionEntityDeadActions.Remove(regionId);
             }
@@ -1335,8 +1341,8 @@ namespace MHServerEmu.Games.MythicRifts
             public ulong ReturnPortalEntityId;
             public TimeSpan PhaseStartedAt;
             public TimeSpan PhaseExpiresAt;
-            public bool PostEntryNativeSuppressionPending;
-            public TimeSpan PostEntryNativeSuppressionAt;
+            public readonly EventPointer<OmegaTrialPostEntryNativeSuppressionEvent> PostEntryNativeSuppressionEvent = new();
+            public readonly EventPointer<OmegaTrialPhaseTimeoutEvent> PhaseTimeoutEvent = new();
             public bool HasArenaAnchor;
             public Vector3 ArenaAnchorPosition;
             public Orientation ArenaAnchorOrientation;
@@ -1347,6 +1353,38 @@ namespace MHServerEmu.Games.MythicRifts
             public float RegionPlayerToMobDamageBeforeScaling;
             public float RegionMobToPlayerDamageBeforeScaling;
             public Region CachedRegion;
+        }
+
+        private sealed class OmegaTrialPostEntryNativeSuppressionEvent : ScheduledEvent
+        {
+            public ulong PlayerDbId;
+
+            public override void OnTriggered()
+            {
+                HandlePostEntryNativeSuppression(PlayerDbId);
+            }
+
+            public override void Clear()
+            {
+                PlayerDbId = 0;
+            }
+        }
+
+        private sealed class OmegaTrialPhaseTimeoutEvent : ScheduledEvent
+        {
+            public ulong PlayerDbId;
+            public OmegaTrialStage Stage;
+
+            public override void OnTriggered()
+            {
+                HandlePhaseTimeout(PlayerDbId, Stage);
+            }
+
+            public override void Clear()
+            {
+                PlayerDbId = 0;
+                Stage = default;
+            }
         }
     }
 }

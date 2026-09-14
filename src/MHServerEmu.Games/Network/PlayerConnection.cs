@@ -2349,6 +2349,9 @@ namespace MHServerEmu.Games.Network
             if (!Verify.IsTrue(avatar.GetOwnerOfType<Player>() == Player, $"Player [{Player}] is attempting to assign stolen power for avatar [{avatar}] that belongs to another player"))
                 return;
 
+            if (avatar.Properties[PropertyEnum.IsInCombat])
+                return;
+
             PrototypeId stealingPowerRef = (PrototypeId)assignStolenPower.StealingPowerProtoId;
             if (!Verify.IsTrue(stealingPowerRef != PrototypeId.Invalid)) return;
 
