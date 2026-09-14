@@ -1468,6 +1468,26 @@ namespace MHServerEmu.Games.Network
             if (!Verify.IsTrue(avatar.GetOwnerOfType<Player>() == Player, $"Player [{Player}] is attempting to slot ability for avatar [{avatar}] that belongs to another player"))
                 return;
 
+            if (avatar.Properties[PropertyEnum.IsInCombat])
+            {
+                PrototypeId abilityProtoRef = (PrototypeId)abilitySlotToAbilityBar.PrototypeRefId;
+                AbilitySlot abilitySlot = (AbilitySlot)abilitySlotToAbilityBar.SlotNumber;
+
+                if (avatar.AvatarPrototype?.StealablePowersAllowed != null)
+                {
+                    foreach (StealablePowerInfoPrototype stealablePower in avatar.AvatarPrototype.StealablePowersAllowed)
+                    {
+                        if (stealablePower.Power == abilityProtoRef)
+                        {
+                            Power previousAbility = avatar.GetPowerInSlot(abilitySlot);
+                            PrototypeId previousAbilityProtoRef = previousAbility != null ? previousAbility.PrototypeDataRef : PrototypeId.Invalid;
+                            avatar.SlotAbility(previousAbilityProtoRef, abilitySlot, true, true);
+                            return;
+                        }
+                    }
+                }
+            }
+
 #if GAME_VERSION_1_52 || GAME_VERSION_1_53
             avatar.SlotAbility((PrototypeId)abilitySlotToAbilityBar.PrototypeRefId, (AbilitySlot)abilitySlotToAbilityBar.SlotNumber, false, false);
 #else
