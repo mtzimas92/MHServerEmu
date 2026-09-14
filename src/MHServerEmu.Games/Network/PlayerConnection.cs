@@ -893,7 +893,29 @@ namespace MHServerEmu.Games.Network
             PrototypeId powerProtoRef = (PrototypeId)tryActivatePower.PowerPrototypeId;
 
             PowerActivationSettings settings = new(avatar.RegionLocation.Position);
-            settings.ApplyProtobuf(tryActivatePower);
+
+            if (tryActivatePower.HasIdTargetEntity)
+                settings.TargetEntityId = tryActivatePower.IdTargetEntity;
+
+            if (tryActivatePower.HasTargetPosition)
+                settings.TargetPosition = new(tryActivatePower.TargetPosition);
+
+            if (tryActivatePower.HasMovementSpeed)
+                settings.MovementSpeed = tryActivatePower.MovementSpeed;
+
+            if (tryActivatePower.HasMovementTimeMS)
+                settings.MovementTime = TimeSpan.FromMilliseconds(tryActivatePower.MovementTimeMS);
+
+            if (tryActivatePower.HasPowerRandomSeed)
+                settings.PowerRandomSeed = (int)tryActivatePower.PowerRandomSeed;
+
+            if (tryActivatePower.HasItemSourceId)
+                settings.ItemSourceId = tryActivatePower.ItemSourceId;
+
+            settings.FXRandomSeed = (int)tryActivatePower.FxRandomSeed;
+
+            if (tryActivatePower.HasTriggeringPowerPrototypeId)
+                settings.TriggeringPowerRef = (PrototypeId)tryActivatePower.TriggeringPowerPrototypeId;
 
             avatar.ActivatePower(powerProtoRef, ref settings);
         }
@@ -2349,9 +2371,6 @@ namespace MHServerEmu.Games.Network
             if (!Verify.IsTrue(avatar.GetOwnerOfType<Player>() == Player, $"Player [{Player}] is attempting to assign stolen power for avatar [{avatar}] that belongs to another player"))
                 return;
 
-            if (avatar.Properties[PropertyEnum.IsInCombat])
-                return;
-
             PrototypeId stealingPowerRef = (PrototypeId)assignStolenPower.StealingPowerProtoId;
             if (!Verify.IsTrue(stealingPowerRef != PrototypeId.Invalid)) return;
 
@@ -2362,6 +2381,9 @@ namespace MHServerEmu.Games.Network
 
             PrototypeId currentStolenPowerRef = avatar.GetMappedPowerFromOriginalPower(stealingPowerRef);
             if (avatar.CanAssignStolenPower(stolenPowerRef, currentStolenPowerRef) == false)
+                return;
+
+            if (avatar.Properties[PropertyEnum.IsInCombat])
                 return;
 
             if (currentStolenPowerRef != PrototypeId.Invalid)
