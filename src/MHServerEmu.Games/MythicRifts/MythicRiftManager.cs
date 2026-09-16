@@ -6668,6 +6668,9 @@ namespace MHServerEmu.Games.MythicRifts
             int livingAgents = 0;
             int hostileAgents = 0;
             int missiles = 0;
+            int hotspots = 0;
+            int spawners = 0;
+            int kismetSequences = 0;
             int transitions = 0;
             int items = 0;
 
@@ -6682,6 +6685,12 @@ namespace MHServerEmu.Games.MythicRifts
                     worldEntities++;
                     if (worldEntity is Missile)
                         missiles++;
+                    if (worldEntity is Hotspot)
+                        hotspots++;
+                    if (worldEntity is Spawner)
+                        spawners++;
+                    if (worldEntity is KismetSequenceEntity)
+                        kismetSequences++;
                     if (worldEntity is Transition)
                         transitions++;
                     if (worldEntity is Item)
@@ -6706,9 +6715,107 @@ namespace MHServerEmu.Games.MythicRifts
                 $"bossSpawnCount={runState.BossSpawnCount}/{runState.Config.RequiredBossKillCount} bossKillCount={runState.BossKillCount} " +
                 $"activeBosses={runState.ActiveBossEntityIds.Count} completedWaves={runState.BossGauntletCompletedWaves} participants={runState.ParticipantCount} " +
                 $"entities={totalEntities} worldEntities={worldEntities} agents={agents} livingAgents={livingAgents} hostileAgents={hostileAgents} " +
-                $"missiles={missiles} transitions={transitions} items={items} trackedHazards={runState.HazardEntityIds.Count} " +
+                $"missiles={missiles} hotspots={hotspots} spawners={spawners} kismet={kismetSequences} transitions={transitions} items={items} trackedHazards={runState.HazardEntityIds.Count} " +
                 $"trackedCustomPopulation={runState.CustomPopulationEntityIds.Count} destroyedResidual={destroyedResidual} " +
                 $"healthMult={runState.Difficulty.HealthMultiplier} damageMult={runState.Difficulty.DamageMultiplier}");
+
+            if (region != null)
+                LogBossGauntletDetailedDiagnostics(runState, stage, region);
+        }
+
+        private void LogBossGauntletDetailedDiagnostics(MythicRiftRunState runState, string stage, Region region)
+        {
+            Dictionary<string, int> entityCounts = new();
+            Dictionary<string, int> livingAgentCounts = new();
+            Dictionary<string, int> deadAgentCounts = new();
+            Dictionary<string, int> hotspotCounts = new();
+            Dictionary<string, int> missileCounts = new();
+            Dictionary<string, int> spawnerCounts = new();
+            List<string> livingAgentDetails = new();
+
+            foreach (Entity entity in region.Entities)
+            {
+                if (entity is not WorldEntity worldEntity || worldEntity.IsDestroyed)
+                    continue;
+
+                AddBossGauntletDiagnosticCount(entityCounts, worldEntity.PrototypeName);
+
+                if (worldEntity is Hotspot)
+                    AddBossGauntletDiagnosticCount(hotspotCounts, worldEntity.PrototypeName);
+                else if (worldEntity is Missile)
+                    AddBossGauntletDiagnosticCount(missileCounts, worldEntity.PrototypeName);
+                else if (worldEntity is Spawner)
+                    AddBossGauntletDiagnosticCount(spawnerCounts, worldEntity.PrototypeName);
+
+                if (worldEntity is not Agent agent)
+                    continue;
+
+                if (agent.IsDead)
+                {
+                    AddBossGauntletDiagnosticCount(deadAgentCounts, agent.PrototypeName);
+                    continue;
+                }
+
+                AddBossGauntletDiagnosticCount(livingAgentCounts, agent.PrototypeName);
+                if (livingAgentDetails.Count < 24)
+                {
+                    Vector3 position = agent.RegionLocation.Position;
+                    float nearestPlayerDistance = GetNearestBossGauntletParticipantDistance2D(runState, region, position);
+                    livingAgentDetails.Add(
+                        $"{agent.PrototypeName}#0x{agent.Id:X}:hostile={agent.IsHostileToPlayers()}:trackedBoss={runState.IsTrackedBoss(agent.Id)}:" +
+                        $"pos=({position.X:F0},{position.Y:F0},{position.Z:F0}):nearestPlayer2D={nearestPlayerDistance:F0}");
+                }
+            }
+
+            Logger.Info(
+                $"[MythicRiftBossGauntletDetail] stage={stage} runId={runState.Config.RunId} wave={runState.Config.WaveNumber} " +
+                $"elapsedSec={(int)Math.Max((Game.CurrentTime - runState.StartedAt).TotalSeconds, 0)} " +
+                $"entityTop=[{FormatBossGauntletDiagnosticCounts(entityCounts, 12)}] " +
+                $"livingAgents=[{FormatBossGauntletDiagnosticCounts(livingAgentCounts, 12)}] " +
+                $"deadAgents=[{FormatBossGauntletDiagnosticCounts(deadAgentCounts, 12)}] " +
+                $"hotspots=[{FormatBossGauntletDiagnosticCounts(hotspotCounts, 8)}] " +
+                $"missiles=[{FormatBossGauntletDiagnosticCounts(missileCounts, 8)}] " +
+                $"spawners=[{FormatBossGauntletDiagnosticCounts(spawnerCounts, 8)}] " +
+                $"livingDetails=[{string.Join("; ", livingAgentDetails)}]");
+        }
+
+        private static void AddBossGauntletDiagnosticCount(Dictionary<string, int> counts, string name)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+                name = "unknown";
+
+            counts.TryGetValue(name, out int count);
+            counts[name] = count + 1;
+        }
+
+        private static string FormatBossGauntletDiagnosticCounts(Dictionary<string, int> counts, int maxEntries)
+        {
+            if (counts.Count == 0)
+                return "none";
+
+            return string.Join(", ", counts
+                .OrderByDescending(kvp => kvp.Value)
+                .ThenBy(kvp => kvp.Key)
+                .Take(Math.Max(maxEntries, 1))
+                .Select(kvp => $"{kvp.Key}x{kvp.Value}"));
+        }
+
+        private float GetNearestBossGauntletParticipantDistance2D(MythicRiftRunState runState, Region region, Vector3 position)
+        {
+            float nearestDistance = float.MaxValue;
+            foreach (ulong playerDbId in runState.ParticipantPlayerDbIds)
+            {
+                Player player = Game.EntityManager.GetEntityByDbGuid<Player>(playerDbId);
+                Avatar avatar = player?.CurrentAvatar;
+                if (avatar == null || avatar.Region?.Id != region.Id)
+                    continue;
+
+                float distance = Vector3.Distance2D(position, avatar.RegionLocation.Position);
+                if (distance < nearestDistance)
+                    nearestDistance = distance;
+            }
+
+            return nearestDistance < float.MaxValue ? nearestDistance : -1f;
         }
 
         private void TrySpawnPendingMilestoneEncounters(MythicRiftRunState runState, bool allowAfterBossUnlock = false)
