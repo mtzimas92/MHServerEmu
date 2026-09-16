@@ -5871,7 +5871,9 @@ namespace MHServerEmu.Games.MythicRifts
             if (_nextCheckpointBossSpawnRetryAt.TryGetValue(runState.Config.RunId, out TimeSpan nextSpawnAt) && currentTime < nextSpawnAt)
                 return false;
 
-            ClearBossGauntletResidualEnemies(runState, reason: "wave-start");
+            LogBossGauntletDiagnostics(runState, "wave-start-before-cleanup");
+            int destroyedResidual = ClearBossGauntletResidualEnemies(runState, reason: "wave-start");
+            LogBossGauntletDiagnostics(runState, "wave-start-after-cleanup", destroyedResidual: destroyedResidual);
             _nextCheckpointBossSpawnRetryAt[runState.Config.RunId] = currentTime + CheckpointBossSpawnRetryInterval;
             runState.UnlockBoss();
             if (TrySpawnConfiguredBoss(runState) == false)
@@ -5883,6 +5885,7 @@ namespace MHServerEmu.Games.MythicRifts
             string modifierText = BuildRiftModifierText(runState.Config);
             string modifierSuffix = string.IsNullOrWhiteSpace(modifierText) ? string.Empty : $" Modifiers: {modifierText}.";
             NotifyRunPlayers(runState, $"[Mythic Rift] Boss Gauntlet wave {runState.Config.WaveNumber} started. Bosses this wave: {runState.Config.RequiredBossKillCount}.{modifierSuffix}");
+            LogBossGauntletDiagnostics(runState, "wave-start-after-spawn");
             // Logger.Info($"Mythic Rift run {runState.Config.RunId} started Boss Gauntlet wave {runState.Config.WaveNumber} with {runState.Config.RequiredBossKillCount} boss(es).");
             return true;
         }
@@ -5893,6 +5896,7 @@ namespace MHServerEmu.Games.MythicRifts
                 return false;
 
             runState.MarkBossGauntletWaveCompleted();
+            LogBossGauntletDiagnostics(runState, "wave-cleared");
             int nextWave = Math.Max(runState.Config.WaveNumber + 1, 1);
             MythicRiftRunConfig nextConfig = CreateBossGauntletWaveConfig(runState, nextWave);
             if (nextConfig == null)
@@ -6641,11 +6645,70 @@ namespace MHServerEmu.Games.MythicRifts
                 ApplyCheckpointBossTuning(runState, bossAgent);
                 runState.AttachBoss(bossAgent.Id);
                 spawnedThisCall++;
+                LogBossGauntletDiagnostics(runState, "boss-spawned", region, bossAgent);
                 // Logger.Info($"Mythic Rift run {runState.Config.RunId} spawned boss {runState.BossSpawnCount}/{requiredBossCount}: {bossAgent.PrototypeName} from boss pool entry {bossContent.Id}.");
             }
 
             return spawnedThisCall > 0 &&
                    (runState.Config.UseBossGauntletMode || runState.BossSpawnCount >= requiredBossCount);
+        }
+
+        private void LogBossGauntletDiagnostics(MythicRiftRunState runState, string stage, Region region = null, Agent spawnedBoss = null, int destroyedResidual = -1)
+        {
+            if (runState?.Config?.UseBossGauntletMode != true)
+                return;
+
+            region ??= runState.RegionId != 0
+                ? Game.RegionManager.GetRegion(runState.RegionId)
+                : null;
+
+            int totalEntities = 0;
+            int worldEntities = 0;
+            int agents = 0;
+            int livingAgents = 0;
+            int hostileAgents = 0;
+            int missiles = 0;
+            int transitions = 0;
+            int items = 0;
+
+            if (region != null)
+            {
+                foreach (Entity entity in region.Entities)
+                {
+                    totalEntities++;
+                    if (entity is not WorldEntity worldEntity || worldEntity.IsDestroyed)
+                        continue;
+
+                    worldEntities++;
+                    if (worldEntity is Missile)
+                        missiles++;
+                    if (worldEntity is Transition)
+                        transitions++;
+                    if (worldEntity is Item)
+                        items++;
+
+                    if (worldEntity is not Agent agent)
+                        continue;
+
+                    agents++;
+                    if (agent.IsDead == false)
+                        livingAgents++;
+                    if (agent.IsDead == false && agent.IsHostileToPlayers())
+                        hostileAgents++;
+                }
+            }
+
+            TimeSpan elapsed = Game.CurrentTime - runState.StartedAt;
+            Logger.Info(
+                $"[MythicRiftBossGauntletTrace] stage={stage} runId={runState.Config.RunId} wave={runState.Config.WaveNumber} " +
+                $"elapsedSec={(int)Math.Max(elapsed.TotalSeconds, 0)} regionId=0x{runState.RegionId:X} region={region?.PrototypeName ?? "unknown"} " +
+                $"spawnedBoss={spawnedBoss?.PrototypeName ?? "none"} spawnedBossId=0x{spawnedBoss?.Id ?? 0UL:X} " +
+                $"bossSpawnCount={runState.BossSpawnCount}/{runState.Config.RequiredBossKillCount} bossKillCount={runState.BossKillCount} " +
+                $"activeBosses={runState.ActiveBossEntityIds.Count} completedWaves={runState.BossGauntletCompletedWaves} participants={runState.ParticipantCount} " +
+                $"entities={totalEntities} worldEntities={worldEntities} agents={agents} livingAgents={livingAgents} hostileAgents={hostileAgents} " +
+                $"missiles={missiles} transitions={transitions} items={items} trackedHazards={runState.HazardEntityIds.Count} " +
+                $"trackedCustomPopulation={runState.CustomPopulationEntityIds.Count} destroyedResidual={destroyedResidual} " +
+                $"healthMult={runState.Difficulty.HealthMultiplier} damageMult={runState.Difficulty.DamageMultiplier}");
         }
 
         private void TrySpawnPendingMilestoneEncounters(MythicRiftRunState runState, bool allowAfterBossUnlock = false)

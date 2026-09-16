@@ -10,6 +10,7 @@ using MHServerEmu.Games.GameData;
 using MHServerEmu.Games.GameData.Prototypes;
 using MHServerEmu.Games.Missions;
 using MHServerEmu.Games.Navi;
+using MHServerEmu.Games.Powers;
 using MHServerEmu.Games.Properties;
 using MHServerEmu.Games.Regions;
 using MHServerEmu.Games.UI;
@@ -103,6 +104,58 @@ namespace MHServerEmu.Games.MythicRifts
             LokiPhase1Active,
             LokiActive,
             SurturActive
+        }
+
+        public static bool TryLogPlayerDamage(WorldEntity target, PowerResults powerResults, WorldEntity ultimateOwner, WorldEntity powerUser, long startHealth, long endHealth, long adjustHealth)
+        {
+            if (adjustHealth >= 0 || powerResults == null || target is not Avatar targetAvatar)
+                return false;
+
+            Player player = targetAvatar.GetOwnerOfType<Player>();
+            if (player == null)
+                return false;
+
+            OmegaTrialState state;
+            lock (SyncRoot)
+            {
+                if (TrialStates.TryGetValue(player.DatabaseUniqueId, out state) == false)
+                    return false;
+            }
+
+            Region region = target.Region;
+            if (state == null || region == null || state.RegionId != region.Id)
+                return false;
+
+            float rawPhysical = powerResults.Properties[PropertyEnum.Damage, DamageType.Physical];
+            float rawEnergy = powerResults.Properties[PropertyEnum.Damage, DamageType.Energy];
+            float rawMental = powerResults.Properties[PropertyEnum.Damage, DamageType.Mental];
+            float rawTotal = rawPhysical + rawEnergy + rawMental;
+            float clientPhysical = powerResults.GetDamageForClient(DamageType.Physical);
+            float clientEnergy = powerResults.GetDamageForClient(DamageType.Energy);
+            float clientMental = powerResults.GetDamageForClient(DamageType.Mental);
+            float clientTotal = clientPhysical + clientEnergy + clientMental;
+
+            string powerName = powerResults.PowerPrototype?.DataRef.GetNameFormatted() ?? "unknown";
+            string ultimateOwnerName = ultimateOwner?.PrototypeDataRef.GetNameFormatted() ?? "unknown";
+            string powerUserName = powerUser?.PrototypeDataRef.GetNameFormatted() ?? "unknown";
+            Vector3 ownerPosition = ultimateOwner?.RegionLocation.Position ?? Vector3.Zero;
+            Vector3 targetPosition = target.RegionLocation.Position;
+            float ownerDistance = ultimateOwner != null ? Vector3.Distance2D(ownerPosition, targetPosition) : -1f;
+
+            Logger.Info(
+                $"[OmegaTrialDamageTrace] playerDbId=0x{player.DatabaseUniqueId:X} stage={state.Stage} " +
+                $"target={target.PrototypeDataRef.GetNameFormatted()} targetId=0x{target.Id:X} targetPos={targetPosition} " +
+                $"source={ultimateOwnerName} sourceId=0x{ultimateOwner?.Id ?? 0UL:X} sourcePos={ownerPosition} sourceDistance={ownerDistance} " +
+                $"powerUser={powerUserName} powerUserId=0x{powerUser?.Id ?? 0UL:X} power={powerName} " +
+                $"health={startHealth}->{endHealth} delta={adjustHealth} rawDamage={rawTotal} rawPhysical={rawPhysical} rawEnergy={rawEnergy} rawMental={rawMental} " +
+                $"clientDamage={clientTotal} clientPhysical={clientPhysical} clientEnergy={clientEnergy} clientMental={clientMental} " +
+                $"flags={powerResults.Flags} hostile={powerResults.TestFlag(PowerResultFlags.Hostile)} critical={powerResults.TestFlag(PowerResultFlags.Critical)} " +
+                $"superCritical={powerResults.TestFlag(PowerResultFlags.SuperCritical)} blocked={powerResults.TestFlag(PowerResultFlags.Blocked)} " +
+                $"dodged={powerResults.TestFlag(PowerResultFlags.Dodged)} resisted={powerResults.TestFlag(PowerResultFlags.Resisted)} " +
+                $"unaffected={powerResults.TestFlag(PowerResultFlags.Unaffected)} overTime={powerResults.TestFlag(PowerResultFlags.OverTime)} " +
+                $"instantKill={powerResults.TestFlag(PowerResultFlags.InstantKill)}");
+
+            return true;
         }
 
         public static bool TryUseOmegaTrialGuide(Player player, WorldEntity interactableObject)

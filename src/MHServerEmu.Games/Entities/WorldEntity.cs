@@ -24,6 +24,7 @@ using MHServerEmu.Games.GameData.LiveTuning;
 using MHServerEmu.Games.GameData.Prototypes;
 using MHServerEmu.Games.Loot;
 using MHServerEmu.Games.MetaGames;
+using MHServerEmu.Games.MythicRifts;
 using MHServerEmu.Games.Missions;
 using MHServerEmu.Games.Navi;
 using MHServerEmu.Games.Network;
@@ -2225,6 +2226,7 @@ namespace MHServerEmu.Games.Entities
                 return false;
 
             PowerDamageMetricsLogger.RecordDamage(powerResults, this, ultimateOwner, powerUser, startHealth, health, adjustHealth);
+            OmegaTrialService.TryLogPlayerDamage(this, powerResults, ultimateOwner, powerUser, startHealth, health, adjustHealth);
 
             // Apply health change
             bool killed = false;
