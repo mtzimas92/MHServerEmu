@@ -8,7 +8,6 @@ using MHServerEmu.Games.Entities.Avatars;
 using MHServerEmu.Games.Entities.Inventories;
 using MHServerEmu.Games.GameData;
 using MHServerEmu.Games.GameData.Prototypes;
-using MHServerEmu.Games.MythicRifts;
 using MHServerEmu.Games.Properties;
 using MHServerEmu.Games.Regions;
 using MHServerEmu.Games.UI;
@@ -188,9 +187,6 @@ namespace MHServerEmu.Games.Entities
 
         public bool UseTransition(Player player)
         {
-            if (OmegaTrialService.TryUseOmegaTrialPortal(player, this))
-                return true;
-
             if (Game.MythicRiftManager.TryUseRewardRoomPortal(player, this))
                 return true;
 

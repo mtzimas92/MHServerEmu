@@ -26,8 +26,8 @@ namespace MHServerEmu.Games.MythicRifts
         private const string SurturFinalEncounterHotspotPrototypeName = "Entity/Missions/Hotspots/SurturRaidFinalEncTriggerHotspot.prototype";
         private const string LokiPhase1PrototypeName = "Entity/Characters/Bosses/Story/LokiPhase1.prototype";
         private const string LokiPhase2PrototypeName = "Entity/Characters/Bosses/Story/LokiPhase2.prototype";
-        private const string SurturBossPrototypeName = "Entity/Characters/Bosses/SurturRaid/FiveMan/SurturBoss.prototype";
-        private const string SurturBossSpawnerPrototypeName = "Entity/Spawners/Raids/Surtur/SurturBossFight/FiveMan/SurturBossSpawner.prototype";
+        private const string SurturBossPrototypeName = "Entity/Characters/Bosses/SurturRaid/SurturBoss.prototype";
+        private const string SurturBossSpawnerPrototypeName = "Entity/Spawners/Raids/Surtur/SurturBossFight/SurturBossSpawner.prototype";
         private const string SurturBanishPortalVisualSpawnerPrototypeName = "Entity/Spawners/Raids/Surtur/SurturBossFight/FiveMan/BanishPortals/SurturRaidBanishPortalVisualSpawner.prototype";
         private const string SurturBanishPortalSlagSpawnerPrototypeName = "Entity/Spawners/Raids/Surtur/SurturBossFight/FiveMan/BanishPortals/SurturRaidBanishPortalSlagSpawner.prototype";
         private const string SurturBanishPortalTwinsSpawnerPrototypeName = "Entity/Spawners/Raids/Surtur/SurturBossFight/FiveMan/BanishPortals/SurturRaidBanishPortalTwinsSpawner.prototype";
@@ -66,8 +66,7 @@ namespace MHServerEmu.Games.MythicRifts
         private const float LokiSpawnDistance = 600f;
         private const float SurturSpawnDistance = 1200f;
         private const float BossSpawnSearchDistance = 3200f;
-        private const float BanishFallbackMinArenaDistance = 3500f;
-        private const float SurturHealthMultiplier = 3f;
+        private const long SurturTargetHealth = 6000000L;
         private const long MistressOfMagmaTargetHealth = 1500000L;
         private static readonly TimeSpan LokiPhase1SpawnDelay = TimeSpan.FromSeconds(3);
         private static readonly TimeSpan LokiFightTimeLimit = TimeSpan.FromMinutes(5);
@@ -78,29 +77,6 @@ namespace MHServerEmu.Games.MythicRifts
         private static readonly Vector3 SurturFinalEncounterHotspotExportPosition = new(11024f, 13072f, 176f);
         private static readonly Vector3 SurturFinalBossEncounterExportPosition = new(12193.019f, 14205.562f, 255.99998f);
         private static readonly float[] SurturBanishHealthThresholds = { 75f, 50f, 25f };
-        private static readonly OmegaTrialSpawnerTrigger[][] SurturBanishWaveSpawnerTriggers =
-        {
-            new[]
-            {
-                new OmegaTrialSpawnerTrigger(SurturBanishPortalVisualSpawnerPrototypeName, EntityTriggerEnum.Pulse),
-                new OmegaTrialSpawnerTrigger(SurturBanishPortalSlagSpawnerPrototypeName, EntityTriggerEnum.Pulse),
-                new OmegaTrialSpawnerTrigger(SurturBanishSlagSpawnerPrototypeName, EntityTriggerEnum.Enabled)
-            },
-            new[]
-            {
-                new OmegaTrialSpawnerTrigger(SurturBanishPortalVisualSpawnerPrototypeName, EntityTriggerEnum.Pulse),
-                new OmegaTrialSpawnerTrigger(SurturBanishPortalTwinsSpawnerPrototypeName, EntityTriggerEnum.Enabled),
-                new OmegaTrialSpawnerTrigger(SurturBanishHellfireSpawnerPrototypeName, EntityTriggerEnum.Enabled),
-                new OmegaTrialSpawnerTrigger(SurturBanishBrimstoneSpawnerPrototypeName, EntityTriggerEnum.Enabled)
-            },
-            new[]
-            {
-                new OmegaTrialSpawnerTrigger(SurturBanishPortalVisualSpawnerPrototypeName, EntityTriggerEnum.Pulse),
-                new OmegaTrialSpawnerTrigger(SurturBanishPortalMoMSpawnerPrototypeName, EntityTriggerEnum.Enabled),
-                new OmegaTrialSpawnerTrigger(SurturBanishMistressSpawnerPrototypeName, EntityTriggerEnum.Enabled)
-            }
-        };
-
         private static readonly object SyncRoot = new();
         private static readonly object PrototypeCacheLock = new();
         private static readonly Dictionary<string, PrototypeId> PrototypeRefCache = new();
@@ -454,7 +430,7 @@ namespace MHServerEmu.Games.MythicRifts
 
             state.Stage = OmegaTrialStage.LokiActive;
             state.LokiEntityId = loki.Id;
-            // Logger.Info($"[OmegaTrialTrace] stage=spawned-loki-phase2 playerDbId=0x{state.PlayerDbId:X} entityId=0x{loki.Id:X} position={loki.RegionLocation.Position} level={loki.Properties[PropertyEnum.CharacterLevel]} difficulty={region.DifficultyTierRef.GetNameFormatted()}");
+            Logger.Info($"[OmegaTrialTrace] stage=spawned-loki-phase2 playerDbId=0x{state.PlayerDbId:X} entityId=0x{loki.Id:X} position={loki.RegionLocation.Position} level={(int)loki.Properties[PropertyEnum.CharacterLevel]} health={(long)loki.Properties[PropertyEnum.Health]} healthMax={(long)loki.Properties[PropertyEnum.HealthMax]} healthMaxOther={(long)loki.Properties[PropertyEnum.HealthMaxOther]} difficulty={region.DifficultyTierRef.GetNameFormatted()}");
             RefreshTrialWidgets(region.UIDataProvider, state, player.Game.CurrentTime);
         }
 
@@ -664,11 +640,10 @@ namespace MHServerEmu.Games.MythicRifts
             ClampSurturHealthToThreshold(surtur, thresholdPct);
             state.SurturBanishInProgress = true;
             int triggered = TriggerSurturBanishWave(player, region, state, waveIndex);
-            Logger.Info($"[OmegaTrialTrace] stage=banish-wave-fired playerDbId=0x{playerDbId:X} wave={waveIndex + 1}/{SurturBanishWaveSpawnerTriggers.Length} thresholdPct={thresholdPct} healthPct={healthPct} triggered={triggered}");
+            Logger.Info($"[OmegaTrialTrace] stage=banish-wave-fired playerDbId=0x{playerDbId:X} wave={waveIndex + 1}/{SurturBanishHealthThresholds.Length} thresholdPct={thresholdPct} healthPct={healthPct} triggered={triggered}");
             if (triggered > 0)
             {
-                SendTrialChat(player, "Surtur opens a banishment portal. Defeat the summoned champion to return.");
-                TryTeleportPlayerToSurturBanish(player, region, state);
+                SendTrialChat(player, "Surtur becomes invulnerable. Defeat the summoned champion.");
             }
             else
             {
@@ -682,15 +657,10 @@ namespace MHServerEmu.Games.MythicRifts
 
         private static int TriggerSurturBanishWave(Player player, Region region, OmegaTrialState state, int waveIndex)
         {
-            if (player == null || region == null || state == null || waveIndex < 0 || waveIndex >= SurturBanishWaveSpawnerTriggers.Length)
+            if (player == null || region == null || state == null || waveIndex < 0 || waveIndex >= SurturBanishHealthThresholds.Length)
                 return 0;
 
-            int triggered = 0;
-            foreach (OmegaTrialSpawnerTrigger spawnerTrigger in SurturBanishWaveSpawnerTriggers[waveIndex])
-                triggered += TriggerSpawnerPrototype(region, spawnerTrigger.PrototypeName, spawnerTrigger.Trigger);
-
-            triggered += EnsureSurturBanishMiniBossWave(player, region, state, waveIndex);
-            return triggered;
+            return EnsureSurturBanishMiniBossWave(player, region, state, waveIndex);
         }
 
         private static int EnsureSurturBanishMiniBossWave(Player player, Region region, OmegaTrialState state, int waveIndex)
@@ -728,8 +698,7 @@ namespace MHServerEmu.Games.MythicRifts
                 return 0;
             }
 
-            TrySpawnSurturBanishPortal(player, region, state, miniBoss);
-            Logger.Info($"[OmegaTrialTrace] stage=banish-fallback-spawned playerDbId=0x{state.PlayerDbId:X} miniboss={label} entityId=0x{miniBoss.Id:X} prototype={miniBoss.PrototypeDataRef.GetNameFormatted()} position={miniBoss.RegionLocation.Position} health={(long)miniBoss.Properties[PropertyEnum.Health]} healthMax={(long)miniBoss.Properties[PropertyEnum.HealthMax]}");
+            Logger.Info($"[OmegaTrialTrace] stage=banish-arena-boss-spawned playerDbId=0x{state.PlayerDbId:X} miniboss={label} entityId=0x{miniBoss.Id:X} prototype={miniBoss.PrototypeDataRef.GetNameFormatted()} position={miniBoss.RegionLocation.Position} health={(long)miniBoss.Properties[PropertyEnum.Health]} healthMax={(long)miniBoss.Properties[PropertyEnum.HealthMax]}");
             return 1;
         }
 
@@ -789,7 +758,8 @@ namespace MHServerEmu.Games.MythicRifts
             {
                 state.SurturSlagDefeated = true;
                 Logger.Info($"[OmegaTrialTrace] stage=banish-miniboss-dead playerDbId=0x{state.PlayerDbId:X} miniboss=Slag entityId=0x{defender.Id:X}");
-                return TriggerSurturReturnSpawnerOnce(player, region, state, SurturReturnFromSlagSpawnerPrototypeName, ref state.SurturSlagReturnTriggered);
+                TryResumeSurturAfterArenaBosses(player, region, state);
+                return true;
             }
 
             if (IsPrototype(defender, SurturHellfireMiniBossPrototypeName))
@@ -797,7 +767,7 @@ namespace MHServerEmu.Games.MythicRifts
                 state.SurturHellfireDefeated = true;
                 Logger.Info($"[OmegaTrialTrace] stage=banish-miniboss-dead playerDbId=0x{state.PlayerDbId:X} miniboss=Hellfire entityId=0x{defender.Id:X} brimstoneDefeated={state.SurturBrimstoneDefeated}");
                 if (state.SurturBrimstoneDefeated)
-                    return TriggerSurturReturnSpawnerOnce(player, region, state, SurturReturnFromTwinsSpawnerPrototypeName, ref state.SurturTwinsReturnTriggered);
+                    TryResumeSurturAfterArenaBosses(player, region, state);
 
                 return true;
             }
@@ -807,7 +777,7 @@ namespace MHServerEmu.Games.MythicRifts
                 state.SurturBrimstoneDefeated = true;
                 Logger.Info($"[OmegaTrialTrace] stage=banish-miniboss-dead playerDbId=0x{state.PlayerDbId:X} miniboss=Brimstone entityId=0x{defender.Id:X} hellfireDefeated={state.SurturHellfireDefeated}");
                 if (state.SurturHellfireDefeated)
-                    return TriggerSurturReturnSpawnerOnce(player, region, state, SurturReturnFromTwinsSpawnerPrototypeName, ref state.SurturTwinsReturnTriggered);
+                    TryResumeSurturAfterArenaBosses(player, region, state);
 
                 return true;
             }
@@ -816,10 +786,39 @@ namespace MHServerEmu.Games.MythicRifts
             {
                 state.SurturMistressDefeated = true;
                 Logger.Info($"[OmegaTrialTrace] stage=banish-miniboss-dead playerDbId=0x{state.PlayerDbId:X} miniboss=Mistress entityId=0x{defender.Id:X}");
-                return TriggerSurturReturnSpawnerOnce(player, region, state, SurturReturnFromMistressSpawnerPrototypeName, ref state.SurturMistressReturnTriggered);
+                TryResumeSurturAfterArenaBosses(player, region, state);
+                return true;
             }
 
             return false;
+        }
+
+        private static void TryResumeSurturAfterArenaBosses(Player player, Region region, OmegaTrialState state)
+        {
+            if (state == null || state.SurturBanishInProgress == false)
+                return;
+
+            if (IsCurrentSurturBanishWaveDefeated(state) == false)
+                return;
+
+            Logger.Info($"[OmegaTrialTrace] stage=banish-wave-cleared playerDbId=0x{state.PlayerDbId:X} activeWave={state.NextSurturBanishWaveIndex}");
+            ResumeSurturAfterBanish(player, region, state);
+            SendTrialChat(player, "Surtur is vulnerable again.");
+        }
+
+        private static bool IsCurrentSurturBanishWaveDefeated(OmegaTrialState state)
+        {
+            if (state == null)
+                return false;
+
+            int activeWaveIndex = state.NextSurturBanishWaveIndex - 1;
+            return activeWaveIndex switch
+            {
+                0 => state.SurturSlagDefeated,
+                1 => state.SurturHellfireDefeated && state.SurturBrimstoneDefeated,
+                2 => state.SurturMistressDefeated,
+                _ => false
+            };
         }
 
         private static bool TriggerSurturReturnSpawnerOnce(Player player, Region region, OmegaTrialState state, string spawnerPrototypeName, ref bool alreadyTriggered)
@@ -1061,7 +1060,7 @@ namespace MHServerEmu.Games.MythicRifts
 
         private static void ApplySurturHealthMultiplier(OmegaTrialState state, Agent surtur)
         {
-            if (surtur == null || SurturHealthMultiplier <= 1f)
+            if (surtur == null)
                 return;
 
             long oldHealth = surtur.Properties[PropertyEnum.Health];
@@ -1071,10 +1070,11 @@ namespace MHServerEmu.Games.MythicRifts
             if (oldHealthMax <= 0)
                 return;
 
-            surtur.Properties[PropertyEnum.HealthPctBonus] = oldHealthPctBonus + SurturHealthMultiplier - 1f;
+            float healthMultiplier = Math.Max(1f / oldHealthMax, SurturTargetHealth / (float)oldHealthMax);
+            surtur.Properties[PropertyEnum.HealthPctBonus] = Math.Max(-0.995f, oldHealthPctBonus + healthMultiplier - 1f);
             surtur.Properties[PropertyEnum.Health] = surtur.Properties[PropertyEnum.HealthMax];
 
-            Logger.Info($"[OmegaTrialTrace] stage=surtur-health-multiplied playerDbId=0x{state?.PlayerDbId ?? 0:X} entityId=0x{surtur.Id:X} multiplier={SurturHealthMultiplier} oldHealth={oldHealth} oldHealthMax={oldHealthMax} oldHealthMaxOther={oldHealthMaxOther} oldHealthPctBonus={oldHealthPctBonus} newHealthPctBonus={(float)surtur.Properties[PropertyEnum.HealthPctBonus]} newHealth={(long)surtur.Properties[PropertyEnum.Health]} newHealthMax={(long)surtur.Properties[PropertyEnum.HealthMax]} newHealthMaxOther={(long)surtur.Properties[PropertyEnum.HealthMaxOther]}");
+            Logger.Info($"[OmegaTrialTrace] stage=surtur-health-tuned playerDbId=0x{state?.PlayerDbId ?? 0:X} entityId=0x{surtur.Id:X} targetHealth={SurturTargetHealth} multiplier={healthMultiplier} oldHealth={oldHealth} oldHealthMax={oldHealthMax} oldHealthMaxOther={oldHealthMaxOther} oldHealthPctBonus={oldHealthPctBonus} newHealthPctBonus={(float)surtur.Properties[PropertyEnum.HealthPctBonus]} newHealth={(long)surtur.Properties[PropertyEnum.Health]} newHealthMax={(long)surtur.Properties[PropertyEnum.HealthMax]} newHealthMaxOther={(long)surtur.Properties[PropertyEnum.HealthMaxOther]}");
         }
 
         private static void SendStartTrialTimer(Player player, OmegaTrialState state, TimeSpan duration)
@@ -1921,19 +1921,12 @@ namespace MHServerEmu.Games.MythicRifts
                     continue;
                 }
 
-                float arenaDistance = Vector3.Distance2D(anchorPosition, spawnPosition);
-                if (arenaDistance < BanishFallbackMinArenaDistance)
-                {
-                    Logger.Info($"[OmegaTrialTrace] stage=banish-fallback-location-rejected playerDbId=0x{state.PlayerDbId:X} miniboss={label} preferred={preferredPosition} resolved={spawnPosition} arenaDistance={arenaDistance} reason=too-close-to-arena");
-                    continue;
-                }
-
                 spawnPosition = RegionLocation.ProjectToFloor(region, spawnCell, spawnPosition);
                 if (miniBossProto.Bounds != null)
                     spawnPosition.Z += miniBossProto.Bounds.GetBoundHalfHeight();
 
                 spawnOrientation = Orientation.FromDeltaVector2D(anchorPosition - spawnPosition);
-                Logger.Info($"[OmegaTrialTrace] stage=banish-fallback-location-resolved playerDbId=0x{state.PlayerDbId:X} miniboss={label} preferred={preferredPosition} resolved={spawnPosition} arenaDistance={arenaDistance} cell={(spawnCell?.Id.ToString("X") ?? "unknown")}");
+                Logger.Info($"[OmegaTrialTrace] stage=banish-arena-location-resolved playerDbId=0x{state.PlayerDbId:X} miniboss={label} preferred={preferredPosition} resolved={spawnPosition} arenaDistance={Vector3.Distance2D(anchorPosition, spawnPosition)} cell={(spawnCell?.Id.ToString("X") ?? "unknown")}");
                 return true;
             }
 
@@ -1946,40 +1939,34 @@ namespace MHServerEmu.Games.MythicRifts
             {
                 "Slag" => new[]
                 {
-                    new Vector3(-6500f, -4200f, 0f),
-                    new Vector3(-7800f, -5200f, 0f),
-                    new Vector3(-5200f, -6500f, 0f)
+                    new Vector3(900f, 0f, 0f),
+                    new Vector3(700f, 450f, 0f),
+                    new Vector3(700f, -450f, 0f)
                 },
                 "Hellfire" => new[]
                 {
-                    new Vector3(-10200f, 1200f, 0f),
-                    new Vector3(-7600f, 900f, 0f),
-                    new Vector3(-8200f, 2200f, 0f),
-                    new Vector3(-10400f, 2400f, 0f),
-                    new Vector3(-7000f, 1800f, 0f),
-                    new Vector3(-9600f, 600f, 0f)
+                    new Vector3(-900f, -450f, 0f),
+                    new Vector3(-700f, -700f, 0f),
+                    new Vector3(-1100f, -250f, 0f)
                 },
                 "Brimstone" => new[]
                 {
-                    new Vector3(-8400f, 1400f, 0f),
-                    new Vector3(-9000f, 1700f, 0f),
-                    new Vector3(-9600f, 1200f, 0f),
-                    new Vector3(-4200f, 6800f, 0f),
-                    new Vector3(-5800f, 7600f, 0f),
-                    new Vector3(-2800f, 8000f, 0f)
+                    new Vector3(-900f, 450f, 0f),
+                    new Vector3(-700f, 700f, 0f),
+                    new Vector3(-1100f, 250f, 0f)
                 },
                 "Mistress" => new[]
                 {
-                    new Vector3(6500f, -4200f, 0f),
-                    new Vector3(7800f, -5200f, 0f),
-                    new Vector3(5200f, -6500f, 0f)
+                    new Vector3(0f, -1000f, 0f),
+                    new Vector3(450f, -850f, 0f),
+                    new Vector3(-450f, -850f, 0f)
                 },
                 _ => new[]
                 {
-                    new Vector3(-6500f, -4200f, 0f),
-                    new Vector3(6500f, -4200f, 0f),
-                    new Vector3(-6500f, 5200f, 0f),
-                    new Vector3(6500f, 5200f, 0f)
+                    new Vector3(900f, 0f, 0f),
+                    new Vector3(-900f, 0f, 0f),
+                    new Vector3(0f, 900f, 0f),
+                    new Vector3(0f, -900f, 0f)
                 }
             };
         }
