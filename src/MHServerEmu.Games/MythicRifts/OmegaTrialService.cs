@@ -43,6 +43,8 @@ namespace MHServerEmu.Games.MythicRifts
         private const string SurturHellfireMiniBossPrototypeName = "Entity/Characters/Bosses/SurturRaid/FiveMan/SurturFightMinibosses/HellfireMiniBoss.prototype";
         private const string SurturBrimstoneMiniBossPrototypeName = "Entity/Characters/Bosses/SurturRaid/FiveMan/SurturFightMinibosses/BrimstoneMiniBoss.prototype";
         private const string SurturMistressMiniBossPrototypeName = "Entity/Characters/Bosses/SurturRaid/FiveMan/SurturFightMinibosses/MistressOfMagmaMiniBoss.prototype";
+        private const string SurturCoverRockAPrototypeName = "Entity/Props/MultiStageDestructibles/DBMuspelheimSurturBlocker.prototype";
+        private const string SurturCoverRockBPrototypeName = "Entity/Props/MultiStageDestructibles/DBMuspelheimSurturBlockerB.prototype";
         private const string ReturnPortalPrototypeName = "Entity/Transitions/ReturnToLastBaseDR.prototype";
         private const string HelicarrierEntryTargetPrototypeName = "Regions/HUBS/Helicarrier/Connections/HelicarrierEntryTarget.prototype";
         private const string OmegaTrialLevelWidgetPrototypeName = "UI/MetaGame/MissionName.prototype";
@@ -66,6 +68,7 @@ namespace MHServerEmu.Games.MythicRifts
         private const float LokiSpawnDistance = 600f;
         private const float SurturSpawnDistance = 1200f;
         private const float BossSpawnSearchDistance = 3200f;
+        private const float SurturBanishArenaMaxSpawnDistance = 1250f;
         private const long SurturTargetHealth = 6000000L;
         private const long MistressOfMagmaTargetHealth = 1500000L;
         private static readonly TimeSpan LokiPhase1SpawnDelay = TimeSpan.FromSeconds(3);
@@ -77,6 +80,16 @@ namespace MHServerEmu.Games.MythicRifts
         private static readonly Vector3 SurturFinalEncounterHotspotExportPosition = new(11024f, 13072f, 176f);
         private static readonly Vector3 SurturFinalBossEncounterExportPosition = new(12193.019f, 14205.562f, 255.99998f);
         private static readonly float[] SurturBanishHealthThresholds = { 75f, 50f, 25f };
+        private static readonly (string PrototypeName, Vector3 Position, Orientation Orientation)[] SurturCoverRockPlacements =
+        {
+            (SurturCoverRockBPrototypeName, new Vector3(30128f, 12592f, 176f), new Orientation(-0.490881f, 0f, 0f)),
+            (SurturCoverRockAPrototypeName, new Vector3(30360f, 13336f, 176f), new Orientation(1.57082f, 0f, 0f)),
+            (SurturCoverRockAPrototypeName, new Vector3(31320f, 13832f, 184f), new Orientation(1.57082f, 0f, 0f)),
+            (SurturCoverRockBPrototypeName, new Vector3(31040f, 12416f, 176f), new Orientation(1.178115f, 0f, 0f)),
+            (SurturCoverRockBPrototypeName, new Vector3(30624f, 13808f, 176f), new Orientation(0.981763f, 0f, 0f)),
+            (SurturCoverRockBPrototypeName, new Vector3(31008f, 14368f, 176f), new Orientation(1.472644f, 0f, 0f)),
+            (SurturCoverRockBPrototypeName, new Vector3(30384f, 14288f, 176f), new Orientation(0.490881f, 0f, 0f))
+        };
         private static readonly object SyncRoot = new();
         private static readonly object PrototypeCacheLock = new();
         private static readonly Dictionary<string, PrototypeId> PrototypeRefCache = new();
@@ -457,6 +470,7 @@ namespace MHServerEmu.Games.MythicRifts
             state.SurturEntityId = surtur.Id;
             ResetSurturBanishState(state);
             ApplySurturHealthMultiplier(state, surtur);
+            EnsureSurturCover(region, state);
             StartPhaseTimer(player, state, SurturFightTimeLimit);
             ScheduleSurturHealthThresholdCheck(player, state);
             SendTrialChat(player, "Defeat Surtur. Time limit: 5 minutes.");
@@ -1648,6 +1662,28 @@ namespace MHServerEmu.Games.MythicRifts
             return null;
         }
 
+        private static int FindEntitiesByPrototype(Region region, PrototypeId prototypeRef, List<WorldEntity> results)
+        {
+            if (region == null || prototypeRef == PrototypeId.Invalid || results == null)
+                return 0;
+
+            int count = 0;
+            foreach (Entity entity in region.Entities)
+            {
+                if (entity is not WorldEntity worldEntity ||
+                    worldEntity.PrototypeDataRef != prototypeRef ||
+                    worldEntity.IsDestroyed)
+                {
+                    continue;
+                }
+
+                results.Add(worldEntity);
+                count++;
+            }
+
+            return count;
+        }
+
         private static bool HasLivingEntityPrototype(Region region, PrototypeId prototypeRef)
         {
             if (region == null || prototypeRef == PrototypeId.Invalid)
@@ -1824,6 +1860,129 @@ namespace MHServerEmu.Games.MythicRifts
             return true;
         }
 
+        private static void EnsureSurturCover(Region region, OmegaTrialState state)
+        {
+            if (region == null || state == null)
+                return;
+
+            int existingCount = RevealExistingSurturCover(region, state);
+            int spawnedCount = SpawnSurturCoverFromRaidMarkers(region, state);
+            int totalCount = existingCount + spawnedCount;
+            Logger.Info($"[OmegaTrialTrace] stage=surtur-cover-ready playerDbId=0x{state.PlayerDbId:X} existing={existingCount} spawned={spawnedCount} total={totalCount}");
+        }
+
+        private static int RevealExistingSurturCover(Region region, OmegaTrialState state)
+        {
+            using var coverEntitiesHandle = ListPool<WorldEntity>.Get(out List<WorldEntity> coverEntities);
+            FindEntitiesByPrototype(region, GetPrototypeRefByName(SurturCoverRockAPrototypeName), coverEntities);
+            FindEntitiesByPrototype(region, GetPrototypeRefByName(SurturCoverRockBPrototypeName), coverEntities);
+
+            int count = 0;
+            foreach (WorldEntity coverEntity in coverEntities)
+            {
+                coverEntity.SetVisible(true);
+                if (state.SurturCoverEntityIds.Contains(coverEntity.Id) == false)
+                    state.SurturCoverEntityIds.Add(coverEntity.Id);
+
+                Logger.Info($"[OmegaTrialTrace] stage=surtur-cover-revealed playerDbId=0x{state.PlayerDbId:X} entityId=0x{coverEntity.Id:X} position={coverEntity.RegionLocation.Position} prototype={coverEntity.PrototypeDataRef.GetNameFormatted()}");
+                count++;
+            }
+
+            return count;
+        }
+
+        private static int SpawnSurturCoverFromRaidMarkers(Region region, OmegaTrialState state)
+        {
+            if (state.HasArenaAnchor == false || state.ArenaAnchorCell == null)
+                return 0;
+
+            int spawned = 0;
+            foreach ((string prototypeName, Vector3 markerPosition, Orientation markerOrientation) in SurturCoverRockPlacements)
+            {
+                PrototypeId coverRef = GetPrototypeRefByName(prototypeName);
+                WorldEntityPrototype coverProto = coverRef.As<WorldEntityPrototype>();
+                if (coverProto == null)
+                {
+                    Logger.Info($"[OmegaTrialTrace] stage=surtur-cover-missing-prototype playerDbId=0x{state.PlayerDbId:X} prototype={prototypeName}");
+                    continue;
+                }
+
+                Vector3 spawnPosition = GetSurturCoverSpawnPosition(state, markerPosition);
+                Cell spawnCell = region.GetCellAtPosition(spawnPosition) ?? state.ArenaAnchorCell;
+                if (spawnCell == null)
+                    continue;
+
+                if (TryCreateTrialWorldEntity(region, coverProto, spawnPosition, markerOrientation, spawnCell, out WorldEntity coverEntity) == false)
+                    continue;
+
+                coverEntity.SetVisible(true);
+                state.SurturCoverEntityIds.Add(coverEntity.Id);
+                state.SurturSpawnedCoverEntityIds.Add(coverEntity.Id);
+                Logger.Info($"[OmegaTrialTrace] stage=surtur-cover-spawned playerDbId=0x{state.PlayerDbId:X} entityId=0x{coverEntity.Id:X} position={coverEntity.RegionLocation.Position} markerPosition={markerPosition} spawnPosition={spawnPosition} markerOrientation={markerOrientation} cell={(spawnCell?.Id.ToString("X") ?? "unknown")} prototype={coverEntity.PrototypeDataRef.GetNameFormatted()}");
+                spawned++;
+            }
+
+            return spawned;
+        }
+
+        private static Vector3 GetSurturCoverSpawnPosition(OmegaTrialState state, Vector3 markerPosition)
+        {
+            if (state?.HasArenaAnchor == true)
+                markerPosition.Z = state.ArenaAnchorPosition.Z;
+
+            return markerPosition;
+        }
+
+        private static bool TryCreateTrialWorldEntity(Region region, WorldEntityPrototype entityProto, Vector3 spawnPosition, Orientation spawnOrientation, Cell spawnCell, out WorldEntity worldEntity)
+        {
+            worldEntity = null;
+            if (region == null || entityProto == null || spawnCell == null)
+                return false;
+
+            using var settingsHandle = EntitySettingsPool.Get(out EntitySettings settings);
+            settings.EntityRef = entityProto.DataRef;
+            settings.Position = spawnPosition;
+            settings.Orientation = spawnOrientation;
+            settings.RegionId = region.Id;
+            settings.Cell = spawnCell;
+            settings.IsPopulation = true;
+
+            using var settingsPropertiesHandle = PropertyCollectionPool.Get(out PropertyCollection settingsProperties);
+            int level = spawnCell.Area.GetCharacterLevel(entityProto);
+            settingsProperties[PropertyEnum.CharacterLevel] = level;
+            settingsProperties[PropertyEnum.CombatLevel] = level;
+            settingsProperties[PropertyEnum.DifficultyTier] = region.DifficultyTierRef;
+            settingsProperties[PropertyEnum.NoLootDrop] = true;
+            settingsProperties[PropertyEnum.MissionXEncounterHostilityOk] = true;
+            settings.Properties = settingsProperties;
+
+            worldEntity = region.Game.EntityManager.CreateEntity(settings) as WorldEntity;
+            return worldEntity != null;
+        }
+
+        private static void ClearSurturCover(OmegaTrialState state)
+        {
+            Region region = state?.CachedRegion;
+            if (region == null || state.SurturCoverEntityIds.Count == 0)
+                return;
+
+            foreach (ulong coverEntityId in state.SurturCoverEntityIds)
+            {
+                WorldEntity coverEntity = region.Game.EntityManager.GetEntity<WorldEntity>(coverEntityId);
+                if (coverEntity == null || coverEntity.IsDestroyed)
+                    continue;
+
+                if (state.SurturSpawnedCoverEntityIds.Contains(coverEntityId))
+                    coverEntity.Destroy();
+                else
+                    coverEntity.SetVisible(false);
+            }
+
+            Logger.Info($"[OmegaTrialTrace] stage=surtur-cover-cleared playerDbId=0x{state.PlayerDbId:X} tracked={state.SurturCoverEntityIds.Count} spawned={state.SurturSpawnedCoverEntityIds.Count}");
+            state.SurturCoverEntityIds.Clear();
+            state.SurturSpawnedCoverEntityIds.Clear();
+        }
+
         private static bool TryResolveBossSpawnLocation(Avatar avatar, Region region, OmegaTrialState state, AgentPrototype bossProto, float spawnDistance, out Vector3 spawnPosition, out Orientation spawnOrientation, out Cell spawnCell)
         {
             spawnPosition = Vector3.Zero;
@@ -1922,11 +2081,18 @@ namespace MHServerEmu.Games.MythicRifts
                 }
 
                 spawnPosition = RegionLocation.ProjectToFloor(region, spawnCell, spawnPosition);
+                float arenaDistance = Vector3.Distance2D(anchorPosition, spawnPosition);
+                if (arenaDistance > SurturBanishArenaMaxSpawnDistance)
+                {
+                    Logger.Info($"[OmegaTrialTrace] stage=banish-arena-location-rejected playerDbId=0x{state.PlayerDbId:X} miniboss={label} preferred={preferredPosition} resolved={spawnPosition} arenaDistance={arenaDistance} maxDistance={SurturBanishArenaMaxSpawnDistance} reason=too-far-from-arena");
+                    continue;
+                }
+
                 if (miniBossProto.Bounds != null)
                     spawnPosition.Z += miniBossProto.Bounds.GetBoundHalfHeight();
 
                 spawnOrientation = Orientation.FromDeltaVector2D(anchorPosition - spawnPosition);
-                Logger.Info($"[OmegaTrialTrace] stage=banish-arena-location-resolved playerDbId=0x{state.PlayerDbId:X} miniboss={label} preferred={preferredPosition} resolved={spawnPosition} arenaDistance={Vector3.Distance2D(anchorPosition, spawnPosition)} cell={(spawnCell?.Id.ToString("X") ?? "unknown")}");
+                Logger.Info($"[OmegaTrialTrace] stage=banish-arena-location-resolved playerDbId=0x{state.PlayerDbId:X} miniboss={label} preferred={preferredPosition} resolved={spawnPosition} arenaDistance={arenaDistance} cell={(spawnCell?.Id.ToString("X") ?? "unknown")}");
                 return true;
             }
 
@@ -1939,34 +2105,36 @@ namespace MHServerEmu.Games.MythicRifts
             {
                 "Slag" => new[]
                 {
-                    new Vector3(900f, 0f, 0f),
-                    new Vector3(700f, 450f, 0f),
-                    new Vector3(700f, -450f, 0f)
+                    new Vector3(650f, 0f, 0f),
+                    new Vector3(500f, 300f, 0f),
+                    new Vector3(500f, -300f, 0f)
                 },
                 "Hellfire" => new[]
                 {
-                    new Vector3(-900f, -450f, 0f),
-                    new Vector3(-700f, -700f, 0f),
-                    new Vector3(-1100f, -250f, 0f)
+                    new Vector3(450f, -350f, 0f),
+                    new Vector3(650f, -250f, 0f),
+                    new Vector3(300f, -500f, 0f),
+                    new Vector3(0f, -650f, 0f)
                 },
                 "Brimstone" => new[]
                 {
-                    new Vector3(-900f, 450f, 0f),
-                    new Vector3(-700f, 700f, 0f),
-                    new Vector3(-1100f, 250f, 0f)
+                    new Vector3(450f, 350f, 0f),
+                    new Vector3(650f, 250f, 0f),
+                    new Vector3(300f, 500f, 0f),
+                    new Vector3(0f, 650f, 0f)
                 },
                 "Mistress" => new[]
                 {
-                    new Vector3(0f, -1000f, 0f),
-                    new Vector3(450f, -850f, 0f),
-                    new Vector3(-450f, -850f, 0f)
+                    new Vector3(-650f, 0f, 0f),
+                    new Vector3(-500f, 300f, 0f),
+                    new Vector3(-500f, -300f, 0f)
                 },
                 _ => new[]
                 {
-                    new Vector3(900f, 0f, 0f),
-                    new Vector3(-900f, 0f, 0f),
-                    new Vector3(0f, 900f, 0f),
-                    new Vector3(0f, -900f, 0f)
+                    new Vector3(650f, 0f, 0f),
+                    new Vector3(-650f, 0f, 0f),
+                    new Vector3(0f, 650f, 0f),
+                    new Vector3(0f, -650f, 0f)
                 }
             };
         }
@@ -2107,6 +2275,7 @@ namespace MHServerEmu.Games.MythicRifts
             if (state.SurturBanishInProgress)
                 SetSurturBanishInvulnerable(state, state.CachedRegion?.Game?.EntityManager.GetEntity<Agent>(state.SurturEntityId), false);
 
+            ClearSurturCover(state);
             ClearSurturBanishPortals(state.CachedRegion, state);
             state.CachedRegion?.Game?.GameEventScheduler?.CancelEvent(state.PostEntryNativeSuppressionEvent);
             state.CachedRegion?.Game?.GameEventScheduler?.CancelEvent(state.LokiPhase1SpawnEvent);
@@ -2171,6 +2340,8 @@ namespace MHServerEmu.Games.MythicRifts
             public bool SurturMistressReturnTriggered;
             public bool SurturBanishInProgress;
             public bool SurturWasInvulnerableBeforeBanish;
+            public readonly List<ulong> SurturCoverEntityIds = new();
+            public readonly List<ulong> SurturSpawnedCoverEntityIds = new();
             public bool HasArenaAnchor;
             public Vector3 ArenaAnchorPosition;
             public Orientation ArenaAnchorOrientation;
