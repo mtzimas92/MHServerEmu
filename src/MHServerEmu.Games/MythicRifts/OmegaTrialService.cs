@@ -83,7 +83,6 @@ namespace MHServerEmu.Games.MythicRifts
         private static readonly float[] SurturBanishHealthThresholds = { 75f, 50f, 25f };
         private static readonly (string PrototypeName, Vector3 Position, Orientation Orientation)[] SurturCoverRockPlacements =
         {
-            (SurturCoverRockBPrototypeName, new Vector3(30128f, 12592f, 176f), new Orientation(-0.490881f, 0f, 0f)),
             (SurturCoverRockAPrototypeName, new Vector3(30360f, 13336f, 176f), new Orientation(1.57082f, 0f, 0f)),
             (SurturCoverRockAPrototypeName, new Vector3(31320f, 13832f, 184f), new Orientation(1.57082f, 0f, 0f)),
             (SurturCoverRockBPrototypeName, new Vector3(31040f, 12416f, 176f), new Orientation(1.178115f, 0f, 0f)),
