@@ -52,6 +52,7 @@ namespace MHServerEmu.Games.MythicRifts
         private static readonly TimeSpan CheckpointBossSpawnRetryInterval = TimeSpan.FromSeconds(1);
         private static readonly TimeSpan BossGauntletWaveRestInterval = TimeSpan.FromSeconds(5);
         private static readonly TimeSpan BossGauntletInterBossRestInterval = TimeSpan.FromSeconds(1);
+        private static readonly TimeSpan BossGauntletDiagnosticInterval = TimeSpan.FromSeconds(30);
         private const int CustomRiftPopulationBaseTargetAlive = 18;
         private const int CustomRiftPopulationTargetAlivePerExtraPlayer = 4;
         private const int CustomRiftPopulationBaseMaxAlive = 30;
@@ -178,6 +179,7 @@ namespace MHServerEmu.Games.MythicRifts
         private readonly Dictionary<ulong, TimeSpan> _pendingBossGauntletFailureRecoveriesAt = new();
         private readonly Dictionary<ulong, TimeSpan> _pendingRewardRoomFinalizeAt = new();
         private readonly Dictionary<ulong, TimeSpan> _nextCheckpointBossSpawnRetryAt = new();
+        private readonly Dictionary<ulong, TimeSpan> _nextBossGauntletDiagnosticAt = new();
         private readonly Dictionary<ulong, HashSet<Mission>> _serverSuspendedNativeObjectiveMissionsByRun = new();
         private readonly Dictionary<string, IReadOnlyList<PrototypeId>> _rewardItemPoolsByDirectory = new(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<ulong, CompletionCrafterOpportunity> _completionCrafterOpportunitiesByPlayer = new();
@@ -1005,6 +1007,7 @@ namespace MHServerEmu.Games.MythicRifts
                 _pendingFailedRunEvacuationsAt.Remove(runId);
                 _pendingBossGauntletFailureRecoveriesAt.Remove(runId);
                 _pendingRewardRoomFinalizeAt.Remove(runId);
+                _nextBossGauntletDiagnosticAt.Remove(runId);
                 ClearReadyCheckDialogs(runState);
                 ClearRewardRoomDialogs(runState);
                 ClearRiftModifierButtonCallbacks(runId);
@@ -2609,6 +2612,7 @@ namespace MHServerEmu.Games.MythicRifts
                 TrySpawnPendingMilestoneEncounters(runState);
                 SuppressNativeCheckpointPopulation(runState);
                 TryStartBossGauntletWave(runState, currentTime);
+                TryLogPeriodicBossGauntletDiagnostics(runState, currentTime);
                 TryStartBossOnlyCheckpoint(runState, currentTime);
                 TryMaintainBossWave(runState, currentTime);
                 SuppressNativeTerminalBosses(runState, currentTime);
@@ -5886,8 +5890,32 @@ namespace MHServerEmu.Games.MythicRifts
             string modifierSuffix = string.IsNullOrWhiteSpace(modifierText) ? string.Empty : $" Modifiers: {modifierText}.";
             NotifyRunPlayers(runState, $"[Mythic Rift] Boss Gauntlet wave {runState.Config.WaveNumber} started. Bosses this wave: {runState.Config.RequiredBossKillCount}.{modifierSuffix}");
             LogBossGauntletDiagnostics(runState, "wave-start-after-spawn");
+            _nextBossGauntletDiagnosticAt[runState.Config.RunId] = currentTime + BossGauntletDiagnosticInterval;
             // Logger.Info($"Mythic Rift run {runState.Config.RunId} started Boss Gauntlet wave {runState.Config.WaveNumber} with {runState.Config.RequiredBossKillCount} boss(es).");
             return true;
+        }
+
+        private void TryLogPeriodicBossGauntletDiagnostics(MythicRiftRunState runState, TimeSpan currentTime)
+        {
+            if (runState?.Config?.UseBossGauntletMode != true ||
+                runState.Status != MythicRiftRunStatus.Active ||
+                runState.RegionId == 0 ||
+                runState.BossSpawnCount <= 0 ||
+                runState.BossKillCount >= runState.Config.RequiredBossKillCount)
+            {
+                if (runState?.Config != null)
+                    _nextBossGauntletDiagnosticAt.Remove(runState.Config.RunId);
+                return;
+            }
+
+            if (_nextBossGauntletDiagnosticAt.TryGetValue(runState.Config.RunId, out TimeSpan nextDiagnosticAt) &&
+                currentTime < nextDiagnosticAt)
+            {
+                return;
+            }
+
+            LogBossGauntletDiagnostics(runState, "wave-active-periodic");
+            _nextBossGauntletDiagnosticAt[runState.Config.RunId] = currentTime + BossGauntletDiagnosticInterval;
         }
 
         private bool AdvanceBossGauntletWave(MythicRiftRunState runState, TimeSpan currentTime)
@@ -5897,6 +5925,7 @@ namespace MHServerEmu.Games.MythicRifts
 
             runState.MarkBossGauntletWaveCompleted();
             LogBossGauntletDiagnostics(runState, "wave-cleared");
+            _nextBossGauntletDiagnosticAt.Remove(runState.Config.RunId);
             int nextWave = Math.Max(runState.Config.WaveNumber + 1, 1);
             MythicRiftRunConfig nextConfig = CreateBossGauntletWaveConfig(runState, nextWave);
             if (nextConfig == null)
