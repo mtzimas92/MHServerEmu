@@ -126,6 +126,19 @@ namespace MHServerEmu.Games.MythicRifts
             if (state == null || region == null || state.RegionId != region.Id)
                 return false;
 
+            bool isLokiStage = state.Stage == OmegaTrialStage.LokiPhase1Active || state.Stage == OmegaTrialStage.LokiActive;
+            bool isMistressWave =
+                state.Stage == OmegaTrialStage.SurturActive &&
+                state.SurturBanishInProgress &&
+                state.NextSurturBanishWaveIndex == SurturBanishHealthThresholds.Length &&
+                state.SurturMistressDefeated == false;
+            bool isSurturOwnedDamage =
+                ultimateOwner?.Id == state.SurturEntityId ||
+                powerUser?.Id == state.SurturEntityId;
+
+            if (isLokiStage == false && (isMistressWave == false || isSurturOwnedDamage))
+                return false;
+
             float rawPhysical = powerResults.Properties[PropertyEnum.Damage, DamageType.Physical];
             float rawEnergy = powerResults.Properties[PropertyEnum.Damage, DamageType.Energy];
             float rawMental = powerResults.Properties[PropertyEnum.Damage, DamageType.Mental];
@@ -160,7 +173,7 @@ namespace MHServerEmu.Games.MythicRifts
             }
 
             Logger.Info(
-                $"[OmegaTrialDamageTrace] playerDbId=0x{player.DatabaseUniqueId:X} stage={state.Stage} " +
+                $"[OmegaTrialDamageTrace] playerDbId=0x{player.DatabaseUniqueId:X} stage={state.Stage} damagePhase={(isLokiStage ? "Loki" : "MistressOfMagma")} " +
                 $"target={target.PrototypeDataRef.GetNameFormatted()} targetId=0x{target.Id:X} targetPos={targetPosition} " +
                 $"source={ultimateOwnerName} sourceId=0x{ultimateOwner?.Id ?? 0UL:X} sourcePos={ownerPosition} sourceDistance={ownerDistance} " +
                 $"powerUser={powerUserName} powerUserId=0x{powerUser?.Id ?? 0UL:X} power={powerName} " +
