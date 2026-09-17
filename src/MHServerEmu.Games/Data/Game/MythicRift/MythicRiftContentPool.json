@@ -611,8 +611,17 @@
       "minRandomRiftLevel": 25
     },
     {
+      "id": "boss-gauntlet-patrol-savage",
+      "displayName": "Sabretooth Showdown Boss Gauntlet",
+      "defaultKillQuota": 1,
+      "regionPrototypeName": "Regions/StoryRevamp/CH07SavageLand/CH0705SabretoothShowdownRegion.prototype",
+      "randomMapEligible": false,
+      "randomBossEligible": false,
+      "bossOnlyCheckpointEligible": true
+    },
+    {
       "id": "boss-gauntlet-tutorial-arena",
-      "displayName": "Danger Room Tutorial Arena",
+      "displayName": "Danger Room Tutorial Reward Room",
       "defaultKillQuota": 1,
       "regionPrototypeName": "Regions/EndGame/DangerRoomMode/UniqueScenarios/Tutorial/DRRegionUniqueTutorialFight.prototype",
       "randomMapEligible": false,

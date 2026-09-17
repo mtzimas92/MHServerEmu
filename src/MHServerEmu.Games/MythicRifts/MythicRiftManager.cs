@@ -131,7 +131,8 @@ namespace MHServerEmu.Games.MythicRifts
         private const float RiftCompletionCrafterSpawnOffset = 390f;
         private const float RiftCompletionEnchanterSpawnOffset = 65f;
         private const float RiftCompletionEnchanterForwardOffset = 220f;
-        private const string BossGauntletArenaContentId = "boss-gauntlet-tutorial-arena";
+        private const string BossGauntletArenaContentId = "boss-gauntlet-patrol-savage";
+        private const string BossGauntletRewardRoomContentId = "boss-gauntlet-tutorial-arena";
         private static readonly Vector3 BossGauntletRewardRoomCenterPosition = new(-79f, 18f, 307f);
         private const float SpecialRandomMapChance = 0.05f;
         private static readonly string[] RiftBossIconWidgetNameKeywords =
@@ -184,6 +185,8 @@ namespace MHServerEmu.Games.MythicRifts
         private readonly Dictionary<ulong, TimeSpan> _nextBossGauntletDiagnosticAt = new();
         private readonly Dictionary<ulong, HashSet<Mission>> _serverSuspendedNativeObjectiveMissionsByRun = new();
         private readonly HashSet<(ulong RunId, ulong PlayerDbId, PrototypeId MissionRef)> _nativeMissionTrackerSuppressionsSent = new();
+        private readonly HashSet<ulong> _nativeBossGauntletPopulationEventsStopped = new();
+        private readonly HashSet<(ulong RunId, ulong SpawnerEntityId)> _nativeBossGauntletSpawnersDisabled = new();
         private readonly Dictionary<string, IReadOnlyList<PrototypeId>> _rewardItemPoolsByDirectory = new(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<ulong, CompletionCrafterOpportunity> _completionCrafterOpportunitiesByPlayer = new();
         private readonly Dictionary<ulong, PendingRewardChest> _pendingRewardChestsByEntityId = new();
@@ -1013,6 +1016,8 @@ namespace MHServerEmu.Games.MythicRifts
                 _nextBossGauntletDiagnosticAt.Remove(runId);
                 _nextNativeCheckpointPopulationSuppressionScanAt.Remove(runId);
                 _nativeMissionTrackerSuppressionsSent.RemoveWhere(key => key.RunId == runId);
+                _nativeBossGauntletPopulationEventsStopped.Remove(runId);
+                _nativeBossGauntletSpawnersDisabled.RemoveWhere(key => key.RunId == runId);
                 ClearReadyCheckDialogs(runState);
                 ClearRewardRoomDialogs(runState);
                 ClearRiftModifierButtonCallbacks(runId);
@@ -1525,7 +1530,8 @@ namespace MHServerEmu.Games.MythicRifts
                     QueueRiftReadyCheck(runState, currentTime, runState.Config.UseBossGauntletMode ? $"Boss Gauntlet wave {runState.Config.WaveNumber}" : "Checkpoint boss wave");
 
                 SendStartRiftTimer(runState);
-                SuppressNativeTerminalBosses(runState, currentTime, force: true);
+                if (runState.Config.UseBossGauntletMode == false)
+                    SuppressNativeTerminalBosses(runState, currentTime, force: true);
                 SuppressNativeCheckpointPopulation(runState, currentTime, force: true);
                 RefreshRiftObjectiveWidgets(runState, currentTime, force: true);
                 NotifyRunStarted(runState);
@@ -2620,11 +2626,13 @@ namespace MHServerEmu.Games.MythicRifts
                 TryLogPeriodicBossGauntletDiagnostics(runState, currentTime);
                 TryStartBossOnlyCheckpoint(runState, currentTime);
                 TryMaintainBossWave(runState, currentTime);
-                SuppressNativeTerminalBosses(runState, currentTime);
-                // Boss Gauntlet progress changes only on discrete wave/boss events, which already
-                // refresh the HUD. Avoid repeatedly rebuilding mission suppression and resending
-                // unchanged widgets for the lifetime of a long gauntlet run.
                 if (runState.Config.UseBossGauntletMode == false)
+                    SuppressNativeTerminalBosses(runState, currentTime);
+                // Boss Gauntlet progress changes only on discrete wave/boss events. Keep removing
+                // native widgets without rebuilding or resending the unchanged Rift HUD.
+                if (runState.Config.UseBossGauntletMode)
+                    MaintainBossGauntletNativeWidgetSuppression(runState, currentTime);
+                else
                     RefreshRiftObjectiveWidgets(runState, currentTime);
                 MaintainRewardRoomPopulationSuppression(runState, currentTime);
 
@@ -3252,11 +3260,15 @@ namespace MHServerEmu.Games.MythicRifts
 
         private int SuppressNativeCheckpointPopulation(MythicRiftRunState runState, TimeSpan currentTime, bool force = false)
         {
-            if (runState?.Config?.Content?.BossOnlyCheckpointEligible != true)
+            if (runState?.Config == null ||
+                (runState.Config.UseBossGauntletMode == false &&
+                 runState.Config.Content?.BossOnlyCheckpointEligible != true))
                 return 0;
 
-            if (runState.Status != MythicRiftRunStatus.Active ||
-                runState.RegionId == 0 ||
+            if (runState.Status != MythicRiftRunStatus.Active || runState.RegionId == 0)
+                return 0;
+
+            if (runState.Config.UseBossGauntletMode == false &&
                 runState.BossSpawnCount >= runState.Config.RequiredBossKillCount)
                 return 0;
 
@@ -3274,22 +3286,40 @@ namespace MHServerEmu.Games.MythicRifts
             if (region == null)
                 return 0;
 
+            if (runState.Config.UseBossGauntletMode &&
+                _nativeBossGauntletPopulationEventsStopped.Add(runState.Config.RunId))
+            {
+                foreach (Area area in region.IterateAreas())
+                    area?.PopulationArea?.SpawnEvent?.Destroy();
+            }
+
             List<Agent> nativeAgentsToDestroy = null;
             foreach (Entity entity in region.Entities)
             {
+                if (runState.Config.UseBossGauntletMode && entity is Spawner spawner)
+                {
+                    if (_nativeBossGauntletSpawnersDisabled.Add((runState.Config.RunId, spawner.Id)))
+                        spawner.Trigger(EntityTriggerEnum.Disabled);
+                    continue;
+                }
+
                 if (entity is not Agent agent)
                     continue;
 
-                if (agent is Avatar || agent.IsTeamUpAgent)
+                if (agent is Avatar || agent.IsTeamUpAgent || agent.IsDestroyProtectedEntity || agent.IsVendor)
                     continue;
 
                 if (agent.IsDestroyed || agent.IsDead || agent.IsInWorld == false)
                     continue;
 
-                if (runState.IsTrackedBoss(agent.Id))
+                if (runState.IsTrackedBoss(agent.Id) || runState.CustomPopulationEntityIds.Contains(agent.Id))
                     continue;
 
-                if (agent.IsHostileToPlayers() == false)
+                if (agent.GetOwnerOfType<Player>() != null)
+                    continue;
+
+                if (agent.IsHostileToPlayers() == false &&
+                    agent.WorldEntityPrototype?.MissionEntityDeathCredit != true)
                     continue;
 
                 nativeAgentsToDestroy ??= new();
@@ -3316,6 +3346,9 @@ namespace MHServerEmu.Games.MythicRifts
             MythicRiftRunState runState = FindActiveRunForNativeObjectiveMission(mission, null);
             if (runState == null)
                 return false;
+
+            if (runState.Config.UseBossGauntletMode && mission.Region?.UIDataProvider != null)
+                RemoveNativeRegionWidgets(mission.Region.UIDataProvider, runState);
 
             return true;
         }
@@ -3426,6 +3459,28 @@ namespace MHServerEmu.Games.MythicRifts
             }
 
             RemoveNativeRegionWidgets(region.UIDataProvider, runState);
+        }
+
+        private void MaintainBossGauntletNativeWidgetSuppression(MythicRiftRunState runState, TimeSpan currentTime)
+        {
+            if (runState?.Config?.UseBossGauntletMode != true ||
+                IsRunActiveOrInRewardRoom(runState) == false ||
+                runState.EffectiveRegionId == 0)
+            {
+                return;
+            }
+
+            if (_nextRiftObjectiveWidgetRefreshAt.TryGetValue(runState.Config.RunId, out TimeSpan nextRefreshAt) &&
+                currentTime < nextRefreshAt)
+            {
+                return;
+            }
+
+            _nextRiftObjectiveWidgetRefreshAt[runState.Config.RunId] = currentTime + RiftObjectiveWidgetRefreshInterval;
+
+            Region region = Game.RegionManager.GetRegion(runState.EffectiveRegionId);
+            if (region?.UIDataProvider != null)
+                RemoveNativeRegionWidgets(region.UIDataProvider, runState);
         }
 
         private void RefreshRiftHudWidgets(MythicRiftRunState runState, TimeSpan currentTime)
@@ -5730,10 +5785,10 @@ namespace MHServerEmu.Games.MythicRifts
             if (runState?.Config == null || initiatingPlayer == null || runState.RewardRoomTeleportResolved)
                 return false;
 
-            MythicRiftContentEntry arenaContent = GetContent(BossGauntletArenaContentId);
+            MythicRiftContentEntry arenaContent = GetContent(BossGauntletRewardRoomContentId);
             if (arenaContent?.HasValidMap != true)
                 {
-                    // Logger.Warn($"TryTeleportPartyToRewardRoom(): reward room content '{BossGauntletArenaContentId}' has no valid map.");
+                    // Logger.Warn($"TryTeleportPartyToRewardRoom(): reward room content '{BossGauntletRewardRoomContentId}' has no valid map.");
                     return false;
                 }
 
@@ -5775,7 +5830,7 @@ namespace MHServerEmu.Games.MythicRifts
 
             ClearRewardRoomDialogs(runState);
             _pendingRewardRoomFinalizeAt[runState.Config.RunId] = Game.CurrentTime + RewardRoomFinalizeDelay;
-            // Logger.Info($"Mythic Rift run {runState.Config.RunId} moved party toward reward room content '{BossGauntletArenaContentId}'.");
+            // Logger.Info($"Mythic Rift run {runState.Config.RunId} moved party toward reward room content '{BossGauntletRewardRoomContentId}'.");
             return true;
         }
 
