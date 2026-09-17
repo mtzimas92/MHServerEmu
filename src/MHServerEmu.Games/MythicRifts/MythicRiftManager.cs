@@ -5718,7 +5718,7 @@ namespace MHServerEmu.Games.MythicRifts
 
         private void TryOfferRewardRoomTravel(MythicRiftRunState runState)
         {
-            if (runState?.Config == null || (runState.Config.Mode != MythicRiftMode.Standard && runState.Config.Mode != MythicRiftMode.Endless))
+            if (UsesSeparateRewardRoom(runState) == false)
                 return;
 
             if (runState.RewardRoomTeleportOffered)
@@ -7265,7 +7265,7 @@ namespace MHServerEmu.Games.MythicRifts
             ResolveRewardOutcome(runState);
             GrantProgressionForSuccessfulRun(runState);
             TrackLastCompletedMapContent(runState);
-            bool usesRewardRoom = runState.Config.Mode == MythicRiftMode.Standard || runState.Config.Mode == MythicRiftMode.Endless;
+            bool usesRewardRoom = UsesSeparateRewardRoom(runState);
             if (usesRewardRoom == false)
                 TryAutoGrantCompletionRewards(runState);
             GrantCompletionCrafterAttempts(runState);
@@ -7718,8 +7718,7 @@ namespace MHServerEmu.Games.MythicRifts
 
         private bool TrySpawnRewardRoomPortal(MythicRiftRunState runState)
         {
-            if (runState?.Config == null ||
-                (runState.Config.Mode != MythicRiftMode.Standard && runState.Config.Mode != MythicRiftMode.Endless) ||
+            if (UsesSeparateRewardRoom(runState) == false ||
                 runState.RegionId == 0 ||
                 runState.RewardRoomTeleportResolved)
             {
@@ -8131,6 +8130,11 @@ namespace MHServerEmu.Games.MythicRifts
         private static bool UsesFixedRewardRoom(MythicRiftRunState runState)
         {
             return runState?.Config?.UseBossGauntletMode == true || (runState?.RewardRoomRegionId ?? 0) != 0;
+        }
+
+        private static bool UsesSeparateRewardRoom(MythicRiftRunState runState)
+        {
+            return runState?.Config?.Mode is MythicRiftMode.Standard or MythicRiftMode.Endless or MythicRiftMode.BossGauntlet;
         }
 
         private static bool IsRunActiveOrInRewardRoom(MythicRiftRunState runState)
