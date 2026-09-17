@@ -80,15 +80,16 @@ namespace MHServerEmu.Games.MythicRifts
         private static readonly TimeSpan TrialReturnPortalLifespan = TimeSpan.FromMinutes(10);
         private static readonly Vector3 SurturFinalEncounterHotspotExportPosition = new(11024f, 13072f, 176f);
         private static readonly Vector3 SurturFinalBossEncounterExportPosition = new(12193.019f, 14205.562f, 255.99998f);
+        private static readonly Vector3 ProblematicNativeSurturCoverPosition = new(30128f, 12592f, 230f);
+        private const float ProblematicNativeSurturCoverPositionToleranceSquared = 64f;
         private static readonly float[] SurturBanishHealthThresholds = { 75f, 50f, 25f };
         private static readonly (string PrototypeName, Vector3 Position, Orientation Orientation)[] SurturCoverRockPlacements =
         {
-            (SurturCoverRockAPrototypeName, new Vector3(30360f, 13336f, 176f), new Orientation(1.57082f, 0f, 0f)),
-            (SurturCoverRockAPrototypeName, new Vector3(31320f, 13832f, 184f), new Orientation(1.57082f, 0f, 0f)),
-            (SurturCoverRockBPrototypeName, new Vector3(31040f, 12416f, 176f), new Orientation(1.178115f, 0f, 0f)),
-            (SurturCoverRockBPrototypeName, new Vector3(30624f, 13808f, 176f), new Orientation(0.981763f, 0f, 0f)),
-            (SurturCoverRockBPrototypeName, new Vector3(31008f, 14368f, 176f), new Orientation(1.472644f, 0f, 0f)),
-            (SurturCoverRockBPrototypeName, new Vector3(30384f, 14288f, 176f), new Orientation(0.490881f, 0f, 0f))
+            (SurturCoverRockBPrototypeName, new Vector3(31040f, 12416f, 176f), new Orientation(1.57082f, 0f, 0f)),
+            (SurturCoverRockBPrototypeName, new Vector3(30350f, 13179f, 176f), new Orientation(1.57082f, 0f, 0f)),
+            (SurturCoverRockBPrototypeName, new Vector3(31800f, 12670f, 176f), new Orientation(1.57082f, 0f, 0f)),
+            (SurturCoverRockBPrototypeName, new Vector3(30409f, 14000f, 176f), new Orientation(1.57082f, 0f, 0f)),
+            (SurturCoverRockBPrototypeName, new Vector3(31040f, 13336f, 176f), new Orientation(1.57082f, 0f, 0f))
         };
         private static readonly object SyncRoot = new();
         private static readonly object PrototypeCacheLock = new();
@@ -140,12 +141,32 @@ namespace MHServerEmu.Games.MythicRifts
             Vector3 ownerPosition = ultimateOwner?.RegionLocation.Position ?? Vector3.Zero;
             Vector3 targetPosition = target.RegionLocation.Position;
             float ownerDistance = ultimateOwner != null ? Vector3.Distance2D(ownerPosition, targetPosition) : -1f;
+            bool sourceHasLineOfSight = ultimateOwner?.LineOfSightTo(target) ?? false;
+            bool powerRequiresLineOfSight = powerResults.PowerPrototype != null && Power.RequiresLineOfSight(powerResults.PowerPrototype);
+            WorldEntity nearestCover = null;
+            float nearestCoverDistance = float.MaxValue;
+            foreach (ulong coverEntityId in state.SurturCoverEntityIds)
+            {
+                WorldEntity coverEntity = region.Game.EntityManager.GetEntity<WorldEntity>(coverEntityId);
+                if (coverEntity?.IsInWorld != true || coverEntity.IsDestroyed)
+                    continue;
+
+                float coverDistance = Vector3.Distance2D(coverEntity.RegionLocation.Position, targetPosition);
+                if (coverDistance >= nearestCoverDistance)
+                    continue;
+
+                nearestCover = coverEntity;
+                nearestCoverDistance = coverDistance;
+            }
 
             Logger.Info(
                 $"[OmegaTrialDamageTrace] playerDbId=0x{player.DatabaseUniqueId:X} stage={state.Stage} " +
                 $"target={target.PrototypeDataRef.GetNameFormatted()} targetId=0x{target.Id:X} targetPos={targetPosition} " +
                 $"source={ultimateOwnerName} sourceId=0x{ultimateOwner?.Id ?? 0UL:X} sourcePos={ownerPosition} sourceDistance={ownerDistance} " +
                 $"powerUser={powerUserName} powerUserId=0x{powerUser?.Id ?? 0UL:X} power={powerName} " +
+                $"sourceHasLOS={sourceHasLineOfSight} powerRequiresLOS={powerRequiresLineOfSight} " +
+                $"nearestCover={(nearestCover?.PrototypeDataRef.GetNameFormatted() ?? "none")} nearestCoverId=0x{nearestCover?.Id ?? 0UL:X} " +
+                $"nearestCoverPos={(nearestCover?.RegionLocation.Position ?? Vector3.Zero)} nearestCoverOrientation={(nearestCover?.RegionLocation.Orientation ?? Orientation.Zero)} nearestCoverDistance={(nearestCover != null ? nearestCoverDistance : -1f)} " +
                 $"health={startHealth}->{endHealth} delta={adjustHealth} rawDamage={rawTotal} rawPhysical={rawPhysical} rawEnergy={rawEnergy} rawMental={rawMental} " +
                 $"clientDamage={clientTotal} clientPhysical={clientPhysical} clientEnergy={clientEnergy} clientMental={clientMental} " +
                 $"flags={powerResults.Flags} hostile={powerResults.TestFlag(PowerResultFlags.Hostile)} critical={powerResults.TestFlag(PowerResultFlags.Critical)} " +
@@ -1927,11 +1948,20 @@ namespace MHServerEmu.Games.MythicRifts
         {
             using var coverEntitiesHandle = ListPool<WorldEntity>.Get(out List<WorldEntity> coverEntities);
             FindEntitiesByPrototype(region, GetPrototypeRefByName(SurturCoverRockAPrototypeName), coverEntities);
-            FindEntitiesByPrototype(region, GetPrototypeRefByName(SurturCoverRockBPrototypeName), coverEntities);
+            PrototypeId coverRockBRef = GetPrototypeRefByName(SurturCoverRockBPrototypeName);
+            FindEntitiesByPrototype(region, coverRockBRef, coverEntities);
 
             int count = 0;
             foreach (WorldEntity coverEntity in coverEntities)
             {
+                if (coverEntity.PrototypeDataRef == coverRockBRef &&
+                    Vector3.DistanceSquared(coverEntity.RegionLocation.Position, ProblematicNativeSurturCoverPosition) <= ProblematicNativeSurturCoverPositionToleranceSquared)
+                {
+                    Logger.Info($"[OmegaTrialTrace] stage=surtur-cover-removed playerDbId=0x{state.PlayerDbId:X} entityId=0x{coverEntity.Id:X} position={coverEntity.RegionLocation.Position} prototype={coverEntity.PrototypeDataRef.GetNameFormatted()}");
+                    coverEntity.Destroy();
+                    continue;
+                }
+
                 coverEntity.SetVisible(true);
                 if (state.SurturCoverEntityIds.Contains(coverEntity.Id) == false)
                     state.SurturCoverEntityIds.Add(coverEntity.Id);
