@@ -14,11 +14,11 @@ namespace MHServerEmu.Games.MythicRifts
     public static class RiftAccessTeleportService
     {
         private static readonly Logger Logger = LogManager.CreateLogger();
+        private const string OmegaLimboEntryTargetPrototypeName = "Regions/EndGame/TierX/Limbo/Targets/LimboEntryTarget.prototype";
 
         // Hub NPCs for direct access to higher difficulty raid/patrol content.
         public static readonly PrototypeId OmegaPatrolTeleporterRef = (PrototypeId)1753661696525930987;
         public static readonly PrototypeId RaidAccessTeleporterRef = (PrototypeId)13792587214021661359;
-        private static readonly PrototypeId UltronRaidTargetRef = (PrototypeId)6101407482858775734;
         private static readonly PrototypeId MidtownPatrolTargetCosmicRef = (PrototypeId)10267419782939942783;
         private static readonly PrototypeId ICPPatrolTargetCosmicRef = (PrototypeId)1301013882718790217;
         private static readonly PrototypeId HightownPatrolTargetCosmicRef = (PrototypeId)3715467830624070844;
@@ -29,7 +29,7 @@ namespace MHServerEmu.Games.MythicRifts
         private static readonly LocaleStringId OmegaPatrolLockedMessageRef = (LocaleStringId)18000000000000080202;
         private static readonly LocaleStringId CosmicAxisButtonRef = (LocaleStringId)18000000000000080210;
         private static readonly LocaleStringId OmegaMuspelheimButtonRef = (LocaleStringId)18000000000000080211;
-        private static readonly LocaleStringId OmegaUltronButtonRef = (LocaleStringId)18000000000000080212;
+        private static readonly LocaleStringId OmegaLimboButtonRef = (LocaleStringId)18000000000000080212;
         private static readonly LocaleStringId MoreRaidOptionsButtonRef = (LocaleStringId)18000000000000080213;
         private static readonly LocaleStringId OmegaMidtownButtonRef = (LocaleStringId)18000000000000080220;
         private static readonly LocaleStringId OmegaIndustryCityButtonRef = (LocaleStringId)18000000000000080221;
@@ -99,7 +99,7 @@ namespace MHServerEmu.Games.MythicRifts
             dialog.TargetId = npc.Id;
             dialog.InteractorId = player.CurrentAvatar?.Id ?? Entity.InvalidId;
             dialog.AddButton(GameDialogResultEnum.eGDR_Option1, OmegaMuspelheimButtonRef, ButtonStyle.SecondaryPositive, false);
-            dialog.AddButton(GameDialogResultEnum.eGDR_Option2, OmegaUltronButtonRef, ButtonStyle.SecondaryPositive, false);
+            dialog.AddButton(GameDialogResultEnum.eGDR_Option2, OmegaLimboButtonRef, ButtonStyle.SecondaryPositive, false);
 
             game.GameDialogManager.PostDialogToClient(dialog);
 
@@ -112,7 +112,7 @@ namespace MHServerEmu.Games.MythicRifts
                         break;
 
                     case GameDialogResultEnum.eGDR_Option2:
-                        TeleportDialogPlayerToTarget(game, playerGuid, UltronRaidTargetRef, Tier5Omega1Ref);
+                        TeleportDialogPlayerToTarget(game, playerGuid, OmegaLimboEntryTargetPrototypeName, Tier5Omega1Ref);
                         break;
                 }
             }
