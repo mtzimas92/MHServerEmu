@@ -5,5 +5,22 @@
   "thirdRegionAffixStartLevel": 70,
   "secondBossAffixStartWave": 30,
   "thirdBossAffixStartWave": 70,
-  "defaultAffixTablePrototypeName": "Regions/Affixes/RegionAffixTable.defaults"
+  "defaultAffixTablePrototypeName": "Regions/Affixes/RegionAffixTable.defaults",
+  "affixes": [
+    { "prototypeName": "Regions/Affixes/MobAffixes/DRMobAffixBerserker.prototype", "weight": 50 },
+    { "prototypeName": "Regions/Affixes/MobAffixes/DRMobAffixCCImmune.prototype", "weight": 50 },
+    { "prototypeName": "Regions/Affixes/MobAffixes/DRMobAffixContagious.prototype", "weight": 50 },
+    { "prototypeName": "Regions/Affixes/MobAffixes/DRMobAffixDiminutive.prototype", "weight": 50 },
+    { "prototypeName": "Regions/Affixes/MobAffixes/DRMobAffixHulking.prototype", "weight": 50 },
+    { "prototypeName": "Regions/Affixes/MobAffixes/DRMobAffixTeleport.prototype", "weight": 50 },
+    { "prototypeName": "Regions/Affixes/UtilityMods/DRMobAffixVulnerableEnergy.prototype", "weight": 25 },
+    { "prototypeName": "Regions/Affixes/UtilityMods/DRMobAffixVulnerableMelee.prototype", "weight": 25 },
+    { "prototypeName": "Regions/Affixes/UtilityMods/DRMobAffixVulnerableMental.prototype", "weight": 25 },
+    { "prototypeName": "Regions/Affixes/UtilityMods/DRMobAffixVulnerablePhysical.prototype", "weight": 25 },
+    { "prototypeName": "Regions/Affixes/UtilityMods/DRMobAffixVulnerableRanged.prototype", "weight": 25 },
+    { "prototypeName": "Regions/Affixes/UtilityMods/DRMobAffixWealthy.prototype", "weight": 15 },
+    { "prototypeName": "Regions/Affixes/ChallengeAffixes/DRMobAffixAreaResist.prototype", "weight": 25 },
+    { "prototypeName": "Regions/Affixes/ChallengeAffixes/DRPlayerAffixNoBrutalStrikes.prototype", "weight": 40 },
+    { "prototypeName": "Regions/Affixes/UtilityMods/DRLevelAffixHealingOrbs.prototype", "weight": 60 }
+  ]
 }

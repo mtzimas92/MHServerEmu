@@ -27,6 +27,8 @@ namespace MHServerEmu.Games.MythicRifts
         private const string SurturFinalEncounterHotspotPrototypeName = "Entity/Missions/Hotspots/SurturRaidFinalEncTriggerHotspot.prototype";
         private const string LokiPhase1PrototypeName = "Entity/Characters/Bosses/Story/LokiPhase1.prototype";
         private const string LokiPhase2PrototypeName = "Entity/Characters/Bosses/Story/LokiPhase2.prototype";
+        private const string LokiEnergyRingOuterEffectPrototypeName = "Powers/EnemyPowers/Boss/Loki/LokiEnergyRingOuterHSEffect.prototype";
+        private const string WingedDemonMentalBlastEffectPrototypeName = "Powers/EnemyPowers/MobPowers/FireDemons/WingedDemonMentalBlastEnc3MEffec.prototype";
         private const string SurturBossPrototypeName = "Entity/Characters/Bosses/SurturRaid/SurturBoss.prototype";
         private const string SurturBossSpawnerPrototypeName = "Entity/Spawners/Raids/Surtur/SurturBossFight/SurturBossSpawner.prototype";
         private const string SurturBanishPortalVisualSpawnerPrototypeName = "Entity/Spawners/Raids/Surtur/SurturBossFight/FiveMan/BanishPortals/SurturRaidBanishPortalVisualSpawner.prototype";
@@ -66,6 +68,8 @@ namespace MHServerEmu.Games.MythicRifts
 
         private const float TrialPlayerToMobDamageMultiplier = 1f;
         private const float TrialMobToPlayerDamageMultiplier = 1f;
+        private const float LokiEnergyRingOuterDamageMultiplier = 0.25f;
+        private const float MistressWaveWingedDemonMentalBlastDamageMultiplier = 0.5f;
         private const float LokiSpawnDistance = 600f;
         private const float SurturSpawnDistance = 1200f;
         private const float BossSpawnSearchDistance = 3200f;
@@ -104,6 +108,53 @@ namespace MHServerEmu.Games.MythicRifts
             LokiPhase1Active,
             LokiActive,
             SurturActive
+        }
+
+        public static bool TryAdjustPlayerDamage(WorldEntity target, PowerResults powerResults)
+        {
+            if (target is not Avatar targetAvatar || powerResults?.PowerPrototype == null || powerResults.TestFlag(PowerResultFlags.Hostile) == false)
+                return false;
+
+            Player player = targetAvatar.GetOwnerOfType<Player>();
+            if (player == null)
+                return false;
+
+            OmegaTrialState state;
+            lock (SyncRoot)
+            {
+                if (TrialStates.TryGetValue(player.DatabaseUniqueId, out state) == false)
+                    return false;
+            }
+
+            if (state == null || target.Region == null || state.RegionId != target.Region.Id)
+                return false;
+
+            PrototypeId powerRef = powerResults.PowerPrototype.DataRef;
+            float damageMultiplier;
+            if (state.Stage == OmegaTrialStage.LokiActive && powerRef == GetPrototypeRefByName(LokiEnergyRingOuterEffectPrototypeName))
+            {
+                damageMultiplier = LokiEnergyRingOuterDamageMultiplier;
+            }
+            else
+            {
+                bool isMistressWave =
+                    state.Stage == OmegaTrialStage.SurturActive &&
+                    state.SurturBanishInProgress &&
+                    state.NextSurturBanishWaveIndex == SurturBanishHealthThresholds.Length &&
+                    state.SurturMistressDefeated == false;
+                if (isMistressWave == false || powerRef != GetPrototypeRefByName(WingedDemonMentalBlastEffectPrototypeName))
+                    return false;
+
+                damageMultiplier = MistressWaveWingedDemonMentalBlastDamageMultiplier;
+            }
+
+            for (DamageType damageType = DamageType.Physical; damageType < DamageType.NumDamageTypes; damageType++)
+            {
+                powerResults.Properties[PropertyEnum.Damage, damageType] *= damageMultiplier;
+                powerResults.SetDamageForClient(damageType, powerResults.GetDamageForClient(damageType) * damageMultiplier);
+            }
+
+            return true;
         }
 
         public static bool TryLogPlayerDamage(WorldEntity target, PowerResults powerResults, WorldEntity ultimateOwner, WorldEntity powerUser, long startHealth, long endHealth, long adjustHealth)

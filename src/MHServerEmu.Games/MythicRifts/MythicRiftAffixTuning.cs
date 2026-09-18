@@ -16,6 +16,7 @@ namespace MHServerEmu.Games.MythicRifts
         public int SecondBossAffixStartWave { get; set; } = 30;
         public int ThirdBossAffixStartWave { get; set; } = 70;
         public string DefaultAffixTablePrototypeName { get; set; } = "Regions/Affixes/RegionAffixTable.defaults";
+        public List<MythicRiftAffixPoolEntry> Affixes { get; set; } = new();
 
         public static string ConfigPath => Path.Combine(FileHelper.DataDirectory, RelativeConfigPath);
 
@@ -38,6 +39,16 @@ namespace MHServerEmu.Games.MythicRifts
 
             if (string.IsNullOrWhiteSpace(DefaultAffixTablePrototypeName))
                 DefaultAffixTablePrototypeName = "Regions/Affixes/RegionAffixTable.defaults";
+
+            Affixes ??= new();
+            foreach (MythicRiftAffixPoolEntry affix in Affixes)
+                affix?.Normalize();
+
+            Affixes = Affixes
+                .Where(affix => affix != null && affix.Enabled && string.IsNullOrWhiteSpace(affix.PrototypeName) == false)
+                .GroupBy(affix => affix.PrototypeName, StringComparer.OrdinalIgnoreCase)
+                .Select(group => group.First())
+                .ToList();
         }
 
         public int GetAffixCount(int levelOrWave, bool useBossScopedAffixes)
@@ -55,6 +66,19 @@ namespace MHServerEmu.Games.MythicRifts
                 affixCount++;
 
             return affixCount;
+        }
+    }
+
+    public sealed class MythicRiftAffixPoolEntry
+    {
+        public bool Enabled { get; set; } = true;
+        public string PrototypeName { get; set; } = string.Empty;
+        public int Weight { get; set; } = 1;
+
+        public void Normalize()
+        {
+            PrototypeName = PrototypeName?.Trim() ?? string.Empty;
+            Weight = Math.Max(Weight, 1);
         }
     }
 }

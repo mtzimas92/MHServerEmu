@@ -2161,6 +2161,8 @@ namespace MHServerEmu.Games.Entities
             long startHealth = health;
             long healthDelta = 0;
 
+            OmegaTrialService.TryAdjustPlayerDamage(this, powerResults);
+
             if (powerResults.Flags.HasFlag(PowerResultFlags.InstantKill))
             {
                 // INSTANT KILL
