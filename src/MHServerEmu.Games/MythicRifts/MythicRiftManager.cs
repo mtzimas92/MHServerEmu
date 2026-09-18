@@ -7171,7 +7171,7 @@ namespace MHServerEmu.Games.MythicRifts
             if (runState?.Config?.UseBossGauntletMode != true)
                 return;
 
-            ClearBossGauntletEnemies(runState, includeTrackedBosses: true, reason: "run-end");
+            ClearBossGauntletEnemies(runState, includeTrackedBosses: true);
         }
 
         private int ClearBossGauntletResidualEnemies(MythicRiftRunState runState)
@@ -7179,10 +7179,10 @@ namespace MHServerEmu.Games.MythicRifts
             if (runState?.Config?.UseBossGauntletMode != true)
                 return 0;
 
-            return ClearBossGauntletEnemies(runState, includeTrackedBosses: false, reason);
+            return ClearBossGauntletEnemies(runState, includeTrackedBosses: false);
         }
 
-        private int ClearBossGauntletEnemies(MythicRiftRunState runState, bool includeTrackedBosses, string reason)
+        private int ClearBossGauntletEnemies(MythicRiftRunState runState, bool includeTrackedBosses)
         {
             Region region = runState.RegionId != 0
                 ? Game.RegionManager.GetRegion(runState.RegionId)
