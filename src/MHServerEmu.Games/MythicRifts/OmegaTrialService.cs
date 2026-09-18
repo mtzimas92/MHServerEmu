@@ -48,6 +48,7 @@ namespace MHServerEmu.Games.MythicRifts
         private const string SurturMistressMiniBossPrototypeName = "Entity/Characters/Bosses/SurturRaid/FiveMan/SurturFightMinibosses/MistressOfMagmaMiniBoss.prototype";
         private const string SurturCoverRockAPrototypeName = "Entity/Props/MultiStageDestructibles/DBMuspelheimSurturBlocker.prototype";
         private const string SurturCoverRockBPrototypeName = "Entity/Props/MultiStageDestructibles/DBMuspelheimSurturBlockerB.prototype";
+        private const string SurturSafeZoneMarkerPrototypeName = "Entity/Characters/Bosses/SurturRaid/SurturFightMiniBosses/SurturMarkedForDeathSafeZoneMark.prototype";
         private const string ReturnPortalPrototypeName = "Entity/Transitions/ReturnToLastBaseDR.prototype";
         private const string HelicarrierEntryTargetPrototypeName = "Regions/HUBS/Helicarrier/Connections/HelicarrierEntryTarget.prototype";
         private const string OmegaTrialLevelWidgetPrototypeName = "UI/MetaGame/MissionName.prototype";
@@ -86,6 +87,7 @@ namespace MHServerEmu.Games.MythicRifts
         private static readonly Vector3 SurturFinalBossEncounterExportPosition = new(12193.019f, 14205.562f, 255.99998f);
         private static readonly Vector3 ProblematicNativeSurturCoverPosition = new(30128f, 12592f, 230f);
         private const float ProblematicNativeSurturCoverPositionToleranceSquared = 64f;
+        private const float SurturSafeZoneMarkerOffset = 180f;
         private static readonly float[] SurturBanishHealthThresholds = { 75f, 50f, 25f };
         private static readonly (string PrototypeName, Vector3 Position, Orientation Orientation)[] SurturCoverRockPlacements =
         {
@@ -2064,6 +2066,7 @@ namespace MHServerEmu.Games.MythicRifts
                 coverEntity.SetVisible(true);
                 state.SurturCoverEntityIds.Add(coverEntity.Id);
                 state.SurturSpawnedCoverEntityIds.Add(coverEntity.Id);
+                TrySpawnSurturSafeZoneMarker(region, state, spawnPosition, spawnCell);
                 Logger.Info($"[OmegaTrialTrace] stage=surtur-cover-spawned playerDbId=0x{state.PlayerDbId:X} entityId=0x{coverEntity.Id:X} position={coverEntity.RegionLocation.Position} markerPosition={markerPosition} spawnPosition={spawnPosition} markerOrientation={markerOrientation} cell={(spawnCell?.Id.ToString("X") ?? "unknown")} prototype={coverEntity.PrototypeDataRef.GetNameFormatted()}");
                 spawned++;
             }
@@ -2077,6 +2080,29 @@ namespace MHServerEmu.Games.MythicRifts
                 markerPosition.Z = state.ArenaAnchorPosition.Z;
 
             return markerPosition;
+        }
+
+        private static bool TrySpawnSurturSafeZoneMarker(Region region, OmegaTrialState state, Vector3 coverPosition, Cell fallbackCell)
+        {
+            PrototypeId markerRef = GetPrototypeRefByName(SurturSafeZoneMarkerPrototypeName);
+            WorldEntityPrototype markerProto = markerRef.As<WorldEntityPrototype>();
+            Agent surtur = region?.Game?.EntityManager.GetEntity<Agent>(state?.SurturEntityId ?? 0);
+            if (markerProto == null || surtur == null)
+                return false;
+
+            Vector3 awayFromSurtur = coverPosition - surtur.RegionLocation.Position;
+            awayFromSurtur.Z = 0f;
+            awayFromSurtur = Vector3.SafeNormalize(awayFromSurtur);
+
+            Vector3 markerPosition = coverPosition + awayFromSurtur * SurturSafeZoneMarkerOffset;
+            markerPosition.Z = state.ArenaAnchorPosition.Z;
+            Cell markerCell = region.GetCellAtPosition(markerPosition) ?? fallbackCell;
+            if (markerCell == null || TryCreateTrialWorldEntity(region, markerProto, markerPosition, Orientation.Zero, markerCell, out WorldEntity markerEntity) == false)
+                return false;
+
+            state.SurturSafeZoneMarkerEntityIds.Add(markerEntity.Id);
+            Logger.Info($"[OmegaTrialTrace] stage=surtur-safe-zone-marker-spawned playerDbId=0x{state.PlayerDbId:X} entityId=0x{markerEntity.Id:X} coverPosition={coverPosition} markerPosition={markerPosition} surturPosition={surtur.RegionLocation.Position}");
+            return true;
         }
 
         private static bool TryCreateTrialWorldEntity(Region region, WorldEntityPrototype entityProto, Vector3 spawnPosition, Orientation spawnOrientation, Cell spawnCell, out WorldEntity worldEntity)
@@ -2109,7 +2135,7 @@ namespace MHServerEmu.Games.MythicRifts
         private static void ClearSurturCover(OmegaTrialState state)
         {
             Region region = state?.CachedRegion;
-            if (region == null || state.SurturCoverEntityIds.Count == 0)
+            if (region == null)
                 return;
 
             foreach (ulong coverEntityId in state.SurturCoverEntityIds)
@@ -2127,6 +2153,15 @@ namespace MHServerEmu.Games.MythicRifts
             Logger.Info($"[OmegaTrialTrace] stage=surtur-cover-cleared playerDbId=0x{state.PlayerDbId:X} tracked={state.SurturCoverEntityIds.Count} spawned={state.SurturSpawnedCoverEntityIds.Count}");
             state.SurturCoverEntityIds.Clear();
             state.SurturSpawnedCoverEntityIds.Clear();
+
+            foreach (ulong markerEntityId in state.SurturSafeZoneMarkerEntityIds)
+            {
+                WorldEntity markerEntity = region.Game.EntityManager.GetEntity<WorldEntity>(markerEntityId);
+                if (markerEntity != null && markerEntity.IsDestroyed == false)
+                    markerEntity.Destroy();
+            }
+
+            state.SurturSafeZoneMarkerEntityIds.Clear();
         }
 
         private static bool TryResolveBossSpawnLocation(Avatar avatar, Region region, OmegaTrialState state, AgentPrototype bossProto, float spawnDistance, out Vector3 spawnPosition, out Orientation spawnOrientation, out Cell spawnCell)
@@ -2488,6 +2523,7 @@ namespace MHServerEmu.Games.MythicRifts
             public bool SurturWasInvulnerableBeforeBanish;
             public readonly List<ulong> SurturCoverEntityIds = new();
             public readonly List<ulong> SurturSpawnedCoverEntityIds = new();
+            public readonly List<ulong> SurturSafeZoneMarkerEntityIds = new();
             public bool HasArenaAnchor;
             public Vector3 ArenaAnchorPosition;
             public Orientation ArenaAnchorOrientation;
