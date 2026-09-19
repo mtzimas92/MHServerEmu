@@ -24,6 +24,8 @@ namespace MHServerEmu.Games.OmegaTierItems
 
         public string ProfileName { get; set; } = "default-omega-items";
         public bool Enabled { get; set; } = true;
+        public float OmegaDifficultyPromotionChancePct { get; set; } = 33.3333f;
+        public float OmegaDifficultyBonusRingChancePct { get; set; } = 0f;
         public float PreferredAffixChancePct { get; set; } = 100f;
         public int MaxPreferredAffixesPerItem { get; set; } = 2;
         public List<OmegaTierPreferredAffixTuning> PreferredAffixes { get; set; } = new();
@@ -165,6 +167,8 @@ namespace MHServerEmu.Games.OmegaTierItems
                 ProfileName = "default-omega-items";
 
             PreferredAffixChancePct = Math.Clamp(PreferredAffixChancePct, 0f, 100f);
+            OmegaDifficultyPromotionChancePct = Math.Clamp(OmegaDifficultyPromotionChancePct, 0f, 100f);
+            OmegaDifficultyBonusRingChancePct = Math.Clamp(OmegaDifficultyBonusRingChancePct, 0f, 100f);
             MaxPreferredAffixesPerItem = Math.Max(MaxPreferredAffixesPerItem, 0);
             PreferredAffixes ??= new();
             DisabledAffixes ??= new();

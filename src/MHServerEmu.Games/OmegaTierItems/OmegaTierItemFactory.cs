@@ -32,6 +32,8 @@ namespace MHServerEmu.Games.OmegaTierItems
         private const string ArmorCosmicCategoryName = "Entity/Items/Affixes/AffixCategories/ArmorCosmic.prototype";
         private const string ArmorOmegaCategoryName = "Entity/Items/Affixes/AffixCategories/ArmorOmega.prototype";
         private const string RingOmegaAffixName = "Entity/Items/Affixes/RingAffixes/RingLoot20/BuiltInHP/RingHealthOmega.prototype";
+        private const string RingOffensePrototypeName = "Entity/Items/Rings/RingOffenseLoot20.prototype";
+        private const string RingDefensePrototypeName = "Entity/Items/Rings/RingDefenseLoot20.prototype";
         private const string RingOffenseT3CategoryName = "Entity/Items/Affixes/AffixCategories/RingOffenseT3.prototype";
         private const string RingDefenseT3CategoryName = "Entity/Items/Affixes/AffixCategories/RingDefenseT3.prototype";
         private const string PropertyPickInRangeEntryName = "Property/PropertyPickInRangeEntry.defaults";
@@ -92,6 +94,17 @@ namespace MHServerEmu.Games.OmegaTierItems
             if (IsArmorSlotOneThroughFive(itemProto, slot) == false && slot != EquipmentInvUISlot.Ring)
                 return false;
 
+            // Preserve the resolved slot for bonus-ring generation and downstream loot filtering.
+            filterArgs.Slot = slot;
+
+            OmegaTierItemTuning tuning = OmegaTierItemTuning.Load();
+            float promotionRoll = slot == EquipmentInvUISlot.Ring ? 0f : resolver.Random.NextFloat() * 100f;
+            if (tuning?.Enabled != true ||
+                (slot != EquipmentInvUISlot.Ring && promotionRoll >= tuning.OmegaDifficultyPromotionChancePct))
+            {
+                return false;
+            }
+
             filterArgs.Rarity = omegaRarityRef;
             filterArgs.Level = OmegaDifficultyItemLevel;
             return true;
@@ -139,6 +152,39 @@ namespace MHServerEmu.Games.OmegaTierItems
             return true;
 #else
             return false;
+#endif
+        }
+
+        public static void TryPushBonusOmegaRing(ItemResolver resolver, DropFilterArguments sourceArgs, RestrictionTestFlags restrictionFlags)
+        {
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
+            if (resolver == null || sourceArgs?.ItemProto is not ItemPrototype sourceProto)
+                return;
+
+            PrototypeId cosmicRarityRef = GameDatabase.GetPrototypeRefByName(CosmicRarityName);
+            bool isCosmicOrOmega = sourceArgs.Rarity == cosmicRarityRef || IsOmegaRarity(sourceArgs.Rarity);
+            if (sourceArgs.Slot == EquipmentInvUISlot.Ring || isCosmicOrOmega == false ||
+                IsArmorSlotOneThroughFive(sourceProto, sourceArgs.Slot) == false ||
+                IsOmegaDifficulty(resolver, null) == false)
+                return;
+
+            OmegaTierItemTuning tuning = OmegaTierItemTuning.Load();
+            float chance = tuning?.OmegaDifficultyBonusRingChancePct ?? 0f;
+            float roll = resolver.Random.NextFloat() * 100f;
+            if (tuning?.Enabled != true || chance <= 0f || roll >= chance)
+                return;
+
+            string ringName = resolver.Random.NextFloat() < 0.5f
+                ? RingOffensePrototypeName
+                : RingDefensePrototypeName;
+            ItemPrototype ringProto = GameDatabase.GetPrototype<ItemPrototype>(GameDatabase.GetPrototypeRefByName(ringName));
+            if (ringProto == null)
+                return;
+
+            using var ringArgsHandle = DropFilterArgumentsPool.Get(out DropFilterArguments ringArgs);
+            DropFilterArguments.Initialize(ringArgs, ringProto, sourceArgs.RollFor, OmegaDifficultyItemLevel,
+                sourceArgs.Rarity, sourceArgs.Rank, EquipmentInvUISlot.Ring, sourceArgs.LootContext);
+            resolver.PushItem(ringArgs, restrictionFlags, 1, null);
 #endif
         }
 

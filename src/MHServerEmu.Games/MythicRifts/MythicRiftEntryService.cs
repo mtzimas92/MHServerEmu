@@ -339,7 +339,7 @@ namespace MHServerEmu.Games.MythicRifts
             RegisterLauncherItemCandidate(new MythicRiftLauncherItemCandidate
             {
                 PrototypeName = MythicRiftLauncherService.ScenarioVendorCosmicRiftCratePrototypeName,
-                DisplayName = "Cosmic Rift Scenario (Danger Room Scenario Vendor crate)",
+                DisplayName = "Infinite Rift Scenario (Danger Room Scenario Vendor crate)",
                 SourceFamily = "DangerRoom / ScenarioCrateBlue",
                 IsLikelyUnusedOrLowRisk = true,
                 IsShopLinked = true,
@@ -352,7 +352,7 @@ namespace MHServerEmu.Games.MythicRifts
             RegisterLauncherItemCandidate(new MythicRiftLauncherItemCandidate
             {
                 PrototypeName = MythicRiftLauncherService.ScenarioVendorEndlessRiftCratePrototypeName,
-                DisplayName = "Rift Gauntlet Scenario (Danger Room Scenario Vendor crate)",
+                DisplayName = "Omega Training Scenario (Danger Room Scenario Vendor crate)",
                 SourceFamily = "DangerRoom / ScenarioCratePurple",
                 IsLikelyUnusedOrLowRisk = true,
                 IsShopLinked = true,

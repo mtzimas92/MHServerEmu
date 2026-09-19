@@ -265,10 +265,10 @@ namespace MHServerEmu.Commands.Implementations
                 riftLevel,
                 requestedPlayers,
                 MythicRiftMode.Endless);
-            MythicRiftWaveProfile waveProfile = MythicRiftScaling.GetThirtyWaveProfile(riftLevel);
+            int endlessBossCount = MythicRiftScalingTuning.Load().GetBossCount(MythicRiftMode.Endless, riftLevel);
 
             return string.Create(CultureInfo.InvariantCulture,
-                $"Rift level {standardSnapshot.RiftLevel} | requested players={requestedPlayers} | standard: effective={standardSnapshot.EffectivePlayerCount} d3Equivalent={standardSnapshot.EquivalentD3RiftLevel:F2} groupHealth x{standardSnapshot.GroupHealthMultiplier:F3} HP x{standardSnapshot.HealthMultiplier:F3} damage x{standardSnapshot.DamageMultiplier:F3} | endless: wave={waveProfile.Wave}/30 bosses={waveProfile.BossCount} perBossHP x{endlessSnapshot.HealthMultiplier:F2} totalBossHP x{waveProfile.TotalBossHealthMultiplier:F2} damage x{endlessSnapshot.DamageMultiplier:F3}");
+                $"Rift level {standardSnapshot.RiftLevel} | requested players={requestedPlayers} | standard: effective={standardSnapshot.EffectivePlayerCount} d3Equivalent={standardSnapshot.EquivalentD3RiftLevel:F2} groupHealth x{standardSnapshot.GroupHealthMultiplier:F3} HP x{standardSnapshot.HealthMultiplier:F3} damage x{standardSnapshot.DamageMultiplier:F3} | endless: wave={riftLevel}/30 bosses={endlessBossCount} perBossHP x{endlessSnapshot.HealthMultiplier:F2} totalBossHP x{endlessSnapshot.HealthMultiplier * endlessBossCount:F2} damage x{endlessSnapshot.DamageMultiplier:F3}");
         }
 
         [Command("access")]
@@ -366,7 +366,7 @@ namespace MHServerEmu.Commands.Implementations
             {
                 "Rift identities:",
                 $"Cosmic Rift: infinite personal climb. Farm/push mode with kill quota, final boss wave, persistent level unlocks, capped incoming damage. Example level 70 solo: HP x{cosmicLevel70.HealthMultiplier:F2}, damage x{cosmicLevel70.DamageMultiplier:F2}.",
-                $"Rift Gauntlet: 30-wave boss milestone loop. Best for faster boss-focused farming; wave 30 resets this mode back to wave 1. Example wave 30 solo: bosses={MythicRiftScaling.GetThirtyWaveProfile(30).BossCount}, perBossHP x{gauntletWave30.HealthMultiplier:F2}, damage x{gauntletWave30.DamageMultiplier:F2}.",
+                $"Omega Training: 30-level boss milestone challenge. Example level 30 solo: bosses={MythicRiftScalingTuning.Load().GetBossCount(MythicRiftMode.Endless, 30)}, perBossHP x{gauntletWave30.HealthMultiplier:F2}, damage x{gauntletWave30.DamageMultiplier:F2}.",
                 $"Boss Gauntlet: single-arena endless survival. Bosses arrive sequentially with short rests; rewards pay out when the gauntlet ends. Example wave 30 solo: bosses={MythicRiftScaling.GetBossGauntletBossCount(30)}, HP x{bossWave30.HealthMultiplier:F2}, damage x{bossWave30.DamageMultiplier:F2}.",
                 $"Reward profile={game.MythicRiftManager.RewardTuning.ProfileName} | hazard profile={game.MythicRiftManager.HazardTuning.ProfileName} | randomMaps={game.MythicRiftManager.RandomMapEligibleContentPool.Count} | randomBossSources={game.MythicRiftManager.RandomBossEligibleContentPool.Count}",
                 "Useful checks: rift progression, rift level [mode], rift modifiers, rift contentpool, rift rewardconfig, rift affixconfig, rift hazardconfig, rift rewardsim [mode] [start] [end] [players]."

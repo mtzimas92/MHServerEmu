@@ -145,6 +145,8 @@ namespace MHServerEmu.Games.Loot
             PendingItem pendingItem = new(lootResult, filterArgs.RollFor, mutations, false);
             _pendingItemList.Add(pendingItem);
 
+            OmegaTierItemFactory.TryPushBonusOmegaRing(this, filterArgs, restrictionFlags);
+
             return LootRollResult.Success;
         }
 

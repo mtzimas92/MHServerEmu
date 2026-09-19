@@ -8,11 +8,11 @@ namespace MHServerEmu.Games.MythicRifts
     {
         public const string StandardPresentationPrototypeName = "DangerRoomScenarioCrateUniqueCableFight";
         public const string StandardPresentationPrototypePath = "Entity/Items/Consumables/Prototypes/DangerRoom/DangerRoomScenarioCrateUniqueCableFight.prototype";
-        public const string StandardPresentationDisplayName = "Cosmic Rift Scenario";
+        public const string StandardPresentationDisplayName = "Infinite Rift Scenario";
         public const ulong StandardPresentationPrototypeId = 17067585073904428862UL;
         public const string EndlessPresentationPrototypeName = "TestHearthStone";
         public const string EndlessPresentationPrototypePath = "Entity/Items/Consumables/Prototypes/Test/TestHearthStone.prototype";
-        public const string EndlessPresentationDisplayName = "Rift Gauntlet Scenario";
+        public const string EndlessPresentationDisplayName = "Omega Training Scenario";
         public const ulong EndlessPresentationPrototypeId = 16713492285336591108UL;
         public const string BossGauntletPresentationPrototypeName = "TestStunKit";
         public const string BossGauntletPresentationPrototypePath = "Entity/Items/Consumables/Prototypes/Test/TestStunKit.prototype";

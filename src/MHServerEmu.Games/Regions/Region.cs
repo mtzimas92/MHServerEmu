@@ -481,6 +481,8 @@ namespace MHServerEmu.Games.Regions
             if (regionProto.DataRef == (PrototypeId)13296910602616641976UL)
                 MythicRiftScenarioVendorSpawner.SpawnDangerRoomScenarioVendor(this);
 
+            OmegaRaidVendorService.SpawnInHelicarrier(this);
+
             return true;
         }
 

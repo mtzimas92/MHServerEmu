@@ -30,11 +30,13 @@ namespace MHServerEmu.Games.OmegaTierItems
         private const short ArmorCosmicAffixCount = 1;
         private const short ArmorOmegaAffixCount = 1;
         private const short RingT3AffixCount = 3;
+        private const string RingOffensePrototypeName = "Entity/Items/Rings/RingOffenseLoot20.prototype";
+        private const string RingDefensePrototypeName = "Entity/Items/Rings/RingDefenseLoot20.prototype";
 
         private static readonly string[] RingPrototypeNames =
         [
-            "Entity/Items/Rings/RingOffenseLoot20.prototype",
-            "Entity/Items/Rings/RingDefenseLoot20.prototype"
+            RingOffensePrototypeName,
+            RingDefensePrototypeName
         ];
 
         private static readonly string[] InvertedBandAffixNames =
@@ -128,7 +130,7 @@ namespace MHServerEmu.Games.OmegaTierItems
                 }
             }
 
-            TryEnableOmegaOnRings(omegaRarityRef);
+            TryEnableOmegaOnRings(cosmicRarityRef, omegaRarityRef);
             TryEnableOmegaOnCraftingRecipeInputs(cosmicRarityRef, omegaRarityRef);
             TryRepairInvertedAffixBands();
             OmegaTierItemFactory.ApplyConfiguredBuiltInPropertyPrototypeOverrides();
@@ -210,8 +212,11 @@ namespace MHServerEmu.Games.OmegaTierItems
 
             bool changed = false;
 
-            changed |= EnsureCategory(row, ringOffenseT3CategoryRef, (short)(RingT3AffixCount - 1), ref entriesAdjusted, ref entriesAdded);
-            changed |= EnsureCategory(row, ringDefenseT3CategoryRef, (short)1, ref entriesAdjusted, ref entriesAdded);
+            bool isDefensiveRing = string.Equals(itemName, RingDefensePrototypeName, StringComparison.OrdinalIgnoreCase);
+            short offenseCount = isDefensiveRing ? (short)1 : (short)(RingT3AffixCount - 1);
+            short defenseCount = isDefensiveRing ? (short)(RingT3AffixCount - 1) : (short)1;
+            changed |= EnsureCategory(row, ringOffenseT3CategoryRef, offenseCount, ref entriesAdjusted, ref entriesAdded);
+            changed |= EnsureCategory(row, ringDefenseT3CategoryRef, defenseCount, ref entriesAdjusted, ref entriesAdded);
             return changed;
         }
 
@@ -239,6 +244,26 @@ namespace MHServerEmu.Games.OmegaTierItems
             foreach (AffixRecord affixRecord in cloneRecord.AffixRecords)
             {
                 AffixPrototype affixProto = GameDatabase.GetPrototype<AffixPrototype>(affixRecord.AffixProtoRef);
+                if (affixProto != null && affixProto.HasCategory(armorOmegaCategory))
+                    return true;
+            }
+
+            return false;
+        }
+
+        public static bool HasArmorOmegaAffix(ItemSpec itemSpec)
+        {
+            if (itemSpec == null || itemSpec.AffixSpecs.Count == 0)
+                return false;
+
+            PrototypeId armorOmegaCategoryRef = GameDatabase.GetPrototypeRefByName(ArmorOmegaCategoryName);
+            AffixCategoryPrototype armorOmegaCategory = GameDatabase.GetPrototype<AffixCategoryPrototype>(armorOmegaCategoryRef);
+            if (armorOmegaCategory == null)
+                return false;
+
+            foreach (AffixSpec affixSpec in itemSpec.AffixSpecs)
+            {
+                AffixPrototype affixProto = affixSpec?.AffixProto;
                 if (affixProto != null && affixProto.HasCategory(armorOmegaCategory))
                     return true;
             }
@@ -294,11 +319,11 @@ namespace MHServerEmu.Games.OmegaTierItems
             return true;
         }
 
-        private static void TryEnableOmegaOnRings(PrototypeId omegaRarityRef)
+        private static void TryEnableOmegaOnRings(PrototypeId cosmicRarityRef, PrototypeId omegaRarityRef)
         {
             try
             {
-                int ringsEnabled = EnableOmegaOnRings(omegaRarityRef);
+                int ringsEnabled = EnableOmegaOnRings(cosmicRarityRef, omegaRarityRef);
                 if (ringsEnabled > 0)
                     { } // Logger.Info($"Permitted R6Omega on {ringsEnabled} ring drop restriction(s)");
             }
@@ -398,9 +423,9 @@ namespace MHServerEmu.Games.OmegaTierItems
             return true;
         }
 
-        private static int EnableOmegaOnRings(PrototypeId omegaRarityRef)
+        private static int EnableOmegaOnRings(PrototypeId cosmicRarityRef, PrototypeId omegaRarityRef)
         {
-            if (AllowedRaritiesProperty == null || omegaRarityRef == PrototypeId.Invalid)
+            if (AllowedRaritiesProperty == null || cosmicRarityRef == PrototypeId.Invalid || omegaRarityRef == PrototypeId.Invalid)
                 return 0;
 
             int changed = 0;
@@ -411,22 +436,7 @@ namespace MHServerEmu.Games.OmegaTierItems
                 if (ringProto?.LootDropRestrictions.IsNullOrEmpty() != false)
                     continue;
 
-                foreach (DropRestrictionPrototype restriction in ringProto.LootDropRestrictions)
-                {
-                    if (restriction is not RarityRestrictionPrototype rarityRestriction)
-                        continue;
-
-                    PrototypeId[] current = rarityRestriction.AllowedRarities;
-                    if (current.IsNullOrEmpty())
-                        continue;
-
-                    PrototypeId allowedRarityRef = current.Contains(GameDatabase.LootGlobalsPrototype.RarityCosmic)
-                        ? GameDatabase.LootGlobalsPrototype.RarityCosmic
-                        : current[0];
-
-                    if (TryExpandRarityRestriction(rarityRestriction, allowedRarityRef, omegaRarityRef))
-                        changed++;
-                }
+                changed += EnableOmegaOnRestrictions(ringProto.LootDropRestrictions, cosmicRarityRef, omegaRarityRef);
             }
 
             return changed;

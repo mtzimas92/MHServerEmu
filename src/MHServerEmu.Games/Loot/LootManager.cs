@@ -221,6 +221,8 @@ namespace MHServerEmu.Games.Loot
             if ((lootTypes & (LootType.Item | LootType.Agent | LootType.Credits | LootType.Currency)) == 0)
                 return true;
 
+            OmegaGearLootFilter.Apply(player, lootResultSummary);
+
             // Finalize vaporization (early exit if everything was vaporized)
             ulong sourceEntityId = sourceEntity != null ? sourceEntity.Id : Entity.InvalidId;
 
@@ -329,6 +331,8 @@ namespace MHServerEmu.Games.Loot
 
             if (lootTypes == LootType.None)
                 return true;
+
+            OmegaGearLootFilter.Apply(player, lootResultSummary);
 
             // Use a list to process ItemSpec + item CurrencySpec loot together
             using var itemListHandle = ListPool<Item>.Get(out List<Item> itemList);

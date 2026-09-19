@@ -62,24 +62,9 @@ namespace MHServerEmu.Games.MythicRifts
             return Math.Min(GetDamageMultiplier(riftLevel), MythicRiftScalingTuning.Load().MaxStandardDamageMultiplier);
         }
 
-        public static float GetThirtyWaveDamageMultiplier(MythicRiftWaveProfile waveProfile)
-        {
-            MythicRiftScalingTuning tuning = MythicRiftScalingTuning.Load();
-            float baselineDamage = GetDamageMultiplier(waveProfile.Wave);
-            float wavePressureDamage = MathF.Sqrt(Math.Max(waveProfile.TotalBossHealthMultiplier, 1f));
-            return Math.Min(Math.Max(baselineDamage, wavePressureDamage), tuning.MaxThirtyWaveDamageMultiplier);
-        }
-
-        public static MythicRiftWaveProfile GetThirtyWaveProfile(int riftLevel)
-        {
-            return MythicRiftScalingTuning.Load().GetThirtyWaveProfile(riftLevel);
-        }
-
         public static int GetBossGauntletBossCount(int wave)
         {
-            MythicRiftScalingTuning tuning = MythicRiftScalingTuning.Load();
-            int normalizedWave = Math.Max(wave, 1);
-            return Math.Clamp(1 + ((normalizedWave - 1) / 6), 1, tuning.MaxBossGauntletBossCount);
+            return MythicRiftScalingTuning.Load().GetBossCount(MythicRiftMode.BossGauntlet, wave);
         }
 
         public static MythicRiftDifficultySnapshot BuildBossGauntletSnapshot(int wave, int requestedPlayerCount)
@@ -103,11 +88,26 @@ namespace MHServerEmu.Games.MythicRifts
 
         public static MythicRiftDifficultySnapshot BuildSnapshot(int riftLevel, int requestedPlayerCount)
         {
-            return BuildSnapshot(riftLevel, requestedPlayerCount, useThirtyWaveMode: false);
+            return BuildSnapshot(riftLevel, requestedPlayerCount, MythicRiftMode.Standard);
         }
 
         public static MythicRiftDifficultySnapshot BuildSnapshot(int riftLevel, int requestedPlayerCount, MythicRiftMode mode)
         {
+            MythicRiftScalingTuning tuning = MythicRiftScalingTuning.Load();
+            MythicRiftLevelScalingTuning levelTuning = tuning.GetLevel(mode, riftLevel);
+            if (levelTuning != null)
+            {
+                int effectivePlayerCount = GetEffectivePlayerCount(requestedPlayerCount);
+                float groupHealthMultiplier = 1f;
+                return new MythicRiftDifficultySnapshot(
+                    Math.Max(riftLevel, 1),
+                    effectivePlayerCount,
+                    Math.Max(riftLevel, 1),
+                    groupHealthMultiplier,
+                    Math.Max(levelTuning.HealthMultiplier * groupHealthMultiplier, 0.01f),
+                    Math.Max(levelTuning.DamageMultiplier, 0.01f));
+            }
+
             if (mode == MythicRiftMode.BossGauntlet)
                 return BuildBossGauntletSnapshot(riftLevel, requestedPlayerCount);
 
@@ -116,32 +116,10 @@ namespace MHServerEmu.Games.MythicRifts
 
         public static MythicRiftDifficultySnapshot BuildSnapshot(int riftLevel, int requestedPlayerCount, bool useThirtyWaveMode)
         {
-            int effectivePlayerCount = GetEffectivePlayerCount(requestedPlayerCount);
-            if (useThirtyWaveMode)
-            {
-                MythicRiftWaveProfile waveProfile = GetThirtyWaveProfile(riftLevel);
-                return new MythicRiftDifficultySnapshot(
-                    riftLevel,
-                    effectivePlayerCount,
-                    waveProfile.Wave,
-                    1f,
-                    waveProfile.PerBossHealthMultiplier,
-                    GetThirtyWaveDamageMultiplier(waveProfile));
-            }
-
-            float equivalentD3RiftLevel = GetEquivalentD3RiftLevel(riftLevel);
-            float groupHealthMultiplier = GetGroupHealthMultiplier(requestedPlayerCount);
-            float soloHealthMultiplier = GetHealthMultiplier(riftLevel);
-            float finalHealthMultiplier = Math.Min(soloHealthMultiplier * groupHealthMultiplier, MythicRiftScalingTuning.Load().MaxStandardHealthMultiplier);
-            float finalDamageMultiplier = GetStandardDamageMultiplier(riftLevel);
-
-            return new MythicRiftDifficultySnapshot(
+            return BuildSnapshot(
                 riftLevel,
-                effectivePlayerCount,
-                equivalentD3RiftLevel,
-                groupHealthMultiplier,
-                finalHealthMultiplier,
-                finalDamageMultiplier);
+                requestedPlayerCount,
+                useThirtyWaveMode ? MythicRiftMode.Endless : MythicRiftMode.Standard);
         }
     }
 }

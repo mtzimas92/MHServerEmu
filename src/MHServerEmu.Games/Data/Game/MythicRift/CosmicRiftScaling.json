@@ -14,7 +14,6 @@
   "standardDamageMidStartLevel": 31,
   "standardDamageLateStartLevel": 71,
   "maxStandardDamageMultiplier": 1.75,
-  "maxThirtyWaveDamageMultiplier": 1.75,
   "maxBossGauntletHealthMultiplier": 4.0,
   "maxBossGauntletDamageMultiplier": 1.6,
   "maxBossGauntletBossCount": 5,
@@ -28,36 +27,70 @@
     2.5,
     3.0
   ],
-  "thirtyWaveProfiles": [
-    { "wave": 1, "bossCount": 1, "perBossHealthMultiplier": 1.0 },
-    { "wave": 2, "bossCount": 1, "perBossHealthMultiplier": 1.5 },
-    { "wave": 3, "bossCount": 1, "perBossHealthMultiplier": 2.0 },
-    { "wave": 4, "bossCount": 1, "perBossHealthMultiplier": 2.5 },
-    { "wave": 5, "bossCount": 1, "perBossHealthMultiplier": 3.0 },
-    { "wave": 6, "bossCount": 1, "perBossHealthMultiplier": 3.5 },
-    { "wave": 7, "bossCount": 1, "perBossHealthMultiplier": 4.0 },
-    { "wave": 8, "bossCount": 1, "perBossHealthMultiplier": 4.5 },
-    { "wave": 9, "bossCount": 1, "perBossHealthMultiplier": 5.0 },
-    { "wave": 10, "bossCount": 2, "perBossHealthMultiplier": 2.5 },
-    { "wave": 11, "bossCount": 2, "perBossHealthMultiplier": 3.0 },
-    { "wave": 12, "bossCount": 2, "perBossHealthMultiplier": 3.5 },
-    { "wave": 13, "bossCount": 2, "perBossHealthMultiplier": 4.0 },
-    { "wave": 14, "bossCount": 2, "perBossHealthMultiplier": 4.5 },
-    { "wave": 15, "bossCount": 2, "perBossHealthMultiplier": 5.0 },
-    { "wave": 16, "bossCount": 2, "perBossHealthMultiplier": 5.5 },
-    { "wave": 17, "bossCount": 2, "perBossHealthMultiplier": 6.0 },
-    { "wave": 18, "bossCount": 2, "perBossHealthMultiplier": 6.5 },
-    { "wave": 19, "bossCount": 2, "perBossHealthMultiplier": 7.0 },
-    { "wave": 20, "bossCount": 3, "perBossHealthMultiplier": 5.0 },
-    { "wave": 21, "bossCount": 3, "perBossHealthMultiplier": 5.5 },
-    { "wave": 22, "bossCount": 3, "perBossHealthMultiplier": 6.0 },
-    { "wave": 23, "bossCount": 3, "perBossHealthMultiplier": 6.5 },
-    { "wave": 24, "bossCount": 3, "perBossHealthMultiplier": 7.0 },
-    { "wave": 25, "bossCount": 4, "perBossHealthMultiplier": 5.0 },
-    { "wave": 26, "bossCount": 4, "perBossHealthMultiplier": 5.5 },
-    { "wave": 27, "bossCount": 4, "perBossHealthMultiplier": 6.0 },
-    { "wave": 28, "bossCount": 5, "perBossHealthMultiplier": 6.5 },
-    { "wave": 29, "bossCount": 5, "perBossHealthMultiplier": 7.0 },
-    { "wave": 30, "bossCount": 6, "perBossHealthMultiplier": 7.0 }
-  ]
+  "modes": {
+    "Standard": {
+      "allowParty": false,
+      "timeLimitMinutes": 5,
+      "applyCheckpointBossHealthMultiplier": false,
+      "levels": [
+        { "level": 1, "difficultyTierPrototype": "Difficulty/Tiers/Tier2Heroic.prototype", "healthMultiplier": 1.0, "damageMultiplier": 1.0, "bossCount": 1 },
+        { "level": 5, "difficultyTierPrototype": "Difficulty/CosmicGate.prototype", "healthMultiplier": 1.0, "damageMultiplier": 1.0, "bossCount": 1 },
+        { "level": 10, "difficultyTierPrototype": "Difficulty/Tiers/Tier3Superheroic.prototype", "healthMultiplier": 1.0, "damageMultiplier": 1.0, "bossCount": 1 },
+        { "level": 16, "difficultyTierPrototype": "Difficulty/Tiers/Tier4Cosmic.prototype", "healthMultiplier": 1.0, "damageMultiplier": 1.0, "bossCount": 1 },
+        { "level": 25, "difficultyTierPrototype": "Difficulty/Tiers/Tier5Omega1.prototype", "healthMultiplier": 1.0, "damageMultiplier": 1.0, "bossCount": 1 },
+        { "level": 31, "difficultyTierPrototype": "Difficulty/Tiers/Tier5Omega1.prototype", "healthMultiplier": 1.05, "damageMultiplier": 1.0, "bossCount": 1 },
+        { "level": 32, "difficultyTierPrototype": "Difficulty/Tiers/Tier5Omega1.prototype", "healthMultiplier": 1.1025, "damageMultiplier": 1.0, "bossCount": 1 },
+        { "level": 33, "difficultyTierPrototype": "Difficulty/Tiers/Tier5Omega1.prototype", "healthMultiplier": 1.1576, "damageMultiplier": 1.0, "bossCount": 1 },
+        { "level": 34, "difficultyTierPrototype": "Difficulty/Tiers/Tier5Omega1.prototype", "healthMultiplier": 1.2155, "damageMultiplier": 1.0, "bossCount": 1 },
+        { "level": 35, "difficultyTierPrototype": "Difficulty/Tiers/Tier5Omega1.prototype", "healthMultiplier": 1.2763, "damageMultiplier": 1.0, "bossCount": 1 },
+        { "level": 36, "difficultyTierPrototype": "Difficulty/Tiers/Tier5Omega1.prototype", "healthMultiplier": 1.3401, "damageMultiplier": 1.0, "bossCount": 1 },
+        { "level": 37, "difficultyTierPrototype": "Difficulty/Tiers/Tier5Omega1.prototype", "healthMultiplier": 1.4071, "damageMultiplier": 1.0, "bossCount": 1 },
+        { "level": 38, "difficultyTierPrototype": "Difficulty/Tiers/Tier5Omega1.prototype", "healthMultiplier": 1.4775, "damageMultiplier": 1.0, "bossCount": 1 },
+        { "level": 39, "difficultyTierPrototype": "Difficulty/Tiers/Tier5Omega1.prototype", "healthMultiplier": 1.5513, "damageMultiplier": 1.0, "bossCount": 1 },
+        { "level": 40, "difficultyTierPrototype": "Difficulty/Tiers/Tier5Omega1.prototype", "healthMultiplier": 1.6289, "damageMultiplier": 1.0, "bossCount": 1 },
+        { "level": 41, "difficultyTierPrototype": "Difficulty/Tiers/Tier5Omega1.prototype", "healthMultiplier": 1.7103, "damageMultiplier": 1.0, "bossCount": 1 },
+        { "level": 42, "difficultyTierPrototype": "Difficulty/Tiers/Tier5Omega1.prototype", "healthMultiplier": 1.7959, "damageMultiplier": 1.0, "bossCount": 1 },
+        { "level": 43, "difficultyTierPrototype": "Difficulty/Tiers/Tier5Omega1.prototype", "healthMultiplier": 1.8856, "damageMultiplier": 1.0, "bossCount": 1 },
+        { "level": 44, "difficultyTierPrototype": "Difficulty/Tiers/Tier5Omega1.prototype", "healthMultiplier": 1.9799, "damageMultiplier": 1.0, "bossCount": 1 },
+        { "level": 45, "difficultyTierPrototype": "Difficulty/Tiers/Tier5Omega1.prototype", "healthMultiplier": 2.0789, "damageMultiplier": 1.0, "bossCount": 1 },
+        { "level": 46, "difficultyTierPrototype": "Difficulty/Tiers/Tier5Omega1.prototype", "healthMultiplier": 2.1829, "damageMultiplier": 1.0, "bossCount": 1 },
+        { "level": 47, "difficultyTierPrototype": "Difficulty/Tiers/Tier5Omega1.prototype", "healthMultiplier": 2.2920, "damageMultiplier": 1.0, "bossCount": 1 },
+        { "level": 48, "difficultyTierPrototype": "Difficulty/Tiers/Tier5Omega1.prototype", "healthMultiplier": 2.4066, "damageMultiplier": 1.0, "bossCount": 1 }
+      ]
+    },
+    "Endless": {
+      "allowParty": true,
+      "timeLimitMinutes": 10,
+      "applyCheckpointBossHealthMultiplier": false,
+      "levels": [
+        { "level": 1, "difficultyTierPrototype": "Difficulty/Tiers/Tier2Heroic.prototype", "healthMultiplier": 1.0, "damageMultiplier": 1.0, "bossCount": 1 },
+        { "level": 5, "difficultyTierPrototype": "Difficulty/CosmicGate.prototype", "healthMultiplier": 1.0, "damageMultiplier": 1.0, "bossCount": 1 },
+        { "level": 10, "difficultyTierPrototype": "Difficulty/Tiers/Tier3Superheroic.prototype", "healthMultiplier": 1.0, "damageMultiplier": 1.0, "bossCount": 2 },
+        { "level": 16, "difficultyTierPrototype": "Difficulty/Tiers/Tier4Cosmic.prototype", "healthMultiplier": 1.0, "damageMultiplier": 1.0, "bossCount": 2 },
+        { "level": 20, "difficultyTierPrototype": "Difficulty/Tiers/Tier4Cosmic.prototype", "healthMultiplier": 1.0, "damageMultiplier": 1.0, "bossCount": 3 },
+        { "level": 25, "difficultyTierPrototype": "Difficulty/Tiers/Tier5Omega1.prototype", "healthMultiplier": 1.0, "damageMultiplier": 1.0, "bossCount": 4 },
+        { "level": 28, "difficultyTierPrototype": "Difficulty/Tiers/Tier5Omega1.prototype", "healthMultiplier": 1.0, "damageMultiplier": 1.0, "bossCount": 5 },
+        { "level": 30, "difficultyTierPrototype": "Difficulty/Tiers/Tier5Omega1.prototype", "healthMultiplier": 1.0, "damageMultiplier": 1.0, "bossCount": 6 }
+      ]
+    },
+    "BossGauntlet": {
+      "allowParty": true,
+      "timeLimitMinutes": 1440,
+      "applyCheckpointBossHealthMultiplier": false,
+      "levels": [
+        { "level": 1, "difficultyTierPrototype": "Difficulty/Tiers/Tier3Superheroic.prototype", "healthMultiplier": 1.0, "damageMultiplier": 1.0, "bossCount": 1 },
+        { "level": 6, "difficultyTierPrototype": "Difficulty/Tiers/Tier3Superheroic.prototype", "healthMultiplier": 1.0, "damageMultiplier": 1.0, "bossCount": 2 },
+        { "level": 7, "difficultyTierPrototype": "Difficulty/Tiers/Tier4Cosmic.prototype", "healthMultiplier": 1.0, "damageMultiplier": 1.0, "bossCount": 2 },
+        { "level": 11, "difficultyTierPrototype": "Difficulty/Tiers/Tier4Cosmic.prototype", "healthMultiplier": 1.0, "damageMultiplier": 1.0, "bossCount": 3 },
+        { "level": 16, "difficultyTierPrototype": "Difficulty/Tiers/Tier5Omega1.prototype", "healthMultiplier": 1.0, "damageMultiplier": 1.0, "bossCount": 4 },
+        { "level": 21, "difficultyTierPrototype": "Difficulty/Tiers/Tier5Omega1.prototype", "healthMultiplier": 1.0, "damageMultiplier": 1.0, "bossCount": 5 },
+        { "level": 26, "difficultyTierPrototype": "Difficulty/Tiers/Tier5Omega1.prototype", "healthMultiplier": 1.0, "damageMultiplier": 1.0, "bossCount": 6 },
+        { "level": 31, "difficultyTierPrototype": "Difficulty/Tiers/Tier5Omega1.prototype", "healthMultiplier": 1.0, "damageMultiplier": 1.0, "bossCount": 7 },
+        { "level": 36, "difficultyTierPrototype": "Difficulty/Tiers/Tier5Omega1.prototype", "healthMultiplier": 1.0, "damageMultiplier": 1.0, "bossCount": 8 },
+        { "level": 41, "difficultyTierPrototype": "Difficulty/Tiers/Tier5Omega1.prototype", "healthMultiplier": 1.0, "damageMultiplier": 1.0, "bossCount": 9 },
+        { "level": 45, "difficultyTierPrototype": "Difficulty/Tiers/Tier5Omega1.prototype", "healthMultiplier": 500.0, "damageMultiplier": 500.0, "bossCount": 9 },
+        { "level": 46, "difficultyTierPrototype": "Difficulty/Tiers/Tier5Omega1.prototype", "healthMultiplier": 500.0, "damageMultiplier": 500.0, "bossCount": 10 }
+      ]
+    }
+  }
 }

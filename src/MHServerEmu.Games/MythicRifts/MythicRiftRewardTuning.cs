@@ -584,6 +584,7 @@ namespace MHServerEmu.Games.MythicRifts
 
     public sealed class MythicRiftRewardShopOfferTuning
     {
+        public string Vendor { get; set; } = "rift";
         public string Id { get; set; }
         public string DisplayName { get; set; }
         public string Description { get; set; }
@@ -599,6 +600,7 @@ namespace MHServerEmu.Games.MythicRifts
 
         public void Normalize(string defaultDelivery)
         {
+            Vendor = string.IsNullOrWhiteSpace(Vendor) ? "rift" : Vendor.Trim();
             if (string.IsNullOrWhiteSpace(Id))
                 Id = string.IsNullOrWhiteSpace(DisplayName)
                     ? "unnamed-rift-shop-offer"

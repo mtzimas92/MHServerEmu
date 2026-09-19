@@ -1,6 +1,8 @@
 {
   "profileName": "omega-tier-items-v1",
   "enabled": true,
+  "omegaDifficultyPromotionChancePct": 33.3333,
+  "omegaDifficultyBonusRingChancePct": 100,
   "preferredAffixChancePct": 100,
   "maxPreferredAffixesPerItem": 1,
   "preferredAffixes": [

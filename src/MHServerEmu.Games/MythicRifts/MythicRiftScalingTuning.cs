@@ -27,7 +27,6 @@ namespace MHServerEmu.Games.MythicRifts
         public int StandardDamageMidStartLevel { get; set; } = 31;
         public int StandardDamageLateStartLevel { get; set; } = 71;
         public float MaxStandardDamageMultiplier { get; set; } = 2.4f;
-        public float MaxThirtyWaveDamageMultiplier { get; set; } = 2.4f;
         public float MaxBossGauntletHealthMultiplier { get; set; } = 7.0f;
         public float MaxBossGauntletDamageMultiplier { get; set; } = 2.0f;
         public int MaxBossGauntletBossCount { get; set; } = 5;
@@ -42,7 +41,7 @@ namespace MHServerEmu.Games.MythicRifts
             2.50f,
             3.00f
         };
-        public List<MythicRiftWaveProfileTuning> ThirtyWaveProfiles { get; set; } = CreateDefaultThirtyWaveProfiles();
+        public Dictionary<string, MythicRiftModeScalingTuning> Modes { get; set; } = CreateDefaultModes();
 
         public static JsonSerializerOptions JsonOptions => MythicRiftRewardTuning.JsonOptions;
         public static string ConfigPath => Path.Combine(FileHelper.DataDirectory, RelativeConfigPath);
@@ -108,7 +107,6 @@ namespace MHServerEmu.Games.MythicRifts
             StandardDamageMidStartLevel = Math.Max(StandardDamageMidStartLevel, 2);
             StandardDamageLateStartLevel = Math.Max(StandardDamageLateStartLevel, StandardDamageMidStartLevel + 1);
             MaxStandardDamageMultiplier = Math.Max(MaxStandardDamageMultiplier, 0.01f);
-            MaxThirtyWaveDamageMultiplier = Math.Max(MaxThirtyWaveDamageMultiplier, 0.01f);
             MaxBossGauntletHealthMultiplier = Math.Max(MaxBossGauntletHealthMultiplier, 0.01f);
             MaxBossGauntletDamageMultiplier = Math.Max(MaxBossGauntletDamageMultiplier, 0.01f);
             MaxBossGauntletBossCount = Math.Clamp(MaxBossGauntletBossCount, 1, 20);
@@ -117,7 +115,42 @@ namespace MHServerEmu.Games.MythicRifts
             BossGauntletDamageStepPerWave = Math.Max(BossGauntletDamageStepPerWave, 0f);
 
             RiftPartyHealthMultipliersByBucket = NormalizeMultiplierList(RiftPartyHealthMultipliersByBucket, new[] { 1.00f, 1.50f, 2.00f, 2.50f, 3.00f });
-            ThirtyWaveProfiles = NormalizeThirtyWaveProfiles(ThirtyWaveProfiles);
+            Modes ??= CreateDefaultModes();
+            foreach (MythicRiftMode mode in Enum.GetValues<MythicRiftMode>())
+            {
+                string key = mode.ToString();
+                if (Modes.TryGetValue(key, out MythicRiftModeScalingTuning modeTuning) == false || modeTuning == null)
+                    Modes[key] = CreateDefaultModes()[key];
+                Modes[key].Normalize();
+            }
+        }
+
+        public MythicRiftModeScalingTuning GetMode(MythicRiftMode mode)
+        {
+            return Modes.TryGetValue(mode.ToString(), out MythicRiftModeScalingTuning tuning)
+                ? tuning
+                : CreateDefaultModes()[mode.ToString()];
+        }
+
+        public MythicRiftLevelScalingTuning GetLevel(MythicRiftMode mode, int level)
+        {
+            MythicRiftModeScalingTuning modeTuning = GetMode(mode);
+            int normalizedLevel = Math.Max(level, 1);
+            return modeTuning.Levels.LastOrDefault(entry => entry.Level <= normalizedLevel);
+        }
+
+        public string GetDifficultyTierPrototypeName(MythicRiftMode mode, int level) => GetLevel(mode, level)?.DifficultyTierPrototype;
+        public int GetBossCount(MythicRiftMode mode, int level) => Math.Max(GetLevel(mode, level)?.BossCount ?? 1, 1);
+        public TimeSpan GetTimeLimit(MythicRiftMode mode) => TimeSpan.FromMinutes(Math.Max(GetMode(mode).TimeLimitMinutes, 1));
+
+        private static Dictionary<string, MythicRiftModeScalingTuning> CreateDefaultModes()
+        {
+            return new(StringComparer.OrdinalIgnoreCase)
+            {
+                [MythicRiftMode.Standard.ToString()] = MythicRiftModeScalingTuning.CreateStandard(),
+                [MythicRiftMode.Endless.ToString()] = MythicRiftModeScalingTuning.CreateEndless(),
+                [MythicRiftMode.BossGauntlet.ToString()] = MythicRiftModeScalingTuning.CreateBossGauntlet()
+            };
         }
 
         public float GetGroupHealthMultiplier(int requestedPlayerCount)
@@ -125,14 +158,6 @@ namespace MHServerEmu.Games.MythicRifts
             int effectivePlayerCount = MythicRiftScaling.GetEffectivePlayerCount(requestedPlayerCount);
             int index = Math.Clamp(effectivePlayerCount - 1, 0, RiftPartyHealthMultipliersByBucket.Count - 1);
             return RiftPartyHealthMultipliersByBucket[index];
-        }
-
-        public MythicRiftWaveProfile GetThirtyWaveProfile(int riftLevel)
-        {
-            int normalizedLevel = Math.Max(riftLevel, 1);
-            int wave = ((normalizedLevel - 1) % ThirtyWaveProfiles.Count) + 1;
-            MythicRiftWaveProfileTuning profile = ThirtyWaveProfiles[wave - 1];
-            return new MythicRiftWaveProfile(profile.Wave, profile.BossCount, profile.PerBossHealthMultiplier);
         }
 
         private static List<float> NormalizeMultiplierList(List<float> values, IReadOnlyList<float> fallback)
@@ -154,84 +179,118 @@ namespace MHServerEmu.Games.MythicRifts
             return normalized;
         }
 
-        private static List<MythicRiftWaveProfileTuning> NormalizeThirtyWaveProfiles(List<MythicRiftWaveProfileTuning> profiles)
-        {
-            List<MythicRiftWaveProfileTuning> normalized = profiles?
-                .Where(profile => profile != null)
-                .OrderBy(profile => profile.Wave)
-                .ToList() ?? new();
-
-            if (normalized.Count == 0)
-                normalized = CreateDefaultThirtyWaveProfiles();
-
-            for (int i = 0; i < normalized.Count; i++)
-            {
-                normalized[i].Normalize(i + 1);
-            }
-
-            return normalized;
-        }
-
-        private static List<MythicRiftWaveProfileTuning> CreateDefaultThirtyWaveProfiles()
-        {
-            return new()
-            {
-                new(1, 1, 1.00f),
-                new(2, 1, 1.50f),
-                new(3, 1, 2.00f),
-                new(4, 1, 2.50f),
-                new(5, 1, 3.00f),
-                new(6, 1, 3.50f),
-                new(7, 1, 4.00f),
-                new(8, 1, 4.50f),
-                new(9, 1, 5.00f),
-                new(10, 2, 2.50f),
-                new(11, 2, 3.00f),
-                new(12, 2, 3.50f),
-                new(13, 2, 4.00f),
-                new(14, 2, 4.50f),
-                new(15, 2, 5.00f),
-                new(16, 2, 5.50f),
-                new(17, 2, 6.00f),
-                new(18, 2, 6.50f),
-                new(19, 2, 7.00f),
-                new(20, 3, 5.00f),
-                new(21, 3, 5.50f),
-                new(22, 3, 6.00f),
-                new(23, 3, 6.50f),
-                new(24, 3, 7.00f),
-                new(25, 4, 5.00f),
-                new(26, 4, 5.50f),
-                new(27, 4, 6.00f),
-                new(28, 5, 6.50f),
-                new(29, 5, 7.00f),
-                new(30, 6, 7.00f)
-            };
-        }
     }
 
-    public sealed class MythicRiftWaveProfileTuning
+    public sealed class MythicRiftModeScalingTuning
     {
-        public MythicRiftWaveProfileTuning()
+        public bool AllowParty { get; set; } = true;
+        public int TimeLimitMinutes { get; set; } = 10;
+        public bool ApplyCheckpointBossHealthMultiplier { get; set; }
+        public List<MythicRiftLevelScalingTuning> Levels { get; set; } = new();
+
+        public void Normalize()
         {
+            TimeLimitMinutes = Math.Max(TimeLimitMinutes, 1);
+            Levels = Levels?.Where(entry => entry != null).OrderBy(entry => entry.Level).ToList() ?? new();
+            if (Levels.Count == 0)
+                Levels.Add(new MythicRiftLevelScalingTuning());
+            foreach (MythicRiftLevelScalingTuning level in Levels)
+                level.Normalize();
         }
 
-        public MythicRiftWaveProfileTuning(int wave, int bossCount, float perBossHealthMultiplier)
+        public static MythicRiftModeScalingTuning CreateStandard() => new()
         {
-            Wave = wave;
+            AllowParty = false,
+            TimeLimitMinutes = 5,
+            Levels = MythicRiftLevelScalingTuning.CreateDifficultyBands(includeBossCounts: false, includeInfiniteGrowth: true)
+        };
+
+        public static MythicRiftModeScalingTuning CreateEndless() => new()
+        {
+            AllowParty = true,
+            TimeLimitMinutes = 10,
+            Levels = new()
+            {
+                new(1, "Difficulty/Tiers/Tier2Heroic.prototype", 1f, 1f, 1),
+                new(5, "Difficulty/CosmicGate.prototype", 1f, 1f, 1),
+                new(10, "Difficulty/Tiers/Tier3Superheroic.prototype", 1f, 1f, 2),
+                new(16, "Difficulty/Tiers/Tier4Cosmic.prototype", 1f, 1f, 2),
+                new(20, "Difficulty/Tiers/Tier4Cosmic.prototype", 1f, 1f, 3),
+                new(25, "Difficulty/Tiers/Tier5Omega1.prototype", 1f, 1f, 4),
+                new(28, "Difficulty/Tiers/Tier5Omega1.prototype", 1f, 1f, 5),
+                new(30, "Difficulty/Tiers/Tier5Omega1.prototype", 1f, 1f, 6)
+            }
+        };
+
+        public static MythicRiftModeScalingTuning CreateBossGauntlet() => new()
+        {
+            AllowParty = true,
+            TimeLimitMinutes = 1440,
+            Levels = new()
+            {
+                new(1, "Difficulty/Tiers/Tier3Superheroic.prototype", 1f, 1f, 1),
+                new(6, "Difficulty/Tiers/Tier3Superheroic.prototype", 1f, 1f, 2),
+                new(7, "Difficulty/Tiers/Tier4Cosmic.prototype", 1f, 1f, 2),
+                new(11, "Difficulty/Tiers/Tier4Cosmic.prototype", 1f, 1f, 3),
+                new(16, "Difficulty/Tiers/Tier5Omega1.prototype", 1f, 1f, 4),
+                new(21, "Difficulty/Tiers/Tier5Omega1.prototype", 1f, 1f, 5),
+                new(26, "Difficulty/Tiers/Tier5Omega1.prototype", 1f, 1f, 6),
+                new(31, "Difficulty/Tiers/Tier5Omega1.prototype", 1f, 1f, 7),
+                new(36, "Difficulty/Tiers/Tier5Omega1.prototype", 1f, 1f, 8),
+                new(41, "Difficulty/Tiers/Tier5Omega1.prototype", 1f, 1f, 9),
+                new(45, "Difficulty/Tiers/Tier5Omega1.prototype", 500f, 500f, 9),
+                new(46, "Difficulty/Tiers/Tier5Omega1.prototype", 500f, 500f, 10)
+            }
+        };
+    }
+
+    public sealed class MythicRiftLevelScalingTuning
+    {
+        public int Level { get; set; } = 1;
+        public string DifficultyTierPrototype { get; set; } = "Difficulty/Tiers/Tier2Heroic.prototype";
+        public float HealthMultiplier { get; set; } = 1f;
+        public float DamageMultiplier { get; set; } = 1f;
+        public int BossCount { get; set; } = 1;
+
+        public MythicRiftLevelScalingTuning() { }
+        public MythicRiftLevelScalingTuning(int level, string tier, float health, float damage, int bossCount)
+        {
+            Level = level;
+            DifficultyTierPrototype = tier;
+            HealthMultiplier = health;
+            DamageMultiplier = damage;
             BossCount = bossCount;
-            PerBossHealthMultiplier = perBossHealthMultiplier;
         }
 
-        public int Wave { get; set; }
-        public int BossCount { get; set; }
-        public float PerBossHealthMultiplier { get; set; }
-
-        public void Normalize(int fallbackWave)
+        public void Normalize()
         {
-            Wave = Math.Max(Wave, fallbackWave);
-            BossCount = Math.Max(BossCount, 1);
-            PerBossHealthMultiplier = Math.Max(PerBossHealthMultiplier, 0.01f);
+            Level = Math.Max(Level, 1);
+            HealthMultiplier = Math.Max(HealthMultiplier, 0.01f);
+            DamageMultiplier = Math.Max(DamageMultiplier, 0.01f);
+            BossCount = Math.Clamp(BossCount, 1, 20);
+        }
+
+        public static List<MythicRiftLevelScalingTuning> CreateDifficultyBands(bool includeBossCounts, bool includeInfiniteGrowth)
+        {
+            List<MythicRiftLevelScalingTuning> levels = new()
+            {
+                new(1, "Difficulty/Tiers/Tier2Heroic.prototype", 1f, 1f, 1),
+                new(5, "Difficulty/CosmicGate.prototype", 1f, 1f, 1),
+                new(10, "Difficulty/Tiers/Tier3Superheroic.prototype", 1f, 1f, 1),
+                new(16, "Difficulty/Tiers/Tier4Cosmic.prototype", 1f, 1f, 1),
+                new(25, "Difficulty/Tiers/Tier5Omega1.prototype", 1f, 1f, 1)
+            };
+            if (includeInfiniteGrowth)
+            {
+                float health = 1f;
+                for (int level = 31; level <= 48; level++)
+                {
+                    health *= 1.05f;
+                    levels.Add(new(level, "Difficulty/Tiers/Tier5Omega1.prototype", health, 1f, 1));
+                }
+            }
+            return levels;
         }
     }
+
 }

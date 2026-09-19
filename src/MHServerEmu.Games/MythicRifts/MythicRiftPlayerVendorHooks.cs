@@ -18,11 +18,11 @@ namespace MHServerEmu.Games.Entities
     {
         private const string MythicRiftDangerRoomVendorTypeName = "VendorDangerRoomRewards";
         private const string MythicRiftVendorHint =
-            "[Mythic Rift] Cosmic Rift Scenario starts infinite-level scaling. Rift Gauntlet Scenario starts the repeating 30-wave challenge. Boss Gauntlet Scenario starts endless boss-only waves with failure loot.";
+            "[Mythic Rift] Infinite Rift Scenario starts infinite-level scaling. Omega Training Scenario starts the 30-level training challenge. Boss Gauntlet Scenario starts endless boss-only waves with failure loot.";
         private const string MythicRiftPurchaseHint =
-            "[Mythic Rift] Cosmic Rift Scenario purchased. Use it from the Danger Room Hub to open the infinite-level Rift.";
+            "[Mythic Rift] Infinite Rift Scenario purchased. Use it from the Danger Room Hub to open the infinite-level Rift.";
         private const string EndlessRiftPurchaseHint =
-            "[Mythic Rift] Rift Gauntlet Scenario purchased. Use it from the Danger Room Hub to enter the repeating 30-wave Rift.";
+            "[Mythic Rift] Omega Training Scenario purchased. Use it from the Danger Room Hub to enter the 30-level training Rift.";
         private const string BossGauntletRiftPurchaseHint =
             "[Mythic Rift] Boss Gauntlet Scenario purchased. Use it from the Danger Room Hub to enter endless boss-only waves.";
 
@@ -216,12 +216,14 @@ namespace MHServerEmu.Games.Entities
             FilterMythicRiftCompletionVendorInventories(vendorTypeProto, inventoryList);
 
             bool addedAny = false;
-            foreach (MythicRiftRewardShopOfferTuning offer in Game.MythicRiftManager.RewardShopOffers)
+            foreach (MythicRiftRewardShopOfferTuning offer in Game.MythicRiftManager.GetRewardShopOffers(GetDialogTarget(false)))
             {
                 if (offer?.Enabled != true || offer.HasAnyReward == false || offer.SigilCost <= 0)
                     continue;
 
-                int desiredStockCount = Math.Clamp(Math.Max(offer.ItemRolls * 3, 3), 3, 8);
+                int desiredStockCount = OmegaRaidVendorService.IsOmegaRaidVendor(GetDialogTarget(false))
+                    ? Math.Max(offer.ItemRolls, 1)
+                    : Math.Clamp(Math.Max(offer.ItemRolls * 3, 3), 3, 8);
                 int existingStockCount = CountTrackedMythicRiftCompletionVendorOffer(inventoryList, offer.Id);
                 for (int stockIndex = existingStockCount; stockIndex < desiredStockCount; stockIndex++)
                 {

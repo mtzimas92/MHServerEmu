@@ -883,6 +883,16 @@ namespace MHServerEmu.Games.MythicRifts
 
         private static PrototypeId GetRiftDifficultyTierRef(MythicRiftRunState runState)
         {
+            string configuredTier = MythicRiftScalingTuning.Load().GetDifficultyTierPrototypeName(
+                runState?.Config?.Mode ?? MythicRiftMode.Standard,
+                runState?.Config?.WaveNumber ?? runState?.Config?.RiftLevel ?? 1);
+            if (string.IsNullOrWhiteSpace(configuredTier) == false)
+            {
+                PrototypeId configuredTierRef = GameDatabase.GetPrototypeRefByName(configuredTier);
+                if (configuredTierRef.As<DifficultyTierPrototype>() != null)
+                    return configuredTierRef;
+            }
+
             bool useHighTier = runState?.Config?.Mode switch
             {
                 MythicRiftMode.Endless => runState.Config.WaveNumber >= ThirtyWaveOmegaDifficultyStartWave,
