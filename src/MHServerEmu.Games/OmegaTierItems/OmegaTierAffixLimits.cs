@@ -25,6 +25,8 @@ namespace MHServerEmu.Games.OmegaTierItems
         private const string ArmorSimpleBT3CategoryName = "Entity/Items/Affixes/AffixCategories/ArmorSimpleBT3.prototype";
         private const string ArmorCosmicCategoryName = "Entity/Items/Affixes/AffixCategories/ArmorCosmic.prototype";
         private const string ArmorOmegaCategoryName = "Entity/Items/Affixes/AffixCategories/ArmorOmega.prototype";
+        private const string RingOffenseT2CategoryName = "Entity/Items/Affixes/AffixCategories/RingOffenseT2.prototype";
+        private const string RingDefenseT2CategoryName = "Entity/Items/Affixes/AffixCategories/RingDefenseT2.prototype";
         private const string RingOffenseT3CategoryName = "Entity/Items/Affixes/AffixCategories/RingOffenseT3.prototype";
         private const string RingDefenseT3CategoryName = "Entity/Items/Affixes/AffixCategories/RingDefenseT3.prototype";
         private const short ArmorCosmicAffixCount = 1;
@@ -78,6 +80,8 @@ namespace MHServerEmu.Games.OmegaTierItems
             PrototypeId armorSimpleBT3CategoryRef = GameDatabase.GetPrototypeRefByName(ArmorSimpleBT3CategoryName);
             PrototypeId armorCosmicCategoryRef = GameDatabase.GetPrototypeRefByName(ArmorCosmicCategoryName);
             PrototypeId armorOmegaCategoryRef = GameDatabase.GetPrototypeRefByName(ArmorOmegaCategoryName);
+            PrototypeId ringOffenseT2CategoryRef = GameDatabase.GetPrototypeRefByName(RingOffenseT2CategoryName);
+            PrototypeId ringDefenseT2CategoryRef = GameDatabase.GetPrototypeRefByName(RingDefenseT2CategoryName);
             PrototypeId ringOffenseT3CategoryRef = GameDatabase.GetPrototypeRefByName(RingOffenseT3CategoryName);
             PrototypeId ringDefenseT3CategoryRef = GameDatabase.GetPrototypeRefByName(RingDefenseT3CategoryName);
             if (armorSimpleAT2CategoryRef == PrototypeId.Invalid ||
@@ -86,6 +90,8 @@ namespace MHServerEmu.Games.OmegaTierItems
                 armorSimpleBT3CategoryRef == PrototypeId.Invalid ||
                 armorCosmicCategoryRef == PrototypeId.Invalid ||
                 armorOmegaCategoryRef == PrototypeId.Invalid ||
+                ringOffenseT2CategoryRef == PrototypeId.Invalid ||
+                ringDefenseT2CategoryRef == PrototypeId.Invalid ||
                 ringOffenseT3CategoryRef == PrototypeId.Invalid ||
                 ringDefenseT3CategoryRef == PrototypeId.Invalid)
             {
@@ -110,7 +116,15 @@ namespace MHServerEmu.Games.OmegaTierItems
                         continue;
 
                     bool rowChanged = false;
-                    rowChanged |= NormalizeOmegaRingCategories(itemProtoRef, row, ringOffenseT3CategoryRef, ringDefenseT3CategoryRef, ref entriesAdjusted, ref entriesAdded);
+                    rowChanged |= NormalizeOmegaRingCategories(
+                        itemProtoRef,
+                        row,
+                        ringOffenseT2CategoryRef,
+                        ringDefenseT2CategoryRef,
+                        ringOffenseT3CategoryRef,
+                        ringDefenseT3CategoryRef,
+                        ref entriesAdjusted,
+                        ref entriesAdded);
 
                     if (IsArmorOmegaCandidate(itemProtoRef, row, armorOmegaCategoryRef) == false)
                     {
@@ -120,8 +134,8 @@ namespace MHServerEmu.Games.OmegaTierItems
                         continue;
                     }
 
-                    rowChanged |= PromoteCategory(row, armorSimpleAT2CategoryRef, armorSimpleAT3CategoryRef, ref categoriesPromoted);
-                    rowChanged |= PromoteCategory(row, armorSimpleBT2CategoryRef, armorSimpleBT3CategoryRef, ref categoriesPromoted);
+                    rowChanged |= ReplaceCategory(row, armorSimpleAT3CategoryRef, armorSimpleAT2CategoryRef);
+                    rowChanged |= ReplaceCategory(row, armorSimpleBT3CategoryRef, armorSimpleBT2CategoryRef);
                     rowChanged |= EnsureCategory(row, armorCosmicCategoryRef, ArmorCosmicAffixCount, ref entriesAdjusted, ref entriesAdded);
                     rowChanged |= EnsureCategory(row, armorOmegaCategoryRef, ArmorOmegaAffixCount, ref entriesAdjusted, ref entriesAdded);
 
@@ -196,6 +210,8 @@ namespace MHServerEmu.Games.OmegaTierItems
         private static bool NormalizeOmegaRingCategories(
             PrototypeId itemProtoRef,
             AffixLimitsPrototype row,
+            PrototypeId ringOffenseT2CategoryRef,
+            PrototypeId ringDefenseT2CategoryRef,
             PrototypeId ringOffenseT3CategoryRef,
             PrototypeId ringDefenseT3CategoryRef,
             ref int entriesAdjusted,
@@ -211,12 +227,14 @@ namespace MHServerEmu.Games.OmegaTierItems
                 return false;
 
             bool changed = false;
+            changed |= ReplaceCategory(row, ringOffenseT3CategoryRef, ringOffenseT2CategoryRef);
+            changed |= ReplaceCategory(row, ringDefenseT3CategoryRef, ringDefenseT2CategoryRef);
 
             bool isDefensiveRing = string.Equals(itemName, RingDefensePrototypeName, StringComparison.OrdinalIgnoreCase);
             short offenseCount = isDefensiveRing ? (short)1 : (short)(RingT3AffixCount - 1);
             short defenseCount = isDefensiveRing ? (short)(RingT3AffixCount - 1) : (short)1;
-            changed |= EnsureCategory(row, ringOffenseT3CategoryRef, offenseCount, ref entriesAdjusted, ref entriesAdded);
-            changed |= EnsureCategory(row, ringDefenseT3CategoryRef, defenseCount, ref entriesAdjusted, ref entriesAdded);
+            changed |= EnsureCategory(row, ringOffenseT2CategoryRef, offenseCount, ref entriesAdjusted, ref entriesAdded);
+            changed |= EnsureCategory(row, ringDefenseT2CategoryRef, defenseCount, ref entriesAdjusted, ref entriesAdded);
             return changed;
         }
 
@@ -287,6 +305,23 @@ namespace MHServerEmu.Games.OmegaTierItems
 
             CategoryProperty.SetValue(source, GameDatabase.GetPrototype<AffixCategoryPrototype>(targetCategoryRef));
             categoriesPromoted++;
+            return true;
+        }
+
+        private static bool ReplaceCategory(AffixLimitsPrototype row, PrototypeId sourceCategoryRef, PrototypeId targetCategoryRef)
+        {
+            CategorizedAffixEntryPrototype source = FindEntry(row, sourceCategoryRef);
+            if (source == null)
+                return false;
+
+            CategorizedAffixEntryPrototype target = FindEntry(row, targetCategoryRef);
+            if (target != null)
+            {
+                MinAffixesProperty.SetValue(source, (short)0);
+                return true;
+            }
+
+            CategoryProperty.SetValue(source, GameDatabase.GetPrototype<AffixCategoryPrototype>(targetCategoryRef));
             return true;
         }
 

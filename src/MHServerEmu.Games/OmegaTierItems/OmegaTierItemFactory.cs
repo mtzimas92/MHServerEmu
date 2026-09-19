@@ -148,7 +148,6 @@ namespace MHServerEmu.Games.OmegaTierItems
             PrototypeId omegaRarityRef = GameDatabase.GetPrototypeRefByName(OmegaRarityName);
             TryReplaceDisabledAffixes(resolver, filterArgs, itemSpec, resolvedRollFor, requestedOmega: true, omegaRarityRef, tuning);
             TryApplyOmegaArmorAffix(resolver, filterArgs, itemSpec, resolvedRollFor, requestedOmega: true, omegaRarityRef, tuning);
-            TryApplyOmegaRingAffix(resolver, filterArgs, itemSpec, requestedOmega: true, omegaRarityRef, tuning);
             return true;
 #else
             return false;
@@ -380,7 +379,6 @@ namespace MHServerEmu.Games.OmegaTierItems
 
             TryReplaceDisabledAffixes(resolver, filterArgs, itemSpec, rollFor, requestedOmega, omegaRarityRef, tuning);
             TryApplyOmegaArmorAffix(resolver, filterArgs, itemSpec, rollFor, requestedOmega, omegaRarityRef, tuning);
-            TryApplyOmegaRingAffix(resolver, filterArgs, itemSpec, requestedOmega, omegaRarityRef, tuning);
             TryApplyItemOverrides(resolver, filterArgs, itemSpec, rollFor, tuning);
 
             if (requestedOmega && itemSpec.RarityProtoRef == rarityProtoRef)

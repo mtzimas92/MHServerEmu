@@ -1,0 +1,134 @@
+{
+  "enabled": true,
+  "activities": [
+    {
+      "id": "omega-muspelheim",
+      "enabled": true,
+      "completionMission": "Missions/Prototypes/Raids/Surtur/RaidSurturFinalPhase.prototype",
+      "requiredDifficulty": "Difficulty/Tiers/Tier5Omega1.prototype",
+      "rewards": [
+        {
+          "id": "omega-muspelheim-champion-commendations",
+          "enabled": true,
+          "itemPrototypeRuntimeId": 2852929430040615658,
+          "quantity": 300,
+          "chancePercent": 100,
+          "period": "weekly",
+          "periodLimit": 300
+        },
+        {
+          "id": "omega-muspelheim-unique238",
+          "enabled": true,
+          "itemPrototype": "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot5/Unique238.prototype",
+          "quantity": 1,
+          "chancePercent": 2,
+          "itemLevel": 69
+        },
+        {
+          "id": "omega-muspelheim-unique304",
+          "enabled": true,
+          "itemPrototype": "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot5/Unique304.prototype",
+          "quantity": 1,
+          "chancePercent": 2,
+          "itemLevel": 69
+        },
+        {
+          "id": "omega-muspelheim-unique298",
+          "enabled": true,
+          "itemPrototype": "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot4/Unique298.prototype",
+          "quantity": 1,
+          "chancePercent": 2,
+          "itemLevel": 69
+        },
+        {
+          "id": "omega-muspelheim-unique294",
+          "enabled": true,
+          "itemPrototype": "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot2/Unique294.prototype",
+          "quantity": 1,
+          "chancePercent": 2,
+          "itemLevel": 69
+        }
+      ]
+    },
+    {
+      "id": "cosmic-axis",
+      "enabled": true,
+      "completionMission": "Missions/Prototypes/Raids/AxisRaid/AxisRaidP3PlazaDefeatOnslaught.prototype",
+      "requiredDifficulty": "Difficulty/Tiers/Tier5Omega1.prototype",
+      "rewards": [
+        {
+          "id": "cosmic-axis-champion-commendations",
+          "enabled": true,
+          "itemPrototypeRuntimeId": 2852929430040615658,
+          "quantity": 200,
+          "chancePercent": 100,
+          "period": "weekly",
+          "periodLimit": 200
+        },
+        {
+          "id": "cosmic-axis-protector-commendations",
+          "enabled": true,
+          "itemPrototypeRuntimeId": 810646464305634596,
+          "quantity": 100,
+          "chancePercent": 100,
+          "period": "weekly",
+          "periodLimit": 100
+        },
+        {
+          "id": "cosmic-axis-unique238",
+          "enabled": true,
+          "itemPrototype": "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot5/Unique238.prototype",
+          "quantity": 1,
+          "chancePercent": 2,
+          "itemLevel": 69
+        },
+        {
+          "id": "cosmic-axis-unique304",
+          "enabled": true,
+          "itemPrototype": "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot5/Unique304.prototype",
+          "quantity": 1,
+          "chancePercent": 2,
+          "itemLevel": 69
+        },
+        {
+          "id": "cosmic-axis-unique298",
+          "enabled": true,
+          "itemPrototype": "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot4/Unique298.prototype",
+          "quantity": 1,
+          "chancePercent": 2,
+          "itemLevel": 69
+        },
+        {
+          "id": "cosmic-axis-unique294",
+          "enabled": true,
+          "itemPrototype": "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot2/Unique294.prototype",
+          "quantity": 1,
+          "chancePercent": 2,
+          "itemLevel": 69
+        }
+      ]
+    },
+    {
+      "id": "omega-limbo",
+      "enabled": true,
+      "completionMission": "Missions/Prototypes/PVEEndgame/Limbo/LimboChallengeR07.prototype",
+      "requiredDifficulty": "Difficulty/Tiers/Tier5Omega1.prototype",
+      "rewards": [
+        {
+          "id": "omega-limbo-ssb",
+          "enabled": true,
+          "itemPrototype": "Entity/Items/Consumables/Prototypes/GShop/SHIELDSupplyBoost/BonusItemFindBox.prototype",
+          "quantity": 1,
+          "chancePercent": 100
+        },
+        {
+          "id": "omega-limbo-mystic-mayhem-coffers",
+          "enabled": true,
+          "itemPrototype": "Entity/Items/Consumables/Prototypes/SharedQuestLootBox/MysticMayhemCoffer.prototype",
+          "quantity": 2,
+          "chancePercent": 100
+        }
+      ]
+    }
+  ]
+}

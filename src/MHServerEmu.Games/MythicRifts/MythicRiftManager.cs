@@ -1278,6 +1278,7 @@ namespace MHServerEmu.Games.MythicRifts
                 {
                     Id = offer.Id,
                     ItemProtoRef = rewardItemProtoRef,
+                    RarityProtoRef = ResolveRewardShopOfferRarity(offer),
                     Quantity = 1,
                     ItemLevel = offer.ItemLevel,
                     Delivery = offer.Delivery
@@ -1340,6 +1341,13 @@ namespace MHServerEmu.Games.MythicRifts
 
             itemProtoRef = candidates[Game.Random.Next(0, candidates.Count)];
             return itemProtoRef.As<ItemPrototype>() != null;
+        }
+
+        public PrototypeId ResolveRewardShopOfferRarity(MythicRiftRewardShopOfferTuning offer)
+        {
+            return offer == null || string.IsNullOrWhiteSpace(offer.ItemRarityPrototype)
+                ? PrototypeId.Invalid
+                : ResolvePrototype(offer.ItemRarityPrototype);
         }
 
         public int GetCompletionArtifactVendorStockCost(MythicRiftRewardShopOfferTuning offer)
@@ -1729,6 +1737,10 @@ namespace MHServerEmu.Games.MythicRifts
 
                 foreach (MythicRiftRewardExtraLootTable extraLootTable in rewardOutcome.ExtraLootTables)
                 {
+                    if (CanClaimLimitedReward(player, avatar, extraLootTable.Id, extraLootTable.ClaimPeriod, extraLootTable.ClaimScope) == false)
+                        continue;
+
+                    bool grantedAny = false;
                     for (int i = 0; i < extraLootTable.Rolls; i++)
                     {
                         if (extraLootTable.ChancePercent <= 0f ||
@@ -1748,11 +1760,19 @@ namespace MHServerEmu.Games.MythicRifts
                         {
                             GrantRewardLootTable(extraLootTable.LootTableProtoRef, inputSettings, extraLootTable.Delivery, ref groundRecipientId, extraLootTable.ItemLevel);
                         }
+
+                        grantedAny = true;
                     }
+
+                    if (grantedAny)
+                        MarkLimitedRewardClaimed(player, avatar, extraLootTable.Id, extraLootTable.ClaimPeriod, extraLootTable.ClaimScope);
                 }
 
                 foreach (MythicRiftRewardGuaranteedItem guaranteedItem in rewardOutcome.GuaranteedItems)
                 {
+                    if (CanClaimLimitedReward(player, avatar, guaranteedItem) == false)
+                        continue;
+
                     for (int i = 0; i < guaranteedItem.Quantity; i++)
                     {
                         if (MythicRiftRewardTuning.IsChestDelivery(guaranteedItem.Delivery))
@@ -1760,6 +1780,8 @@ namespace MHServerEmu.Games.MythicRifts
                         else
                             GrantRewardItem(guaranteedItem, player, avatar, positionOverride: groundLootPositionOverride);
                     }
+
+                    MarkLimitedRewardClaimed(player, avatar, guaranteedItem);
                 }
 
                 if (chestRewards.Count > 0 &&
@@ -4745,7 +4767,9 @@ namespace MHServerEmu.Games.MythicRifts
                     Rolls = Math.Max(entry.Rolls, 1),
                     ChancePercent = entry.ChancePercent,
                     ItemLevel = entry.ItemLevel,
-                    Delivery = MythicRiftRewardTuning.NormalizeDelivery(entry.Delivery)
+                    Delivery = MythicRiftRewardTuning.NormalizeDelivery(entry.Delivery),
+                    ClaimPeriod = entry.ClaimPeriod,
+                    ClaimScope = entry.ClaimScope
                 });
             }
 
@@ -4797,6 +4821,9 @@ namespace MHServerEmu.Games.MythicRifts
                 if (entry == null || entry.AppliesTo(runState, timedSuccess, checkpointSuccess) == false)
                     continue;
 
+                if (tuning.UseCuratedMilestoneRewards && entry.Id.StartsWith("reward-v2-", StringComparison.OrdinalIgnoreCase) == false)
+                    continue;
+
                 PrototypeId itemProtoRef = ResolveGuaranteedItemPrototype(entry);
                 bool isItemReward = itemProtoRef != PrototypeId.Invalid && GameDatabase.DataDirectory.PrototypeIsA<ItemPrototype>(itemProtoRef);
                 bool isAgentReward = itemProtoRef != PrototypeId.Invalid && GameDatabase.DataDirectory.PrototypeIsA<AgentPrototype>(itemProtoRef);
@@ -4816,7 +4843,9 @@ namespace MHServerEmu.Games.MythicRifts
                     RarityProtoRef = string.IsNullOrWhiteSpace(entry.ItemRarityPrototype)
                         ? PrototypeId.Invalid
                         : ResolvePrototype(entry.ItemRarityPrototype),
-                    Delivery = MythicRiftRewardTuning.NormalizeDelivery(entry.Delivery)
+                    Delivery = MythicRiftRewardTuning.NormalizeDelivery(entry.Delivery),
+                    ClaimPeriod = entry.ClaimPeriod,
+                    ClaimScope = entry.ClaimScope
                 });
             }
 
@@ -4910,7 +4939,9 @@ namespace MHServerEmu.Games.MythicRifts
                                     Quantity = 1,
                                     ItemLevel = entry.ItemLevel,
                                     RarityProtoRef = rarityProtoRef,
-                                    Delivery = MythicRiftRewardTuning.NormalizeDelivery(entry.Delivery)
+                                    Delivery = MythicRiftRewardTuning.NormalizeDelivery(entry.Delivery),
+                                    ClaimPeriod = entry.ClaimPeriod,
+                                    ClaimScope = entry.ClaimScope
                                 });
                             }
 
@@ -4926,7 +4957,9 @@ namespace MHServerEmu.Games.MythicRifts
                             Quantity = 1,
                             ItemLevel = entry.ItemLevel,
                             RarityProtoRef = rarityProtoRef,
-                            Delivery = MythicRiftRewardTuning.NormalizeDelivery(entry.Delivery)
+                            Delivery = MythicRiftRewardTuning.NormalizeDelivery(entry.Delivery),
+                            ClaimPeriod = entry.ClaimPeriod,
+                            ClaimScope = entry.ClaimScope
                         });
                         continue;
                     }
@@ -4939,12 +4972,64 @@ namespace MHServerEmu.Games.MythicRifts
                         Quantity = 1,
                         ItemLevel = entry.ItemLevel,
                         RarityProtoRef = rarityProtoRef,
-                        Delivery = MythicRiftRewardTuning.NormalizeDelivery(entry.Delivery)
+                        Delivery = MythicRiftRewardTuning.NormalizeDelivery(entry.Delivery),
+                        ClaimPeriod = entry.ClaimPeriod,
+                        ClaimScope = entry.ClaimScope
                     });
                 }
             }
 
             return resolvedItems;
+        }
+
+        private bool CanClaimLimitedReward(Player player, Avatar avatar, MythicRiftRewardGuaranteedItem reward)
+        {
+            return reward == null || CanClaimLimitedReward(player, avatar, reward.Id, reward.ClaimPeriod, reward.ClaimScope);
+        }
+
+        private void MarkLimitedRewardClaimed(Player player, Avatar avatar, MythicRiftRewardGuaranteedItem reward)
+        {
+            if (reward != null)
+                MarkLimitedRewardClaimed(player, avatar, reward.Id, reward.ClaimPeriod, reward.ClaimScope);
+        }
+
+        private bool CanClaimLimitedReward(Player player, Avatar avatar, string rewardId, string claimPeriod, string claimScope)
+        {
+            if (player == null || string.IsNullOrWhiteSpace(claimPeriod))
+                return true;
+
+            string key = BuildLimitedRewardClaimKey(player, avatar, rewardId, claimScope);
+            long period = GetLimitedRewardPeriod(claimPeriod);
+            return player.OmegaContentRewardProgress.GetClaimedAmount(key, period) == 0;
+        }
+
+        private void MarkLimitedRewardClaimed(Player player, Avatar avatar, string rewardId, string claimPeriod, string claimScope)
+        {
+            if (player == null || string.IsNullOrWhiteSpace(claimPeriod))
+                return;
+
+            string key = BuildLimitedRewardClaimKey(player, avatar, rewardId, claimScope);
+            player.OmegaContentRewardProgress.AddClaimedAmount(key, GetLimitedRewardPeriod(claimPeriod), 1);
+        }
+
+        private static string BuildLimitedRewardClaimKey(Player player, Avatar avatar, string rewardId, string claimScope)
+        {
+            ulong avatarRef = string.Equals(claimScope, "account", StringComparison.OrdinalIgnoreCase)
+                ? 0UL
+                : (ulong)(avatar?.PrototypeDataRef ?? PrototypeId.Invalid);
+            return $"mythic-rift:{avatarRef:X16}:{rewardId}";
+        }
+
+        private static long GetLimitedRewardPeriod(string claimPeriod)
+        {
+            DateTime utcNow = DateTime.UtcNow;
+            if (string.Equals(claimPeriod, "weekly", StringComparison.OrdinalIgnoreCase))
+            {
+                int daysSinceMonday = ((int)utcNow.DayOfWeek + 6) % 7;
+                return new DateTimeOffset(utcNow.Date.AddDays(-daysSinceMonday), TimeSpan.Zero).ToUnixTimeSeconds();
+            }
+
+            return new DateTimeOffset(utcNow.Date, TimeSpan.Zero).ToUnixTimeSeconds();
         }
 
         private static bool ShouldResolveRandomItemPoolAtGrantTime(MythicRiftRandomItemPoolTuning entry, IReadOnlyList<EquipmentInvUISlot> allowedEquipmentSlots)

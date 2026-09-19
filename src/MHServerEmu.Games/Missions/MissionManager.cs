@@ -19,6 +19,7 @@ using MHServerEmu.Core.Collections;
 using MHServerEmu.Core.Memory;
 using MHServerEmu.Games.Properties.Evals;
 using MHServerEmu.Core.System.Time;
+using MHServerEmu.Games.MythicRifts;
 
 namespace MHServerEmu.Games.Missions
 {
@@ -828,6 +829,8 @@ namespace MHServerEmu.Games.Missions
             var missionRef = evt.MissionRef;
             var mission = FindMissionByDataRef(missionRef);
             if (mission == null) return;
+
+            OmegaContentRewardService.TryHandleMissionCompletion(evt);
 
             if (mission.IsLegendaryMission)
             {

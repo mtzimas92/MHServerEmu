@@ -137,6 +137,7 @@ namespace MHServerEmu.Games.Entities
         private int _endlessRiftHighestUnlockedLevel = 1;
         private int _endlessRiftCompletedCycles = 0;
         private MythicRiftPlayerProgress _mythicRiftProgress = new();
+        private OmegaContentRewardProgress _omegaContentRewardProgress = new();
 
         private TeleportData _teleportData;
         private SpawnGimbal _spawnGimbal;
@@ -208,6 +209,7 @@ namespace MHServerEmu.Games.Entities
         }
 
         public MythicRiftPlayerProgress MythicRiftProgress => _mythicRiftProgress;
+        public OmegaContentRewardProgress OmegaContentRewardProgress => _omegaContentRewardProgress;
 
         public override ulong PartyId { get => _partyId.Get(); }
         public bool IsInParty { get => PartyId != 0; }
@@ -510,6 +512,8 @@ namespace MHServerEmu.Games.Entities
                     success &= Serializer.Transfer(archive, ref _endlessRiftCompletedCycles);
                 if (archive.IsPacking || archive.Version >= ArchiveVersion.AddedRiftAvatarProgress)
                     success &= Serializer.Transfer(archive, _mythicRiftProgress);
+                if (archive.IsPacking || archive.Version >= ArchiveVersion.AddedOmegaContentRewardProgress)
+                    success &= Serializer.Transfer(archive, _omegaContentRewardProgress);
             }
 
             return success;

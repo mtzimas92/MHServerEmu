@@ -17,6 +17,7 @@ namespace MHServerEmu.Games.MythicRifts
 
         public string ProfileName { get; set; } = "default";
         public bool Enabled { get; set; } = true;
+        public bool UseCuratedMilestoneRewards { get; set; }
         public bool GrantBossLootOnSuccess { get; set; } = true;
         public bool GrantBossLootOnFailure { get; set; } = false;
         public bool GrantBossLootInThirtyWaveMode { get; set; } = true;
@@ -219,6 +220,8 @@ namespace MHServerEmu.Games.MythicRifts
         public List<string> ContentIds { get; set; } = new();
         public List<string> BossSourceIds { get; set; } = new();
         public string Delivery { get; set; }
+        public string ClaimPeriod { get; set; }
+        public string ClaimScope { get; set; }
 
         public virtual void Normalize(string defaultDelivery)
         {
@@ -235,6 +238,25 @@ namespace MHServerEmu.Games.MythicRifts
             Delivery = string.IsNullOrWhiteSpace(Delivery)
                 ? MythicRiftRewardTuning.NormalizeDelivery(defaultDelivery)
                 : MythicRiftRewardTuning.NormalizeDelivery(Delivery);
+            ClaimPeriod = NormalizeClaimPeriod(ClaimPeriod);
+            ClaimScope = NormalizeClaimScope(ClaimScope);
+        }
+
+        internal static string NormalizeClaimPeriod(string value)
+        {
+            return value?.Trim().ToLowerInvariant() switch
+            {
+                "daily" => "daily",
+                "weekly" => "weekly",
+                _ => string.Empty
+            };
+        }
+
+        internal static string NormalizeClaimScope(string value)
+        {
+            return string.Equals(value?.Trim(), "account", StringComparison.OrdinalIgnoreCase)
+                ? "account"
+                : "hero";
         }
 
         public bool AppliesTo(MythicRiftRunState runState, bool checkpointSuccess)
@@ -420,6 +442,8 @@ namespace MHServerEmu.Games.MythicRifts
         public List<string> ContentIds { get; set; } = new();
         public List<string> BossSourceIds { get; set; } = new();
         public string Delivery { get; set; }
+        public string ClaimPeriod { get; set; }
+        public string ClaimScope { get; set; }
 
         public void Normalize(string defaultDelivery)
         {
@@ -443,6 +467,8 @@ namespace MHServerEmu.Games.MythicRifts
             Delivery = string.IsNullOrWhiteSpace(Delivery)
                 ? MythicRiftRewardTuning.NormalizeDelivery(defaultDelivery)
                 : MythicRiftRewardTuning.NormalizeDelivery(Delivery);
+            ClaimPeriod = MythicRiftLootTableTuningBase.NormalizeClaimPeriod(ClaimPeriod);
+            ClaimScope = MythicRiftLootTableTuningBase.NormalizeClaimScope(ClaimScope);
         }
 
         public bool AppliesTo(MythicRiftRunState runState, bool timedSuccess, bool checkpointSuccess)
@@ -503,6 +529,8 @@ namespace MHServerEmu.Games.MythicRifts
         public List<string> ContentIds { get; set; } = new();
         public List<string> BossSourceIds { get; set; } = new();
         public string Delivery { get; set; }
+        public string ClaimPeriod { get; set; }
+        public string ClaimScope { get; set; }
 
         public void Normalize(string defaultDelivery)
         {
@@ -544,6 +572,8 @@ namespace MHServerEmu.Games.MythicRifts
             Delivery = string.IsNullOrWhiteSpace(Delivery)
                 ? MythicRiftRewardTuning.NormalizeDelivery(defaultDelivery)
                 : MythicRiftRewardTuning.NormalizeDelivery(Delivery);
+            ClaimPeriod = MythicRiftLootTableTuningBase.NormalizeClaimPeriod(ClaimPeriod);
+            ClaimScope = MythicRiftLootTableTuningBase.NormalizeClaimScope(ClaimScope);
         }
 
         public bool AppliesTo(MythicRiftRunState runState, bool timedSuccess, bool checkpointSuccess)
@@ -594,6 +624,7 @@ namespace MHServerEmu.Games.MythicRifts
         public string RandomItemPoolId { get; set; }
         public string PrototypeDirectoryPrefix { get; set; }
         public List<string> ItemPrototypePaths { get; set; } = new();
+        public string ItemRarityPrototype { get; set; }
         public int ItemRolls { get; set; } = 1;
         public int ItemLevel { get; set; } = 1;
         public string Delivery { get; set; }
@@ -622,6 +653,8 @@ namespace MHServerEmu.Games.MythicRifts
                     .Select(path => path.Trim().Replace('\\', '/'))
                     .Distinct(StringComparer.OrdinalIgnoreCase)
                     .ToList();
+
+            ItemRarityPrototype = ItemRarityPrototype?.Trim().Replace('\\', '/') ?? string.Empty;
 
             ItemRolls = Math.Max(ItemRolls, 0);
             ItemLevel = Math.Max(ItemLevel, 1);

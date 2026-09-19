@@ -35,16 +35,16 @@
     "Enabled": true,
     "Prototype": "Leaderboards/Prototypes/Leaderboards/CivilWar/CivilWarAntiReg.prototype",
     "Path": "ResetFrequency",
-    "Description": "[Cosmic Rift Progression] Reset every 4 hours for Rift progression season testing.",
+    "Description": "[Cosmic Rift Progression] Reset weekly for Rift progression seasons.",
     "ValueType": "Enum",
-    "Value": "Every4hours"
+    "Value": "Weekly"
   },
   {
     "Enabled": true,
     "Prototype": "Leaderboards/Prototypes/Leaderboards/CivilWar/CivilWarAntiReg.prototype",
     "Path": "Duration",
-    "Description": "[Cosmic Rift Progression] Keep each active Rift progression season open for 4 hours while testing.",
+    "Description": "[Cosmic Rift Progression] Keep each active Rift progression season open for one week.",
     "ValueType": "Enum",
-    "Value": "_4hours"
+    "Value": "Week"
   }
 ]

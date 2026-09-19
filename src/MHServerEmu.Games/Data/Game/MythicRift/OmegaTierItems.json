@@ -99,7 +99,7 @@
       "rarities": [
         "Entity/Items/Rarity/R6Unique.prototype"
       ],
-      "overrideItemLevel": 75,
+      "overrideItemLevel": 69,
       "maximizeAffixRolls": true,
       "clearBuiltInProperties": true,
       "disableTriggeredItemActions": true,
@@ -177,7 +177,7 @@
       "rarities": [
         "Entity/Items/Rarity/R6Unique.prototype"
       ],
-      "overrideItemLevel": 75,
+      "overrideItemLevel": 69,
       "maximizeAffixRolls": false,
       "clearBuiltInProperties": true,
       "clearExistingAffixes": true,
@@ -252,7 +252,7 @@
       "rarities": [
         "Entity/Items/Rarity/R6Unique.prototype"
       ],
-      "overrideItemLevel": 75,
+      "overrideItemLevel": 69,
       "maximizeAffixRolls": false,
       "clearBuiltInProperties": true,
       "clearExistingAffixes": true,
@@ -327,7 +327,7 @@
       "rarities": [
         "Entity/Items/Rarity/R6Unique.prototype"
       ],
-      "overrideItemLevel": 75,
+      "overrideItemLevel": 69,
       "maximizeAffixRolls": false,
       "clearBuiltInProperties": true,
       "preserveBuiltInPropertyIndexes": [ 2, 4 ],

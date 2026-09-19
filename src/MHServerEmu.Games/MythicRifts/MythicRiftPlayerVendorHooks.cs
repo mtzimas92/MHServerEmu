@@ -9,6 +9,7 @@ using MHServerEmu.Games.GameData.Calligraphy;
 using MHServerEmu.Games.GameData.Prototypes;
 using MHServerEmu.Games.Loot;
 using MHServerEmu.Games.MythicRifts;
+using MHServerEmu.Games.OmegaTierItems;
 using MHServerEmu.Games.Properties;
 using MHServerEmu.Games.Regions;
 
@@ -30,6 +31,7 @@ namespace MHServerEmu.Games.Entities
         {
             public string OfferId { get; init; } = string.Empty;
             public PrototypeId RewardItemProtoRef { get; init; }
+            public PrototypeId RarityProtoRef { get; init; }
             public int Cost { get; init; }
             public int ItemLevel { get; init; }
         }
@@ -239,6 +241,7 @@ namespace MHServerEmu.Games.Entities
                     {
                         OfferId = offer.Id,
                         RewardItemProtoRef = itemProtoRef,
+                        RarityProtoRef = Game.MythicRiftManager.ResolveRewardShopOfferRarity(offer),
                         Cost = Game.MythicRiftManager.GetCompletionArtifactVendorStockCost(offer),
                         ItemLevel = offer.ItemLevel
                     };
@@ -279,7 +282,11 @@ namespace MHServerEmu.Games.Entities
                     continue;
 
                 PrototypeId itemProtoRef = stockEntry.RewardItemProtoRef;
-                ItemSpec itemSpec = Game.LootManager.CreateItemSpec(itemProtoRef, LootContext.Vendor, this, Math.Max(stockEntry.ItemLevel, 1));
+                int itemLevel = Math.Max(stockEntry.ItemLevel, 1);
+                bool useItemFactory = OmegaTierItemFactory.ShouldUseFactory(itemProtoRef, stockEntry.RarityProtoRef);
+                ItemSpec itemSpec = useItemFactory
+                    ? OmegaTierItemFactory.CreateItemSpec(Game, itemProtoRef, stockEntry.RarityProtoRef, LootContext.Vendor, this, itemLevel)
+                    : Game.LootManager.CreateItemSpec(itemProtoRef, LootContext.Vendor, this, itemLevel);
                 if (itemSpec == null)
                     {
                         // Logger.Warn($"TryAddMythicRiftCompletionVendorOfferItem(): Failed to create ItemSpec for {itemProtoRef.GetNameFormatted()}");

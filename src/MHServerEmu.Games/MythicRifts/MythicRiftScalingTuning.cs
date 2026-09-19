@@ -235,11 +235,26 @@ namespace MHServerEmu.Games.MythicRifts
                 new(16, "Difficulty/Tiers/Tier5Omega1.prototype", 1f, 1f, 4),
                 new(21, "Difficulty/Tiers/Tier5Omega1.prototype", 1f, 1f, 5),
                 new(26, "Difficulty/Tiers/Tier5Omega1.prototype", 1f, 1f, 6),
-                new(31, "Difficulty/Tiers/Tier5Omega1.prototype", 1f, 1f, 7),
-                new(36, "Difficulty/Tiers/Tier5Omega1.prototype", 1f, 1f, 8),
-                new(41, "Difficulty/Tiers/Tier5Omega1.prototype", 1f, 1f, 9),
-                new(45, "Difficulty/Tiers/Tier5Omega1.prototype", 500f, 500f, 9),
-                new(46, "Difficulty/Tiers/Tier5Omega1.prototype", 500f, 500f, 10)
+                new(31, "Difficulty/Tiers/Tier5Omega1.prototype", 1.1284f, 1.0514f, 7),
+                new(32, "Difficulty/Tiers/Tier5Omega1.prototype", 1.2527f, 1.1011f, 7),
+                new(33, "Difficulty/Tiers/Tier5Omega1.prototype", 1.3732f, 1.1493f, 7),
+                new(34, "Difficulty/Tiers/Tier5Omega1.prototype", 1.4900f, 1.1960f, 7),
+                new(35, "Difficulty/Tiers/Tier5Omega1.prototype", 1.6035f, 1.2414f, 7),
+                new(36, "Difficulty/Tiers/Tier5Omega1.prototype", 1.7138f, 1.2855f, 8),
+                new(37, "Difficulty/Tiers/Tier5Omega1.prototype", 1.8211f, 1.3284f, 8),
+                new(38, "Difficulty/Tiers/Tier5Omega1.prototype", 1.9255f, 1.3702f, 8),
+                new(39, "Difficulty/Tiers/Tier5Omega1.prototype", 2.0272f, 1.4109f, 8),
+                new(40, "Difficulty/Tiers/Tier5Omega1.prototype", 2.1263f, 1.4505f, 8),
+                new(41, "Difficulty/Tiers/Tier5Omega1.prototype", 2.2230f, 1.4892f, 9),
+                new(42, "Difficulty/Tiers/Tier5Omega1.prototype", 2.3174f, 1.5269f, 9),
+                new(43, "Difficulty/Tiers/Tier5Omega1.prototype", 2.4095f, 1.5638f, 9),
+                new(44, "Difficulty/Tiers/Tier5Omega1.prototype", 2.4995f, 1.5998f, 9),
+                new(45, "Difficulty/Tiers/Tier5Omega1.prototype", 2.5875f, 1.6350f, 9),
+                new(46, "Difficulty/Tiers/Tier5Omega1.prototype", 2.6735f, 1.6694f, 9),
+                new(47, "Difficulty/Tiers/Tier5Omega1.prototype", 2.7577f, 1.7031f, 9),
+                new(48, "Difficulty/Tiers/Tier5Omega1.prototype", 2.8402f, 1.7361f, 9),
+                new(49, "Difficulty/Tiers/Tier5Omega1.prototype", 2.9209f, 1.7684f, 9),
+                new(50, "Difficulty/Tiers/Tier5Omega1.prototype", 3.0000f, 1.8000f, 10)
             }
         };
     }

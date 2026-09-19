@@ -12,6 +12,8 @@ namespace MHServerEmu.Games.MythicRifts
         public int ItemLevel { get; init; } = 1;
         public PrototypeId RarityProtoRef { get; init; }
         public string Delivery { get; init; } = "ground";
+        public string ClaimPeriod { get; init; }
+        public string ClaimScope { get; init; }
         public IReadOnlyList<PrototypeId> CandidateItemProtoRefs { get; init; }
         public IReadOnlyList<EquipmentInvUISlot> CandidateAllowedEquipmentSlots { get; init; }
         public EquipmentInvUISlot CandidateRequestedEquipmentSlot { get; init; } = EquipmentInvUISlot.Invalid;
