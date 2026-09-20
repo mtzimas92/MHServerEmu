@@ -1,0 +1,251 @@
+{
+  "16317499825292051727": {
+    "en_us": "Throw mystical ribbons that damage enemies over time. Vulnerability effects apply double the damage stated."
+  },
+  "14137443518970791169": {
+    "en_us": "Command fire ants to swarm enemies and leave them vulnerable. Vulnerability effects apply double the damage stated."
+  },
+  "18427421677940049206": {
+    "en_us": "Create an insect decoy that distracts enemies and retaliates when struck. Decoy damage now scales from Ant-Man, and summoned ants appear closer to reduce ant resource lockups."
+  },
+  "4935593528931714351": {
+    "en_us": "Command your ants from the anthill. Ants now spawn closer to Ant-Man to reduce ant resource lockups."
+  },
+  "16916753286126175491": {
+    "en_us": "Rapidly shrink and strike while commanding ants. Ants now spawn closer to Ant-Man to reduce ant resource lockups."
+  },
+  "1895836554058138890": {
+    "en_us": "Spring Black Cat's trap signature attack. Cat's Meow damage hits gain +100% critical strike chance."
+  },
+  "17460248343378986260": {
+    "en_us": "Fan of Knives gains the updated ranged damage bonus."
+  },
+  "7862589156790043983": {
+    "en_us": "Jungle Snare gains the updated ranged damage bonus."
+  },
+  "15456804635698922835": {
+    "en_us": "Mine Field gains the updated melee mine explosion damage bonus."
+  },
+  "3224196499121767740": {
+    "en_us": "Throw a spread of daggers. Related Black Panther talent bonuses have been updated."
+  },
+  "7365268412404991242": {
+    "en_us": "Strike enemies with Panther claws. Related Black Panther talent bonuses have been updated."
+  },
+  "1886568341117011269": {
+    "en_us": "Sweep enemies with a spinning kick. Blur of Blades no longer adds cooldown to Sweeping Kick when it triggers from bleeding targets."
+  },
+  "17349688261604738311": {
+    "en_us": "Strike enemies with a brutal attack. With No Serum selected, Brutal Strike and Meteor Kick no longer grant hidden serum."
+  },
+  "16270767149431260428": {
+    "en_us": "Leap into the air and crash down on enemies. Balance update: animation timing has been shortened."
+  },
+  "8805110186465887551": {
+    "en_us": "Fight with Captain America's finest hour. Balance update: activation timing has been shortened."
+  },
+  "14765582576271689020": {
+    "en_us": "Hurl the shield in a wide area around you. Balance update: animation timing has been shortened."
+  },
+  "6843381107999442189": {
+    "en_us": "Call Kitty Pryde into battle. Solitary Pillar increases Call-In damage by 100%."
+  },
+  "14687953907078333703": {
+    "en_us": "Call Nightcrawler into battle. Solitary Pillar increases Call-In damage by 100%."
+  },
+  "6296428082396988688": {
+    "en_us": "Perform Fastball Special. Solitary Pillar increases Call-In damage by 100%."
+  },
+  "4492790728666449212": {
+    "en_us": "Call Magik to protect Colossus with eldritch armor. Solitary Pillar increases Call-In damage by 100%."
+  },
+  "9290130780033910027": {
+    "en_us": "Regenerate with organic steel. With Taunt Buff selected, this also triggers the Heroic Challenge buff effect."
+  },
+  "172461865472230665": {
+    "en_us": "Strike the ground with a seismic shockwave. Fissure behavior is now baseline, and Seismic Stomp improves Demolition Stomp damage and cooldown."
+  },
+  "13945942416413689204": {
+    "en_us": "Call-In powers deal 100% increased damage and keep the talent's existing cooldown benefit."
+  },
+  "6039127732840236306": {
+    "en_us": "Spin into a powerful tornado kick. Tornado Kick damage and area have been increased."
+  },
+  "11483778879772951863": {
+    "en_us": "Leave explosive caltrops behind. Kaboom's replacement damage over time now shares Deadpool's normal bleed stacking family."
+  },
+  "6444952694350152974": {
+    "en_us": "Channel a beam of energy. Channeled Torment increases this power's damage by 300%, and the channel time is reduced to 3 seconds."
+  },
+  "12131631553375634700": {
+    "en_us": "Debuff enemies with Doom's technology. All-Power increases Tech power damage by 30%."
+  },
+  "15198120915810321722": {
+    "en_us": "Launch ball lightning at enemies. All-Power increases Tech power damage by 30%."
+  },
+  "9408316812518688065": {
+    "en_us": "Fire a lance of magic and technology. All-Power increases Tech power damage by 30%."
+  },
+  "2498520860541584643": {
+    "en_us": "Fire concussive blasts. Tech vulnerability effects apply the updated damage bonus."
+  },
+  "5190451004125086988": {
+    "en_us": "Diamond Form powers gain an increased damage bonus from Defense."
+  },
+  "12926617797862163722": {
+    "en_us": "Command enemies to kneel before Emma Frost. The explosion gains +100% critical strike chance, and signature-triggered Unlock Potential cooldown behavior has been adjusted."
+  },
+  "14209448993643103545": {
+    "en_us": "Unleash Emma Frost's controlled mob power. Cooldown interactions have been updated for direct casts and signature-triggered casts."
+  },
+  "473234873272435976": {
+    "en_us": "Strike with a katana-style attack. Balance update: this power is tagged for the intended damage category interactions."
+  },
+  "8537443972000187719": {
+    "en_us": "Fire an arrow that damages and freezes enemies. Vulnerability effects apply double the damage stated."
+  },
+  "9928102821367842126": {
+    "en_us": "Fire a burst of arrows. Vulnerability effects apply double the damage stated where this power uses the updated Freeze Arrow effect."
+  },
+  "12583463543195436348": {
+    "en_us": "Become invisible. Balance update: invisibility interactions have been adjusted."
+  },
+  "9272129365266335032": {
+    "en_us": "Hurl debris with telekinetic force. Balance update: damage and control behavior for Jean Grey's rework powers has been adjusted."
+  },
+  "18104740742041634099": {
+    "en_us": "Drain enemies with telepathic force. Damage applies to raid targets, and the slow effect is handled separately from the damage portion."
+  },
+  "9212529731894314299": {
+    "en_us": "Create a psychic maelstrom that damages and controls enemies. Damage applies to raid targets, and crowd control conditions are handled separately from the damage portion."
+  },
+  "13453881903176287559": {
+    "en_us": "Create a flaming maelstrom that damages and slows enemies. Damage applies to raid targets, and crowd control conditions are handled separately from the damage portion."
+  },
+  "2460525788847408397": {
+    "en_us": "Strike between enemies through stepping discs. Balance update: bounce and stepping-disc talent bonuses have been increased."
+  },
+  "15641993149997319431": {
+    "en_us": "Teleport through enemies using stepping discs. Stepping-disc talent bonuses have been increased."
+  },
+  "11660265554182800689": {
+    "en_us": "Call in S.H.I.E.L.D. support fire to suppress enemies. Vulnerability effects apply double the damage stated."
+  },
+  "4537406058608330001": {
+    "en_us": "Fire from cover and suppress enemies at range. Vulnerability effects apply double the damage stated."
+  },
+  "8822984427111687": {
+    "en_us": "Reload Nick Fury's arsenal. Balance update: reload and summon support interactions have been adjusted."
+  },
+  "2320166936279319871": {
+    "en_us": "Summon S.H.I.E.L.D. agents to fight alongside Nick Fury. Summon health has been increased through the updated synergy tuning."
+  },
+  "4497793313294386485": {
+    "en_us": "Strike enemies with basic melee force. Balance update: movement and targeting behavior has been adjusted."
+  },
+  "2612951137335313663": {
+    "en_us": "Lunge into enemies with Nova force. Balance update: movement snapping and targeting behavior has been adjusted."
+  },
+  "13892119827450103040": {
+    "en_us": "Charge Rocket's heavy gauss rifle. Heavy Gauss Rifle's gun-power damage bonus has been increased."
+  },
+  "17921492311641031996": {
+    "en_us": "Create a Pulsar Explosion at a random location. Secondary Pulsar Field effects deal reduced damage."
+  },
+  "16067709883176060168": {
+    "en_us": "Create a Pulsar Field hotspot. Secondary Pulsar Field effects deal reduced damage."
+  },
+  "17639518199540942088": {
+    "en_us": "Create a Pulsar Implosion at a random location. Secondary Pulsar Field effects deal reduced damage."
+  },
+  "2135891987154535693": {
+    "en_us": "Channel Electromagnetic Flux. This power cannot be used while the Movement Power CDR talent is selected."
+  },
+  "17143266068866663689": {
+    "en_us": "Electromagnetic Flux cannot be used. Movement powers deal 50% increased damage."
+  },
+  "627221498215073030": {
+    "en_us": "Dash forward on the board. Movement Power CDR increases this power's damage while the talent is selected."
+  },
+  "2107879033691571524": {
+    "en_us": "Disengage from enemies with a burst of power. Movement Power CDR increases this power's damage while the talent is selected."
+  },
+  "9338392378416170309": {
+    "en_us": "Sweep across enemies on the board. Movement Power CDR increases this power's damage while the talent is selected."
+  },
+  "7656866313557706044": {
+    "en_us": "Strike enemies from below. Movement Power CDR increases this power's damage while the talent is selected."
+  },
+  "10055895789318374664": {
+    "en_us": "Teleport through enemies. Movement Power CDR increases this power's damage while the talent is selected."
+  },
+  "10107956878923728146": {
+    "en_us": "Launch webbing that damages enemies and leaves them vulnerable. Vulnerability effects apply double the damage stated."
+  },
+  "7025069692230108464": {
+    "en_us": "Smash enemies with an amazing finishing attack. Explosion and lingering damage gain +100% critical strike chance."
+  },
+  "2828407566218757439": {
+    "en_us": "Load Earth ammo. Heavy Explosives increases Earth ammo grenade damage by 75%."
+  },
+  "6078447965218866497": {
+    "en_us": "Load Water ammo. Heavy Explosives increases Water ammo grenade damage by 75%."
+  },
+  "4027498375827162434": {
+    "en_us": "Commanding Shot reduces affected drone cooldowns by 4 seconds."
+  },
+  "661053196192253252": {
+    "en_us": "Drones affected by Commanding Shot take 45% increased damage."
+  },
+  "3587315930807469382": {
+    "en_us": "Command Ultron's drones to focus fire. This talent now shaves 4 seconds from affected drone powers and increases the drone damage-taken effect to 45%."
+  },
+  "16018808351967544630": {
+    "en_us": "Spin through enemies with Ultron's attack. Balance update: proc interactions have been enabled."
+  },
+  "1236300233619277062": {
+    "en_us": "Release a poison gas bomb. Balance update: Taskmaster damage interactions have been adjusted."
+  },
+  "6508167818309797135": {
+    "en_us": "Tumble into position. This power now counts for Silent Killer's intended non-signature cooldown movement interactions."
+  },
+  "17992484624890463508": {
+    "en_us": "Unleash Ragnarok. The inner damage hit gains +100% critical strike chance."
+  },
+  "16255815848645297476": {
+    "en_us": "Call down Thor's power from above. Mjolnir Throw talent effects now generate 180 Odinforce."
+  },
+  "11554315780512679223": {
+    "en_us": "Throw Mjolnir at enemies. Mjolnir Throw talent effects now generate 180 Odinforce."
+  },
+  "1899466789311874348": {
+    "en_us": "Throw Mjolnir with storm power. Mjolnir Throw talent effects now generate 180 Odinforce."
+  },
+  "11457226086231049490": {
+    "en_us": "Unleash Venom's freakout signature. The low-health signature damage talent now applies to the actual damage hit."
+  },
+  "12847275836266251577": {
+    "en_us": "Fire an anti-tank round. Enhanced Ammo now refreshes its own ammo condition and grants the updated machinegun critical chance bonus."
+  },
+  "17528783239597065487": {
+    "en_us": "Fire the plasma cannon. Enhanced Ammo now refreshes its own ammo condition and grants the updated machinegun damage bonus."
+  },
+  "14123135595638162696": {
+    "en_us": "Fire a thermal shot. Balance update: War Machine ammo and enhanced-round interactions have been adjusted."
+  },
+  "18051146576758375736": {
+    "en_us": "Leap with crimson fury. Pummel and Execute cooldown interactions have been adjusted."
+  },
+  "18281999204841882884": {
+    "en_us": "Pummel the target. Pummel and Execute cooldown interactions have been adjusted."
+  },
+  "2759352098490680645": {
+    "en_us": "Execute has a persistent 4 second cooldown reduction while this talent is selected."
+  },
+  "9914946872670618942": {
+    "en_us": "Execute a wounded target. With the Pummel Execute CDR talent selected, this power has a persistent 4 second cooldown reduction."
+  },
+  "7476905319785628944": {
+    "en_us": "(Current Bonus: $damageMultOnPower.pct$%)"
+  }
+}
