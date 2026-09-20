@@ -20,7 +20,6 @@
     { "prototypeName": "Regions/Affixes/UtilityMods/DRMobAffixVulnerableRanged.prototype", "weight": 25 },
     { "prototypeName": "Regions/Affixes/UtilityMods/DRMobAffixWealthy.prototype", "weight": 15 },
     { "prototypeName": "Regions/Affixes/ChallengeAffixes/DRMobAffixAreaResist.prototype", "weight": 25 },
-    { "prototypeName": "Regions/Affixes/ChallengeAffixes/DRPlayerAffixNoBrutalStrikes.prototype", "weight": 40 },
     { "prototypeName": "Regions/Affixes/UtilityMods/DRLevelAffixHealingOrbs.prototype", "weight": 60 }
   ]
 }

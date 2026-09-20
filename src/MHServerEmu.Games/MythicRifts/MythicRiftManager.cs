@@ -2752,14 +2752,26 @@ namespace MHServerEmu.Games.MythicRifts
                 return;
             }
 
-            _pendingBossGauntletFailureRecoveriesAt.Remove(runState.Config.RunId);
-            ReviveRunParticipantsInPlace(runState);
+            ReviveRunParticipantsForRewardRoom(runState);
 
             List<Player> runPlayers = GetRunPlayers(runState).ToList();
             Player initiatingPlayer = runPlayers.FirstOrDefault(player => player.IsPartyLeader()) ?? runPlayers.FirstOrDefault();
             if (initiatingPlayer != null && TryTeleportPartyToRewardRoom(runState, initiatingPlayer))
+            {
+                _pendingBossGauntletFailureRecoveriesAt.Remove(runState.Config.RunId);
                 return;
+            }
 
+            TimeSpan elapsedSinceFailure = runState.CompletedAt.HasValue
+                ? currentTime - runState.CompletedAt.Value
+                : TimeSpan.Zero;
+            if (elapsedSinceFailure < RewardRoomFinalizeGiveUpAfter)
+            {
+                _pendingBossGauntletFailureRecoveriesAt[runState.Config.RunId] = currentTime + RewardRoomFinalizeRetryDelay;
+                return;
+            }
+
+            _pendingBossGauntletFailureRecoveriesAt.Remove(runState.Config.RunId);
             TryOfferRewardRoomTravel(runState);
             TrySpawnRewardRoomPortal(runState);
         }
@@ -5619,6 +5631,11 @@ namespace MHServerEmu.Games.MythicRifts
 
             MythicRiftStandaloneBossFixups.Clear(entity.Id);
 
+            // A death callback runs before the entity's native removal path. Let that
+            // path finish instead of exiting/destroying the same entity twice.
+            if (entity.IsDead)
+                return;
+
             if (entity is Agent agent)
                 agent.KillSummonedOnOwnerDeath();
 
@@ -6906,10 +6923,10 @@ namespace MHServerEmu.Games.MythicRifts
                 settings.Orientation = spawnOrientation;
                 settings.RegionId = region.Id;
                 settings.Cell = spawnCell;
-                settings.IsPopulation = true;
+                settings.IsPopulation = false;
 
                 using var settingsPropertiesHandle = PropertyCollectionPool.Get(out PropertyCollection settingsProperties);
-                int level = spawnCell.Area.GetCharacterLevel(bossProto);
+                int level = Math.Max(spawnCell.Area.GetCharacterLevel(bossProto), RiftBossMinimumCharacterLevel);
                 settingsProperties[PropertyEnum.CharacterLevel] = level;
                 settingsProperties[PropertyEnum.CombatLevel] = level;
                 settingsProperties[PropertyEnum.DifficultyTier] = region.DifficultyTierRef;
@@ -6948,7 +6965,7 @@ namespace MHServerEmu.Games.MythicRifts
                 Logger.Info(
                     $"[MythicRiftBossHealthTrace] runId={runState.Config.RunId} mode={runState.Config.Mode} " +
                     $"riftLevel={runState.Config.RiftLevel} wave={runState.Config.WaveNumber} players={runState.Difficulty.EffectivePlayerCount} " +
-                    $"boss={bossAgent.PrototypeDataRef.GetNameFormatted()} entityId=0x{bossAgent.Id:X} characterLevel={level} " +
+                    $"boss={bossAgent.PrototypeDataRef.GetNameFormatted()} entityId=0x{bossAgent.Id:X} characterLevel={bossAgent.CharacterLevel} " +
                     $"difficulty={region.DifficultyTierRef.GetNameFormatted()} rank={(bossProto.Rank?.DataRef ?? PrototypeId.Invalid).GetNameFormatted()} " +
                     $"baselineHealth={baselineHealth} baselineHealthMax={baselineHealthMax} baselineHealthMaxOther={baselineHealthMaxOther} " +
                     $"baselineHealthPctBonus={baselineHealthPctBonus:F4} checkpointHealthMultiplier={checkpointHealthMultiplier:F4} " +
@@ -7451,16 +7468,10 @@ namespace MHServerEmu.Games.MythicRifts
             return fullCleanup && (worldEntity is Hotspot || worldEntity is Item);
         }
 
-        private void ReviveRunParticipantsInPlace(MythicRiftRunState runState)
+        private void ReviveRunParticipantsForRewardRoom(MythicRiftRunState runState)
         {
             if (runState == null)
                 return;
-
-            Region region = runState.RegionId != 0
-                ? Game.RegionManager.GetRegion(runState.RegionId)
-                : null;
-            Vector3 revivePosition = Vector3.Zero;
-            bool hasRevivePosition = TryResolveRunStartPosition(runState, region, out revivePosition);
 
             foreach (ulong playerDbId in runState.ParticipantPlayerDbIds)
             {
@@ -7469,19 +7480,8 @@ namespace MHServerEmu.Games.MythicRifts
                 if (avatar == null)
                     continue;
 
-                bool resurrected = avatar.IsDead == false || avatar.Resurrect();
-                bool teleported = false;
-                if (region != null && hasRevivePosition && avatar.Region?.Id == runState.RegionId)
-                {
-                    using var teleporterHandle = TeleporterPool.Get(out Teleporter teleporter);
-                    teleporter.Initialize(player, TeleportContextEnum.TeleportContext_Resurrect);
-                    teleporter.DifficultyTierRef = region.DifficultyTierRef;
-                    teleported = teleporter.TeleportToRegionLocation(region.Id, revivePosition);
-                }
-
-                // Logger.Info(
-                    // $"Mythic Rift run {runState.Config.RunId} revived Boss Gauntlet participant playerDbId=0x{playerDbId:X} " +
-                    // $"after failure. resurrectResult={resurrected} teleportResult={teleported}");
+                if (avatar.IsDead)
+                    avatar.Resurrect();
             }
         }
 
