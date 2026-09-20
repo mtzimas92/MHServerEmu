@@ -2753,6 +2753,12 @@ namespace MHServerEmu.Games.MythicRifts
 
             _pendingBossGauntletFailureRecoveriesAt.Remove(runState.Config.RunId);
             ReviveRunParticipantsInPlace(runState);
+
+            List<Player> runPlayers = GetRunPlayers(runState).ToList();
+            Player initiatingPlayer = runPlayers.FirstOrDefault(player => player.IsPartyLeader()) ?? runPlayers.FirstOrDefault();
+            if (initiatingPlayer != null && TryTeleportPartyToRewardRoom(runState, initiatingPlayer))
+                return;
+
             TryOfferRewardRoomTravel(runState);
             TrySpawnRewardRoomPortal(runState);
         }
