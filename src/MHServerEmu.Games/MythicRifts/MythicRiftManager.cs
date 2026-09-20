@@ -43,6 +43,7 @@ namespace MHServerEmu.Games.MythicRifts
         private static readonly TimeSpan RiftObjectiveWidgetRefreshInterval = TimeSpan.FromSeconds(2);
         private static readonly TimeSpan RiftReadyCheckDuration = TimeSpan.FromSeconds(5);
         private static readonly TimeSpan FailedRunEvacuationDelay = TimeSpan.FromMilliseconds(250);
+        private const int RiftBossMinimumCharacterLevel = 63;
         private static readonly TimeSpan FailedRunEvacuationRetryDelay = TimeSpan.FromSeconds(1);
         private static readonly TimeSpan BossGauntletFailureRecoveryDelay = TimeSpan.FromMilliseconds(250);
         private static readonly TimeSpan RewardRoomFinalizeDelay = TimeSpan.FromMilliseconds(1500);
@@ -3203,6 +3204,18 @@ namespace MHServerEmu.Games.MythicRifts
 
             runState.CaptureRegionDifficultyScaling(currentPlayerToMobDamageMultiplier, currentMobToPlayerDamageMultiplier);
 
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
+            PrototypeId configuredDifficultyTierRef = ResolveConfiguredDifficultyTierRef(runState.Config.Mode, runState.Config.RiftLevel);
+            PrototypeId originalDifficultyTierRef = region.Settings.DifficultyTierRef;
+            if (TryGetDifficultyDamageMultipliers(originalDifficultyTierRef, out float originalMobToPlayer, out float originalPlayerToMob) &&
+                TryGetDifficultyDamageMultipliers(configuredDifficultyTierRef, out float configuredMobToPlayer, out float configuredPlayerToMob))
+            {
+                currentPlayerToMobDamageMultiplier *= configuredPlayerToMob / Math.Max(originalPlayerToMob, 0.0001f);
+                currentMobToPlayerDamageMultiplier *= configuredMobToPlayer / Math.Max(originalMobToPlayer, 0.0001f);
+                region.Properties[PropertyEnum.DifficultyTier] = configuredDifficultyTierRef;
+            }
+#endif
+
             float effectiveHealthMultiplier = Math.Max(runState.Difficulty.HealthMultiplier, 0.01f);
             float effectiveDamageMultiplier = Math.Max(runState.Difficulty.DamageMultiplier, 0.01f);
 
@@ -3236,6 +3249,9 @@ namespace MHServerEmu.Games.MythicRifts
             {
                 region.Properties[PropertyEnum.DamageRegionPlayerToMob] = runState.RegionPlayerToMobDamageMultiplierBeforeScaling;
                 region.Properties[PropertyEnum.DamageRegionMobToPlayer] = runState.RegionMobToPlayerDamageMultiplierBeforeScaling;
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
+                region.Properties[PropertyEnum.DifficultyTier] = region.Settings.DifficultyTierRef;
+#endif
 
                 // Logger.Info(
                     // $"Mythic Rift run {runState.Config.RunId} restored region difficulty scaling: " +
@@ -3245,6 +3261,44 @@ namespace MHServerEmu.Games.MythicRifts
 
             runState.ClearRegionDifficultyScaling();
         }
+
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
+        private static PrototypeId ResolveConfiguredDifficultyTierRef(MythicRiftMode mode, int level)
+        {
+            string prototypeName = MythicRiftScalingTuning.Load().GetDifficultyTierPrototypeName(mode, level);
+            if (string.IsNullOrWhiteSpace(prototypeName))
+                return PrototypeId.Invalid;
+
+            return GameDatabase.GetPrototypeRefByName(prototypeName);
+        }
+
+        private static bool TryGetDifficultyDamageMultipliers(
+            PrototypeId difficultyTierRef,
+            out float mobToPlayer,
+            out float playerToMob)
+        {
+            mobToPlayer = 1f;
+            playerToMob = 1f;
+
+            DifficultyTierPrototype difficultyTierProto = difficultyTierRef.As<DifficultyTierPrototype>();
+            if (difficultyTierProto == null)
+                return false;
+
+#if GAME_VERSION_1_53
+            DifficultyTierGameplaySettingsPrototype gameplaySettings = difficultyTierProto.PlatformSpecificGameplaySettings?
+                .FirstOrDefault(settings => settings.Platform.HasFlag(Platforms.PC));
+            if (gameplaySettings == null)
+                return false;
+
+            mobToPlayer = gameplaySettings.DamageMobToPlayerPct;
+            playerToMob = gameplaySettings.DamagePlayerToMobPct;
+#else
+            mobToPlayer = difficultyTierProto.DamageMobToPlayerPct;
+            playerToMob = difficultyTierProto.DamagePlayerToMobPct;
+#endif
+            return mobToPlayer > 0f && playerToMob > 0f;
+        }
+#endif
 
         private int SuppressNativeTerminalBosses(MythicRiftRunState runState, TimeSpan currentTime, bool force = false)
         {
@@ -7043,7 +7097,7 @@ namespace MHServerEmu.Games.MythicRifts
             settings.IsPopulation = true;
 
             using var settingsPropertiesHandle = PropertyCollectionPool.Get(out PropertyCollection settingsProperties);
-            int level = spawnCell.Area.GetCharacterLevel(agentProto);
+            int level = Math.Max(spawnCell.Area.GetCharacterLevel(agentProto), RiftBossMinimumCharacterLevel);
             PrototypeId rankRef = rankProto?.DataRef ?? agentProto.Rank?.DataRef ?? PrototypeId.Invalid;
             settingsProperties[PropertyEnum.CharacterLevel] = level;
             settingsProperties[PropertyEnum.CombatLevel] = level;
