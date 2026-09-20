@@ -1069,7 +1069,7 @@ namespace MHServerEmu.Games.MythicRifts
                 run != null &&
                 run.CompletionCrafterEntityId != 0 &&
                 run.CompletionCrafterEntityId == vendor.Id &&
-                run.Status == MythicRiftRunStatus.Success);
+                IsCompletionServiceAvailable(run));
         }
 
         public bool IsCompletionEnchanter(WorldEntity vendor)
@@ -1081,7 +1081,7 @@ namespace MHServerEmu.Games.MythicRifts
                 run != null &&
                 run.CompletionEnchanterEntityId != 0 &&
                 run.CompletionEnchanterEntityId == vendor.Id &&
-                run.Status == MythicRiftRunStatus.Success);
+                IsCompletionServiceAvailable(run));
         }
 
         public bool IsCompletionOmegaForgeVendor(WorldEntity vendor)
@@ -1119,7 +1119,7 @@ namespace MHServerEmu.Games.MythicRifts
 
             return _activeRuns.Values.Any(run =>
                 run != null &&
-                run.Status == MythicRiftRunStatus.Success &&
+                IsCompletionServiceAvailable(run) &&
                 run.EffectiveRegionId == vendor.Region.Id);
         }
 
@@ -1135,7 +1135,13 @@ namespace MHServerEmu.Games.MythicRifts
                 run != null &&
                 run.CompletionVendorEntityId != 0 &&
                 run.CompletionVendorEntityId == vendor.Id &&
-                run.Status == MythicRiftRunStatus.Success);
+                IsCompletionServiceAvailable(run));
+        }
+
+        private static bool IsCompletionServiceAvailable(MythicRiftRunState runState)
+        {
+            return runState?.Status == MythicRiftRunStatus.Success ||
+                   (runState?.Status == MythicRiftRunStatus.Failed && runState.Config?.UseBossGauntletMode == true);
         }
 
         public bool IsCompletionCrafterType(PrototypeId vendorTypeProtoRef)
@@ -1196,7 +1202,7 @@ namespace MHServerEmu.Games.MythicRifts
             {
                 if (candidate == null ||
                     candidate.CompletionCrafterEntityId != crafter.Id ||
-                    candidate.Status != MythicRiftRunStatus.Success ||
+                    IsCompletionServiceAvailable(candidate) == false ||
                     candidate.IsRewardEligible(playerDbId) == false)
                 {
                     continue;
@@ -1218,7 +1224,7 @@ namespace MHServerEmu.Games.MythicRifts
             foreach (MythicRiftRunState candidate in _activeRuns.Values)
             {
                 if (candidate == null ||
-                    candidate.Status != MythicRiftRunStatus.Success ||
+                    IsCompletionServiceAvailable(candidate) == false ||
                     candidate.IsRewardEligible(playerDbId) == false)
                 {
                     continue;
@@ -1513,7 +1519,7 @@ namespace MHServerEmu.Games.MythicRifts
             }
 
             MythicRiftRunState runState = GetRun(opportunity.RunId);
-            if (runState == null || runState.Status != MythicRiftRunStatus.Success || runState.IsRewardEligible(playerDbId) == false)
+            if (IsCompletionServiceAvailable(runState) == false || runState.IsRewardEligible(playerDbId) == false)
             {
                 _completionCrafterOpportunitiesByPlayer.Remove(playerDbId);
                 opportunity = null;
@@ -6943,9 +6949,9 @@ namespace MHServerEmu.Games.MythicRifts
                 if (bossAgent == null)
                     break;
 
-                // These bosses are owned and tracked by the Rift run, not by the
-                // suppressed native mission contexts inherited by their prototypes.
-                region.EntityTracker?.RemoveFromTracking(bossAgent);
+                // Native mission contexts may be removed by Rift suppression. The run
+                // tracks these bosses directly, so do not retain stale native contexts.
+                bossAgent.TrackingContextMap.Clear();
                 MythicRiftStandaloneBossFixups.Apply(bossAgent, allowMissingAffixSettingsFallback: true);
 
                 long baselineHealth = (long)bossAgent.Properties[PropertyEnum.Health];
@@ -7374,6 +7380,10 @@ namespace MHServerEmu.Games.MythicRifts
             ResolveRewardOutcome(runState);
             TrackLastCompletedMapContent(runState);
             TryAutoGrantCompletionRewards(runState);
+            if (runState.Config.UseBossGauntletMode)
+            {
+                GrantCompletionCrafterAttempts(runState);
+            }
             CleanupRunHazards(runState);
             TryRestoreRegionDifficultyScaling(runState);
             ClearRiftObjectiveWidgets(runState);
