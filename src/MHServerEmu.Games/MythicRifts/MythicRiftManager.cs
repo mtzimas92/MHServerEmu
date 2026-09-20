@@ -2641,6 +2641,8 @@ namespace MHServerEmu.Games.MythicRifts
             RegisterRegionPlayersAsParticipants(runState, region);
             ApplyRunDifficultyToRegion(runState, region);
             EnsureRegionListener(region);
+            if (runState.Config.UseBossGauntletMode)
+                SuppressNativeBossGauntletTransitions(runState, region);
             if (runState.Config.UseBossGauntletMode == false &&
                 runState.Config.Content.BossOnlyCheckpointEligible == false)
             {
@@ -2648,6 +2650,24 @@ namespace MHServerEmu.Games.MythicRifts
             }
 
             return true;
+        }
+
+        private static void SuppressNativeBossGauntletTransitions(MythicRiftRunState runState, Region region)
+        {
+            if (runState?.Config?.UseBossGauntletMode != true || region == null)
+                return;
+
+            foreach (Transition transition in region.Entities.OfType<Transition>().ToArray())
+            {
+                if (transition.Id == runState.ExitPortalEntityId ||
+                    transition.Id == runState.RewardRoomPortalEntityId ||
+                    transition.IsDestroyed)
+                {
+                    continue;
+                }
+
+                transition.Destroy();
+            }
         }
 
         public void Update(TimeSpan currentTime)
@@ -2752,28 +2772,12 @@ namespace MHServerEmu.Games.MythicRifts
                 return;
             }
 
-            ReviveRunParticipantsForRewardRoom(runState);
-
-            List<Player> runPlayers = GetRunPlayers(runState).ToList();
-            Player initiatingPlayer = runPlayers.FirstOrDefault(player => player.IsPartyLeader()) ?? runPlayers.FirstOrDefault();
-            if (initiatingPlayer != null && TryTeleportPartyToRewardRoom(runState, initiatingPlayer))
-            {
-                _pendingBossGauntletFailureRecoveriesAt.Remove(runState.Config.RunId);
-                return;
-            }
-
-            TimeSpan elapsedSinceFailure = runState.CompletedAt.HasValue
-                ? currentTime - runState.CompletedAt.Value
-                : TimeSpan.Zero;
-            if (elapsedSinceFailure < RewardRoomFinalizeGiveUpAfter)
-            {
-                _pendingBossGauntletFailureRecoveriesAt[runState.Config.RunId] = currentTime + RewardRoomFinalizeRetryDelay;
-                return;
-            }
-
             _pendingBossGauntletFailureRecoveriesAt.Remove(runState.Config.RunId);
-            TryOfferRewardRoomTravel(runState);
-            TrySpawnRewardRoomPortal(runState);
+            ReviveRunParticipantsInPlace(runState);
+            TrySpawnReturnPortal(runState);
+            TrySpawnCompletionArtifactVendor(runState);
+            TrySpawnCompletionCrafter(runState);
+            TrySpawnCompletionEnchanter(runState);
         }
 
         private void TryProcessPendingFailedRunEvacuation(MythicRiftRunState runState, TimeSpan currentTime)
@@ -6939,6 +6943,9 @@ namespace MHServerEmu.Games.MythicRifts
                 if (bossAgent == null)
                     break;
 
+                // These bosses are owned and tracked by the Rift run, not by the
+                // suppressed native mission contexts inherited by their prototypes.
+                region.EntityTracker?.RemoveFromTracking(bossAgent);
                 MythicRiftStandaloneBossFixups.Apply(bossAgent, allowMissingAffixSettingsFallback: true);
 
                 long baselineHealth = (long)bossAgent.Properties[PropertyEnum.Health];
@@ -7375,7 +7382,6 @@ namespace MHServerEmu.Games.MythicRifts
 
             if (runState.Config.UseBossGauntletMode)
             {
-                TrySpawnReturnPortal(runState);
                 QueueBossGauntletFailureRecovery(runState, currentTime);
             }
             else if (returnParticipantsToHub)
@@ -7468,7 +7474,7 @@ namespace MHServerEmu.Games.MythicRifts
             return fullCleanup && (worldEntity is Hotspot || worldEntity is Item);
         }
 
-        private void ReviveRunParticipantsForRewardRoom(MythicRiftRunState runState)
+        private void ReviveRunParticipantsInPlace(MythicRiftRunState runState)
         {
             if (runState == null)
                 return;
@@ -8058,7 +8064,8 @@ namespace MHServerEmu.Games.MythicRifts
                 return false;
 
             MythicRiftRunState runState = _activeRuns.Values.FirstOrDefault(run => run.ExitPortalEntityId == transition.Id);
-            if (runState == null || runState.Status != MythicRiftRunStatus.Success)
+            if (runState == null ||
+                runState.Status is not (MythicRiftRunStatus.Success or MythicRiftRunStatus.Failed))
                 return false;
 
             if (TryResolveDangerRoomHubStartTarget(out PrototypeId dangerRoomHubStartTarget) == false)
@@ -8113,7 +8120,7 @@ namespace MHServerEmu.Games.MythicRifts
             if (runState == null)
                 return false;
 
-            string message = runState.Status == MythicRiftRunStatus.Success
+            string message = runState.Status is MythicRiftRunStatus.Success or MythicRiftRunStatus.Failed
                 ? "[Mythic Rift] Use the Mythic Rift exit portal to return to the Danger Room hub."
                 : "[Mythic Rift] This room exit is disabled during checkpoint Rifts. Defeat the boss, then use the Mythic Rift exit portal.";
             Game.ChatManager.SendChatFromCustomSystem(player, message, showSender: false);
@@ -8136,7 +8143,7 @@ namespace MHServerEmu.Games.MythicRifts
                 if (runState.Config.Content.BossOnlyCheckpointEligible == false)
                     continue;
 
-                if (runState.Status != MythicRiftRunStatus.Active && runState.Status != MythicRiftRunStatus.Success)
+                if (runState.Status is not (MythicRiftRunStatus.Active or MythicRiftRunStatus.Success or MythicRiftRunStatus.Failed))
                     continue;
 
                 if (runState.ExitPortalEntityId != 0 && transition.Id == runState.ExitPortalEntityId)
