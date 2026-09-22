@@ -452,6 +452,9 @@ namespace MHServerEmu.Games.OmegaTierItems
                 filterArgs.Slot,
                 filterArgs.LootContext);
 
+            if (TryApplySlotAffixOverride(resolver, filterArgs, omegaFilterArgs, itemSpec, rollFor, tuning))
+                return;
+
             List<AffixPrototype> candidates = new();
             bool hasCuratedOmegaAffixes = AddCuratedOmegaAffixCandidates(filterArgs, omegaFilterArgs, itemSpec.AffixSpecs, candidates, tuning, armorOmegaCategory);
             if (hasCuratedOmegaAffixes == false)
@@ -493,6 +496,55 @@ namespace MHServerEmu.Games.OmegaTierItems
             }
 
             // Logger.Info($"Omega reward extra affix applied: item={itemSpec.ItemProtoRef.GetNameFormatted()} slot={filterArgs.Slot} affix={pickedAffixProto.DataRef.GetNameFormatted()} effectiveRarity={itemSpec.RarityProtoRef.GetNameFormatted()}");
+        }
+
+        private static bool TryApplySlotAffixOverride(
+            ItemResolver resolver,
+            DropFilterArguments filterArgs,
+            DropFilterArguments omegaFilterArgs,
+            ItemSpec itemSpec,
+            PrototypeId rollFor,
+            OmegaTierItemTuning tuning)
+        {
+            OmegaTierSlotAffixOverrideTuning slotOverride = tuning?.SlotAffixOverrides?
+                .FirstOrDefault(entry => entry?.SlotRef == filterArgs.Slot);
+            if (slotOverride == null)
+                return false;
+
+            if (slotOverride.ResolvedAffixes.Count != slotOverride.Affixes.Count || slotOverride.ResolvedAffixes.Count == 0)
+                return false;
+
+            foreach (AffixPrototype affixProto in slotOverride.ResolvedAffixes)
+            {
+                if (affixProto.AllowAttachment(omegaFilterArgs) == false && affixProto.AllowAttachment(filterArgs) == false)
+                    return false;
+            }
+
+            PrototypeId cosmicCategoryRef = GameDatabase.GetPrototypeRefByName(ArmorCosmicCategoryName);
+            AffixCategoryPrototype cosmicCategory = GameDatabase.GetPrototype<AffixCategoryPrototype>(cosmicCategoryRef);
+            AffixPrototype naturalCosmicAffix = cosmicCategory == null
+                ? null
+                : itemSpec.AffixSpecs
+                    .Select(spec => spec?.AffixProto)
+                    .FirstOrDefault(affix => affix?.HasCategory(cosmicCategory) == true);
+
+            AffixPrototype cosmicAffix = slotOverride.ResolvedCosmicAffix;
+            if (cosmicAffix == null ||
+                (cosmicAffix.AllowAttachment(omegaFilterArgs) == false && cosmicAffix.AllowAttachment(filterArgs) == false))
+            {
+                cosmicAffix = naturalCosmicAffix;
+            }
+
+            List<AffixSpec> affixSpecs = new(slotOverride.ResolvedAffixes.Count + (cosmicAffix != null ? 1 : 0));
+            foreach (AffixPrototype affixProto in slotOverride.ResolvedAffixes)
+                affixSpecs.Add(new(affixProto, PrototypeId.Invalid, resolver.Random.Next(1, int.MaxValue)));
+
+            if (cosmicAffix != null)
+                affixSpecs.Add(new(cosmicAffix, PrototypeId.Invalid, resolver.Random.Next(1, int.MaxValue)));
+
+            itemSpec.SetAffixes(affixSpecs);
+            itemSpec.OnAffixesRolled(resolver, rollFor);
+            return true;
         }
 
         private static void TryApplyOmegaRingAffix(

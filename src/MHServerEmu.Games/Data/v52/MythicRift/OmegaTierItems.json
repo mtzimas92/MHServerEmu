@@ -5,6 +5,48 @@
   "omegaDifficultyBonusRingChancePct": 100,
   "preferredAffixChancePct": 100,
   "maxPreferredAffixesPerItem": 1,
+  "slotAffixOverrides": [
+    {
+      "slot": "Gear02",
+      "affixes": [
+        "Entity/Items/Affixes/ArmorAffixes/Loot20/CritChance/CritChanceT2.prototype",
+        "Entity/Items/Affixes/ArmorAffixes/Loot20/CritDamage/CritDamageT2.prototype",
+        "Entity/Items/Affixes/ArmorAffixes/Loot20/BrutalDamage/BrutalDamageT2.prototype",
+        "Entity/Items/Affixes/ArmorAffixes/Loot20/BonusSpirit/BonusSpiritT1.prototype"
+      ],
+      "cosmicAffix": "Entity/Items/Affixes/ArmorAffixes/Loot20/CosmicAffixes/CosmicMight.prototype"
+    },
+    {
+      "slot": "Gear03",
+      "affixes": [
+        "Entity/Items/Affixes/ArmorAffixes/Loot20/CritChance/CritChanceT2.prototype",
+        "Entity/Items/Affixes/ArmorAffixes/Loot20/CritDamage/CritDamageT2.prototype",
+        "Entity/Items/Affixes/ArmorAffixes/Loot20/Complex/MovementPowerBoost/MaxEnduranceToPhysicalDamage.prototype",
+        "Entity/Items/Affixes/ArmorAffixes/Loot20/BonusSpirit/BonusSpiritT1.prototype"
+      ],
+      "cosmicAffix": "Entity/Items/Affixes/ArmorAffixes/Loot20/CosmicAffixes/CosmicInvul.prototype"
+    },
+    {
+      "slot": "Gear04",
+      "affixes": [
+        "Entity/Items/Affixes/ArmorAffixes/Loot20/BrutalStrike/BrutalStrikeT1.prototype",
+        "Entity/Items/Affixes/ArmorAffixes/Loot20/CritDamage/CritDamageT2.prototype",
+        "Entity/Items/Affixes/ArmorAffixes/Loot20/BrutalDamage/BrutalDamageT2.prototype",
+        "Entity/Items/Affixes/ArmorAffixes/Loot20/BonusSpirit/BonusSpiritT1.prototype"
+      ],
+      "cosmicAffix": "Entity/Items/Affixes/ArmorAffixes/Loot20/CosmicAffixes/CosmicMight.prototype"
+    },
+    {
+      "slot": "Gear05",
+      "affixes": [
+        "Entity/Items/Affixes/ArmorAffixes/Loot20/BrutalStrike/BrutalStrikeT1.prototype",
+        "Entity/Items/Affixes/ArmorAffixes/Loot20/CritDamage/CritDamageT2.prototype",
+        "Entity/Items/Affixes/ArmorAffixes/Loot20/Complex/AllyPlusOneOnSignatureUse/AllyAttributesonSignatureUse.prototype",
+        "Entity/Items/Affixes/ArmorAffixes/Loot20/BonusSpirit/BonusSpiritT1.prototype"
+      ],
+      "cosmicAffix": "Entity/Items/Affixes/ArmorAffixes/Loot20/CosmicAffixes/CosmicStarFall.prototype"
+    }
+  ],
   "preferredAffixes": [
     {
       "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/BonusSpirit/BonusSpiritT1.prototype",

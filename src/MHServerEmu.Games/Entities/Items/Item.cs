@@ -1015,7 +1015,28 @@ namespace MHServerEmu.Games.Entities.Items
                 random.Seed(affixSpec.Seed);
 
                 if (!Verify.IsNotNull(affixSpec.AffixProto)) return false;
-                OnAffixAdded(random, affixSpec.AffixProto, affixSpec.ScopeProtoRef, _itemSpec.EquippableBy, 0);
+                int affixPropertyCountBefore = _affixProperties.Count;
+                bool affixApplied = OnAffixAdded(random, affixSpec.AffixProto, affixSpec.ScopeProtoRef, _itemSpec.EquippableBy, 0);
+
+                if (string.Equals(affixSpec.AffixProto.DataRef.GetNameFormatted(), "BonusSpiritT1", StringComparison.OrdinalIgnoreCase))
+                {
+                    AffixPropertiesCopyEntry? appliedEntry = affixApplied && _affixProperties.Count > affixPropertyCountBefore
+                        ? _affixProperties[^1]
+                        : null;
+                    string propertySummary = "none";
+                    bool propertiesAttached = false;
+                    if (appliedEntry?.Properties != null)
+                    {
+                        propertiesAttached = Properties.HasChildCollection(appliedEntry.Value.Properties);
+                        propertySummary = string.Join(",", appliedEntry.Value.Properties.Select(kvp =>
+                        {
+                            PropertyInfo propertyInfo = GameDatabase.PropertyInfoTable.LookupPropertyInfo(kvp.Key.Enum);
+                            return $"{propertyInfo.PropertyName}={kvp.Value.Print(propertyInfo.DataType)}";
+                        }));
+                    }
+
+                    Logger.Info($"[OmegaBonusSpiritTrace] itemId=0x{Id:X} item={_itemSpec.ItemProtoRef.GetNameFormatted()} rarity={_itemSpec.RarityProtoRef.GetNameFormatted()} level={_itemSpec.ItemLevel} affixIndex={i} affixCount={affixSpecs.Count} seed={affixSpec.Seed} scope={affixSpec.ScopeProtoRef.GetNameFormatted()} equippableBy={_itemSpec.EquippableBy.GetNameFormatted()} applied={affixApplied} propertiesAttached={propertiesAttached} affixPropertyEntriesBefore={affixPropertyCountBefore} affixPropertyEntriesAfter={_affixProperties.Count} properties=[{propertySummary}]");
+                }
             }
 
 #if GAME_VERSION_1_52 || GAME_VERSION_1_53

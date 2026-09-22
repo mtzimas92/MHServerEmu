@@ -29,6 +29,7 @@ namespace MHServerEmu.Games.OmegaTierItems
         public float PreferredAffixChancePct { get; set; } = 100f;
         public int MaxPreferredAffixesPerItem { get; set; } = 2;
         public List<OmegaTierPreferredAffixTuning> PreferredAffixes { get; set; } = new();
+        public List<OmegaTierSlotAffixOverrideTuning> SlotAffixOverrides { get; set; } = new();
         public List<string> DisabledAffixes { get; set; } = new();
         public List<string> DisabledAffixCategories { get; set; } = new();
         public List<OmegaTierItemOverrideTuning> ItemOverrides { get; set; } = new();
@@ -171,12 +172,16 @@ namespace MHServerEmu.Games.OmegaTierItems
             OmegaDifficultyBonusRingChancePct = Math.Clamp(OmegaDifficultyBonusRingChancePct, 0f, 100f);
             MaxPreferredAffixesPerItem = Math.Max(MaxPreferredAffixesPerItem, 0);
             PreferredAffixes ??= new();
+            SlotAffixOverrides ??= new();
             DisabledAffixes ??= new();
             DisabledAffixCategories ??= new();
             ItemOverrides ??= new();
 
             foreach (OmegaTierPreferredAffixTuning preferredAffix in PreferredAffixes)
                 preferredAffix?.Normalize();
+
+            foreach (OmegaTierSlotAffixOverrideTuning slotAffixOverride in SlotAffixOverrides)
+                slotAffixOverride?.Normalize();
 
             foreach (OmegaTierItemOverrideTuning itemOverride in ItemOverrides)
                 itemOverride?.Normalize();
@@ -276,6 +281,42 @@ namespace MHServerEmu.Games.OmegaTierItems
                 return true;
 
             return SlotRefs.Contains(slot);
+        }
+    }
+
+    public sealed class OmegaTierSlotAffixOverrideTuning
+    {
+        public string Slot { get; set; }
+        public List<string> Affixes { get; set; } = new();
+        public string CosmicAffix { get; set; }
+        [JsonIgnore] public EquipmentInvUISlot SlotRef { get; private set; } = EquipmentInvUISlot.Invalid;
+        [JsonIgnore] public List<AffixPrototype> ResolvedAffixes { get; } = new();
+        [JsonIgnore] public AffixPrototype ResolvedCosmicAffix { get; private set; }
+
+        public void Normalize()
+        {
+            Slot = string.IsNullOrWhiteSpace(Slot) ? string.Empty : Slot.Trim();
+            SlotRef = Enum.TryParse(Slot, ignoreCase: true, out EquipmentInvUISlot slotRef)
+                ? slotRef
+                : EquipmentInvUISlot.Invalid;
+
+            Affixes ??= new();
+            Affixes = Affixes
+                .Where(name => string.IsNullOrWhiteSpace(name) == false)
+                .Select(name => name.Trim())
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            ResolvedAffixes.Clear();
+            foreach (string affixName in Affixes)
+            {
+                AffixPrototype affixProto = GameDatabase.GetPrototypeRefByName(affixName).As<AffixPrototype>();
+                if (affixProto != null)
+                    ResolvedAffixes.Add(affixProto);
+            }
+
+            CosmicAffix = string.IsNullOrWhiteSpace(CosmicAffix) ? string.Empty : CosmicAffix.Trim();
+            ResolvedCosmicAffix = GameDatabase.GetPrototypeRefByName(CosmicAffix).As<AffixPrototype>();
         }
     }
 

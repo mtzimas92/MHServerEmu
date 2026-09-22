@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Text.RegularExpressions;
+using MHServerEmu.Core.Logging;
 using MHServerEmu.Games.Entities;
 using MHServerEmu.Games.Entities.Items;
 using MHServerEmu.Games.GameData;
@@ -12,6 +13,7 @@ namespace MHServerEmu.Games.OmegaTierItems
 {
     public static class OmegaGearLootFilter
     {
+        private static readonly Logger Logger = LogManager.CreateLogger();
         private const string OmegaRarityName = "Entity/Items/Rarity/R6Omega.prototype";
         private static readonly ConcurrentDictionary<ulong, OmegaLootFilterSettings> Settings = new();
         private static Dictionary<string, PrototypeId> _rarities;
@@ -33,7 +35,37 @@ namespace MHServerEmu.Games.OmegaTierItems
             AgentPrototype avatarProto = player.CurrentAvatar?.AvatarPrototype;
             string avatarName = player.CurrentAvatar?.PrototypeDataRef.GetNameFormatted();
             OmegaLootFilterSection character = settings.GetCharacter(avatarName, create: false);
-            summary.ItemSpecs.RemoveAll(itemSpec => ShouldFilter(itemSpec, avatarProto, settings.Global, character));
+            summary.ItemSpecs.RemoveAll(itemSpec =>
+            {
+                bool filtered = ShouldFilter(itemSpec, avatarProto, settings.Global, character);
+                if (filtered)
+                {
+                    ItemPrototype itemProto = itemSpec?.ItemProtoRef.As<ItemPrototype>();
+                    EquipmentInvUISlot slot = itemProto?.GetInventorySlotForAgent(avatarProto) ?? EquipmentInvUISlot.Invalid;
+                    Logger.Info($"[OmegaFilterInteractionTrace] stage=custom-filter-removed playerDbId=0x{player.DatabaseUniqueId:X} currentAvatar={avatarName} item={itemSpec?.ItemProtoRef.GetNameFormatted()} rarity={itemSpec?.RarityProtoRef.GetNameFormatted()} level={itemSpec?.ItemLevel} slot={slot}");
+                }
+
+                return filtered;
+            });
+        }
+
+        public static bool TryGetActiveOmegaFilterDescription(Player player, out string description)
+        {
+            description = null;
+            if (player == null || Settings.TryGetValue(player.DatabaseUniqueId, out OmegaLootFilterSettings settings) == false)
+                return false;
+
+            string avatarName = player.CurrentAvatar?.PrototypeDataRef.GetNameFormatted();
+            OmegaLootFilterSection character = settings.GetCharacter(avatarName, create: false);
+            bool globalActive = settings.Global?.OmegaGearSlots?.Count > 0;
+            bool characterActive = character?.OmegaGearSlots?.Count > 0;
+            if (globalActive == false && characterActive == false)
+                return false;
+
+            string globalSlots = globalActive ? string.Join(',', settings.Global.OmegaGearSlots.OrderBy(value => value)) : "none";
+            string characterSlots = characterActive ? string.Join(',', character.OmegaGearSlots.OrderBy(value => value)) : "none";
+            description = $"global={globalSlots};avatar={avatarName ?? "none"}:{characterSlots}";
+            return true;
         }
 
         public static PrototypeId ResolveRarity(string name)
