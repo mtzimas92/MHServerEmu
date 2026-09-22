@@ -1,7 +1,5 @@
 using System.Collections.Concurrent;
-using System.Text.Json;
 using System.Text.RegularExpressions;
-using MHServerEmu.Core.Helpers;
 using MHServerEmu.Games.Entities;
 using MHServerEmu.Games.Entities.Items;
 using MHServerEmu.Games.GameData;
@@ -15,23 +13,16 @@ namespace MHServerEmu.Games.OmegaTierItems
     public static class OmegaGearLootFilter
     {
         private const string OmegaRarityName = "Entity/Items/Rarity/R6Omega.prototype";
-        private const string RelativeDirectory = "PlayerLootFilters";
         private static readonly ConcurrentDictionary<ulong, OmegaLootFilterSettings> Settings = new();
-        private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
         private static Dictionary<string, PrototypeId> _rarities;
         private static PrototypeId _omegaRarityRef = PrototypeId.Invalid;
 
         public static readonly string[] OmegaSlotKeys = ["gear01", "gear02", "gear03", "gear04", "gear05"];
         public static readonly string[] ThresholdKeys = ["ring", "medal", "insignia", "teamup", "catalyst"];
 
-        public static OmegaLootFilterSettings Get(ulong playerDbId) => Settings.GetOrAdd(playerDbId, Load);
+        public static OmegaLootFilterSettings Get(ulong playerDbId) => Settings.GetOrAdd(playerDbId, static _ => new());
 
-        public static void Save(ulong playerDbId)
-        {
-            string directory = Path.Combine(FileHelper.DataDirectory, RelativeDirectory);
-            Directory.CreateDirectory(directory);
-            File.WriteAllText(GetPath(directory, playerDbId), JsonSerializer.Serialize(Get(playerDbId), JsonOptions));
-        }
+        public static void ClearSession(ulong playerDbId) => Settings.TryRemove(playerDbId, out _);
 
         public static void Apply(Player player, LootResultSummary summary)
         {
@@ -141,16 +132,6 @@ namespace MHServerEmu.Games.OmegaTierItems
             }
         }
 
-        private static OmegaLootFilterSettings Load(ulong playerDbId)
-        {
-            string path = GetPath(Path.Combine(FileHelper.DataDirectory, RelativeDirectory), playerDbId);
-            OmegaLootFilterSettings settings = File.Exists(path) ? FileHelper.DeserializeJson<OmegaLootFilterSettings>(path) : null;
-            settings ??= new();
-            settings.Normalize();
-            return settings;
-        }
-
-        private static string GetPath(string directory, ulong playerDbId) => Path.Combine(directory, $"{playerDbId}.json");
     }
 
     public sealed class OmegaLootFilterSettings

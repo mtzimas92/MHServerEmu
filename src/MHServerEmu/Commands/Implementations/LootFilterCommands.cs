@@ -34,7 +34,6 @@ namespace MHServerEmu.Commands.Implementations
                 if (enabled.Value) section.OmegaGearSlots.Add(slotKey);
                 else section.OmegaGearSlots.Remove(slotKey);
             }
-            OmegaGearLootFilter.Save(playerDbId);
             return $"Omega filter [{scope}] {slot}: {(enabled.Value ? "ON" : "OFF")}.";
         }
 
@@ -56,7 +55,6 @@ namespace MHServerEmu.Commands.Implementations
             ulong playerDbId = player.DatabaseUniqueId;
             OmegaLootFilterSection section = ResolveSection(player, OmegaGearLootFilter.Get(playerDbId), @params.Length > 2 ? @params[2] : null, create: true, out string scope);
             section.RarityThresholds[key] = @params[1];
-            OmegaGearLootFilter.Save(playerDbId);
             return $"Filter [{scope}]: {key} items at or below {@params[1]} will be filtered.";
         }
 
@@ -73,7 +71,6 @@ namespace MHServerEmu.Commands.Implementations
             ulong playerDbId = player.DatabaseUniqueId;
             OmegaLootFilterSection section = ResolveSection(player, OmegaGearLootFilter.Get(playerDbId), @params.Length > 1 ? @params[1] : null, create: true, out string scope);
             section.FilterUruForged = enabled.Value;
-            OmegaGearLootFilter.Save(playerDbId);
             return $"Uru-Forged filter [{scope}]: {(enabled.Value ? "ON" : "OFF")}.";
         }
 
@@ -96,7 +93,6 @@ namespace MHServerEmu.Commands.Implementations
                 "uruforged" => ClearUru(section),
                 _ => section.RarityThresholds.Remove(key)
             };
-            OmegaGearLootFilter.Save(playerDbId);
             return removed ? $"Filter cleared [{scope}]." : "No matching filter was set.";
         }
 
@@ -109,7 +105,6 @@ namespace MHServerEmu.Commands.Implementations
             OmegaLootFilterSettings settings = OmegaGearLootFilter.Get(player.DatabaseUniqueId);
             settings.Global = new();
             settings.Characters.Clear();
-            OmegaGearLootFilter.Save(player.DatabaseUniqueId);
             return "All loot filters cleared.";
         }
 

@@ -3,6 +3,7 @@ using MHServerEmu.Core.Extensions;
 using MHServerEmu.Core.Logging;
 using MHServerEmu.Core.Memory;
 using MHServerEmu.Core.System.Random;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using MHServerEmu.Games.Entities;
 using MHServerEmu.Games.Entities.Avatars;
@@ -34,6 +35,8 @@ namespace MHServerEmu.Games.OmegaTierItems
         private const string RingOmegaAffixName = "Entity/Items/Affixes/RingAffixes/RingLoot20/BuiltInHP/RingHealthOmega.prototype";
         private const string RingOffensePrototypeName = "Entity/Items/Rings/RingOffenseLoot20.prototype";
         private const string RingDefensePrototypeName = "Entity/Items/Rings/RingDefenseLoot20.prototype";
+        private const string RingOffenseT2CategoryName = "Entity/Items/Affixes/AffixCategories/RingOffenseT2.prototype";
+        private const string RingDefenseT2CategoryName = "Entity/Items/Affixes/AffixCategories/RingDefenseT2.prototype";
         private const string RingOffenseT3CategoryName = "Entity/Items/Affixes/AffixCategories/RingOffenseT3.prototype";
         private const string RingDefenseT3CategoryName = "Entity/Items/Affixes/AffixCategories/RingDefenseT3.prototype";
         private const string PropertyPickInRangeEntryName = "Property/PropertyPickInRangeEntry.defaults";
@@ -58,6 +61,10 @@ namespace MHServerEmu.Games.OmegaTierItems
             typeof(LoadFloatPrototype).GetProperty(nameof(LoadFloatPrototype.Value));
 
         private static readonly HashSet<PrototypeId> ConfiguredBuiltInPrototypeOverrideRefs = new();
+        private static readonly ConditionalWeakTable<ItemSpec, OmegaPromotionMarker> PendingOmegaPromotions = new();
+        private static readonly OmegaPromotionMarker PromotionMarker = new();
+
+        private sealed class OmegaPromotionMarker { }
 
         public static bool ShouldUseFactory(PrototypeId itemProtoRef, PrototypeId rarityProtoRef)
         {
@@ -67,32 +74,40 @@ namespace MHServerEmu.Games.OmegaTierItems
             return OmegaTierItemTuning.Load().HasItemOverride(itemProtoRef, rarityProtoRef);
         }
 
-        public static bool TryPromoteCosmicDropFilterToOmegaDifficulty(ItemResolver resolver, DropFilterArguments filterArgs)
+        public static bool IsQueuedForOmegaPromotion(ItemSpec itemSpec)
+        {
+            return itemSpec != null && PendingOmegaPromotions.TryGetValue(itemSpec, out _);
+        }
+
+        public static void TryQueueCosmicDropForOmegaDifficulty(ItemResolver resolver, DropFilterArguments filterArgs, ItemSpec itemSpec)
         {
 #if GAME_VERSION_1_52 || GAME_VERSION_1_53
-            if (resolver == null || filterArgs == null || filterArgs.ItemProto is not ItemPrototype itemProto)
-                return false;
+            if (resolver == null || filterArgs == null || itemSpec == null || filterArgs.ItemProto is not ItemPrototype itemProto)
+                return;
 
             if (IsSupportedOverrideLootContext(resolver.LootContext) == false ||
                 IsOmegaDifficulty(resolver, null) == false)
             {
-                return false;
+                return;
             }
 
             PrototypeId cosmicRarityRef = GameDatabase.GetPrototypeRefByName(CosmicRarityName);
             PrototypeId omegaRarityRef = GameDatabase.GetPrototypeRefByName(OmegaRarityName);
             if (cosmicRarityRef == PrototypeId.Invalid || omegaRarityRef == PrototypeId.Invalid || filterArgs.Rarity != cosmicRarityRef)
-                return false;
+                return;
 
             if (IsUniqueItemPrototype(itemProto))
-                return false;
+                return;
 
             EquipmentInvUISlot slot = filterArgs.Slot;
             if (slot == EquipmentInvUISlot.Invalid)
                 slot = itemProto.GetInventorySlotForAgent(filterArgs.RollFor.As<AgentPrototype>());
 
             if (IsArmorSlotOneThroughFive(itemProto, slot) == false && slot != EquipmentInvUISlot.Ring)
-                return false;
+            {
+                Logger.Info($"[OmegaDropTrace] stage=promotion-ineligible playerDbId=0x{resolver.Player?.DatabaseUniqueId:X} avatar={resolver.Player?.CurrentAvatar?.PrototypeDataRef.GetNameFormatted()} item={itemProto.DataRef.GetNameFormatted()} rollFor={filterArgs.RollFor.GetNameFormatted()} resolvedSlot={slot} rarity={filterArgs.Rarity.GetNameFormatted()} context={resolver.LootContext} reason=unsupported-slot");
+                return;
+            }
 
             // Preserve the resolved slot for bonus-ring generation and downstream loot filtering.
             filterArgs.Slot = slot;
@@ -102,14 +117,13 @@ namespace MHServerEmu.Games.OmegaTierItems
             if (tuning?.Enabled != true ||
                 (slot != EquipmentInvUISlot.Ring && promotionRoll >= tuning.OmegaDifficultyPromotionChancePct))
             {
-                return false;
+                Logger.Info($"[OmegaDropTrace] stage=promotion-skipped playerDbId=0x{resolver.Player?.DatabaseUniqueId:X} avatar={resolver.Player?.CurrentAvatar?.PrototypeDataRef.GetNameFormatted()} item={itemProto.DataRef.GetNameFormatted()} rollFor={filterArgs.RollFor.GetNameFormatted()} resolvedSlot={slot} roll={promotionRoll:F2} chance={tuning?.OmegaDifficultyPromotionChancePct ?? 0f:F2} context={resolver.LootContext}");
+                return;
             }
 
-            filterArgs.Rarity = omegaRarityRef;
-            filterArgs.Level = OmegaDifficultyItemLevel;
-            return true;
-#else
-            return false;
+            PendingOmegaPromotions.Remove(itemSpec);
+            PendingOmegaPromotions.Add(itemSpec, PromotionMarker);
+            Logger.Info($"[OmegaDropTrace] stage=promotion-selected playerDbId=0x{resolver.Player?.DatabaseUniqueId:X} avatar={resolver.Player?.CurrentAvatar?.PrototypeDataRef.GetNameFormatted()} item={itemProto.DataRef.GetNameFormatted()} rollFor={filterArgs.RollFor.GetNameFormatted()} resolvedSlot={slot} sourceRarity={filterArgs.Rarity.GetNameFormatted()} targetRarity={omegaRarityRef.GetNameFormatted()} targetLevel={OmegaDifficultyItemLevel} roll={promotionRoll:F2} chance={tuning.OmegaDifficultyPromotionChancePct:F2} context={resolver.LootContext}");
 #endif
         }
 
@@ -119,8 +133,9 @@ namespace MHServerEmu.Games.OmegaTierItems
             if (resolver == null || itemSpec == null || itemSpec.IsValid == false)
                 return false;
 
+            bool promoteToOmega = PendingOmegaPromotions.Remove(itemSpec);
             OmegaTierItemTuning tuning = OmegaTierItemTuning.Load();
-            if (tuning?.Enabled != true || IsOmegaRarity(itemSpec.RarityProtoRef) == false ||
+            if (tuning?.Enabled != true || (promoteToOmega == false && IsOmegaRarity(itemSpec.RarityProtoRef) == false) ||
                 IsSupportedOverrideLootContext(resolver.LootContext) == false ||
                 IsOmegaDifficulty(resolver, settings) == false)
             {
@@ -138,16 +153,30 @@ namespace MHServerEmu.Games.OmegaTierItems
 
             EquipmentInvUISlot slot = itemProto.GetInventorySlotForAgent(avatarProto);
             if (IsArmorSlotOneThroughFive(itemProto, slot) == false && slot != EquipmentInvUISlot.Ring)
+            {
+                Logger.Info($"[OmegaDropTrace] stage=finalize-ineligible playerDbId=0x{resolver.Player?.DatabaseUniqueId:X} avatar={avatarProto?.DataRef.GetNameFormatted()} item={itemProto.DataRef.GetNameFormatted()} rollFor={resolvedRollFor.GetNameFormatted()} resolvedSlot={slot} rarity={itemSpec.RarityProtoRef.GetNameFormatted()} level={itemSpec.ItemLevel} context={resolver.LootContext} reason=unsupported-slot-for-avatar");
+                return false;
+            }
+
+            PrototypeId omegaRarityRef = GameDatabase.GetPrototypeRefByName(OmegaRarityName);
+            if (omegaRarityRef == PrototypeId.Invalid)
                 return false;
 
+            PrototypeId sourceRarityRef = itemSpec.RarityProtoRef;
+            int sourceItemLevel = itemSpec.ItemLevel;
+            itemSpec.RarityProtoRef = omegaRarityRef;
             itemSpec.ItemLevel = OmegaDifficultyItemLevel;
 
             using var filterArgsHandle = DropFilterArgumentsPool.Get(out DropFilterArguments filterArgs);
-            DropFilterArguments.Initialize(filterArgs, itemProto, resolvedRollFor, Math.Max(itemSpec.ItemLevel, 1), itemSpec.RarityProtoRef, 0, slot, resolver.LootContext);
+            DropFilterArguments.Initialize(filterArgs, itemProto, resolvedRollFor, Math.Max(sourceItemLevel, 1), sourceRarityRef, 0, slot, resolver.LootContext);
 
-            PrototypeId omegaRarityRef = GameDatabase.GetPrototypeRefByName(OmegaRarityName);
             TryReplaceDisabledAffixes(resolver, filterArgs, itemSpec, resolvedRollFor, requestedOmega: true, omegaRarityRef, tuning);
             TryApplyOmegaArmorAffix(resolver, filterArgs, itemSpec, resolvedRollFor, requestedOmega: true, omegaRarityRef, tuning);
+            TryApplyOmegaRingAffix(resolver, filterArgs, itemSpec, requestedOmega: true, omegaRarityRef, tuning);
+            string affixes = string.Join(",", itemSpec.AffixSpecs.Select(spec => spec?.AffixProto == null
+                ? "invalid"
+                : $"{spec.AffixProto.DataRef.GetNameFormatted()}#{spec.Seed}"));
+            Logger.Info($"[OmegaDropTrace] stage=finalized playerDbId=0x{resolver.Player?.DatabaseUniqueId:X} avatar={avatarProto?.DataRef.GetNameFormatted()} item={itemProto.DataRef.GetNameFormatted()} rollFor={resolvedRollFor.GetNameFormatted()} resolvedSlot={slot} rarity={itemSpec.RarityProtoRef.GetNameFormatted()} level={itemSpec.ItemLevel} seed={itemSpec.Seed} affixCount={itemSpec.AffixSpecs.Count} affixes=[{affixes}] context={resolver.LootContext}");
             return true;
 #else
             return false;
@@ -183,7 +212,8 @@ namespace MHServerEmu.Games.OmegaTierItems
             using var ringArgsHandle = DropFilterArgumentsPool.Get(out DropFilterArguments ringArgs);
             DropFilterArguments.Initialize(ringArgs, ringProto, sourceArgs.RollFor, OmegaDifficultyItemLevel,
                 sourceArgs.Rarity, sourceArgs.Rank, EquipmentInvUISlot.Ring, sourceArgs.LootContext);
-            resolver.PushItem(ringArgs, restrictionFlags, 1, null);
+            LootRollResult result = resolver.PushItem(ringArgs, restrictionFlags, 1, null);
+            Logger.Info($"[OmegaRingDropTrace] playerDbId=0x{resolver.Player?.DatabaseUniqueId:X} avatar={resolver.Player?.CurrentAvatar?.PrototypeDataRef.GetNameFormatted()} sourceItem={sourceProto.DataRef.GetNameFormatted()} sourceSlot={sourceArgs.Slot} sourceRollFor={sourceArgs.RollFor.GetNameFormatted()} ring={ringProto.DataRef.GetNameFormatted()} rarity={ringArgs.Rarity.GetNameFormatted()} level={ringArgs.Level} chance={chance:F2} roll={roll:F2} pushResult={result} context={resolver.LootContext}");
 #endif
         }
 
@@ -540,7 +570,7 @@ namespace MHServerEmu.Games.OmegaTierItems
                     tier = "T3";
                     t3Count++;
                 }
-                else if (HasAnyCategory(affixProto, ArmorSimpleAT2CategoryName, ArmorSimpleBT2CategoryName))
+                else if (HasAnyCategory(affixProto, ArmorSimpleAT2CategoryName, ArmorSimpleBT2CategoryName, RingOffenseT2CategoryName, RingDefenseT2CategoryName))
                 {
                     tier = "T2";
                     t2Count++;
@@ -1239,8 +1269,8 @@ namespace MHServerEmu.Games.OmegaTierItems
         private static AffixPrototype PickOmegaRingExtraAffix(ItemResolver resolver, DropFilterArguments filterArgs, DropFilterArguments omegaFilterArgs, ItemSpec itemSpec, OmegaTierItemTuning tuning)
         {
             List<AffixPrototype> candidates = new();
-            AddRingCategoryCandidates(RingOffenseT3CategoryName, filterArgs, omegaFilterArgs, itemSpec, candidates, tuning);
-            AddRingCategoryCandidates(RingDefenseT3CategoryName, filterArgs, omegaFilterArgs, itemSpec, candidates, tuning);
+            AddRingCategoryCandidates(RingOffenseT2CategoryName, filterArgs, omegaFilterArgs, itemSpec, candidates, tuning);
+            AddRingCategoryCandidates(RingDefenseT2CategoryName, filterArgs, omegaFilterArgs, itemSpec, candidates, tuning);
 
             if (candidates.Count > 0)
                 return candidates[resolver.Random.Next(0, candidates.Count)];

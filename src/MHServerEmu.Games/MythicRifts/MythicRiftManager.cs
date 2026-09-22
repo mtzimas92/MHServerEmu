@@ -1745,9 +1745,13 @@ namespace MHServerEmu.Games.MythicRifts
                 foreach (MythicRiftRewardExtraLootTable extraLootTable in rewardOutcome.ExtraLootTables)
                 {
                     if (CanClaimLimitedReward(player, avatar, extraLootTable.Id, extraLootTable.ClaimPeriod, extraLootTable.ClaimScope) == false)
+                    {
+                        LogLimitedRewardClaim("blocked", player, avatar, extraLootTable.Id, extraLootTable.ClaimPeriod, extraLootTable.ClaimScope, 0);
                         continue;
+                    }
 
                     bool grantedAny = false;
+                    int grantedRolls = 0;
                     for (int i = 0; i < extraLootTable.Rolls; i++)
                     {
                         if (extraLootTable.ChancePercent <= 0f ||
@@ -1769,16 +1773,23 @@ namespace MHServerEmu.Games.MythicRifts
                         }
 
                         grantedAny = true;
+                        grantedRolls++;
                     }
 
                     if (grantedAny)
+                    {
                         MarkLimitedRewardClaimed(player, avatar, extraLootTable.Id, extraLootTable.ClaimPeriod, extraLootTable.ClaimScope);
+                        LogLimitedRewardClaim("granted", player, avatar, extraLootTable.Id, extraLootTable.ClaimPeriod, extraLootTable.ClaimScope, grantedRolls);
+                    }
                 }
 
                 foreach (MythicRiftRewardGuaranteedItem guaranteedItem in rewardOutcome.GuaranteedItems)
                 {
                     if (CanClaimLimitedReward(player, avatar, guaranteedItem) == false)
+                    {
+                        LogLimitedRewardClaim("blocked", player, avatar, guaranteedItem.Id, guaranteedItem.ClaimPeriod, guaranteedItem.ClaimScope, 0);
                         continue;
+                    }
 
                     for (int i = 0; i < guaranteedItem.Quantity; i++)
                     {
@@ -1789,6 +1800,7 @@ namespace MHServerEmu.Games.MythicRifts
                     }
 
                     MarkLimitedRewardClaimed(player, avatar, guaranteedItem);
+                    LogLimitedRewardClaim("granted", player, avatar, guaranteedItem.Id, guaranteedItem.ClaimPeriod, guaranteedItem.ClaimScope, guaranteedItem.Quantity);
                 }
 
                 if (chestRewards.Count > 0 &&
@@ -5112,6 +5124,15 @@ namespace MHServerEmu.Games.MythicRifts
             }
 
             return new DateTimeOffset(utcNow.Date, TimeSpan.Zero).ToUnixTimeSeconds();
+        }
+
+        private static void LogLimitedRewardClaim(string result, Player player, Avatar avatar, string rewardId, string claimPeriod, string claimScope, int quantity)
+        {
+            if (string.IsNullOrWhiteSpace(claimPeriod))
+                return;
+
+            long periodMarker = GetLimitedRewardPeriod(claimPeriod);
+            Logger.Info($"[MythicRiftLimitedRewardTrace] result={result} playerDbId=0x{player?.DatabaseUniqueId:X} avatar={avatar?.PrototypeDataRef.GetNameFormatted()} reward={rewardId} period={claimPeriod} scope={claimScope} periodMarker={periodMarker} quantity={quantity}");
         }
 
         private static bool ShouldResolveRandomItemPoolAtGrantTime(MythicRiftRandomItemPoolTuning entry, IReadOnlyList<EquipmentInvUISlot> allowedEquipmentSlots)

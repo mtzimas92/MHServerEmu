@@ -1,4 +1,5 @@
 using MHServerEmu.Core.Memory;
+using MHServerEmu.Core.Logging;
 using MHServerEmu.Games.Entities;
 using MHServerEmu.Games.Entities.Items;
 using MHServerEmu.Games.GameData;
@@ -12,6 +13,7 @@ namespace MHServerEmu.Games.MythicRifts
 {
     public static class OmegaContentRewardService
     {
+        private static readonly Logger Logger = LogManager.CreateLogger();
         private static readonly object LoadLock = new();
         private static OmegaContentRewardTuning _tuning;
 
@@ -58,10 +60,12 @@ namespace MHServerEmu.Games.MythicRifts
                 {
                     int claimed = player.OmegaContentRewardProgress.GetClaimedAmount(reward.Id, periodMarker);
                     quantity = Math.Min(quantity, Math.Max(reward.PeriodLimit - claimed, 0));
+                    if (quantity <= 0)
+                    {
+                        Logger.Info($"[OmegaContentRewardTrace] result=blocked playerDbId=0x{player.DatabaseUniqueId:X} activity={activity.Id} reward={reward.Id} period={reward.Period} periodMarker={periodMarker} claimed={claimed} limit={reward.PeriodLimit}");
+                        continue;
+                    }
                 }
-
-                if (quantity <= 0)
-                    continue;
 
                 PrototypeId itemRef = reward.ItemPrototypeRuntimeId != 0
                     ? (PrototypeId)reward.ItemPrototypeRuntimeId
@@ -71,6 +75,8 @@ namespace MHServerEmu.Games.MythicRifts
 
                 if (reward.PeriodLimit > 0)
                     player.OmegaContentRewardProgress.AddClaimedAmount(reward.Id, periodMarker, quantity);
+
+                Logger.Info($"[OmegaContentRewardTrace] result=granted playerDbId=0x{player.DatabaseUniqueId:X} activity={activity.Id} reward={reward.Id} item={itemRef.GetNameFormatted()} quantity={quantity} period={reward.Period} periodMarker={periodMarker} limit={reward.PeriodLimit}");
             }
         }
 

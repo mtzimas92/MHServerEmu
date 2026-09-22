@@ -28,6 +28,7 @@ using MHServerEmu.Games.MetaGames;
 using MHServerEmu.Games.Missions;
 using MHServerEmu.Games.MTXStore;
 using MHServerEmu.Games.Navi;
+using MHServerEmu.Games.OmegaTierItems;
 using MHServerEmu.Games.Powers;
 using MHServerEmu.Games.Properties;
 using MHServerEmu.Games.Regions;
@@ -348,6 +349,8 @@ namespace MHServerEmu.Games.Network
             AOI.SetRegion(0, true);
             if (Player != null)
             {
+                OmegaGearLootFilter.ClearSession(Player.DatabaseUniqueId);
+
                 // Do an AOI update here to remove from the fake "party" after exiting match regions,
                 // see AreaOfInterest.GetInventoryInterestPolicies() for more details.
                 Player.UpdateInterestPolicies(false);

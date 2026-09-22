@@ -131,8 +131,6 @@ namespace MHServerEmu.Games.Loot
 
         public LootRollResult PushItem(DropFilterArguments filterArgs, RestrictionTestFlags restrictionFlags, int stackCount, LootMutationPrototype[] mutations)
         {
-            OmegaTierItemFactory.TryPromoteCosmicDropFilterToOmegaDifficulty(this, filterArgs);
-
             if (CheckItem(filterArgs, restrictionFlags, false, stackCount) == false)
                 return LootRollResult.Failure;
 
@@ -140,6 +138,7 @@ namespace MHServerEmu.Games.Loot
                 0, Array.Empty<AffixSpec>(), Random.Next(), PrototypeId.Invalid);
 
             itemSpec.StackCount = stackCount;
+            OmegaTierItemFactory.TryQueueCosmicDropForOmegaDifficulty(this, filterArgs, itemSpec);
 
             LootResult lootResult = new(itemSpec);
             PendingItem pendingItem = new(lootResult, filterArgs.RollFor, mutations, false);
@@ -544,7 +543,8 @@ namespace MHServerEmu.Games.Loot
                 LootContext context = LootContext;
                 bool isVaporized = false;
 
-                if (settings.DropChanceModifiers.HasFlag(LootDropChanceModifiers.PreviewOnly) == false &&
+                if (OmegaTierItemFactory.IsQueuedForOmegaPromotion(pendingItem.LootResult.ItemSpec) == false &&
+                    settings.DropChanceModifiers.HasFlag(LootDropChanceModifiers.PreviewOnly) == false &&
                     (context == LootContext.Drop || context == LootContext.MissionReward))
                 {
                     isVaporized = LootVaporizer.ShouldVaporizeLootResult(settings.Player, pendingItem.LootResult, pendingItem.RollFor);
