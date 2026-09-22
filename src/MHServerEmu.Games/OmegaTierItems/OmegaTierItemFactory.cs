@@ -514,12 +514,6 @@ namespace MHServerEmu.Games.OmegaTierItems
             if (slotOverride.ResolvedAffixes.Count != slotOverride.Affixes.Count || slotOverride.ResolvedAffixes.Count == 0)
                 return false;
 
-            foreach (AffixPrototype affixProto in slotOverride.ResolvedAffixes)
-            {
-                if (affixProto.AllowAttachment(omegaFilterArgs) == false && affixProto.AllowAttachment(filterArgs) == false)
-                    return false;
-            }
-
             PrototypeId cosmicCategoryRef = GameDatabase.GetPrototypeRefByName(ArmorCosmicCategoryName);
             AffixCategoryPrototype cosmicCategory = GameDatabase.GetPrototype<AffixCategoryPrototype>(cosmicCategoryRef);
             AffixPrototype naturalCosmicAffix = cosmicCategory == null
