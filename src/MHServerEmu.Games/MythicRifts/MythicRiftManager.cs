@@ -1669,14 +1669,32 @@ namespace MHServerEmu.Games.MythicRifts
                 if (EnsurePlayerAvatarAliveForRiftExit(player, runState, "return-to-hub") == false)
                     continue;
 
-                using var teleporterHandle = TeleporterPool.Get(out Teleporter teleporter);
-                teleporter.Initialize(player, TeleportContextEnum.TeleportContext_Resurrect);
-                teleporter.DifficultyTierRef = GameDatabase.GlobalsPrototype.DifficultyTierDefault;
-                if (teleporter.TeleportToTarget(dangerRoomHubStartTarget))
+                if (TryTeleportPlayerToDangerRoomHub(player, runState, dangerRoomHubStartTarget, TeleportContextEnum.TeleportContext_Resurrect, "automatic-return"))
                     teleportedPlayerCount++;
             }
 
             return teleportedPlayerCount;
+        }
+
+        private bool TryTeleportPlayerToDangerRoomHub(Player player, MythicRiftRunState runState, PrototypeId dangerRoomHubStartTarget, TeleportContextEnum teleportContext, string returnPath)
+        {
+            if (player == null || dangerRoomHubStartTarget == PrototypeId.Invalid)
+                return false;
+
+            Region sourceRegion = player.GetRegion();
+            PrototypeId sourceDifficultyRef = sourceRegion?.DifficultyTierRef ?? PrototypeId.Invalid;
+            PrototypeId preferredDifficultyRef = player.GetDifficultyTierPreference();
+            PrototypeId globalDefaultDifficultyRef = GameDatabase.GlobalsPrototype.DifficultyTierDefault;
+
+            using var teleporterHandle = TeleporterPool.Get(out Teleporter teleporter);
+            teleporter.Initialize(player, teleportContext);
+            teleporter.DifficultyTierRef = preferredDifficultyRef;
+
+            Logger.Info($"[MythicRiftReturnTrace] stage=attempt runId={runState?.Config?.RunId ?? 0} mode={runState?.Config?.Mode.ToString() ?? "unknown"} path={returnPath} playerDbId=0x{player.DatabaseUniqueId:X} sourceRegion={sourceRegion?.PrototypeDataRef.GetNameFormatted() ?? "none"} sourceDifficulty={sourceDifficultyRef.GetNameFormatted()} preferredDifficulty={preferredDifficultyRef.GetNameFormatted()} globalDefault={globalDefaultDifficultyRef.GetNameFormatted()} target={dangerRoomHubStartTarget.GetNameFormatted()}");
+
+            bool teleported = teleporter.TeleportToTarget(dangerRoomHubStartTarget);
+            Logger.Info($"[MythicRiftReturnTrace] stage=result runId={runState?.Config?.RunId ?? 0} mode={runState?.Config?.Mode.ToString() ?? "unknown"} path={returnPath} playerDbId=0x{player.DatabaseUniqueId:X} success={teleported} resolvedDifficulty={teleporter.DifficultyTierRef.GetNameFormatted()}");
+            return teleported;
         }
 
         private static bool EnsurePlayerAvatarAliveForRiftExit(Player player, MythicRiftRunState runState, string context)
@@ -8130,10 +8148,7 @@ namespace MHServerEmu.Games.MythicRifts
             if (TryResolveDangerRoomHubStartTarget(out PrototypeId dangerRoomHubStartTarget) == false)
                 return false;
 
-            using var teleporterHandle = TeleporterPool.Get(out Teleporter teleporter);
-            teleporter.Initialize(player, TeleportContextEnum.TeleportContext_Debug);
-            teleporter.DifficultyTierRef = GameDatabase.GlobalsPrototype.DifficultyTierDefault;
-            bool teleported = teleporter.TeleportToTarget(dangerRoomHubStartTarget);
+            bool teleported = TryTeleportPlayerToDangerRoomHub(player, runState, dangerRoomHubStartTarget, TeleportContextEnum.TeleportContext_Debug, "exit-portal");
             if (teleported)
             {
                 // Logger.Info($"Mythic Rift run {runState.Config.RunId} used return portal 0x{transition.Id:X} for playerDbId=0x{player.DatabaseUniqueId:X}.");
