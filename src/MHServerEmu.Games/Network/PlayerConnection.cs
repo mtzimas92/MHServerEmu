@@ -1281,14 +1281,14 @@ namespace MHServerEmu.Games.Network
             }
 
             WorldEntity vendor = entityManager.GetEntity<WorldEntity>(tryCraft.IdVendor);
-            bool traceOmegaCraft = TryBuildOmegaCraftingTrace(recipeItem, ingredientIds, entityManager, Game, vendor, out string omegaCraftTraceDetails);
+            bool traceOmegaCraft = TryBuildOmegaCraftingTrace(recipeItem, ingredientIds, entityManager, Game, vendor, Player.DatabaseUniqueId, out string omegaCraftTraceDetails, out string omegaCraftRiftContext);
             if (traceOmegaCraft)
-                Logger.Info($"[OmegaCraftingTrace] received player={Player} recipe={recipeItem.PrototypeDataRef.GetNameFormatted()} vendor={vendor?.PrototypeDataRef.GetNameFormatted()} vendorId=0x{tryCraft.IdVendor:X} isRecraft={tryCraft.IsRecraft} ingredients=[{omegaCraftTraceDetails}]");
+                Logger.Info($"[OmegaCraftingTrace] stage=received player={Player} recipe={recipeItem.PrototypeDataRef.GetNameFormatted()} vendor={vendor?.PrototypeDataRef.GetNameFormatted()} vendorId=0x{tryCraft.IdVendor:X} isRecraft={tryCraft.IsRecraft} {omegaCraftRiftContext} ingredients=[{omegaCraftTraceDetails}]");
 
             CraftingResult craftingResult = Player.Craft(recipeItemId, tryCraft.IdVendor, ingredientIds, tryCraft.IsRecraft);
 
             if (traceOmegaCraft)
-                Logger.Info($"[OmegaCraftingTrace] result player={Player} recipe={recipeItem.PrototypeDataRef.GetNameFormatted()} result={craftingResult}");
+                Logger.Info($"[OmegaCraftingTrace] stage=result player={Player} recipe={recipeItem.PrototypeDataRef.GetNameFormatted()} success={craftingResult == CraftingResult.Success} failureReason={(craftingResult == CraftingResult.Success ? "none" : craftingResult)} result={craftingResult} {omegaCraftRiftContext}");
 
             if (craftingResult != CraftingResult.Success)
             {
@@ -1302,14 +1302,17 @@ namespace MHServerEmu.Games.Network
             }
         }
 
-        private static bool TryBuildOmegaCraftingTrace(Item recipeItem, List<ulong> ingredientIds, EntityManager entityManager, Game game, WorldEntity vendor, out string details)
+        private static bool TryBuildOmegaCraftingTrace(Item recipeItem, List<ulong> ingredientIds, EntityManager entityManager, Game game, WorldEntity vendor, ulong playerDbId, out string details, out string riftContext)
         {
             details = string.Empty;
+            riftContext = string.Empty;
 
             if (recipeItem == null || ingredientIds == null || entityManager == null)
                 return false;
 
+            bool isRiftForge = game?.MythicRiftManager?.TryGetOmegaForgeTraceContext(vendor, playerDbId, out riftContext) == true;
             bool shouldTrace = IsOmegaItem(recipeItem) ||
+                               isRiftForge ||
                                game?.MythicRiftManager?.IsCompletionCrafter(vendor) == true ||
                                game?.MythicRiftManager?.IsCompletionEnchanter(vendor) == true ||
                                game?.MythicRiftManager?.IsCompletionCrafterRecipe(recipeItem.PrototypeDataRef) == true;
@@ -1335,7 +1338,11 @@ namespace MHServerEmu.Games.Network
                 if (IsOmegaRarity(rarityRef))
                     shouldTrace = true;
 
-                detailParts.Add($"{i}:{ingredient.PrototypeDataRef.GetNameFormatted()} rarity={rarityRef.GetNameFormatted()} id=0x{ingredientId:X}");
+                int itemLevel = ingredient.Properties[PropertyEnum.ItemLevel];
+                if (itemLevel <= 0 && ingredient.ItemSpec != null)
+                    itemLevel = ingredient.ItemSpec.ItemLevel;
+
+                detailParts.Add($"{i}:{ingredient.PrototypeDataRef.GetNameFormatted()} rarity={rarityRef.GetNameFormatted()} itemLevel={itemLevel} id=0x{ingredientId:X}");
             }
 
             details = string.Join(", ", detailParts);

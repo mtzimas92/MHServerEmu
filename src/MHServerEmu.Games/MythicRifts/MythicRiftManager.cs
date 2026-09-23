@@ -1241,6 +1241,34 @@ namespace MHServerEmu.Games.MythicRifts
             return false;
         }
 
+        public bool TryGetOmegaForgeTraceContext(WorldEntity vendor, ulong playerDbId, out string context)
+        {
+            context = string.Empty;
+            if (vendor?.Region == null || playerDbId == 0)
+                return false;
+
+            PrototypeId vendorTypeProtoRef = vendor.Properties[PropertyEnum.VendorType];
+            bool isForgeType = IsCompletionCrafterType(vendorTypeProtoRef) || IsCompletionEnchanterType(vendorTypeProtoRef);
+            foreach (MythicRiftRunState run in _activeRuns.Values)
+            {
+                if (run?.Config == null ||
+                    (run.Config.Mode != MythicRiftMode.Endless && run.Config.Mode != MythicRiftMode.BossGauntlet))
+                {
+                    continue;
+                }
+
+                bool directVendor = run.CompletionCrafterEntityId == vendor.Id || run.CompletionEnchanterEntityId == vendor.Id;
+                bool rewardRoomVendor = isForgeType && run.EffectiveRegionId == vendor.Region.Id;
+                if (directVendor == false && rewardRoomVendor == false)
+                    continue;
+
+                context = $"runId={run.Config.RunId} mode={run.Config.Mode} status={run.Status} rewardEligible={run.IsRewardEligible(playerDbId)} serviceAvailable={IsCompletionServiceAvailable(run)} vendorRole={(IsCompletionEnchanterType(vendorTypeProtoRef) ? "enchanter" : "crafter")} vendorMatch={(directVendor ? "direct" : "reward-room")}";
+                return true;
+            }
+
+            return false;
+        }
+
         public bool TryPurchaseCompletionArtifactVendorItem(
             Player player,
             WorldEntity vendor,
