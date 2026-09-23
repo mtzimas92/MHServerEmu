@@ -26,10 +26,9 @@ namespace MHServerEmu.Core.Serialization
         Initial = 9,
         AddedMissionEventInstance = 10,
         AddedRiftAvatarProgress = 11,
-        AddedOmegaContentRewardProgress = 12,
 
         // Update the current version if you add any    <---------
-        Current = AddedOmegaContentRewardProgress
+        Current = AddedRiftAvatarProgress
     }
 
     public enum GameBuildNumber : uint

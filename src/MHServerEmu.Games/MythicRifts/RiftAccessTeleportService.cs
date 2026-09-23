@@ -227,6 +227,32 @@ namespace MHServerEmu.Games.MythicRifts
             return player?.MythicRiftProgress.HasOmegaPatrolAccess(player.CurrentAvatar) == true;
         }
 
+        public static bool CanUseAvatarInCurrentOmegaPatrol(Player player, Avatar avatar)
+        {
+            Region region = player?.GetRegion();
+            if (IsOmegaPatrolRegion(region) == false)
+                return true;
+
+            return player.MythicRiftProgress.HasOmegaPatrolAccess(avatar);
+        }
+
+        private static bool IsOmegaPatrolRegion(Region region)
+        {
+            if (region == null || region.DifficultyTierRef != Tier5Omega1Ref)
+                return false;
+
+            PrototypeId regionRef = region.PrototypeDataRef;
+            return IsTargetRegion(MidtownPatrolTargetCosmicRef, regionRef)
+                || IsTargetRegion(ICPPatrolTargetCosmicRef, regionRef)
+                || IsTargetRegion(HightownPatrolTargetCosmicRef, regionRef);
+        }
+
+        private static bool IsTargetRegion(PrototypeId targetRef, PrototypeId regionRef)
+        {
+            RegionConnectionTargetPrototype targetProto = targetRef.As<RegionConnectionTargetPrototype>();
+            return targetProto != null && targetProto.Region == regionRef;
+        }
+
         public static bool GrantOmegaPatrolAccessForCurrentAvatar(Player player)
         {
             Avatar avatar = player?.CurrentAvatar;

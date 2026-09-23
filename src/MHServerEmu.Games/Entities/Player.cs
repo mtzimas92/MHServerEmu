@@ -512,7 +512,7 @@ namespace MHServerEmu.Games.Entities
                     success &= Serializer.Transfer(archive, ref _endlessRiftCompletedCycles);
                 if (archive.IsPacking || archive.Version >= ArchiveVersion.AddedRiftAvatarProgress)
                     success &= Serializer.Transfer(archive, _mythicRiftProgress);
-                if (archive.IsPacking || archive.Version >= ArchiveVersion.AddedOmegaContentRewardProgress)
+                if (archive.IsPacking || archive.Version >= ArchiveVersion.AddedRiftAvatarProgress)
                     success &= Serializer.Transfer(archive, _omegaContentRewardProgress);
             }
 
@@ -2348,6 +2348,9 @@ namespace MHServerEmu.Games.Entities
 
             if (avatarToSwitchToProto.IsLiveTuningEnabled() == false)
                 return CanSwitchAvatarResult.NotAllowedUnknown;
+
+            if (RiftAccessTeleportService.CanUseAvatarInCurrentOmegaPatrol(this, avatarToSwitchTo) == false)
+                return CanSwitchAvatarResult.NotAllowedInRegion;
 
             // Do not check anything else if not requested
             if (ignoreGameplayRestrictions)
