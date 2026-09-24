@@ -40,7 +40,6 @@ namespace MHServerEmu.Games.MythicRifts
         public ulong RewardRoomPortalEntityId { get; private set; }
         public ulong CompletionVendorEntityId { get; private set; }
         public ulong CompletionCrafterEntityId { get; private set; }
-        public ulong CompletionEnchanterEntityId { get; private set; }
         public ulong RewardRoomRegionId { get; private set; }
         public bool RewardRoomTeleportOffered { get; private set; }
         public bool RewardRoomTeleportResolved { get; private set; }
@@ -151,11 +150,6 @@ namespace MHServerEmu.Games.MythicRifts
         public void AttachCompletionCrafter(ulong completionCrafterEntityId)
         {
             CompletionCrafterEntityId = completionCrafterEntityId;
-        }
-
-        public void AttachCompletionEnchanter(ulong completionEnchanterEntityId)
-        {
-            CompletionEnchanterEntityId = completionEnchanterEntityId;
         }
 
         public void MarkRewardRoomTeleportOffered()

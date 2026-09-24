@@ -151,9 +151,6 @@ namespace MHServerEmu.Games.Entities
             WorldEntity vendor = entityManager.GetEntity<WorldEntity>(vendorId);
             if (!Verify.IsNotNull(vendor)) return false;
 
-            if (TryUseOmegaForgeRecipeVendorItem(avatarIndex, itemId, vendorId))
-                return true;
-
             if (TryBuyMythicRiftCompletionVendorOffer(item, vendor))
                 return true;
 
@@ -248,9 +245,6 @@ namespace MHServerEmu.Games.Entities
                 return;
 
             if (EnsureMythicRiftCompletionCrafterStock(vendor))
-                return;
-
-            if (TryPostMythicRiftCompletionEnchanterPrompt(vendor))
                 return;
 
             if (ShouldInjectMythicRiftVendorStock(vendor) == false)

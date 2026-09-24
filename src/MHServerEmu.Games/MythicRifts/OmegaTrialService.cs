@@ -489,6 +489,7 @@ namespace MHServerEmu.Games.MythicRifts
             teleporter.Initialize(player, TeleportContextEnum.TeleportContext_Transition);
             teleporter.DifficultyTierRef = OmegaTrialDifficultyTierRef;
             teleporter.BypassQueueRegionForRift = true;
+            teleporter.ForcePrivateRegion = true;
 
             // Logger.Info($"[OmegaTrialTrace] stage=teleport-start playerDbId=0x{player.DatabaseUniqueId:X} target={entryTargetRef.GetNameFormatted()} difficulty={OmegaTrialDifficultyTierRef.GetNameFormatted()}");
             if (teleporter.TeleportToTarget(entryTargetRef) == false)

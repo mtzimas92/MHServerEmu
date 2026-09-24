@@ -5,7 +5,6 @@ using MHServerEmu.Core.Logging;
 using MHServerEmu.Games.Entities.Items;
 using MHServerEmu.Games.GameData;
 using MHServerEmu.Games.GameData.Prototypes;
-using MHServerEmu.Games.Loot;
 
 namespace MHServerEmu.Games.OmegaTierItems
 {
@@ -145,7 +144,6 @@ namespace MHServerEmu.Games.OmegaTierItems
             }
 
             TryEnableOmegaOnRings(cosmicRarityRef, omegaRarityRef);
-            TryEnableOmegaOnCraftingRecipeInputs(cosmicRarityRef, omegaRarityRef);
             TryRepairInvertedAffixBands();
             OmegaTierItemFactory.ApplyConfiguredBuiltInPropertyPrototypeOverrides();
 
@@ -155,49 +153,6 @@ namespace MHServerEmu.Games.OmegaTierItems
         }
 
 #if GAME_VERSION_1_52 || GAME_VERSION_1_53
-        public static bool AllowOmegaCraftingAffixLimitOverride(DropFilterArguments args, ItemSpec itemSpec, AffixPosition position, short affixCountNeeded, short currentCount, short currentLimit)
-        {
-            if (args == null || itemSpec == null || args.LootContext.HasFlag(LootContext.Crafting) == false)
-                return false;
-
-            if (position != AffixPosition.Runeword && position != AffixPosition.Unique)
-                return false;
-
-            PrototypeId omegaRarityRef = GameDatabase.GetPrototypeRefByName(OmegaRarityName);
-            if (omegaRarityRef == PrototypeId.Invalid || args.Rarity != omegaRarityRef)
-                return false;
-
-            if (IsArmorSlotOneThroughFive(args.ItemProto as ItemPrototype, args.Slot) == false)
-                return false;
-
-            short effectiveLimit = Math.Max(currentLimit, (short)1);
-            return currentCount + affixCountNeeded <= effectiveLimit;
-        }
-
-        public static bool AllowOmegaCraftingCloneTierRestrictionOverride(DropFilterArguments args)
-        {
-            if (args == null || args.LootContext.HasFlag(LootContext.Crafting) == false)
-                return false;
-
-            PrototypeId omegaRarityRef = GameDatabase.GetPrototypeRefByName(OmegaRarityName);
-            PrototypeId cosmicRarityRef = GameDatabase.GetPrototypeRefByName(CosmicRarityName);
-            if (omegaRarityRef == PrototypeId.Invalid || cosmicRarityRef == PrototypeId.Invalid)
-                return false;
-
-            if (IsArmorSlotOneThroughFive(args.ItemProto as ItemPrototype, args.Slot) == false)
-                return false;
-
-            if (args.Rarity == omegaRarityRef)
-                return true;
-
-            // Omega challenge bonus recipes temporarily clone the item as Cosmic because the shipped
-            // recipes were authored for Cosmic gear. The clone still carries the Omega affix, so use
-            // that as the marker that this is an Omega-forge clone and not ordinary Cosmic crafting.
-            return args.Rarity == cosmicRarityRef &&
-                args is LootCloneRecord cloneRecord &&
-                HasArmorOmegaAffix(cloneRecord);
-        }
-
         private static bool IsArmorOmegaCandidate(PrototypeId itemProtoRef, AffixLimitsPrototype row, PrototypeId armorOmegaCategoryRef)
         {
             string prototypeName = GameDatabase.GetPrototypeName(itemProtoRef);
@@ -230,43 +185,11 @@ namespace MHServerEmu.Games.OmegaTierItems
             changed |= ReplaceCategory(row, ringOffenseT3CategoryRef, ringOffenseT2CategoryRef);
             changed |= ReplaceCategory(row, ringDefenseT3CategoryRef, ringDefenseT2CategoryRef);
 
-            bool isDefensiveRing = string.Equals(itemName, RingDefensePrototypeName, StringComparison.OrdinalIgnoreCase);
-            short offenseCount = isDefensiveRing ? (short)1 : (short)(RingT3AffixCount - 1);
-            short defenseCount = isDefensiveRing ? (short)(RingT3AffixCount - 1) : (short)1;
+            short offenseCount = (short)(RingT3AffixCount - 1);
+            short defenseCount = 1;
             changed |= EnsureCategory(row, ringOffenseT2CategoryRef, offenseCount, ref entriesAdjusted, ref entriesAdded);
             changed |= EnsureCategory(row, ringDefenseT2CategoryRef, defenseCount, ref entriesAdjusted, ref entriesAdded);
             return changed;
-        }
-
-        private static bool IsArmorSlotOneThroughFive(ItemPrototype itemProto, EquipmentInvUISlot slot)
-        {
-            if (itemProto is not ArmorPrototype armorProto)
-                return false;
-
-            if (slot == EquipmentInvUISlot.Invalid)
-                slot = armorProto.DefaultEquipmentSlot;
-
-            return slot >= EquipmentInvUISlot.Gear01 && slot <= EquipmentInvUISlot.Gear05;
-        }
-
-        public static bool HasArmorOmegaAffix(LootCloneRecord cloneRecord)
-        {
-            if (cloneRecord == null || cloneRecord.AffixRecords.Count == 0)
-                return false;
-
-            PrototypeId armorOmegaCategoryRef = GameDatabase.GetPrototypeRefByName(ArmorOmegaCategoryName);
-            AffixCategoryPrototype armorOmegaCategory = GameDatabase.GetPrototype<AffixCategoryPrototype>(armorOmegaCategoryRef);
-            if (armorOmegaCategory == null)
-                return false;
-
-            foreach (AffixRecord affixRecord in cloneRecord.AffixRecords)
-            {
-                AffixPrototype affixProto = GameDatabase.GetPrototype<AffixPrototype>(affixRecord.AffixProtoRef);
-                if (affixProto != null && affixProto.HasCategory(armorOmegaCategory))
-                    return true;
-            }
-
-            return false;
         }
 
         public static bool HasArmorOmegaAffix(ItemSpec itemSpec)
@@ -366,50 +289,6 @@ namespace MHServerEmu.Games.OmegaTierItems
             {
                 // Logger.Warn($"TryEnableOmegaOnRings(): failed, Omega rings will remain disabled - {e.Message}");
             }
-        }
-
-        private static void TryEnableOmegaOnCraftingRecipeInputs(PrototypeId cosmicRarityRef, PrototypeId omegaRarityRef)
-        {
-            try
-            {
-                int recipesChanged = EnableOmegaOnCraftingRecipeInputs(cosmicRarityRef, omegaRarityRef, out int restrictionsChanged);
-                if (restrictionsChanged > 0)
-                    { } // Logger.Info($"Permitted R6Omega on {restrictionsChanged} crafting recipe input rarity restriction(s) across {recipesChanged} recipe(s)");
-            }
-            catch (Exception)
-            {
-                // Logger.Warn($"TryEnableOmegaOnCraftingRecipeInputs(): failed, Omega crafting inputs may remain disabled - {e.Message}");
-            }
-        }
-
-        private static int EnableOmegaOnCraftingRecipeInputs(PrototypeId cosmicRarityRef, PrototypeId omegaRarityRef, out int restrictionsChanged)
-        {
-            restrictionsChanged = 0;
-            if (AllowedRaritiesProperty == null || cosmicRarityRef == PrototypeId.Invalid || omegaRarityRef == PrototypeId.Invalid)
-                return 0;
-
-            int recipesChanged = 0;
-            foreach (PrototypeId recipeRef in GameDatabase.DataDirectory.IteratePrototypesInHierarchy<CraftingRecipePrototype>(PrototypeIterateFlags.NoAbstract))
-            {
-                CraftingRecipePrototype recipeProto = GameDatabase.GetPrototype<CraftingRecipePrototype>(recipeRef);
-                if (recipeProto?.RecipeInputs.IsNullOrEmpty() != false)
-                    continue;
-
-                int changedForRecipe = 0;
-                foreach (CraftingInputPrototype inputProto in recipeProto.RecipeInputs)
-                {
-                    if (inputProto is RestrictionSetInputPrototype restrictionInput)
-                        changedForRecipe += EnableOmegaOnRestrictions(restrictionInput.Restrictions, cosmicRarityRef, omegaRarityRef);
-                }
-
-                if (changedForRecipe <= 0)
-                    continue;
-
-                restrictionsChanged += changedForRecipe;
-                recipesChanged++;
-            }
-
-            return recipesChanged;
         }
 
         private static int EnableOmegaOnRestrictions(DropRestrictionPrototype[] restrictions, PrototypeId cosmicRarityRef, PrototypeId omegaRarityRef)

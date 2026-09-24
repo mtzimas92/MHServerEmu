@@ -132,7 +132,7 @@ namespace MHServerEmu.Games.Entities
             if (vendor == null)
                 return false;
 
-            if (Game?.MythicRiftManager?.IsCompletionOmegaForgeVendor(vendor) == true)
+            if (Game?.MythicRiftManager?.IsCompletionCrafter(vendor) == true)
                 return false;
 
             Region region = vendor.Region ?? GetRegion();
@@ -488,16 +488,7 @@ namespace MHServerEmu.Games.Entities
             if (stocked)
                 SendMessage(NetMessageVendorRefresh.CreateBuilder().SetVendorTypeProtoId((ulong)vendorTypeProtoRef).Build());
 
-            TryPostMythicRiftOmegaForgePrompt(vendor);
             return true;
-        }
-
-        private bool TryPostMythicRiftCompletionEnchanterPrompt(WorldEntity vendor)
-        {
-            if (vendor == null || Game?.MythicRiftManager?.IsCompletionEnchanterOrRewardRoomEnchanter(vendor) != true)
-                return false;
-
-            return TryPostMythicRiftOmegaForgePrompt(vendor);
         }
 
         private bool TryAddMythicRiftCompletionCrafterRecipe(VendorTypePrototype vendorTypeProto, PrototypeId vendorTypeProtoRef)
@@ -518,7 +509,6 @@ namespace MHServerEmu.Games.Entities
 
             using var recipeRefsHandle = ListPool<PrototypeId>.Get(out List<PrototypeId> recipeProtoRefs);
             recipeProtoRefs.AddRange(Game.MythicRiftManager.CompletionCrafterRecipePrototypeRefs);
-            AddOmegaForgeChallengeRecipePrototypeRefs(recipeProtoRefs);
 
             foreach (PrototypeId recipeProtoRef in recipeProtoRefs)
             {

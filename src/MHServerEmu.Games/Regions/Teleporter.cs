@@ -50,6 +50,7 @@ namespace MHServerEmu.Games.Regions
         public PropertyCollection Properties { get; private set; }
         public PrototypeId DangerRoomScenarioRef { get; set; }
         public bool BypassQueueRegionForRift { get; set; }
+        public bool ForcePrivateRegion { get; set; }
 
         public Teleporter() { }     // Use pooling instead of this constructor
 
@@ -90,6 +91,7 @@ namespace MHServerEmu.Games.Regions
 
             DangerRoomScenarioRef = default;
             BypassQueueRegionForRift = default;
+            ForcePrivateRegion = default;
         }
 
         public void Initialize(Player player, TeleportContextEnum context)
@@ -550,6 +552,9 @@ namespace MHServerEmu.Games.Regions
                 .SetItemRarity((ulong)ItemRarity)
                 // propertyBuffer
                 .SetDangerRoomScenarioR((ulong)DangerRoomScenarioRef);
+
+            if (ForcePrivateRegion)
+                builder.SetCheat(true);
 
             if (AccessPortal != null)
                 builder.SetAccessPortal(AccessPortal);

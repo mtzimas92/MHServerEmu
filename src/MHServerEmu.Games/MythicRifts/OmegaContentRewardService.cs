@@ -110,12 +110,22 @@ namespace MHServerEmu.Games.MythicRifts
             DateTime utcNow = DateTime.UtcNow;
             if (string.Equals(period, "weekly", StringComparison.OrdinalIgnoreCase))
             {
-                int daysSinceMonday = ((int)utcNow.DayOfWeek + 6) % 7;
-                utcNow = utcNow.Date.AddDays(-daysSinceMonday);
+                const DayOfWeek rolloverDay = DayOfWeek.Wednesday;
+                TimeSpan rolloverTime = TimeSpan.FromHours(10);
+                int daysSinceRolloverDay = ((int)utcNow.DayOfWeek - (int)rolloverDay + 7) % 7;
+                DateTime periodStart = utcNow.Date.AddDays(-daysSinceRolloverDay).Add(rolloverTime);
+                if (periodStart > utcNow)
+                    periodStart = periodStart.AddDays(-7);
+
+                utcNow = periodStart;
             }
             else
             {
-                utcNow = utcNow.Date;
+                DateTime periodStart = utcNow.Date.AddHours(10);
+                if (periodStart > utcNow)
+                    periodStart = periodStart.AddDays(-1);
+
+                utcNow = periodStart;
             }
 
             return new DateTimeOffset(utcNow, TimeSpan.Zero).ToUnixTimeSeconds();

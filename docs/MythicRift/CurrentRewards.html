@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rift and Omega Rewards</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #101214;
+      --panel: #191d20;
+      --line: #343b40;
+      --text: #f1f3f4;
+      --muted: #aeb7bd;
+      --gold: #f1c75b;
+      --cyan: #5bd6d0;
+      --green: #79d58b;
+      --red: #ff8178;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 system-ui, sans-serif; }
+    header, main { width: min(1180px, calc(100% - 32px)); margin: auto; }
+    header { padding: 36px 0 22px; border-bottom: 1px solid var(--line); }
+    h1 { margin: 0 0 8px; font-size: 32px; letter-spacing: 0; }
+    h2 { margin: 32px 0 12px; font-size: 22px; letter-spacing: 0; }
+    h3 { margin: 22px 0 8px; font-size: 17px; letter-spacing: 0; }
+    p { margin: 8px 0; }
+    .muted { color: var(--muted); }
+    .summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 18px; }
+    .summary article { padding: 14px; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; }
+    .summary strong { display: block; color: var(--gold); margin-bottom: 4px; }
+    .note { padding: 12px 14px; border-left: 3px solid var(--cyan); background: var(--panel); }
+    .warning { border-left-color: var(--red); }
+    .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 6px; }
+    table { width: 100%; border-collapse: collapse; min-width: 680px; background: var(--panel); }
+    th, td { padding: 9px 11px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); }
+    th { color: var(--gold); background: #202529; }
+    tr:last-child td { border-bottom: 0; }
+    code { color: var(--cyan); }
+    .daily { color: var(--green); font-weight: 700; }
+    .weekly { color: var(--gold); font-weight: 700; }
+    .repeat { color: var(--cyan); font-weight: 700; }
+    footer { margin: 34px 0; color: var(--muted); font-size: 13px; }
+    @media (max-width: 760px) {
+      .summary { grid-template-columns: 1fr; }
+      h1 { font-size: 26px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Rift and Omega Rewards</h1>
+    <p class="muted">Current server configuration for Omega Training, Infinite Rift, Boss Gauntlet, Omega raids, Omega Limbo, and reward vendors.</p>
+    <div class="summary">
+      <article><strong>Daily reset</strong>10:00 UTC<br>Per-hero where stated</article>
+      <article><strong>Weekly reset</strong>Wednesday at 10:00 UTC<br>Account-wide where stated</article>
+      <article><strong>Repeatable</strong>No reset or claim marker<br>Granted on every eligible run</article>
+    </div>
+  </header>
+
+  <main>
+    <h2>Omega Training</h2>
+    <p>Checkpoint rewards are granted only on successful completion of the exact listed wave. Daily rewards are tracked separately for each hero. Infinity boxes have no claim limit and are repeatable.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Wave</th><th>Daily per hero</th><th>Repeatable per run</th></tr></thead>
+        <tbody>
+          <tr><td>5</td><td>-</td><td>1 Six Infinity Orb Chest</td></tr>
+          <tr><td>10</td><td>1 Cube Shard</td><td>2 Six Infinity Orb Chests</td></tr>
+          <tr><td>12</td><td>1 Cosmic Fragment</td><td>-</td></tr>
+          <tr><td>15</td><td>2 Cube Shards</td><td>3 Six Infinity Orb Chests</td></tr>
+          <tr><td>18</td><td>1 Cosmic Fragment</td><td>-</td></tr>
+          <tr><td>20</td><td>3 Cube Shards</td><td>4 Six Infinity Orb Chests</td></tr>
+          <tr><td>22</td><td>1 Cosmic Fragment</td><td>-</td></tr>
+          <tr><td>25</td><td>4 Cube Shards</td><td>5 Six Infinity Orb Chests</td></tr>
+          <tr><td>28</td><td>1 Cosmic Fragment</td><td>-</td></tr>
+          <tr><td>30</td><td>5 Cube Shards and 15 Champion Commendations</td><td>6 Six Infinity Orb Chests</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>Infinite Rift</h2>
+    <p>Commendation rewards are weekly and account-wide. Each level is its own claim. Progress made on another hero continues from the highest reward level already claimed by the account. XP orbs and Infinity boxes are repeatable on every successful eligible run.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Completed level</th><th>Weekly account reward per level</th><th>Repeatable reward per run</th></tr></thead>
+        <tbody>
+          <tr><td>1-4</td><td>-</td><td>-</td></tr>
+          <tr><td>5-9</td><td>-</td><td>5 Super Mega XP Orbs and 1 Six Infinity Orb Chest</td></tr>
+          <tr><td>10-19</td><td>10 Hero Commendations for each newly claimed level</td><td>5 Super Mega XP Orbs and 2 Six Infinity Orb Chests</td></tr>
+          <tr><td>20-29</td><td>15 Protector Commendations for each newly claimed level</td><td>5 Super Mega XP Orbs and 3 Six Infinity Orb Chests</td></tr>
+          <tr><td>30</td><td>5 Champion Commendations</td><td>5 Super Mega XP Orbs and 4 Six Infinity Orb Chests</td></tr>
+          <tr><td>31-34</td><td>5 Champion Commendations for each newly claimed level</td><td>8 Super Mega XP Orbs and 4 Six Infinity Orb Chests</td></tr>
+          <tr><td>35-39</td><td>10 Champion Commendations for each newly claimed level</td><td>8 Super Mega XP Orbs and 4 Six Infinity Orb Chests</td></tr>
+          <tr><td>40-45</td><td>10 Champion Commendations for each newly claimed level</td><td>8 Super Mega XP Orbs and 5 Six Infinity Orb Chests</td></tr>
+          <tr><td>46+</td><td>No configured weekly commendation entry</td><td>8 Super Mega XP Orbs and 5 Six Infinity Orb Chests</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">Example: level 18 claims levels 10-18. A later clear at level 28, even on another hero, claims only levels 19-28 because the weekly scope is account-wide.</p>
+
+    <h2>Boss Gauntlet</h2>
+    <p>The reached-wave band determines one non-cumulative boss-unique package and one repeatable XP/IP package. Cosmic Artifact chances are also non-cumulative. Champion Commendation checkpoints accumulate during the week and are account-wide.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Reached wave</th><th>Daily per hero</th><th>Cosmic Artifact chance per run</th><th>Repeatable XP/IP reward</th><th>Weekly account checkpoint</th></tr></thead>
+        <tbody>
+          <tr><td>1-9</td><td>-</td><td>-</td><td>-</td><td>-</td></tr>
+          <tr><td>10</td><td>-</td><td>-</td><td>10 XP Orbs and 2 Six Infinity Orb Chests</td><td>5 Champion Commendations</td></tr>
+          <tr><td>11-15</td><td>2 Boss Uniques</td><td>5%</td><td>10 XP Orbs and 2 Six Infinity Orb Chests</td><td>Wave 10 checkpoint</td></tr>
+          <tr><td>16-19</td><td>3 Boss Uniques</td><td>-</td><td>10 XP Orbs and 2 Six Infinity Orb Chests</td><td>Wave 10 checkpoint</td></tr>
+          <tr><td>20</td><td>3 Boss Uniques</td><td>-</td><td>20 XP Orbs and 4 Six Infinity Orb Chests</td><td>10 total Champion Commendations</td></tr>
+          <tr><td>21-25</td><td>4 Boss Uniques</td><td>15%</td><td>20 XP Orbs and 4 Six Infinity Orb Chests</td><td>Wave 10 and 20 checkpoints</td></tr>
+          <tr><td>26-29</td><td>5 Boss Uniques</td><td>-</td><td>20 XP Orbs and 4 Six Infinity Orb Chests</td><td>Wave 10 and 20 checkpoints</td></tr>
+          <tr><td>30</td><td>5 Boss Uniques</td><td>-</td><td>30 XP Orbs and 6 Six Infinity Orb Chests</td><td>15 total Champion Commendations</td></tr>
+          <tr><td>31-35</td><td>6 Boss Uniques</td><td>25%</td><td>30 XP Orbs and 6 Six Infinity Orb Chests</td><td>Through wave 30 checkpoint</td></tr>
+          <tr><td>36-39</td><td>7 Boss Uniques</td><td>-</td><td>30 XP Orbs and 6 Six Infinity Orb Chests</td><td>Through wave 30 checkpoint</td></tr>
+          <tr><td>40</td><td>7 Boss Uniques</td><td>-</td><td>40 XP Orbs and 8 Six Infinity Orb Chests</td><td>20 total Champion Commendations</td></tr>
+          <tr><td>41+</td><td>8 Boss Uniques</td><td>40%</td><td>40 XP Orbs and 8 Six Infinity Orb Chests</td><td>All four checkpoints</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>Omega Content</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Activity</th><th>Guaranteed limited reward</th><th>Repeatable chance rewards</th><th>Reset</th></tr></thead>
+        <tbody>
+          <tr><td>Omega Muspelheim</td><td>300 Champion Commendations</td><td>2% each: Unique238, Unique304, Unique298, Unique294 at item level 69</td><td>Weekly, Wednesday 10:00 UTC</td></tr>
+          <tr><td>Cosmic Axis</td><td>200 Champion Commendations and 100 Protector Commendations</td><td>2% each: Unique238, Unique304, Unique298, Unique294 at item level 69</td><td>Weekly, Wednesday 10:00 UTC</td></tr>
+          <tr><td>Omega Limbo</td><td>1 S.H.I.E.L.D. Supply Boost box and 2 Mystic Mayhem Coffers</td><td>-</td><td>Repeatable; no configured claim period</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note warning">Omega Muspelheim and Cosmic Axis use separate reward IDs. Their Champion Commendation limits are not one shared 300-point cap.</p>
+
+    <h2>Reward Vendors</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Vendor</th><th>Offer</th><th>Cost</th><th>Result</th></tr></thead>
+        <tbody>
+          <tr><td>Omega Raid</td><td>Fire Giant Aegis</td><td>500 Champion Commendations</td><td>Unique294, item level 69</td></tr>
+          <tr><td>Omega Raid</td><td>Fire Giant Greaves</td><td>500 Champion Commendations</td><td>Unique298, item level 69</td></tr>
+          <tr><td>Omega Raid</td><td>Fire Giant's Horns</td><td>500 Champion Commendations</td><td>Unique238, item level 69</td></tr>
+          <tr><td>Omega Raid</td><td>Monument of Ell</td><td>500 Champion Commendations</td><td>Unique304, item level 69</td></tr>
+          <tr><td>Omega Raid</td><td>Nan's Cane</td><td>500 Champion Commendations</td><td>Placeholder: Unique238, item level 69</td></tr>
+          <tr><td>Rift Artifact Vendor</td><td>Cosmic Artifact</td><td>450 Champion Commendations</td><td>3 rolls from the configured Cosmic Artifact pool, delivered on the ground</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>Global Reward Behavior</h2>
+    <ul>
+      <li>Native Rift boss loot is suppressed.</li>
+      <li>Boss loot on Rift success, failure, and Omega Training is disabled by this reward profile.</li>
+      <li>Curated milestone rewards and all old rarity/special percentage bonuses are disabled.</li>
+      <li>Daily and weekly claim records persist through server restarts.</li>
+      <li>Daily period: most recent 10:00 UTC boundary.</li>
+      <li>Weekly period: most recent Wednesday 10:00 UTC boundary.</li>
+    </ul>
+
+    <footer>Generated from the active v52 Mythic Rift and Omega content reward configuration.</footer>
+  </main>
+</body>
+</html>

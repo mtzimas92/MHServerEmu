@@ -1,4 +1,3 @@
-using MHServerEmu.Core.Logging;
 using MHServerEmu.Core.Memory;
 using MHServerEmu.Games.Entities.Avatars;
 using MHServerEmu.Games.Entities.Inventories;
@@ -34,16 +33,14 @@ namespace MHServerEmu.Games.Entities
             if (recipeProto == null || IsMythicRiftCompletionCrafterRecipe(recipeItem, vendor) == false)
                 return false;
 
-            if (Game?.MythicRiftManager?.TryResolveCompletionCrafterRun(vendor, DatabaseUniqueId, out MythicRiftRunState runState) != true)
+            if (Game?.MythicRiftManager?.TryResolveCompletionCrafterRun(vendor, DatabaseUniqueId, out _) != true)
             {
-                TraceMythicRiftOmegaCraftFailure(null, recipeItem, null, "run-unavailable");
                 Game.ChatManager?.SendChatFromCustomSystem(this, "[Mythic Rift] This completion crafter is not available for your current Rift reward window.", showSender: false);
                 return true;
             }
 
             if (isRecraft == false && resultsInv?.Count > 0)
             {
-                TraceMythicRiftOmegaCraftFailure(runState, recipeItem, null, "result-inventory-not-empty");
                 Game.ChatManager?.SendChatFromCustomSystem(this, "[Mythic Rift] Clear the crafting result slot before using the completion crafter.", showSender: false);
                 return true;
             }
@@ -52,13 +49,11 @@ namespace MHServerEmu.Games.Entities
             if (sourceItem == null)
             {
                 craftingResult = CraftingResult.IngredientInvalid;
-                TraceMythicRiftOmegaCraftFailure(runState, recipeItem, null, "source-item-not-found");
                 return true;
             }
 
             if (sourceItem.GetOwnerOfType<Player>() != this)
             {
-                TraceMythicRiftOmegaCraftFailure(runState, recipeItem, sourceItem, "source-item-owner-mismatch");
                 return true;
             }
 
@@ -66,7 +61,6 @@ namespace MHServerEmu.Games.Entities
             if (IsMythicRiftCompletionCraftEligibleTarget(sourceItem, sourceLevel) == false)
             {
                 craftingResult = CraftingResult.IngredientLevelRestricted;
-                TraceMythicRiftOmegaCraftFailure(runState, recipeItem, sourceItem, $"source-item-ineligible itemLevel={sourceLevel}");
                 Game.ChatManager?.SendChatFromCustomSystem(
                     this,
                     $"[Mythic Rift] Completion crafter accepts only item level {Game.MythicRiftManager.CompletionCrafterMinimumItemLevel}-{Game.MythicRiftManager.CompletionCrafterMaximumItemLevel - 1} Unique or {Game.MythicRiftManager.CompletionCrafterCosmicMinimumItemLevel}-{Game.MythicRiftManager.CompletionCrafterMaximumItemLevel - 1} Cosmic gear in slots 1-5.",
@@ -77,7 +71,6 @@ namespace MHServerEmu.Games.Entities
             uint outputSlot = resultsInv.GetFreeSlot(null, false);
             if (outputSlot == Inventory.InvalidSlot)
             {
-                TraceMythicRiftOmegaCraftFailure(runState, recipeItem, sourceItem, "result-inventory-full");
                 Game.ChatManager?.SendChatFromCustomSystem(this, "[Mythic Rift] Clear the crafting result slot before using the completion crafter.", showSender: false);
                 return true;
             }
@@ -93,21 +86,18 @@ namespace MHServerEmu.Games.Entities
             if (currencyProtoRef != PrototypeId.Invalid && currencyCost > 0 && availableCurrency < currencyCost)
             {
                 craftingResult = CraftingResult.InsufficientIngredients;   // generic error code, same as the native "other currencies" fallback in Item.cs
-                TraceMythicRiftOmegaCraftFailure(runState, recipeItem, sourceItem, $"insufficient-currency required={currencyCost} available={availableCurrency}");
                 Game.ChatManager?.SendChatFromCustomSystem(this, $"[Mythic Rift] Not enough Champion's Commendations. A successful upgrade costs {currencyCost}; available={availableCurrency}.", showSender: false);
                 return true;
             }
 
             if (Game.MythicRiftManager.TrySpendCompletionCrafterAttempt(this, out bool upgraded, out int attemptsRemaining, out string failureReason) == false)
             {
-                TraceMythicRiftOmegaCraftFailure(runState, recipeItem, sourceItem, $"attempt-rejected detail={failureReason}");
                 Game.ChatManager?.SendChatFromCustomSystem(this, $"[Mythic Rift] {failureReason}", showSender: false);
                 return true;
             }
 
             if (upgraded == false)
             {
-                TraceMythicRiftOmegaCraftFailure(runState, recipeItem, sourceItem, $"upgrade-roll-failed attemptsRemaining={attemptsRemaining}");
                 Game.ChatManager?.SendChatFromCustomSystem(
                     this,
                     $"[Mythic Rift] Upgrade attempt failed. Attempts remaining={attemptsRemaining}.",
@@ -125,7 +115,6 @@ namespace MHServerEmu.Games.Entities
             if (outputItem == null)
             {
                 craftingResult = CraftingResult.CraftingFailed;
-                TraceMythicRiftOmegaCraftFailure(runState, recipeItem, sourceItem, $"output-creation-failed outputLevel={outputLevel}");
                 return true;
             }
 
@@ -143,14 +132,8 @@ namespace MHServerEmu.Games.Entities
             //     $"[Mythic Rift] Completion crafter upgraded {outputItem.PrototypeDataRef.GetNameFormatted()} from item level {sourceLevel} to {outputLevel}. This run's upgrade is complete.",
             //     showSender: false);
 
-            // Logger.Info($"[MythicRiftCompletionCrafter] Crafted upgrade playerDbId=0x{DatabaseUniqueId:X} runId={runState.Config.RunId} source={sourceItem.PrototypeDataRef.GetNameFormatted()} sourceLevel={sourceLevel} outputLevel={outputLevel}");
             craftingResult = CraftingResult.Success;
             return true;
-        }
-
-        private void TraceMythicRiftOmegaCraftFailure(MythicRiftRunState runState, Item recipeItem, Item sourceItem, string reason)
-        {
-            Logger.Info($"[OmegaCraftingTrace] stage=completion-crafter-failed playerDbId=0x{DatabaseUniqueId:X} runId={runState?.Config?.RunId ?? 0} mode={runState?.Config?.Mode.ToString() ?? "unknown"} reason={reason} recipe={recipeItem?.PrototypeDataRef.GetNameFormatted() ?? "unknown"} source={sourceItem?.PrototypeDataRef.GetNameFormatted() ?? "none"} sourceRarity={(sourceItem != null ? (sourceItem.ItemSpec?.RarityProtoRef ?? PrototypeId.Invalid).GetNameFormatted() : "none")} sourceLevel={(sourceItem != null ? GetMythicRiftCompletionCraftItemLevel(sourceItem) : 0)}");
         }
 
         private bool CanCraftMythicRiftCompletionRecipe(Item recipeItem, WorldEntity vendor)

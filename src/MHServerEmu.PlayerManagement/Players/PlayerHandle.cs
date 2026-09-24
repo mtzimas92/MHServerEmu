@@ -376,8 +376,9 @@ namespace MHServerEmu.PlayerManagement.Players
             if (context == TeleportContextEnum.TeleportContext_StoryWarp)
                 WorldView.Clear();
 
-            // Get the WorldView to use (this player's or party's)
-            WorldView worldView = GetCurrentWorldView();
+            // Private trial transfers must not reuse a party member's region instance.
+            bool forcePrivateRegion = createRegionParams?.Cheat == true;
+            WorldView worldView = forcePrivateRegion ? WorldView : GetCurrentWorldView();
 
             // Prioritize regions that are already in the WorldView.
             RegionHandle region = worldView.GetMatchingRegion(regionProtoRef, createRegionParams);
@@ -385,7 +386,7 @@ namespace MHServerEmu.PlayerManagement.Players
             // Create a new region if needed
             if (region == null)
             {
-                if (regionProto.IsPublic)
+                if (regionProto.IsPublic && forcePrivateRegion == false)
                     region = PlayerManagerService.Instance.WorldManager.GetOrCreatePublicRegion(regionProtoRef, createRegionParams);
                 else
                     region = PlayerManagerService.Instance.WorldManager.CreatePrivateRegion(this, regionProtoRef, createRegionParams);
