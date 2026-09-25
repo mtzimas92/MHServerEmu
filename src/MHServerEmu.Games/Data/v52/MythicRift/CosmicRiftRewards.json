@@ -18,7 +18,7 @@
   "endlessCycleBonusSpecialPctCap": 0,
   "defaultDelivery": "ground",
   "lootTableAliases": {
-    "boss-unique-single": "Loot/Tables/Achievements/RandomChallengeUniqueSingle.prototype",
+    "boss-unique-box": "Loot/Tables/RandomGiftboxes/DailyGift/MysteriousUniqueBoxTable.prototype",
     "cosmic-artifacts": "Loot/Tables/Mob/Bosses/CosmicArtifactsTable.prototype"
   },
   "primaryLootTableOverrides": [],
@@ -26,11 +26,11 @@
     {
       "id": "boss-gauntlet-waves-11-15-boss-uniques",
       "enabled": true,
-      "lootTablePrototype": "boss-unique-single",
+      "lootTablePrototype": "boss-unique-box",
       "rolls": 2,
       "chancePercent": 100,
       "minWave": 11,
-      "maxWave": 15,
+      "maxWave": 11,
       "successOnly": false,
       "modes": [
         "boss-gauntlet"
@@ -56,11 +56,11 @@
     {
       "id": "boss-gauntlet-waves-16-20-boss-uniques",
       "enabled": true,
-      "lootTablePrototype": "boss-unique-single",
+      "lootTablePrototype": "boss-unique-box",
       "rolls": 3,
       "chancePercent": 100,
       "minWave": 16,
-      "maxWave": 20,
+      "maxWave": 16,
       "successOnly": false,
       "modes": [
         "boss-gauntlet"
@@ -72,11 +72,11 @@
     {
       "id": "boss-gauntlet-waves-21-25-boss-uniques",
       "enabled": true,
-      "lootTablePrototype": "boss-unique-single",
+      "lootTablePrototype": "boss-unique-box",
       "rolls": 4,
       "chancePercent": 100,
       "minWave": 21,
-      "maxWave": 25,
+      "maxWave": 21,
       "successOnly": false,
       "modes": [
         "boss-gauntlet"
@@ -102,11 +102,11 @@
     {
       "id": "boss-gauntlet-waves-26-30-boss-uniques",
       "enabled": true,
-      "lootTablePrototype": "boss-unique-single",
+      "lootTablePrototype": "boss-unique-box",
       "rolls": 5,
       "chancePercent": 100,
       "minWave": 26,
-      "maxWave": 30,
+      "maxWave": 26,
       "successOnly": false,
       "modes": [
         "boss-gauntlet"
@@ -118,11 +118,11 @@
     {
       "id": "boss-gauntlet-waves-31-35-boss-uniques",
       "enabled": true,
-      "lootTablePrototype": "boss-unique-single",
+      "lootTablePrototype": "boss-unique-box",
       "rolls": 6,
       "chancePercent": 100,
       "minWave": 31,
-      "maxWave": 35,
+      "maxWave": 31,
       "successOnly": false,
       "modes": [
         "boss-gauntlet"
@@ -148,11 +148,11 @@
     {
       "id": "boss-gauntlet-waves-36-40-boss-uniques",
       "enabled": true,
-      "lootTablePrototype": "boss-unique-single",
+      "lootTablePrototype": "boss-unique-box",
       "rolls": 7,
       "chancePercent": 100,
       "minWave": 36,
-      "maxWave": 40,
+      "maxWave": 36,
       "successOnly": false,
       "modes": [
         "boss-gauntlet"
@@ -164,11 +164,11 @@
     {
       "id": "boss-gauntlet-waves-41-plus-boss-uniques",
       "enabled": true,
-      "lootTablePrototype": "boss-unique-single",
+      "lootTablePrototype": "boss-unique-box",
       "rolls": 8,
       "chancePercent": 100,
       "minWave": 41,
-      "maxWave": 0,
+      "maxWave": 41,
       "successOnly": false,
       "modes": [
         "boss-gauntlet"

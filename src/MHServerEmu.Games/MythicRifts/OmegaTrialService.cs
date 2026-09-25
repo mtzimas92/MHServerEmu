@@ -80,6 +80,7 @@ namespace MHServerEmu.Games.MythicRifts
         private static readonly TimeSpan LokiPhase1SpawnDelay = TimeSpan.FromSeconds(3);
         private static readonly TimeSpan LokiFightTimeLimit = TimeSpan.FromMinutes(5);
         private static readonly TimeSpan SurturFightTimeLimit = TimeSpan.FromMinutes(5);
+        private const int PlayerDeathLimit = 5;
         private static readonly TimeSpan SurturHealthThresholdCheckInterval = TimeSpan.FromMilliseconds(250);
         private static readonly TimeSpan PostEntryNativeSuppressionDelay = TimeSpan.FromSeconds(1);
         private static readonly TimeSpan TrialReturnPortalLifespan = TimeSpan.FromMinutes(10);
@@ -103,6 +104,7 @@ namespace MHServerEmu.Games.MythicRifts
         private static readonly Dictionary<ulong, OmegaTrialState> TrialStates = new();
         private static readonly Dictionary<ulong, OmegaTrialState> RegionTrialStates = new();
         private static readonly Dictionary<ulong, Event<EntityDeadGameEvent>.Action> RegionEntityDeadActions = new();
+        private static readonly Dictionary<ulong, Event<PlayerDeathRecordedEvent>.Action> RegionPlayerDeathActions = new();
 
         private enum OmegaTrialStage
         {
@@ -505,6 +507,7 @@ namespace MHServerEmu.Games.MythicRifts
                 return;
 
             Event<EntityDeadGameEvent>.Action deadAction = (in EntityDeadGameEvent evt) => OnRegionEntityDead(region.Game, region.Id, evt);
+            Event<PlayerDeathRecordedEvent>.Action playerDeathAction = (in PlayerDeathRecordedEvent evt) => OnPlayerDeathRecorded(region.Id, evt);
             lock (SyncRoot)
             {
                 RegionTrialStates[region.Id] = state;
@@ -514,7 +517,39 @@ namespace MHServerEmu.Games.MythicRifts
                     region.EntityDeadEvent.AddActionBack(deadAction);
                     RegionEntityDeadActions[region.Id] = deadAction;
                 }
+
+                if (RegionPlayerDeathActions.ContainsKey(region.Id) == false)
+                {
+                    region.PlayerDeathRecordedEvent.AddActionBack(playerDeathAction);
+                    RegionPlayerDeathActions[region.Id] = playerDeathAction;
+                }
             }
+        }
+
+        private static void OnPlayerDeathRecorded(ulong regionId, in PlayerDeathRecordedEvent evt)
+        {
+            Player player = evt.Player;
+            if (player == null)
+                return;
+
+            OmegaTrialState state;
+            lock (SyncRoot)
+            {
+                RegionTrialStates.TryGetValue(regionId, out state);
+            }
+
+            if (state == null || player.DatabaseUniqueId != state.PlayerDbId || player.CurrentAvatar?.Region?.Id != regionId)
+                return;
+
+            state.PlayerDeaths++;
+            int deathsRemaining = Math.Max(PlayerDeathLimit - state.PlayerDeaths, 0);
+            if (deathsRemaining > 0)
+            {
+                SendTrialChat(player, $"Omega Trial deaths remaining: {deathsRemaining}.");
+                return;
+            }
+
+            FailTrial(player, state, "Death limit reached. Omega Trial failed.");
         }
 
         private static void OnRegionEntityDead(Game game, ulong regionId, in EntityDeadGameEvent evt)
@@ -720,8 +755,17 @@ namespace MHServerEmu.Games.MythicRifts
                 return;
 
             // Logger.Info($"[OmegaTrialTrace] stage=phase-timeout playerDbId=0x{state.PlayerDbId:X} trialStage={state.Stage} regionId=0x{region.Id:X}");
+            FailTrial(player, state, "Time expired. Omega Trial failed.");
+        }
+
+        private static void FailTrial(Player player, OmegaTrialState state, string message)
+        {
+            if (player == null || state == null)
+                return;
+
+            SendTrialChat(player, message);
             SendStopTrialTimer(player, state);
-            TrySpawnReturnPortal(player, region, state);
+            TrySpawnReturnPortal(player, state.CachedRegion, state);
             EndTrial(state.PlayerDbId);
         }
 
@@ -2474,6 +2518,7 @@ namespace MHServerEmu.Games.MythicRifts
                 return;
 
             Event<EntityDeadGameEvent>.Action deadAction;
+            Event<PlayerDeathRecordedEvent>.Action playerDeathAction;
             lock (SyncRoot)
             {
                 foreach (OmegaTrialState state in TrialStates.Values)
@@ -2485,10 +2530,14 @@ namespace MHServerEmu.Games.MythicRifts
                 RegionTrialStates.Remove(regionId);
                 RegionEntityDeadActions.TryGetValue(regionId, out deadAction);
                 RegionEntityDeadActions.Remove(regionId);
+                RegionPlayerDeathActions.TryGetValue(regionId, out playerDeathAction);
+                RegionPlayerDeathActions.Remove(regionId);
             }
 
             if (deadAction != null)
                 region?.EntityDeadEvent.RemoveAction(deadAction);
+            if (playerDeathAction != null)
+                region?.PlayerDeathRecordedEvent.RemoveAction(playerDeathAction);
         }
 
         private sealed class OmegaTrialState
@@ -2508,6 +2557,7 @@ namespace MHServerEmu.Games.MythicRifts
             public Orientation BanishReturnPortalDestinationOrientation;
             public TimeSpan PhaseStartedAt;
             public TimeSpan PhaseExpiresAt;
+            public int PlayerDeaths;
             public readonly EventPointer<OmegaTrialPostEntryNativeSuppressionEvent> PostEntryNativeSuppressionEvent = new();
             public readonly EventPointer<OmegaTrialLokiPhase1SpawnEvent> LokiPhase1SpawnEvent = new();
             public readonly EventPointer<OmegaTrialPhaseTimeoutEvent> PhaseTimeoutEvent = new();
