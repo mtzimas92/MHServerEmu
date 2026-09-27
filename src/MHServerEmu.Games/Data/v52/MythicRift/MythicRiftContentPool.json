@@ -265,7 +265,52 @@
       "bossPrototypeName": "Entity/Characters/Bosses/PatrolBrooklyn/BrooklynEventLoki.prototype",
       "bossLootTablePrototypeName": "Loot/Tables/Mob/Bosses/PatrolBrooklyn/Subtable/SharedPatrolBrooklynBossesCosmic.prototype",
       "randomMapEligible": false,
-      "randomBossEligible": false
+      "randomBossEligible": true
+    },
+    {
+      "id": "boss-civil-war-crossbones",
+      "displayName": "Crossbones",
+      "defaultKillQuota": 1,
+      "bossPrototypeName": "Entity/Characters/Bosses/CivilWar/CrossbonesPatrolBossMidtown.prototype",
+      "randomMapEligible": false,
+      "randomBossEligible": true,
+      "bossFamily": "crossbones"
+    },
+    {
+      "id": "boss-brooklyn-surtur-demon-maul",
+      "displayName": "Surtur Demon Maul",
+      "defaultKillQuota": 1,
+      "bossPrototypeName": "Entity/Characters/Bosses/PatrolBrooklyn/BrooklynEventSurturDemonMaulBoss.prototype",
+      "randomMapEligible": false,
+      "randomBossEligible": true,
+      "bossFamily": "surtur-demon-maul"
+    },
+    {
+      "id": "boss-brooklyn-surtur-demon-archer",
+      "displayName": "Surtur Demon Archer",
+      "defaultKillQuota": 1,
+      "bossPrototypeName": "Entity/Characters/Bosses/PatrolBrooklyn/BrooklynEventSurturDemonArcherBoss.prototype",
+      "randomMapEligible": false,
+      "randomBossEligible": true,
+      "bossFamily": "surtur-demon-archer"
+    },
+    {
+      "id": "boss-brooklyn-surtur-demon-sword",
+      "displayName": "Surtur Demon Sword",
+      "defaultKillQuota": 1,
+      "bossPrototypeName": "Entity/Characters/Bosses/PatrolBrooklyn/BrooklynEventSurturDemonSwordBoss.prototype",
+      "randomMapEligible": false,
+      "randomBossEligible": true,
+      "bossFamily": "surtur-demon-sword"
+    },
+    {
+      "id": "boss-brooklyn-surtur-demon-dual",
+      "displayName": "Surtur Demon Dual",
+      "defaultKillQuota": 1,
+      "bossPrototypeName": "Entity/Characters/Bosses/PatrolBrooklyn/BrooklynEventSurturDemonDualBoss.prototype",
+      "randomMapEligible": false,
+      "randomBossEligible": true,
+      "bossFamily": "surtur-demon-dual"
     },
     {
       "id": "boss-brooklyn-mr-hyde",
@@ -330,6 +375,15 @@
       "bossPrototypeName": "Entity/Characters/Bosses/DangerRoom/DangerRoomGorgon.prototype",
       "bossLootTablePrototypeName": "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/HydraIsland/MandarinTerminalLoot.prototype",
       "randomMapEligible": false
+    },
+    {
+      "id": "boss-dr-modok",
+      "displayName": "MODOK",
+      "defaultKillQuota": 1,
+      "bossPrototypeName": "Entity/Characters/Bosses/DangerRoom/DangerRoomMODOK.prototype",
+      "randomMapEligible": false,
+      "randomBossEligible": true,
+      "bossFamily": "modok"
     },
     {
       "id": "boss-dr-juggernaut",

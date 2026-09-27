@@ -151,18 +151,6 @@
       "preserveProcAffixes": true,
       "builtInProperties": [
         {
-          "property": { "Property": "HealthAddBonus" },
-          "valueMin": 2500,
-          "valueMax": 5000,
-          "rollAsInteger": true
-        },
-        {
-          "property": { "Property": "EnduranceAddBonus" },
-          "valueMin": 150,
-          "valueMax": 150,
-          "rollAsInteger": true
-        },
-        {
           "property": {
             "Property": "Proc",
             "Params": [
@@ -183,21 +171,34 @@
           },
           "valueMin": 0.05,
           "valueMax": 0.05
-        },
-        {
-          "property": { "Property": "StatStrengthModifier" },
-          "valueMin": 2,
-          "valueMax": 4,
-          "rollAsInteger": true
-        },
-        {
-          "property": { "Property": "StatFightingSkillsModifier" },
-          "valueMin": 2,
-          "valueMax": 4,
-          "rollAsInteger": true
         }
       ],
-      "forcedAffixes": [],
+      "forcedAffixes": [
+        {
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/BonusHealth/BonusHealthT3.prototype",
+          "count": 1,
+          "allowInvalidAttachment": true,
+          "replaceExistingSamePosition": false
+        },
+        {
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/HealthRegen/HealthRegen15.prototype",
+          "count": 1,
+          "allowInvalidAttachment": true,
+          "replaceExistingSamePosition": false
+        },
+        {
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/Attributes/StrengthT3.prototype",
+          "count": 1,
+          "allowInvalidAttachment": true,
+          "replaceExistingSamePosition": false
+        },
+        {
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/Attributes/FightingT3.prototype",
+          "count": 1,
+          "allowInvalidAttachment": true,
+          "replaceExistingSamePosition": false
+        }
+      ],
       "procKeywordProperties": [],
       "affixReplacements": [],
       "randomAffixes": []
