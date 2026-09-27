@@ -14,6 +14,7 @@ namespace MHServerEmu.Games.MythicRifts
 
         public bool Enabled { get; set; } = true;
         public bool VendorEnabled { get; set; } = true;
+        public bool ResetOmegaTrainingProgressWeekly { get; set; } = false;
         public string DisabledMessage { get; set; } = "Mythic Rifts are temporarily disabled.";
         public Dictionary<string, bool> Modes { get; set; } = new(StringComparer.OrdinalIgnoreCase)
         {

@@ -47,6 +47,14 @@
           "quantity": 1,
           "chancePercent": 2,
           "itemLevel": 69
+        },
+        {
+          "id": "omega-muspelheim-unique049",
+          "enabled": true,
+          "itemPrototype": "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot4/Unique049.prototype",
+          "quantity": 1,
+          "chancePercent": 2,
+          "itemLevel": 69
         }
       ]
     },
@@ -102,6 +110,14 @@
           "id": "cosmic-axis-unique294",
           "enabled": true,
           "itemPrototype": "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot2/Unique294.prototype",
+          "quantity": 1,
+          "chancePercent": 2,
+          "itemLevel": 69
+        },
+        {
+          "id": "cosmic-axis-unique049",
+          "enabled": true,
+          "itemPrototype": "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot4/Unique049.prototype",
           "quantity": 1,
           "chancePercent": 2,
           "itemLevel": 69

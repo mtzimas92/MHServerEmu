@@ -1,0 +1,42 @@
+[
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot4/Unique049.prototype",
+    "Path": "DesignState",
+    "Description": "Enable the Omega support unique.",
+    "ValueType": "Enum",
+    "Value": "Live"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot4/Unique049.prototype",
+    "Path": "DesignStatePS4",
+    "Description": "Enable the Omega support unique for PS4 client data.",
+    "ValueType": "Enum",
+    "Value": "Live"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot4/Unique049.prototype",
+    "Path": "DesignStateXboxOne",
+    "Description": "Enable the Omega support unique for Xbox One client data.",
+    "ValueType": "Enum",
+    "Value": "Live"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot4/Unique049.prototype",
+    "Path": "ActionsTriggeredOnItemEvent",
+    "Description": "Assign Unique191's passive team regeneration aura to the Omega support unique.",
+    "ValueType": "Prototype",
+    "Value": {
+      "ParentDataRef": "Entity/Items/TriggeredItemEventActions/BaseBlueprints/ItemActionSet.defaults",
+      "Choices": [
+        {
+          "ParentDataRef": "Entity/Items/TriggeredItemEventActions/ActionBlueprints/ItemActionAssignPower.defaults",
+          "Power": "Powers/ItemPowers/UniquesPowers/Unique191RegenAura.prototype"
+        }
+      ]
+    }
+  }
+]

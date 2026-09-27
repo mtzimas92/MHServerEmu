@@ -1,6 +1,7 @@
 {
   "enabled": true,
   "vendorEnabled": true,
+  "resetOmegaTrainingProgressWeekly": false,
   "disabledMessage": "Mythic Rifts are temporarily disabled.",
   "modes": {
     "Standard": true,

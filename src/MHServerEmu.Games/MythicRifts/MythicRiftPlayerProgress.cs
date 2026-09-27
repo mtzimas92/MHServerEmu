@@ -71,6 +71,23 @@ namespace MHServerEmu.Games.MythicRifts
             _standardRiftLeaderboardResetMarkerByAvatar[avatarKey] = seasonMarker;
         }
 
+        public bool HasOmegaTrainingSeasonReset(Avatar avatar, int seasonMarker)
+        {
+            ulong resetKey = GetOmegaTrainingResetKey(avatar);
+            return resetKey != 0
+                && _standardRiftLeaderboardResetMarkerByAvatar.TryGetValue(resetKey, out int storedMarker)
+                && storedMarker == seasonMarker;
+        }
+
+        public void SetOmegaTrainingSeasonReset(Avatar avatar, int seasonMarker)
+        {
+            ulong resetKey = GetOmegaTrainingResetKey(avatar);
+            if (resetKey == 0)
+                return;
+
+            _standardRiftLeaderboardResetMarkerByAvatar[resetKey] = seasonMarker;
+        }
+
         public bool HasOmegaPatrolAccess(Avatar avatar)
         {
             ulong avatarKey = GetAvatarKey(avatar);
@@ -108,6 +125,12 @@ namespace MHServerEmu.Games.MythicRifts
             return avatar != null && avatar.PrototypeDataRef != PrototypeId.Invalid
                 ? (ulong)avatar.PrototypeDataRef
                 : 0;
+        }
+
+        private static ulong GetOmegaTrainingResetKey(Avatar avatar)
+        {
+            ulong avatarKey = GetAvatarKey(avatar);
+            return avatarKey == 0 ? 0 : avatarKey | (1UL << 63);
         }
 
         private static int GetValueForAvatar(Avatar avatar, Dictionary<ulong, int> valuesByAvatar, int defaultValue, int minValue)

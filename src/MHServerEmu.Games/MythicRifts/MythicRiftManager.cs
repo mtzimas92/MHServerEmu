@@ -19,6 +19,7 @@ using MHServerEmu.Games.Loot.Specs;
 using MHServerEmu.Games.Missions;
 using MHServerEmu.Games.Navi;
 using MHServerEmu.Games.OmegaTierItems;
+using MHServerEmu.Games.Powers;
 using MHServerEmu.Games.Properties;
 using MHServerEmu.Games.Regions;
 using MHServerEmu.Games.Social.Parties;
@@ -75,7 +76,7 @@ namespace MHServerEmu.Games.MythicRifts
         private const int MilestoneMiniBossKillCredit = 10;
         private const int RiftPopulationRespawnDelayMS = 20000;
         private const int RecentRandomMapHistoryLimit = 4;
-        private const int RecentRandomBossFamilyHistoryLimit = 8;
+        private const int RecentRandomBossFamilyHistoryLimit = 16;
         private const ulong RiftEntryBannerLocaleStringBase = 18000000000000000000UL;
         private const int RiftEntryBannerLocalizedLevelLimit = 10000;
         private const int RiftEntryBannerTimeToLiveMS = 5000;
@@ -125,6 +126,7 @@ namespace MHServerEmu.Games.MythicRifts
         private const int RiftCompletionCrafterMaximumItemLevel = 72;
         private const string RiftCompletionCrafterCurrencyPrototypeName = "Entity/Items/CurrencyItems/CurrencyPrototypes/GenoshaRaidCurrency.prototype";
         private const string OmegaRewardRarityPrototypeName = "Entity/Items/Rarity/R6Omega.prototype";
+        private const string RiftEternitySplinterLootTablePrototypeName = "Loot/Tables/ItemType/ESDropNormalDropTable.prototype";
         private const float RiftCompletionArtifactVendorSpawnOffset = -260f;
         private const float RiftCompletionCrafterSpawnOffset = 390f;
         private const string BossGauntletArenaContentId = "boss-gauntlet-patrol-savage";
@@ -162,6 +164,7 @@ namespace MHServerEmu.Games.MythicRifts
         private readonly List<MythicRiftContentEntry> _randomBossEligibleContentPool = new();
         private readonly Dictionary<ulong, MythicRiftRunState> _activeRuns = new();
         private readonly Dictionary<ulong, Event<EntityDeadGameEvent>.Action> _regionEntityDeadActions = new();
+        private readonly Dictionary<ulong, Event<EntityEnteredWorldGameEvent>.Action> _regionEntityEnteredWorldActions = new();
         private readonly Dictionary<ulong, int> _highestUnlockedRiftLevelByPlayer = new();
         private readonly Dictionary<ulong, int> _highestUnlockedEndlessRiftLevelByPlayer = new();
         private readonly Dictionary<ulong, int> _preferredLaunchRiftLevelByPlayer = new();
@@ -193,6 +196,7 @@ namespace MHServerEmu.Games.MythicRifts
         private static PrototypeId _cachedRiftBossIconsWidgetPrototypeRef = PrototypeId.Invalid;
         private static PrototypeId _cachedRiftModifierButtonWidgetPrototypeRef = PrototypeId.Invalid;
         private static PrototypeId[] _cachedCustomRiftPopulationMobPrototypeRefs;
+        private static PrototypeId _cachedRiftEternitySplinterLootTableRef = PrototypeId.Invalid;
         private IReadOnlyList<PrototypeId> _cachedRiftHazardPrototypeRefs;
         private readonly Dictionary<(ulong RunId, ulong PlayerDbId), GameDialogInstance> _readyCheckDialogs = new();
         private readonly Dictionary<(ulong RunId, ulong PlayerDbId), GameDialogInstance> _rewardRoomDialogs = new();
@@ -314,6 +318,8 @@ namespace MHServerEmu.Games.MythicRifts
             Player onlinePlayer = Game.EntityManager.GetEntityByDbGuid<Player>(playerDbId);
             if (mode == MythicRiftMode.Standard)
                 TryResetStandardRiftProgressForLeaderboard(onlinePlayer);
+            else if (mode == MythicRiftMode.Endless && MythicRiftFeatureTuning.Load().ResetOmegaTrainingProgressWeekly)
+                TryResetOmegaTrainingProgressForLeaderboard(onlinePlayer);
 
             ulong cacheKey = GetProgressionCacheKey(playerDbId, mode);
             Dictionary<ulong, int> unlockedCache = GetHighestUnlockedCache(mode);
@@ -555,6 +561,30 @@ namespace MHServerEmu.Games.MythicRifts
             {
                 Logger.WarnException(e, $"Standard Rift leaderboard season reset failed for playerDbId=0x{player.DatabaseUniqueId:X}. leaderboardInstanceId={activeInstanceId} seasonMarker={activeSeasonMarker}");
             }
+        }
+
+        private void TryResetOmegaTrainingProgressForLeaderboard(Player player)
+        {
+            Avatar avatar = player?.CurrentAvatar;
+            if (avatar == null || TryGetActiveCosmicRiftProgressionLeaderboardInstanceId(out ulong activeInstanceId) == false)
+                return;
+
+            int activeSeasonMarker = GetLeaderboardSeasonMarker(activeInstanceId);
+            if (player.MythicRiftProgress.HasOmegaTrainingSeasonReset(avatar, activeSeasonMarker))
+                return;
+
+            ulong cacheKey = GetProgressionCacheKey(player.DatabaseUniqueId, MythicRiftMode.Endless);
+            int previousLevel = player.MythicRiftProgress.GetEndlessHighestUnlockedLevel(avatar);
+            int previousCycles = player.MythicRiftProgress.GetEndlessCompletedCycles(avatar);
+
+            _highestUnlockedEndlessRiftLevelByPlayer.Remove(cacheKey);
+            _preferredLaunchEndlessRiftLevelByPlayer.Remove(cacheKey);
+            _completedEndlessCyclesByPlayer.Remove(cacheKey);
+            player.MythicRiftProgress.SetEndlessHighestUnlockedLevel(avatar, 1);
+            player.MythicRiftProgress.SetEndlessCompletedCycles(avatar, 0);
+            player.MythicRiftProgress.SetOmegaTrainingSeasonReset(avatar, activeSeasonMarker);
+
+            Logger.Info($"Omega Training weekly season reset avatar progress for playerDbId=0x{player.DatabaseUniqueId:X}. leaderboardInstanceId={activeInstanceId} seasonMarker={activeSeasonMarker} avatar={avatar.PrototypeName} previousLevel={previousLevel} previousCycles={previousCycles} newLevel=1 newCycles=0.");
         }
 
         private void ResetStandardRiftAccountBestForLeaderboardInstance(Player player, int activeSeasonMarker, ulong activeInstanceId)
@@ -1462,6 +1492,7 @@ namespace MHServerEmu.Games.MythicRifts
             runState.Start(currentTime);
             if (runState.Status == MythicRiftRunStatus.Active)
             {
+                DisableNativeLootForRiftRegion(runState, Game.RegionManager.GetRegion(runState.RegionId));
                 if (runState.Config.UseBossGauntletMode || runState.Config.Content.BossOnlyCheckpointEligible)
                     QueueRiftReadyCheck(runState, currentTime, runState.Config.UseBossGauntletMode ? $"Boss Gauntlet wave {runState.Config.WaveNumber}" : "Checkpoint boss wave");
 
@@ -2587,6 +2618,7 @@ namespace MHServerEmu.Games.MythicRifts
             RegisterRegionPlayersAsParticipants(runState, region);
             ApplyRunDifficultyToRegion(runState, region);
             EnsureRegionListener(region);
+            DisableNativeLootForRiftRegion(runState, region);
             if (runState.Config.UseBossGauntletMode)
                 SuppressNativeBossGauntletTransitions(runState, region);
             if (runState.Config.UseBossGauntletMode == false &&
@@ -2917,7 +2949,9 @@ namespace MHServerEmu.Games.MythicRifts
             MythicRiftContentEntry mapContent,
             IReadOnlyCollection<string> excludedBossFamilies = null)
         {
-            if (mapContent?.UseOwnBossSourceWhenSelected == true && mapContent.HasValidBossSource)
+            if (mapContent?.UseOwnBossSourceWhenSelected == true &&
+                mapContent.HasValidBossSource &&
+                IsBossFamilyExcluded(mapContent, excludedBossFamilies) == false)
                 return mapContent;
 
             return SelectRandomBossContent(mapContent, excludedBossFamilies);
@@ -2935,10 +2969,25 @@ namespace MHServerEmu.Games.MythicRifts
             if (mapContent == null)
                 return null;
 
-            if (mapContent.HasValidBossSource && (mapContent.RandomBossEligible || mapContent.UseOwnBossSourceWhenSelected))
+            if (mapContent.HasValidBossSource &&
+                (mapContent.RandomBossEligible || mapContent.UseOwnBossSourceWhenSelected) &&
+                IsBossFamilyExcluded(mapContent, excludedBossFamilies) == false)
                 return mapContent;
 
             return SelectRandomBossContent(mapContent, excludedBossFamilies);
+        }
+
+        private static bool IsBossFamilyExcluded(
+            MythicRiftContentEntry content,
+            IReadOnlyCollection<string> excludedBossFamilies)
+        {
+            if (content == null || excludedBossFamilies == null || excludedBossFamilies.Count == 0)
+                return false;
+
+            string bossFamily = NormalizeBossFamily(content.BossFamily);
+            return string.IsNullOrWhiteSpace(bossFamily) == false &&
+                   excludedBossFamilies.Any(excludedFamily =>
+                       string.Equals(NormalizeBossFamily(excludedFamily), bossFamily, StringComparison.OrdinalIgnoreCase));
         }
 
         private MythicRiftContentEntry SelectRandomBossContent(
@@ -2986,9 +3035,14 @@ namespace MHServerEmu.Games.MythicRifts
             if (region == null || _regionEntityDeadActions.ContainsKey(region.Id))
                 return;
 
-            Event<EntityDeadGameEvent>.Action action = (in EntityDeadGameEvent evt) => OnRegionEntityDead(region.Id, evt);
-            region.EntityDeadEvent.AddActionBack(action);
-            _regionEntityDeadActions[region.Id] = action;
+            Event<EntityDeadGameEvent>.Action deadAction = (in EntityDeadGameEvent evt) => OnRegionEntityDead(region.Id, evt);
+            region.EntityDeadEvent.AddActionBack(deadAction);
+            _regionEntityDeadActions[region.Id] = deadAction;
+
+            Event<EntityEnteredWorldGameEvent>.Action enteredWorldAction =
+                (in EntityEnteredWorldGameEvent evt) => OnRegionEntityEnteredWorld(region.Id, evt);
+            region.EntityEnteredWorldEvent.AddActionBack(enteredWorldAction);
+            _regionEntityEnteredWorldActions[region.Id] = enteredWorldAction;
         }
 
         private void CleanupRegionListener(ulong regionId)
@@ -3000,12 +3054,62 @@ namespace MHServerEmu.Games.MythicRifts
             if (regionStillUsed)
                 return;
 
-            if (_regionEntityDeadActions.TryGetValue(regionId, out Event<EntityDeadGameEvent>.Action action) == false)
+            Region region = Game.RegionManager.GetRegion(regionId);
+            if (_regionEntityDeadActions.Remove(regionId, out Event<EntityDeadGameEvent>.Action deadAction))
+                region?.EntityDeadEvent.RemoveAction(deadAction);
+
+            if (_regionEntityEnteredWorldActions.Remove(regionId, out Event<EntityEnteredWorldGameEvent>.Action enteredWorldAction))
+                region?.EntityEnteredWorldEvent.RemoveAction(enteredWorldAction);
+        }
+
+        private void OnRegionEntityEnteredWorld(ulong regionId, in EntityEnteredWorldGameEvent evt)
+        {
+            if (evt.Entity is not Agent agent || agent is Avatar)
                 return;
 
-            Region region = Game.RegionManager.GetRegion(regionId);
-            region?.EntityDeadEvent.RemoveAction(action);
-            _regionEntityDeadActions.Remove(regionId);
+            if (HasNativeLootDisabledRiftRun(regionId))
+                DisableNativeLootForAgent(agent);
+        }
+
+        private void DisableNativeLootForRiftRegion(MythicRiftRunState runState, Region region)
+        {
+            if (runState == null || region == null || HasNativeLootDisabledMode(runState) == false)
+                return;
+
+            foreach (Agent agent in region.Entities.OfType<Agent>())
+            {
+                if (agent is not Avatar)
+                    DisableNativeLootForAgent(agent);
+            }
+        }
+
+        private static void DisableNativeLootForAgent(Agent agent)
+        {
+            if (agent == null)
+                return;
+
+            agent.Properties[PropertyEnum.NoLootDrop] = true;
+
+            using var lootPropertiesHandle = ListPool<PropertyId>.Get(out List<PropertyId> lootProperties);
+            foreach (var kvp in agent.Properties.IteratePropertyRange(PropertyEnum.LootTablePrototype))
+                lootProperties.Add(kvp.Key);
+
+            foreach (PropertyId propertyId in lootProperties)
+                agent.Properties.RemoveProperty(propertyId);
+        }
+
+        private bool HasNativeLootDisabledRiftRun(ulong regionId)
+        {
+            return regionId != 0 && _activeRuns.Values.Any(runState =>
+                runState.Status == MythicRiftRunStatus.Active &&
+                runState.RegionId == regionId &&
+                HasNativeLootDisabledMode(runState));
+        }
+
+        private static bool HasNativeLootDisabledMode(MythicRiftRunState runState)
+        {
+            return runState?.Config?.Mode == MythicRiftMode.Standard ||
+                   runState?.Config?.Mode == MythicRiftMode.Endless;
         }
 
         private void RegisterRewardChestRegionListener(Region region)
@@ -4356,6 +4460,7 @@ namespace MHServerEmu.Games.MythicRifts
                     continue;
 
                 RegisterParticipantsFromEvent(runState, evt);
+                TryAwardRiftEternitySplinterLoot(runState, evt);
 
                 if (TryApplyPlayerDeathPenalty(runState, evt))
                     continue;
@@ -6652,6 +6757,7 @@ namespace MHServerEmu.Games.MythicRifts
             settingsProperties[PropertyEnum.DifficultyTier] = region.DifficultyTierRef;
             settingsProperties[PropertyEnum.Rank] = mobProto.Rank?.DataRef ?? PrototypeId.Invalid;
             settingsProperties[PropertyEnum.MissionXEncounterHostilityOk] = true;
+            settingsProperties[PropertyEnum.NoLootDrop] = true;
             ApplyRunAffixesToSpawnProperties(runState, mobProto.Rank?.DataRef ?? PrototypeId.Invalid, settingsProperties, includeBossScopedAffixes: false);
             settings.Properties = settingsProperties;
 
@@ -7455,6 +7561,44 @@ namespace MHServerEmu.Games.MythicRifts
                 if (avatar.IsDead)
                     avatar.Resurrect();
             }
+        }
+
+        private void TryAwardRiftEternitySplinterLoot(MythicRiftRunState runState, in EntityDeadGameEvent evt)
+        {
+            if (HasNativeLootDisabledMode(runState) == false ||
+                evt.Defender is not Agent defeatedAgent ||
+                defeatedAgent is Avatar ||
+                defeatedAgent.IsHostileToPlayers() == false)
+            {
+                return;
+            }
+
+            PrototypeId lootTableRef = GetRiftEternitySplinterLootTableRef();
+            Region region = defeatedAgent.Region;
+            if (lootTableRef == PrototypeId.Invalid || region == null)
+                return;
+
+            using var nearbyPlayersHandle = ListPool<Player>.Get(out List<Player> nearbyPlayers);
+            Power.ComputeNearbyPlayers(region, defeatedAgent.RegionLocation.Position, 0, false, nearbyPlayers);
+
+            int recipientId = 1;
+            foreach (Player player in nearbyPlayers)
+            {
+                if (player == null || runState.ParticipantPlayerDbIds.Contains(player.DatabaseUniqueId) == false)
+                    continue;
+
+                using var inputSettingsHandle = LootInputSettingsPool.Get(out LootInputSettings inputSettings);
+                inputSettings.Initialize(LootContext.Drop, player, defeatedAgent);
+                Game.LootManager.SpawnLootFromTable(lootTableRef, inputSettings, recipientId++);
+            }
+        }
+
+        private static PrototypeId GetRiftEternitySplinterLootTableRef()
+        {
+            if (_cachedRiftEternitySplinterLootTableRef == PrototypeId.Invalid)
+                _cachedRiftEternitySplinterLootTableRef = ResolvePrototype(RiftEternitySplinterLootTablePrototypeName);
+
+            return _cachedRiftEternitySplinterLootTableRef;
         }
 
         private static bool TryResolveRunStartPosition(MythicRiftRunState runState, Region region, out Vector3 position)
@@ -8660,7 +8804,23 @@ namespace MHServerEmu.Games.MythicRifts
                 ("sauron", new[] { "sauron" }),
                 ("kurse", new[] { "kurse" }),
                 ("blob", new[] { "blob" }),
-                ("toad", new[] { "toad" })
+                ("toad", new[] { "toad" }),
+                ("electro", new[] { "electro" }),
+                ("gorgon", new[] { "gorgon" }),
+                ("black-cat", new[] { "blackcat" }),
+                ("mister-hyde", new[] { "misterhyde", "mrhyde" }),
+                ("pyro", new[] { "pyro" }),
+                ("batroc", new[] { "batroc" }),
+                ("grim-reaper", new[] { "grimreaper" }),
+                ("kraven", new[] { "kraven" }),
+                ("living-laser", new[] { "livinglaser" }),
+                ("lizard", new[] { "lizard" }),
+                ("madame-hydra", new[] { "madamehydra" }),
+                ("man-ape", new[] { "manape" }),
+                ("tombstone", new[] { "tombstone" }),
+                ("mindless-titan", new[] { "mindlesstitan" }),
+                ("mega-sentinel", new[] { "megasentinel" }),
+                ("sentinel", new[] { "sentinel" })
             };
 
             foreach ((string family, string[] keywords) in knownFamilies)

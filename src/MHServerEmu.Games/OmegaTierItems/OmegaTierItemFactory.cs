@@ -85,7 +85,7 @@ namespace MHServerEmu.Games.OmegaTierItems
             if (resolver == null || filterArgs == null || itemSpec == null || filterArgs.ItemProto is not ItemPrototype itemProto)
                 return;
 
-            if (IsSupportedOverrideLootContext(resolver.LootContext) == false ||
+            if (IsSupportedOmegaPromotionLootContext(resolver.LootContext) == false ||
                 IsOmegaDifficulty(resolver, null) == false)
             {
                 return;
@@ -136,7 +136,7 @@ namespace MHServerEmu.Games.OmegaTierItems
             bool promoteToOmega = PendingOmegaPromotions.Remove(itemSpec);
             OmegaTierItemTuning tuning = OmegaTierItemTuning.Load();
             if (tuning?.Enabled != true || (promoteToOmega == false && IsOmegaRarity(itemSpec.RarityProtoRef) == false) ||
-                IsSupportedOverrideLootContext(resolver.LootContext) == false ||
+                IsSupportedOmegaPromotionLootContext(resolver.LootContext) == false ||
                 IsOmegaDifficulty(resolver, settings) == false)
             {
                 return false;
@@ -1992,6 +1992,13 @@ namespace MHServerEmu.Games.OmegaTierItems
             return lootContext.HasFlag(LootContext.Drop) ||
                 lootContext.HasFlag(LootContext.MissionReward) ||
                 lootContext.HasFlag(LootContext.MysteryChest);
+        }
+
+        private static bool IsSupportedOmegaPromotionLootContext(LootContext lootContext)
+        {
+            return lootContext.HasFlag(LootContext.Drop) &&
+                lootContext.HasFlag(LootContext.MissionReward) == false &&
+                lootContext.HasFlag(LootContext.MysteryChest) == false;
         }
 
         private static bool IsUniqueItemSpec(ItemSpec itemSpec)
