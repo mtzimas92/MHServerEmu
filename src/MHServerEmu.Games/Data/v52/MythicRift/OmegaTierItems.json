@@ -105,41 +105,27 @@
       "preserveProcBuiltInProperties": false,
       "preserveBuiltInPropertyIndexes": [ 0 ],
       "maximizeBuiltInPropertyRolls": false,
+      "replaceBuiltInPropertiesFromTemplate": true,
+      "builtInPropertyTemplateItemPrototype": "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot4/Unique191.prototype",
+      "builtInPropertyTemplateIndexes": [ 4, 5, 7 ],
       "clearExistingAffixes": true,
       "preserveProcAffixes": true,
-      "builtInProperties": [
-        {
-          "property": {
-            "Property": "Proc",
-            "Params": [
-              7924569268274926671,
-              "Powers/ItemPowers/UniquesPowers/Unique182HealOnHit.prototype"
-            ]
-          },
-          "valueMin": 0.05,
-          "valueMax": 0.05
-        },
-        {
-          "property": {
-            "Property": "Proc",
-            "Params": [
-              17055263817987069060,
-              "Powers/ItemPowers/UniquesPowers/Unique151DamageOnGotAttacked.prototype"
-            ]
-          },
-          "valueMin": 0.05,
-          "valueMax": 0.05
-        }
-      ],
+      "builtInProperties": [],
       "forcedAffixes": [
         {
-          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/BonusHealth/BonusHealthT3.prototype",
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/BonusSpirit/BonusSpiritT1.prototype",
           "count": 1,
           "allowInvalidAttachment": true,
           "replaceExistingSamePosition": false
         },
         {
-          "prototype": "Entity/Items/Affixes/ArmorAffixes/HealthRegen/HealthRegen15.prototype",
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/zzzDeprecated/zzzDeprecatedBoosts/SpiritRegen0Weight/SpiritRegen05.prototype",
+          "count": 1,
+          "allowInvalidAttachment": true,
+          "replaceExistingSamePosition": false
+        },
+        {
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/HealthRegen/HealthRegenParent.prototype",
           "count": 1,
           "allowInvalidAttachment": true,
           "replaceExistingSamePosition": false

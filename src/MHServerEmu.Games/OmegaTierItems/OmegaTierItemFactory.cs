@@ -86,6 +86,7 @@ namespace MHServerEmu.Games.OmegaTierItems
                 return;
 
             if (IsSupportedOmegaPromotionLootContext(resolver.LootContext) == false ||
+                IsSupportedOmegaPromotionSource(resolver) == false ||
                 IsOmegaDifficulty(resolver, null) == false)
             {
                 return;
@@ -117,13 +118,13 @@ namespace MHServerEmu.Games.OmegaTierItems
             if (tuning?.Enabled != true ||
                 (slot != EquipmentInvUISlot.Ring && promotionRoll >= tuning.OmegaDifficultyPromotionChancePct))
             {
-                Logger.Info($"[OmegaDropTrace] stage=promotion-skipped playerDbId=0x{resolver.Player?.DatabaseUniqueId:X} avatar={resolver.Player?.CurrentAvatar?.PrototypeDataRef.GetNameFormatted()} item={itemProto.DataRef.GetNameFormatted()} rollFor={filterArgs.RollFor.GetNameFormatted()} resolvedSlot={slot} roll={promotionRoll:F2} chance={tuning?.OmegaDifficultyPromotionChancePct ?? 0f:F2} context={resolver.LootContext}");
+                Logger.Info($"[OmegaDropTrace] stage=promotion-skipped playerDbId=0x{resolver.Player?.DatabaseUniqueId:X} avatar={resolver.Player?.CurrentAvatar?.PrototypeDataRef.GetNameFormatted()} item={itemProto.DataRef.GetNameFormatted()} rollFor={filterArgs.RollFor.GetNameFormatted()} resolvedSlot={slot} roll={promotionRoll:F2} chance={tuning?.OmegaDifficultyPromotionChancePct ?? 0f:F2} context={resolver.LootContext} source={resolver.SourceEntityPrototypeRef.GetNameFormatted()} sourceId=0x{resolver.SourceEntityId:X}");
                 return;
             }
 
             PendingOmegaPromotions.Remove(itemSpec);
             PendingOmegaPromotions.Add(itemSpec, PromotionMarker);
-            Logger.Info($"[OmegaDropTrace] stage=promotion-selected playerDbId=0x{resolver.Player?.DatabaseUniqueId:X} avatar={resolver.Player?.CurrentAvatar?.PrototypeDataRef.GetNameFormatted()} item={itemProto.DataRef.GetNameFormatted()} rollFor={filterArgs.RollFor.GetNameFormatted()} resolvedSlot={slot} sourceRarity={filterArgs.Rarity.GetNameFormatted()} targetRarity={omegaRarityRef.GetNameFormatted()} targetLevel={OmegaDifficultyItemLevel} roll={promotionRoll:F2} chance={tuning.OmegaDifficultyPromotionChancePct:F2} context={resolver.LootContext}");
+            Logger.Info($"[OmegaDropTrace] stage=promotion-selected playerDbId=0x{resolver.Player?.DatabaseUniqueId:X} avatar={resolver.Player?.CurrentAvatar?.PrototypeDataRef.GetNameFormatted()} item={itemProto.DataRef.GetNameFormatted()} rollFor={filterArgs.RollFor.GetNameFormatted()} resolvedSlot={slot} sourceRarity={filterArgs.Rarity.GetNameFormatted()} targetRarity={omegaRarityRef.GetNameFormatted()} targetLevel={OmegaDifficultyItemLevel} roll={promotionRoll:F2} chance={tuning.OmegaDifficultyPromotionChancePct:F2} context={resolver.LootContext} source={resolver.SourceEntityPrototypeRef.GetNameFormatted()} sourceId=0x{resolver.SourceEntityId:X}");
 #endif
         }
 
@@ -137,6 +138,7 @@ namespace MHServerEmu.Games.OmegaTierItems
             OmegaTierItemTuning tuning = OmegaTierItemTuning.Load();
             if (tuning?.Enabled != true || (promoteToOmega == false && IsOmegaRarity(itemSpec.RarityProtoRef) == false) ||
                 IsSupportedOmegaPromotionLootContext(resolver.LootContext) == false ||
+                IsSupportedOmegaPromotionSource(resolver) == false ||
                 IsOmegaDifficulty(resolver, settings) == false)
             {
                 return false;
@@ -184,7 +186,7 @@ namespace MHServerEmu.Games.OmegaTierItems
             string affixes = string.Join(",", itemSpec.AffixSpecs.Select(spec => spec?.AffixProto == null
                 ? "invalid"
                 : $"{spec.AffixProto.DataRef.GetNameFormatted()}#{spec.Seed}"));
-            Logger.Info($"[OmegaDropTrace] stage=finalized playerDbId=0x{resolver.Player?.DatabaseUniqueId:X} avatar={avatarProto?.DataRef.GetNameFormatted()} item={itemProto.DataRef.GetNameFormatted()} rollFor={resolvedRollFor.GetNameFormatted()} resolvedSlot={slot} rarity={itemSpec.RarityProtoRef.GetNameFormatted()} level={itemSpec.ItemLevel} seed={itemSpec.Seed} affixCount={itemSpec.AffixSpecs.Count} affixes=[{affixes}] context={resolver.LootContext}");
+            Logger.Info($"[OmegaDropTrace] stage=finalized playerDbId=0x{resolver.Player?.DatabaseUniqueId:X} avatar={avatarProto?.DataRef.GetNameFormatted()} item={itemProto.DataRef.GetNameFormatted()} rollFor={resolvedRollFor.GetNameFormatted()} resolvedSlot={slot} rarity={itemSpec.RarityProtoRef.GetNameFormatted()} level={itemSpec.ItemLevel} seed={itemSpec.Seed} affixCount={itemSpec.AffixSpecs.Count} affixes=[{affixes}] context={resolver.LootContext} source={resolver.SourceEntityPrototypeRef.GetNameFormatted()} sourceId=0x{resolver.SourceEntityId:X}");
             return true;
 #else
             return false;
@@ -199,7 +201,9 @@ namespace MHServerEmu.Games.OmegaTierItems
 
             PrototypeId cosmicRarityRef = GameDatabase.GetPrototypeRefByName(CosmicRarityName);
             bool isCosmicOrOmega = sourceArgs.Rarity == cosmicRarityRef || IsOmegaRarity(sourceArgs.Rarity);
-            if (sourceArgs.Slot == EquipmentInvUISlot.Ring || isCosmicOrOmega == false ||
+            if (IsSupportedOmegaPromotionLootContext(resolver.LootContext) == false ||
+                IsSupportedOmegaPromotionSource(resolver) == false ||
+                sourceArgs.Slot == EquipmentInvUISlot.Ring || isCosmicOrOmega == false ||
                 IsArmorSlotOneThroughFive(sourceProto, sourceArgs.Slot) == false ||
                 IsOmegaDifficulty(resolver, null) == false)
                 return;
@@ -254,7 +258,7 @@ namespace MHServerEmu.Games.OmegaTierItems
             int entryCount = 0;
             foreach (OmegaTierItemOverrideTuning itemOverride in tuning.ItemOverrides)
             {
-                if (itemOverride?.Enabled != true || itemOverride.BuiltInProperties.Count == 0)
+                if (itemOverride?.Enabled != true || HasConfiguredBuiltInPropertyOverride(itemOverride) == false)
                     continue;
 
                 foreach (string itemPrototypeName in itemOverride.ItemPrototypes)
@@ -891,7 +895,7 @@ namespace MHServerEmu.Games.OmegaTierItems
             out int appliedEntries)
         {
             appliedEntries = 0;
-            if (itemProto == null || itemOverride?.BuiltInProperties == null || itemOverride.BuiltInProperties.Count == 0)
+            if (itemProto == null || HasConfiguredBuiltInPropertyOverride(itemOverride) == false)
                 return false;
 
             List<PropertyEntryPrototype> propertyEntries = new();
@@ -912,6 +916,44 @@ namespace MHServerEmu.Games.OmegaTierItems
                 }
             }
 
+            if (itemOverride.ReplaceBuiltInPropertiesFromTemplate)
+            {
+                PrototypeId templateRef = ResolvePrototype(itemOverride.BuiltInPropertyTemplateItemPrototype);
+                ItemPrototype templateProto = templateRef.As<ItemPrototype>();
+                if (templateProto?.PropertiesBuiltIn.HasValue() == true)
+                {
+                    if (itemOverride.BuiltInPropertyTemplateIndexes.Count > 0)
+                    {
+                        foreach (int index in itemOverride.BuiltInPropertyTemplateIndexes)
+                        {
+                            if (index >= templateProto.PropertiesBuiltIn.Length)
+                                continue;
+
+                            PropertyEntryPrototype propertyEntry = templateProto.PropertiesBuiltIn[index];
+                            if (propertyEntry == null)
+                                continue;
+
+                            propertyEntries.Add(propertyEntry);
+                            appliedEntries++;
+                        }
+                    }
+                    else
+                    {
+                        foreach (PropertyEntryPrototype propertyEntry in templateProto.PropertiesBuiltIn)
+                        {
+                            if (propertyEntry == null ||
+                                (itemOverride.CopyTemplateProcProperties && IsProcBuiltInProperty(propertyEntry) == false))
+                            {
+                                continue;
+                            }
+
+                            propertyEntries.Add(propertyEntry);
+                            appliedEntries++;
+                        }
+                    }
+                }
+            }
+
             foreach (OmegaTierBuiltInPropertyTuning builtInProperty in itemOverride.BuiltInProperties)
             {
                 PropertyPickInRangeEntryPrototype propertyEntry = CreateBuiltInPropertyEntry(itemOverride, builtInProperty);
@@ -928,6 +970,14 @@ namespace MHServerEmu.Games.OmegaTierItems
             ItemPropertiesBuiltInProperty.SetValue(itemProto, propertyEntries.ToArray());
             // Logger.Info($"Omega built-in property prototype override applied: override={itemOverride.Id} item={itemProto.DataRef.GetNameFormatted()} entries={appliedEntries} preservedEntries={propertyEntries.Count - appliedEntries}");
             return true;
+        }
+
+        private static bool HasConfiguredBuiltInPropertyOverride(OmegaTierItemOverrideTuning itemOverride)
+        {
+            return itemOverride != null &&
+                ((itemOverride.BuiltInProperties?.Count ?? 0) > 0 ||
+                 (itemOverride.ReplaceBuiltInPropertiesFromTemplate &&
+                  string.IsNullOrWhiteSpace(itemOverride.BuiltInPropertyTemplateItemPrototype) == false));
         }
 
         private static PropertyPickInRangeEntryPrototype CreateBuiltInPropertyEntry(
@@ -1999,6 +2049,12 @@ namespace MHServerEmu.Games.OmegaTierItems
             return lootContext.HasFlag(LootContext.Drop) &&
                 lootContext.HasFlag(LootContext.MissionReward) == false &&
                 lootContext.HasFlag(LootContext.MysteryChest) == false;
+        }
+
+        private static bool IsSupportedOmegaPromotionSource(ItemResolver resolver)
+        {
+            AgentPrototype sourceProto = resolver?.SourceEntityPrototypeRef.As<AgentPrototype>();
+            return sourceProto != null && sourceProto is not AvatarPrototype;
         }
 
         private static bool IsUniqueItemSpec(ItemSpec itemSpec)

@@ -342,6 +342,7 @@ namespace MHServerEmu.Games.OmegaTierItems
         public bool MaximizeBuiltInPropertyRolls { get; set; }
         public bool ReplaceBuiltInPropertiesFromTemplate { get; set; }
         public string BuiltInPropertyTemplateItemPrototype { get; set; }
+        public List<int> BuiltInPropertyTemplateIndexes { get; set; } = new();
         public bool CopyTemplateProcProperties { get; set; }
         public bool DisableTriggeredItemActions { get; set; }
         public List<string> DisabledProcPowers { get; set; } = new();
@@ -363,6 +364,12 @@ namespace MHServerEmu.Games.OmegaTierItems
             OverrideRarity = string.IsNullOrWhiteSpace(OverrideRarity) ? string.Empty : OverrideRarity.Trim();
             OverrideItemLevel = Math.Max(OverrideItemLevel, 0);
             BuiltInPropertyTemplateItemPrototype = string.IsNullOrWhiteSpace(BuiltInPropertyTemplateItemPrototype) ? string.Empty : BuiltInPropertyTemplateItemPrototype.Trim();
+            BuiltInPropertyTemplateIndexes ??= new();
+            BuiltInPropertyTemplateIndexes = BuiltInPropertyTemplateIndexes
+                .Where(index => index >= 0)
+                .Distinct()
+                .OrderBy(index => index)
+                .ToList();
             DisabledProcPowers = NormalizeStringList(DisabledProcPowers);
             ResolvePrototypeRefs(ItemPrototypes, ItemPrototypeRefs);
             ResolvePrototypeRefs(Rarities, RarityRefs);

@@ -1290,6 +1290,7 @@
       "itemPrototypePaths": [
         "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot4/Unique049.prototype"
       ],
+      "itemRarityPrototype": "Entity/Items/Rarity/R6Unique.prototype",
       "itemRolls": 1,
       "itemLevel": 69,
       "delivery": "inventory"

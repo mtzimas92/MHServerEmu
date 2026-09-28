@@ -47,6 +47,8 @@ namespace MHServerEmu.Games.Loot
         public LootContext LootContextOverride { get; set; }
         public Player Player { get => _context.Player; }
         public Region Region { get => _context.Region; }
+        public PrototypeId SourceEntityPrototypeRef { get => _context.SourceEntityPrototypeRef; }
+        public ulong SourceEntityId { get => _context.SourceEntityId; }
 
         public ItemResolver()
         {
