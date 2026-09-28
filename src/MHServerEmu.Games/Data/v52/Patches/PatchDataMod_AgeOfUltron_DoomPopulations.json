@@ -1,0 +1,530 @@
+[
+  {
+    "Enabled": true,
+    "Prototype": "Metagame/AgeOfUltron/Populations/Select/AgeOfUltronSelectDroneGenericIdle01.prototype",
+    "Path": "Entities[0]",
+    "Description": "[Age of Doom] Replace ambient ranged Ultron drones with ranged Doom servo guards.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Characters/Mobs/Doombots/Chapter/DoombotsCH08/ServoGuardRangedD3CH08.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Metagame/AgeOfUltron/Populations/Select/AgeOfUltronSelectDroneGenericIdle01.prototype",
+    "Path": "Entities[1]",
+    "Description": "[Age of Doom] Replace ambient melee Ultron drones with melee Doom servo guards.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Characters/Mobs/Doombots/Chapter/DoombotsCH08/ServoGuardMeleeD3CH08.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Metagame/AgeOfUltron/Populations/Select/AgeOfUltronSelectDroneGenericIdle03.prototype",
+    "Path": "Entities[0]",
+    "Description": "[Age of Doom] Replace ambient suicide drones with Doom inferno units.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Characters/Mobs/Doombots/Chapter/DoombotsCH08/DoombotInfernoD3CH08.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Metagame/AgeOfUltron/Populations/Select/AgeOfUltronSelectDroneAntagonizer.prototype",
+    "Path": "Entities[0]",
+    "Description": "[Age of Doom] Replace ranged antagonizer drones with ranged Doom servo guards.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Characters/Mobs/Doombots/Chapter/DoombotsCH08/ServoGuardRangedD4CH08.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Metagame/AgeOfUltron/Populations/Select/AgeOfUltronSelectDroneAntagonizer.prototype",
+    "Path": "Entities[1]",
+    "Description": "[Age of Doom] Replace blade antagonizer drones with Doom blockade units.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Characters/Mobs/Doombots/Chapter/DoombotsCH08/DoombotBlockadeD4CH08.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Metagame/AgeOfUltron/Populations/Select/AgeOfUltronSelectDroneGenericIdle02.prototype",
+    "Path": "Entities[0]",
+    "Description": "[Age of Doom] Replace alternate idle ranged drones.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Characters/Mobs/Doombots/Chapter/DoombotsCH08/ServoGuardRangedD3CH08.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Metagame/AgeOfUltron/Populations/Select/AgeOfUltronSelectDroneGenericIdle02.prototype",
+    "Path": "Entities[1]",
+    "Description": "[Age of Doom] Replace alternate idle suicide drones.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Characters/Mobs/Doombots/Chapter/DoombotsCH08/DoombotInfernoD3CH08.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Metagame/AgeOfUltron/Populations/Select/AgeOfUltronSelectDroneGenericIdleTalker01.prototype",
+    "Path": "Entities[0]",
+    "Description": "[Age of Doom] Replace talking ranged drone flavor actors.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Characters/Mobs/Doombots/Chapter/DoombotsCH08/ServoGuardRangedD3CH08.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Metagame/AgeOfUltron/Populations/Select/AgeOfUltronSelectDroneGenericIdleTalker01.prototype",
+    "Path": "Entities[1]",
+    "Description": "[Age of Doom] Replace talking melee drone flavor actors.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Characters/Mobs/Doombots/Chapter/DoombotsCH08/ServoGuardMeleeD3CH08.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Metagame/AgeOfUltron/Populations/Select/AgeOfUltronSelectDroneGenericIdleTargeter01.prototype",
+    "Path": "Entities[0]",
+    "Description": "[Age of Doom] Replace idle ranged targeter drones.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Characters/Mobs/Doombots/Chapter/DoombotsCH08/ServoGuardRangedD4CH08.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Metagame/AgeOfUltron/Populations/Select/AgeOfUltronSelectDroneGenericIdleTargeter01.prototype",
+    "Path": "Entities[1]",
+    "Description": "[Age of Doom] Replace idle melee targeter drones.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Characters/Mobs/Doombots/Chapter/DoombotsCH08/ServoGuardMeleeD4CH08.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Metagame/AgeOfUltron/Populations/Select/AgeOfUltronSelectDroneKicking01.prototype",
+    "Path": "Entities[0]",
+    "Description": "[Age of Doom] Replace ranged civilian-harassment drones.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Characters/Mobs/Doombots/Chapter/DoombotsCH08/ServoGuardRangedD4CH08.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Metagame/AgeOfUltron/Populations/Select/AgeOfUltronSelectDroneKicking01.prototype",
+    "Path": "Entities[1]",
+    "Description": "[Age of Doom] Replace melee civilian-harassment drones.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Characters/Mobs/Doombots/Chapter/DoombotsCH08/ServoGuardMeleeD4CH08.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Metagame/AgeOfUltron/Populations/Select/AgeOfUltronSelectDroneMissileElite01.prototype",
+    "Path": "Entities[0]",
+    "Description": "[Age of Doom] Replace selector-based missile elites with ranged Doom servo guards.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Characters/Mobs/Doombots/Chapter/DoombotsCH08/ServoGuardRangedD5CH08.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Metagame/AgeOfUltron/Populations/Select/AgeOfUltronSelectDronePlasmaBlade01.prototype",
+    "Path": "Entities[0]",
+    "Description": "[Age of Doom] Replace selector-based plasma elites with Doom blockade units.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Characters/Mobs/Doombots/Chapter/DoombotsCH08/DoombotBlockadeD4CH08.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Metagame/AgeOfUltron/Populations/Clusters/Drones/Grass/UltronRaidDroneClusterMixMedGrassV1.prototype",
+    "Path": "Choices[0].Entity",
+    "Description": "[Age of Doom] Replace grass-pack face cannon drones with ranged servo guards.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Characters/Mobs/Doombots/Chapter/DoombotsCH08/ServoGuardRangedD3CH08.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Metagame/AgeOfUltron/Populations/Clusters/Drones/Grass/UltronRaidDroneClusterMixMedGrassV1.prototype",
+    "Path": "Choices[1].Entity",
+    "Description": "[Age of Doom] Replace grass-pack suicide drones with Doom inferno units.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Characters/Mobs/Doombots/Chapter/DoombotsCH08/DoombotInfernoD3CH08.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Metagame/AgeOfUltron/Populations/Clusters/Drones/Grass/UltronRaidDroneClusterMixSmGrassV1.prototype",
+    "Path": "Choices[0].Entity",
+    "Description": "[Age of Doom] Replace small grass-pack ranged drones.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Characters/Mobs/Doombots/Chapter/DoombotsCH08/ServoGuardRangedD3CH08.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Metagame/AgeOfUltron/Populations/Clusters/Drones/Grass/UltronRaidDroneClusterMixSmGrassV1.prototype",
+    "Path": "Choices[1].Entity",
+    "Description": "[Age of Doom] Replace small grass-pack suicide drones.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Characters/Mobs/Doombots/Chapter/DoombotsCH08/DoombotInfernoD3CH08.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Metagame/AgeOfUltron/Populations/Clusters/Drones/Grass/UltronRaidDroneClusterMixSmGrassV2.prototype",
+    "Path": "Choices[0].Entity",
+    "Description": "[Age of Doom] Replace suicide-heavy grass pack member 1.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Characters/Mobs/Doombots/Chapter/DoombotsCH08/DoombotInfernoD3CH08.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Metagame/AgeOfUltron/Populations/Clusters/Drones/Grass/UltronRaidDroneClusterMixSmGrassV2.prototype",
+    "Path": "Choices[1].Entity",
+    "Description": "[Age of Doom] Replace suicide-heavy grass pack member 2.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Characters/Mobs/Doombots/Chapter/DoombotsCH08/DoombotInfernoD3CH08.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Metagame/AgeOfUltron/Populations/Clusters/Drones/Grass/UltronRaidDroneClusterMixSmGrassV2.prototype",
+    "Path": "Choices[2].Entity",
+    "Description": "[Age of Doom] Replace suicide-heavy grass pack member 3.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Characters/Mobs/Doombots/Chapter/DoombotsCH08/DoombotInfernoD4CH08.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Metagame/AgeOfUltron/Populations/Clusters/Drones/Grass/UltronRaidDroneClusterMixSmGrassV2.prototype",
+    "Path": "Choices[3].Entity",
+    "Description": "[Age of Doom] Replace the elite member of the suicide-heavy grass pack.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Characters/Mobs/Doombots/Chapter/DoombotsCH08/DoombotBlockadeD4CH08.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Metagame/AgeOfUltron/Populations/Clusters/Drones/Grass/UltronRaidDroneClusterMixSmGrassV3.prototype",
+    "Path": "Choices[0].Entity",
+    "Description": "[Age of Doom] Replace the pure suicide-drone grass pack.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Characters/Mobs/Doombots/Chapter/DoombotsCH08/DoombotInfernoD4CH08.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Metagame/AgeOfUltron/Populations/Clusters/Drones/Grass/UltronRaidDroneIronManClusterMixMedGrassV1.prototype",
+    "Path": "Choices[0].Entity",
+    "Description": "[Age of Doom] Replace the Iron Legion scrapper with an elite melee servo guard.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Characters/Mobs/Doombots/Chapter/DoombotsCH08/ServoGuardMeleeD6CH08.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Metagame/AgeOfUltron/Populations/Clusters/Drones/Grass/UltronRaidDroneIronManClusterMixMedGrassV1.prototype",
+    "Path": "Choices[1].Entity",
+    "Description": "[Age of Doom] Replace the Iron Legion blaster with an elite ranged servo guard.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Characters/Mobs/Doombots/Chapter/DoombotsCH08/ServoGuardRangedD5CH08.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Metagame/AgeOfUltron/Populations/Clusters/Drones/Street/UltronRaidDroneClusterMixMedStreetV1.prototype",
+    "Path": "Choices[0].Entity",
+    "Description": "[Age of Doom] Replace street-pack ranged drones.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Characters/Mobs/Doombots/Chapter/DoombotsCH08/ServoGuardRangedD3CH08.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Metagame/AgeOfUltron/Populations/Clusters/Drones/Street/UltronRaidDroneClusterMixMedStreetV1.prototype",
+    "Path": "Choices[1].Entity",
+    "Description": "[Age of Doom] Replace street-pack melee drones.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Characters/Mobs/Doombots/Chapter/DoombotsCH08/ServoGuardMeleeD3CH08.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Metagame/AgeOfUltron/Populations/Clusters/Drones/Street/UltronRaidDroneClusterMixMedStreetV2.prototype",
+    "Path": "Choices[0].Entity",
+    "Description": "[Age of Doom] Replace melee-heavy street pack member 1.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Characters/Mobs/Doombots/Chapter/DoombotsCH08/ServoGuardMeleeD3CH08.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Metagame/AgeOfUltron/Populations/Clusters/Drones/Street/UltronRaidDroneClusterMixMedStreetV2.prototype",
+    "Path": "Choices[1].Entity",
+    "Description": "[Age of Doom] Replace melee-heavy street pack member 2.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Characters/Mobs/Doombots/Chapter/DoombotsCH08/ServoGuardMeleeD3CH08.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Metagame/AgeOfUltron/Populations/Clusters/Drones/Street/UltronRaidDroneClusterMixMedStreetV2.prototype",
+    "Path": "Choices[2].Entity",
+    "Description": "[Age of Doom] Replace melee-heavy street pack member 3.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Characters/Mobs/Doombots/Chapter/DoombotsCH08/ServoGuardMeleeD4CH08.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Metagame/AgeOfUltron/Populations/Clusters/Drones/Street/UltronRaidDroneClusterMixMedStreetV2.prototype",
+    "Path": "Choices[3].Entity",
+    "Description": "[Age of Doom] Replace the elite member of the melee-heavy street pack.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Characters/Mobs/Doombots/Chapter/DoombotsCH08/DoombotBlockadeD4CH08.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Metagame/AgeOfUltron/Populations/Clusters/Drones/Street/UltronRaidDroneClusterMixMedStreetV3.prototype",
+    "Path": "Choices[0].Entity",
+    "Description": "[Age of Doom] Replace ranged-heavy street pack member 1.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Characters/Mobs/Doombots/Chapter/DoombotsCH08/ServoGuardRangedD3CH08.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Metagame/AgeOfUltron/Populations/Clusters/Drones/Street/UltronRaidDroneClusterMixMedStreetV3.prototype",
+    "Path": "Choices[1].Entity",
+    "Description": "[Age of Doom] Replace ranged-heavy street pack member 2.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Characters/Mobs/Doombots/Chapter/DoombotsCH08/ServoGuardRangedD3CH08.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Metagame/AgeOfUltron/Populations/Clusters/Drones/Street/UltronRaidDroneClusterMixMedStreetV3.prototype",
+    "Path": "Choices[2].Entity",
+    "Description": "[Age of Doom] Replace ranged-heavy street pack member 3.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Characters/Mobs/Doombots/Chapter/DoombotsCH08/ServoGuardRangedD4CH08.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Metagame/AgeOfUltron/Populations/Clusters/Drones/Street/UltronRaidDroneClusterMixMedStreetV3.prototype",
+    "Path": "Choices[3].Entity",
+    "Description": "[Age of Doom] Replace the elite member of the ranged-heavy street pack.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Characters/Mobs/Doombots/Chapter/DoombotsCH08/DoombotBlockadeD4CH08.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Populations/Missions/AgeOfUltron/UltronDrones/DramaticEntrance/CrawlIn/AgeOfUltronDroneFaceCannonCrawlInPopObj.prototype",
+    "Path": "Entity",
+    "Description": "[Age of Doom] Replace crawl-in face cannon drones with ranged servo guards.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Characters/Mobs/Doombots/Chapter/DoombotsCH08/ServoGuardRangedD3CH08.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Populations/Missions/AgeOfUltron/UltronDrones/DramaticEntrance/CrawlIn/AgeOfUltronDroneMeleePopObj.prototype",
+    "Path": "Entity",
+    "Description": "[Age of Doom] Replace crawl-in melee drones with melee servo guards.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Characters/Mobs/Doombots/Chapter/DoombotsCH08/ServoGuardMeleeD3CH08.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Populations/Missions/AgeOfUltron/UltronDrones/DramaticEntrance/CrawlIn/AgeOfUltronDroneMissileBlueCrawlInPopObj.prototype",
+    "Path": "Entity",
+    "Description": "[Age of Doom] Replace crawl-in missile drones with ranged servo guards.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Characters/Mobs/Doombots/Chapter/DoombotsCH08/ServoGuardRangedD4CH08.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Populations/Missions/AgeOfUltron/UltronDrones/DramaticEntrance/CrawlIn/AgeOfUltronDronePlasmaBladeBlueCrawlInPopObj.prototype",
+    "Path": "Entity",
+    "Description": "[Age of Doom] Replace crawl-in blade drones with Doom blockade units.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Characters/Mobs/Doombots/Chapter/DoombotsCH08/DoombotBlockadeD4CH08.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Populations/Missions/AgeOfUltron/UltronDrones/DramaticEntrance/CrawlIn/AgeOfUltronDroneSuicideCrawlInPopObj.prototype",
+    "Path": "Entity",
+    "Description": "[Age of Doom] Replace crawl-in suicide drones with Doom inferno units.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Characters/Mobs/Doombots/Chapter/DoombotsCH08/DoombotInfernoD3CH08.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Populations/Missions/AgeOfUltron/UltronDrones/DramaticEntrance/Flyin/AgeOfUltronDroneFaceCannonFlyInPopObj.prototype",
+    "Path": "Entity",
+    "Description": "[Age of Doom] Replace fly-in face cannon drones with ranged servo guards.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Characters/Mobs/Doombots/Chapter/DoombotsCH08/ServoGuardRangedD3CH08.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Populations/Missions/AgeOfUltron/UltronDrones/DramaticEntrance/Flyin/AgeOfUltronDroneMeleeFlyInPopObj.prototype",
+    "Path": "Entity",
+    "Description": "[Age of Doom] Replace fly-in melee drones with melee servo guards.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Characters/Mobs/Doombots/Chapter/DoombotsCH08/ServoGuardMeleeD3CH08.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Populations/Missions/AgeOfUltron/UltronDrones/DramaticEntrance/Flyin/AgeOfUltronDroneMissileBlueFlyInPopObj.prototype",
+    "Path": "Entity",
+    "Description": "[Age of Doom] Replace fly-in missile drones with ranged servo guards.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Characters/Mobs/Doombots/Chapter/DoombotsCH08/ServoGuardRangedD4CH08.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Populations/Missions/AgeOfUltron/UltronDrones/DramaticEntrance/Flyin/AgeOfUltronDronePlasmaBladeBlueFlyInPopObj.prototype",
+    "Path": "Entity",
+    "Description": "[Age of Doom] Replace fly-in blade drones with Doom blockade units.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Characters/Mobs/Doombots/Chapter/DoombotsCH08/DoombotBlockadeD4CH08.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Populations/Missions/AgeOfUltron/UltronDrones/DramaticEntrance/Flyin/AgeOfUltronDroneSuicideFlyInPopObj.prototype",
+    "Path": "Entity",
+    "Description": "[Age of Doom] Replace fly-in suicide drones with Doom inferno units.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Characters/Mobs/Doombots/Chapter/DoombotsCH08/DoombotInfernoD3CH08.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Populations/Missions/AgeOfUltron/IronManSuitDrones/AgeOfUltronIronLegionnaireLauncherPopObj.prototype",
+    "Path": "Entity",
+    "Description": "[Age of Doom] Replace wave 1 Iron Legion boss with an elite ranged Doom unit.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Characters/Mobs/Doombots/Chapter/DoombotsCH08/ServoGuardRangedD5CH08.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Populations/Missions/AgeOfUltron/IronManSuitDrones/AgeOfUltronIronLegionnaireMelterPopObj.prototype",
+    "Path": "Entity",
+    "Description": "[Age of Doom] Replace wave 2 Iron Legion boss with an elite inferno Doom unit.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Characters/Mobs/Doombots/Chapter/DoombotsCH08/DoombotInfernoD4CH08.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Populations/Missions/AgeOfUltron/IronManSuitDrones/AgeOfUltronIronLegionnaireScrapperPopObj.prototype",
+    "Path": "Entity",
+    "Description": "[Age of Doom] Replace wave 3 Iron Legion boss with an elite melee Doom unit.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Characters/Mobs/Doombots/Chapter/DoombotsCH08/ServoGuardMeleeD6CH08.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Populations/Missions/AgeOfUltron/IronManSuitDrones/AgeOfUltronIronLegionnaireJackhammerPopObj.prototype",
+    "Path": "Entity",
+    "Description": "[Age of Doom] Replace wave 4 Iron Legion boss with an elite blockade Doom unit.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Characters/Mobs/Doombots/Chapter/DoombotsCH08/DoombotBlockadeD4CH08.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Populations/Missions/AgeOfUltron/IronManSuitDrones/AgeOfUltronIronLegionnaireBlasterPopObj.prototype",
+    "Path": "Entity",
+    "Description": "[Age of Doom] Replace wave 5 Iron Legion boss with an elite ranged Doom unit.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Characters/Mobs/Doombots/Chapter/DoombotsCH08/ServoGuardRangedD5CH08.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Populations/Missions/AgeOfUltron/AgeOfUltronUltronBossPopEntity.prototype",
+    "Path": "Entity",
+    "Description": "[Age of Doom] Replace the final Ultron boss with standalone Cosmic Doctor Doom phase 3.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Characters/Bosses/PVEDailies/Cosmic/EGD09CDrDoomPhase3.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Populations/Missions/AgeOfUltron/UltronDrones/AgeOfUltronDroneContainmentFieldYellowPopObj.prototype",
+    "Path": "Entity",
+    "Description": "[Age of Doom] Replace the containment-field Ultron elite with a Doom blockade unit.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Characters/Mobs/Doombots/Chapter/DoombotsCH08/DoombotBlockadeD4CH08.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Populations/Missions/AgeOfUltron/UltronDrones/AgeOfUltronDroneMissileYellowLZPopObj.prototype",
+    "Path": "Entity",
+    "Description": "[Age of Doom] Replace landing-zone missile elites with ranged Doom servo guards.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Characters/Mobs/Doombots/Chapter/DoombotsCH08/ServoGuardRangedD5CH08.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Populations/Missions/AgeOfUltron/UltronDrones/AgeOfUltronDronePlasmaBladeYellowLZPopObj.prototype",
+    "Path": "Entity",
+    "Description": "[Age of Doom] Replace landing-zone blade elites with melee Doom servo guards.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Characters/Mobs/Doombots/Chapter/DoombotsCH08/ServoGuardMeleeD6CH08.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Populations/Missions/AgeOfUltron/UltronDrones/EMPTargeter/AgeOfUltronDroneFaceCannonEMPTargeterPopObj.prototype",
+    "Path": "Entity",
+    "Description": "[Age of Doom] Replace EMP face-cannon targeters with ranged Doom servo guards.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Characters/Mobs/Doombots/Chapter/DoombotsCH08/ServoGuardRangedD4CH08.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Populations/Missions/AgeOfUltron/UltronDrones/EMPTargeter/AgeOfUltronDroneMeleeEMPTargeterPopObj.prototype",
+    "Path": "Entity",
+    "Description": "[Age of Doom] Replace EMP melee targeters with melee Doom servo guards.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Characters/Mobs/Doombots/Chapter/DoombotsCH08/ServoGuardMeleeD4CH08.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Populations/Missions/AgeOfUltron/UltronDrones/EMPTargeter/AgeOfUltronDroneMissileEMPTargeterFlyInPopObj.prototype",
+    "Path": "Entity",
+    "Description": "[Age of Doom] Replace EMP missile targeters with elite ranged Doom servo guards.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Characters/Mobs/Doombots/Chapter/DoombotsCH08/ServoGuardRangedD5CH08.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Populations/Missions/AgeOfUltron/UltronDrones/EMPTargeter/AgeOfUltronDroneSuicideEMPTargeterPopObj.prototype",
+    "Path": "Entity",
+    "Description": "[Age of Doom] Replace EMP suicide targeters with Doom inferno units.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Characters/Mobs/Doombots/Chapter/DoombotsCH08/DoombotInfernoD4CH08.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Populations/Missions/AgeOfUltron/UltronDrones/VulnerableTargeter/AgeOfUltronDroneFaceCannonTargeterPopObj.prototype",
+    "Path": "Entity",
+    "Description": "[Age of Doom] Replace civilian-ambush face-cannon targeters with ranged Doom servo guards.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Characters/Mobs/Doombots/Chapter/DoombotsCH08/ServoGuardRangedD4CH08.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Populations/Missions/AgeOfUltron/UltronDrones/VulnerableTargeter/AgeOfUltronDroneMissileTargeterFlyInPopObj.prototype",
+    "Path": "Entity",
+    "Description": "[Age of Doom] Replace civilian-ambush missile targeters with elite ranged Doom servo guards.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Characters/Mobs/Doombots/Chapter/DoombotsCH08/ServoGuardRangedD5CH08.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Populations/Missions/AgeOfUltron/UltronDrones/VulnerableTargeter/AgeOfUltronUltronDroneMeleeTargeterPopObj.prototype",
+    "Path": "Entity",
+    "Description": "[Age of Doom] Replace civilian-ambush melee targeters with melee Doom servo guards.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Characters/Mobs/Doombots/Chapter/DoombotsCH08/ServoGuardMeleeD4CH08.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Populations/Missions/AgeOfUltron/AgeOfUltronBossTurretPopEntity.prototype",
+    "Path": "Entity",
+    "Description": "[Age of Doom] Replace Ultron boss turrets with Latverian ceiling turrets.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Characters/Mobs/Doombots/Chapter/DoombotsCH08/LatveriaTurretCeilingV04CH08.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Populations/Missions/AgeOfUltron/IronManSuitDrones/AgeOfUltronIronManDroneHulkbusterPopObj.prototype",
+    "Path": "Entity",
+    "Description": "[Age of Doom] Replace remaining Hulkbuster population objects with elite melee Doom servo guards.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Characters/Mobs/Doombots/Chapter/DoombotsCH08/ServoGuardMeleeD6CH08.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Populations/Missions/AgeOfUltron/IronManSuitDrones/AgeOfUltronIronManDroneRangedPopObj.prototype",
+    "Path": "Entity",
+    "Description": "[Age of Doom] Replace remaining ranged Iron Legion population objects with elite ranged Doom servo guards.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Characters/Mobs/Doombots/Chapter/DoombotsCH08/ServoGuardRangedD5CH08.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Missions/Prototypes/PVEEndgame/AgeOfUltron/AgeOfUltronPhase05MissionUltronBoss.prototype",
+    "Path": "Objectives[0].SuccessConditions.Conditions[0].EntityFilter.Filters[1].EntityPrototype",
+    "Description": "[Age of Doom] Complete the final AoU mission when the replacement Cosmic Doctor Doom is defeated.",
+    "ValueType": "PrototypeId",
+    "Value": "Entity/Characters/Bosses/PVEDailies/Cosmic/EGD09CDrDoomPhase3.prototype"
+  }
+]

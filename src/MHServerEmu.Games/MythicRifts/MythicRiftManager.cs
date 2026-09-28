@@ -7879,7 +7879,8 @@ namespace MHServerEmu.Games.MythicRifts
                 return true;
 
             PrototypeId portalProtoRef = GameDatabase.GetPrototypeRefByName(RiftExitPortalPrototypeName);
-            if (portalProtoRef == PrototypeId.Invalid)
+            WorldEntityPrototype portalProto = portalProtoRef.As<WorldEntityPrototype>();
+            if (portalProtoRef == PrototypeId.Invalid || portalProto == null)
             {
                 // Logger.Warn($"TrySpawnRewardRoomPortal(): Failed to resolve {RiftExitPortalPrototypeName}");
                 return false;
@@ -7889,7 +7890,7 @@ namespace MHServerEmu.Games.MythicRifts
             if (region == null)
                 return false;
 
-            if (TryGetReturnPortalSpawnLocation(runState, region, out Vector3 spawnPosition, out Orientation spawnOrientation, out Cell spawnCell) == false)
+            if (TryGetAccessibleRewardPortalSpawnLocation(runState, region, portalProto, out Vector3 spawnPosition, out Orientation spawnOrientation, out Cell spawnCell) == false)
                 return false;
 
             using var settingsHandle = EntitySettingsPool.Get(out EntitySettings settings);
@@ -8286,6 +8287,71 @@ namespace MHServerEmu.Games.MythicRifts
             position = RegionLocation.ProjectToFloor(region, position);
             cell ??= region.GetCellAtPosition(position);
             return cell != null;
+        }
+
+        private static bool TryGetAccessibleRewardPortalSpawnLocation(
+            MythicRiftRunState runState,
+            Region region,
+            WorldEntityPrototype portalProto,
+            out Vector3 position,
+            out Orientation orientation,
+            out Cell cell)
+        {
+            position = Vector3.Zero;
+            orientation = Orientation.Zero;
+            cell = null;
+
+            if (runState?.Config == null || region == null || portalProto?.Bounds == null)
+                return false;
+
+            foreach (Player player in new PlayerIterator(region))
+            {
+                Avatar avatar = player?.CurrentAvatar;
+                if (avatar?.IsInWorld != true || avatar.Region != region ||
+                    runState.ParticipantPlayerDbIds.Contains(player.DatabaseUniqueId) == false)
+                {
+                    continue;
+                }
+
+                Cell avatarCell = avatar.Cell ?? region.GetCellAtPosition(avatar.RegionLocation.Position);
+                if (avatarCell == null)
+                    continue;
+
+                Bounds portalBounds = new(portalProto.Bounds, avatar.RegionLocation.Position + avatar.Forward * 120f);
+                if (region.ChoosePositionAtOrNearPoint(
+                    ref portalBounds,
+                    avatar.Locomotor.PathFlags,
+                    PositionCheckFlags.CanBeBlockedEntity | PositionCheckFlags.PreferNoEntity,
+                    BlockingCheckFlags.None,
+                    180f,
+                    out Vector3 resolvedPosition,
+                    maxPositionTests: 64))
+                {
+                    Cell resolvedCell = region.GetCellAtPosition(resolvedPosition);
+                    if (resolvedCell == avatarCell)
+                    {
+                        position = RegionLocation.ProjectToFloor(region, resolvedPosition);
+                        orientation = avatar.RegionLocation.Orientation;
+                        cell = resolvedCell;
+                        return true;
+                    }
+                }
+
+                position = RegionLocation.ProjectToFloor(region, avatar.RegionLocation.Position);
+                orientation = avatar.RegionLocation.Orientation;
+                cell = avatarCell;
+                return true;
+            }
+
+            if (TryResolveRunStartPosition(runState, region, out Vector3 startPosition) == false)
+                return false;
+
+            cell = region.GetCellAtPosition(startPosition);
+            if (cell == null)
+                return false;
+
+            position = startPosition;
+            return true;
         }
 
         private bool TryAbortRunForDisconnectedParticipants(MythicRiftRunState runState, TimeSpan currentTime)
