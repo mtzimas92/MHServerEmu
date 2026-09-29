@@ -186,6 +186,7 @@ namespace MHServerEmu.Games.MythicRifts
         public bool AllowParty { get; set; } = true;
         public int TimeLimitMinutes { get; set; } = 10;
         public bool ApplyCheckpointBossHealthMultiplier { get; set; }
+        public MythicRiftPostCapScalingTuning PostCapScaling { get; set; }
         public List<MythicRiftLevelScalingTuning> Levels { get; set; } = new();
 
         public void Normalize()
@@ -196,12 +197,65 @@ namespace MHServerEmu.Games.MythicRifts
                 Levels.Add(new MythicRiftLevelScalingTuning());
             foreach (MythicRiftLevelScalingTuning level in Levels)
                 level.Normalize();
+
+            PostCapScaling?.Normalize();
+            if (PostCapScaling?.Enabled == true)
+                ApplyPostCapScaling();
+        }
+
+        private void ApplyPostCapScaling()
+        {
+            int startLevel = PostCapScaling.StartLevel;
+            MythicRiftLevelScalingTuning baseLevel = Levels.LastOrDefault(entry => entry.Level < startLevel);
+            if (baseLevel == null)
+                return;
+
+            Levels.RemoveAll(entry => entry.Level >= startLevel);
+
+            int baseLevelNumber = startLevel - 1;
+            int levelSpan = PostCapScaling.CapLevel - baseLevelNumber;
+            double healthDenominator = Math.Log(1d + PostCapScaling.HealthCurveStrength * levelSpan);
+            double damageDenominator = Math.Log(1d + PostCapScaling.DamageCurveStrength * levelSpan);
+
+            for (int level = startLevel; level <= PostCapScaling.CapLevel; level++)
+            {
+                int offset = level - baseLevelNumber;
+                float healthMultiplier = CalculatePostCapMultiplier(
+                    baseLevel.HealthMultiplier,
+                    PostCapScaling.HealthCap,
+                    PostCapScaling.HealthCurveStrength,
+                    offset,
+                    healthDenominator);
+                float damageMultiplier = CalculatePostCapMultiplier(
+                    baseLevel.DamageMultiplier,
+                    PostCapScaling.DamageCap,
+                    PostCapScaling.DamageCurveStrength,
+                    offset,
+                    damageDenominator);
+
+                Levels.Add(new MythicRiftLevelScalingTuning(
+                    level,
+                    baseLevel.DifficultyTierPrototype,
+                    healthMultiplier,
+                    damageMultiplier,
+                    baseLevel.BossCount));
+            }
+        }
+
+        private static float CalculatePostCapMultiplier(float start, float cap, double strength, int offset, double denominator)
+        {
+            if (denominator <= 0d || cap <= start)
+                return start;
+
+            double progress = Math.Log(1d + strength * offset) / denominator;
+            return (float)(start + (cap - start) * progress);
         }
 
         public static MythicRiftModeScalingTuning CreateStandard() => new()
         {
             AllowParty = false,
             TimeLimitMinutes = 5,
+            PostCapScaling = MythicRiftPostCapScalingTuning.CreateStandard(),
             Levels = MythicRiftLevelScalingTuning.CreateDifficultyBands(includeBossCounts: false, includeInfiniteGrowth: true)
         };
 
@@ -256,6 +310,38 @@ namespace MHServerEmu.Games.MythicRifts
                 new(49, "Difficulty/Tiers/Tier5Omega1.prototype", 2.9209f, 1.7684f, 9),
                 new(50, "Difficulty/Tiers/Tier5Omega1.prototype", 3.0000f, 1.8000f, 10)
             }
+        };
+    }
+
+    public sealed class MythicRiftPostCapScalingTuning
+    {
+        public bool Enabled { get; set; }
+        public int StartLevel { get; set; } = 49;
+        public int CapLevel { get; set; } = 150;
+        public float HealthCap { get; set; } = 5f;
+        public float DamageCap { get; set; } = 2f;
+        public double HealthCurveStrength { get; set; } = 0.08d;
+        public double DamageCurveStrength { get; set; } = 0.06d;
+
+        public void Normalize()
+        {
+            StartLevel = Math.Max(StartLevel, 2);
+            CapLevel = Math.Max(CapLevel, StartLevel);
+            HealthCap = Math.Max(HealthCap, 0.01f);
+            DamageCap = Math.Max(DamageCap, 0.01f);
+            HealthCurveStrength = Math.Max(HealthCurveStrength, 0.0001d);
+            DamageCurveStrength = Math.Max(DamageCurveStrength, 0.0001d);
+        }
+
+        public static MythicRiftPostCapScalingTuning CreateStandard() => new()
+        {
+            Enabled = true,
+            StartLevel = 49,
+            CapLevel = 150,
+            HealthCap = 5f,
+            DamageCap = 2f,
+            HealthCurveStrength = 0.08d,
+            DamageCurveStrength = 0.06d
         };
     }
 
