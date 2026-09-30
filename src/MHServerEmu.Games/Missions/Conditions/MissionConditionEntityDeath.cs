@@ -5,6 +5,7 @@ using MHServerEmu.Games.Events;
 using MHServerEmu.Games.Events.Templates;
 using MHServerEmu.Games.GameData;
 using MHServerEmu.Games.GameData.Prototypes;
+using MHServerEmu.Games.MythicRifts;
 using MHServerEmu.Games.Populations;
 using MHServerEmu.Games.Regions;
 
@@ -156,6 +157,7 @@ namespace MHServerEmu.Games.Missions.Conditions
             if (killerTagged == false && killer != null && Mission.IsOpenMission)
                 UpdatePlayerContribution(killer);
 
+            OmegaContentRewardService.TryHandleMissionEntityDeath(Mission, entity, killer, Count + 1, RequiredCount);
             Count++;
         }
 
