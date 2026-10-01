@@ -1666,6 +1666,7 @@ namespace MHServerEmu.Games.MythicRifts
             float originalSpecial = avatar.Properties[PropertyEnum.LootBonusSpecialPct];
             bool hadRarityProperty = avatar.Properties.HasProperty(PropertyEnum.LootBonusRarityPct);
             bool hadSpecialProperty = avatar.Properties.HasProperty(PropertyEnum.LootBonusSpecialPct);
+            TraceItemFind(runState, player, "reward-before", rewardOutcome.BonusRarityPct, rewardOutcome.BonusSpecialPct);
             try
             {
                 float totalBonusRarityPct = rewardOutcome.BonusRarityPct;
@@ -1676,6 +1677,8 @@ namespace MHServerEmu.Games.MythicRifts
 
                 if (totalBonusSpecialPct > 0f)
                     avatar.Properties.AdjustProperty(totalBonusSpecialPct, specialPropertyId);
+
+                TraceItemFind(runState, player, "reward-applied", totalBonusRarityPct, totalBonusSpecialPct);
 
                 Vector3? groundLootPositionOverride = UsesFixedRewardRoom(runState)
                     ? BossGauntletRewardRoomCenterPosition
@@ -1766,7 +1769,7 @@ namespace MHServerEmu.Games.MythicRifts
                     TrySpawnRewardChest(runState, player, avatar, chestRewards, totalBonusRarityPct, totalBonusSpecialPct) == false)
                 {
                     // Logger.Warn($"Mythic Rift run {runState.Config.RunId} failed to spawn reward chest for player {player}; falling back to ground delivery.");
-                    GrantPendingRewardDrops(player, avatar, sourceEntity: avatar, chestRewards, bonusRarityPct: 0f, bonusSpecialPct: 0f);
+                    GrantPendingRewardDrops(runState, player, avatar, sourceEntity: avatar, chestRewards, bonusRarityPct: 0f, bonusSpecialPct: 0f);
                 }
 
                 runState.MarkRewardGrantedToPlayer(player.DatabaseUniqueId);
@@ -1784,7 +1787,43 @@ namespace MHServerEmu.Games.MythicRifts
                     avatar.Properties[PropertyEnum.LootBonusSpecialPct] = originalSpecial;
                 else
                     avatar.Properties.RemoveProperty(specialPropertyId);
+
+                TraceItemFind(runState, player, "reward-restored", rewardOutcome.BonusRarityPct, rewardOutcome.BonusSpecialPct);
             }
+        }
+
+        private static void TraceItemFind(
+            MythicRiftRunState runState,
+            Player player,
+            string stage,
+            float rewardRarityPct = 0f,
+            float rewardSpecialPct = 0f)
+        {
+            Avatar avatar = player?.CurrentAvatar;
+            Region region = avatar?.Region;
+            if (runState?.Config == null || avatar == null || region == null)
+                return;
+
+            float regionRarityPct = region.Properties[PropertyEnum.LootBonusRarityPct];
+            float regionSpecialPct = region.Properties[PropertyEnum.LootBonusSpecialPct];
+            float regionStackingRarityPct = Avatar.GetStackingLootBonusRarityPct(region.Properties);
+            float regionStackingSpecialPct = Avatar.GetStackingLootBonusSpecialPct(region.Properties);
+            float avatarRarityPct = avatar.Properties[PropertyEnum.LootBonusRarityPct];
+            float avatarSpecialPct = avatar.Properties[PropertyEnum.LootBonusSpecialPct];
+            float avatarStackingRarityPct = Avatar.GetStackingLootBonusRarityPct(avatar.Properties);
+            float avatarStackingSpecialPct = Avatar.GetStackingLootBonusSpecialPct(avatar.Properties);
+            float effectiveRarityPct = regionRarityPct + regionStackingRarityPct + avatarRarityPct + avatarStackingRarityPct;
+            float effectiveSpecialPct = regionSpecialPct + regionStackingSpecialPct + avatarSpecialPct + avatarStackingSpecialPct;
+            DifficultyTierPrototype difficulty = region.DifficultyTierRef.As<DifficultyTierPrototype>();
+
+            Logger.Info(
+                $"[MythicRiftItemFindTrace] stage={stage} runId={runState.Config.RunId} mode={runState.Config.Mode} " +
+                $"riftLevel={runState.Config.RiftLevel} wave={runState.Config.WaveNumber} playerDbId=0x{player.DatabaseUniqueId:X} " +
+                $"avatar={avatar.PrototypeDataRef.GetNameFormatted()} region={region.PrototypeDataRef.GetNameFormatted()} " +
+                $"difficulty={region.DifficultyTierRef.GetNameFormatted()} difficultyRIF={(difficulty?.ItemFindRarePct ?? 0f):F4} difficultySIF={(difficulty?.ItemFindSpecialPct ?? 0f):F4} " +
+                $"regionRIF={regionRarityPct:F4} regionStackRIF={regionStackingRarityPct:F4} avatarRIF={avatarRarityPct:F4} avatarStackRIF={avatarStackingRarityPct:F4} " +
+                $"regionSIF={regionSpecialPct:F4} regionStackSIF={regionStackingSpecialPct:F4} avatarSIF={avatarSpecialPct:F4} avatarStackSIF={avatarStackingSpecialPct:F4} " +
+                $"rewardRIF={rewardRarityPct:F4} rewardSIF={rewardSpecialPct:F4} effectiveRIFPct={(effectiveRarityPct * 100f):F2} effectiveSIFPct={(effectiveSpecialPct * 100f):F2}");
         }
 
         private void GrantRewardLootTable(PrototypeId lootTableProtoRef, LootInputSettings inputSettings, string delivery, ref int groundRecipientId, int itemLevel = 0)
@@ -2086,7 +2125,7 @@ namespace MHServerEmu.Games.MythicRifts
 
             try
             {
-                GrantPendingRewardDrops(player, avatar, chest, pendingChest.RewardDrops, pendingChest.BonusRarityPct, pendingChest.BonusSpecialPct);
+                GrantPendingRewardDrops(GetRun(pendingChest.RunId), player, avatar, chest, pendingChest.RewardDrops, pendingChest.BonusRarityPct, pendingChest.BonusSpecialPct);
                 // Game.ChatManager.SendChatFromCustomSystem(player, "[Mythic Rift] Reward chest opened.", showSender: false);
                 // Logger.Info($"Mythic Rift run {pendingChest.RunId} reward chest 0x{chest.Id:X} opened by playerDbId=0x{player.DatabaseUniqueId:X} drops={pendingChest.RewardDrops.Count}.");
             }
@@ -2102,6 +2141,7 @@ namespace MHServerEmu.Games.MythicRifts
         }
 
         private void GrantPendingRewardDrops(
+            MythicRiftRunState runState,
             Player player,
             Avatar avatar,
             WorldEntity sourceEntity,
@@ -2120,6 +2160,8 @@ namespace MHServerEmu.Games.MythicRifts
             bool hadRarityProperty = avatar.Properties.HasProperty(PropertyEnum.LootBonusRarityPct);
             bool hadSpecialProperty = avatar.Properties.HasProperty(PropertyEnum.LootBonusSpecialPct);
 
+            TraceItemFind(runState, player, "chest-before", bonusRarityPct, bonusSpecialPct);
+
             try
             {
                 if (bonusRarityPct > 0f)
@@ -2127,6 +2169,8 @@ namespace MHServerEmu.Games.MythicRifts
 
                 if (bonusSpecialPct > 0f)
                     avatar.Properties.AdjustProperty(bonusSpecialPct, specialPropertyId);
+
+                TraceItemFind(runState, player, "chest-applied", bonusRarityPct, bonusSpecialPct);
 
                 int groundRecipientId = 1;
                 Vector3? positionOverride = sourceEntity?.IsInWorld == true
@@ -2161,6 +2205,8 @@ namespace MHServerEmu.Games.MythicRifts
                     avatar.Properties[PropertyEnum.LootBonusSpecialPct] = originalSpecial;
                 else
                     avatar.Properties.RemoveProperty(specialPropertyId);
+
+                TraceItemFind(runState, player, "chest-restored", bonusRarityPct, bonusSpecialPct);
             }
         }
 
@@ -2617,6 +2663,8 @@ namespace MHServerEmu.Games.MythicRifts
             runState.AttachRegion(region.Id);
             RegisterRegionPlayersAsParticipants(runState, region);
             ApplyRunDifficultyToRegion(runState, region);
+            foreach (Player player in new PlayerIterator(region))
+                TraceItemFind(runState, player, "rift-entry");
             EnsureRegionListener(region);
             DisableNativeLootForRiftRegion(runState, region);
             if (runState.Config.UseBossGauntletMode)
