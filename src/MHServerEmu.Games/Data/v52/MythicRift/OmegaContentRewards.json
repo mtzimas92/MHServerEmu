@@ -62,7 +62,7 @@
       "id": "cosmic-axis",
       "enabled": true,
       "completionMission": "Missions/Prototypes/Raids/AxisRaid/AxisRaidP3PlazaDefeatOnslaught.prototype",
-      "requiredDifficulty": "Difficulty/Tiers/Tier5Omega1.prototype",
+      "requiredDifficulty": "Difficulty/Tiers/Tier3Superheroic.prototype",
       "rewards": [
         {
           "id": "cosmic-axis-champion-commendations",

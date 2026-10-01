@@ -98,13 +98,24 @@ namespace MHServerEmu.Games.MythicRifts
             if (levelTuning != null)
             {
                 int effectivePlayerCount = GetEffectivePlayerCount(requestedPlayerCount);
-                float groupHealthMultiplier = 1f;
+                MythicRiftModeScalingTuning modeTuning = tuning.GetMode(mode);
+                float groupHealthMultiplier = modeTuning.AllowParty
+                    ? tuning.GetGroupHealthMultiplier(requestedPlayerCount)
+                    : 1f;
+
+                if (mode == MythicRiftMode.BossGauntlet)
+                    groupHealthMultiplier = Math.Min(groupHealthMultiplier, tuning.BossGauntletGroupHealthMultiplierCap);
+
+                float healthMultiplier = levelTuning.HealthMultiplier * groupHealthMultiplier;
+                if (mode == MythicRiftMode.BossGauntlet)
+                    healthMultiplier = Math.Min(healthMultiplier, tuning.MaxBossGauntletHealthMultiplier);
+
                 return new MythicRiftDifficultySnapshot(
                     Math.Max(riftLevel, 1),
                     effectivePlayerCount,
                     Math.Max(riftLevel, 1),
                     groupHealthMultiplier,
-                    Math.Max(levelTuning.HealthMultiplier * groupHealthMultiplier, 0.01f),
+                    Math.Max(healthMultiplier, 0.01f),
                     Math.Max(levelTuning.DamageMultiplier, 0.01f));
             }
 

@@ -433,6 +433,7 @@ namespace MHServerEmu.Games.MythicRifts
         public int ItemLevel { get; set; }
         public int MinRiftLevel { get; set; } = 1;
         public int MaxRiftLevel { get; set; }
+        public int RiftLevelInterval { get; set; }
         public int MinWave { get; set; } = 1;
         public int MaxWave { get; set; }
         public bool SuccessOnly { get; set; } = true;
@@ -444,6 +445,7 @@ namespace MHServerEmu.Games.MythicRifts
         public string Delivery { get; set; }
         public string ClaimPeriod { get; set; }
         public string ClaimScope { get; set; }
+        public bool ClaimPerRiftLevel { get; set; }
 
         public void Normalize(string defaultDelivery)
         {
@@ -459,6 +461,7 @@ namespace MHServerEmu.Games.MythicRifts
             ItemLevel = Math.Max(ItemLevel, 0);
             MinRiftLevel = Math.Max(MinRiftLevel, 1);
             MaxRiftLevel = Math.Max(MaxRiftLevel, 0);
+            RiftLevelInterval = Math.Max(RiftLevelInterval, 0);
             MinWave = Math.Max(MinWave, 1);
             MaxWave = Math.Max(MaxWave, 0);
             Modes ??= new();
@@ -492,6 +495,9 @@ namespace MHServerEmu.Games.MythicRifts
             if (riftLevel < MinRiftLevel || (MaxRiftLevel > 0 && riftLevel > MaxRiftLevel))
                 return false;
 
+            if (RiftLevelInterval > 0 && (riftLevel - MinRiftLevel) % RiftLevelInterval != 0)
+                return false;
+
             int wave = MythicRiftRewardTuning.GetRewardWaveNumber(runState);
             if (wave < MinWave || (MaxWave > 0 && wave > MaxWave))
                 return false;
@@ -513,6 +519,7 @@ namespace MHServerEmu.Games.MythicRifts
         public string PrototypeDirectoryPrefix { get; set; }
         public List<string> ItemPrototypePaths { get; set; } = new();
         public string ItemRarityPrototype { get; set; }
+        public List<string> ItemRarityPrototypes { get; set; } = new();
         public List<string> AllowedEquipmentSlots { get; set; } = new();
         public bool RollEachAllowedEquipmentSlot { get; set; }
         public float ChancePercent { get; set; } = 100f;
@@ -531,6 +538,7 @@ namespace MHServerEmu.Games.MythicRifts
         public string Delivery { get; set; }
         public string ClaimPeriod { get; set; }
         public string ClaimScope { get; set; }
+        public bool ClaimPerRiftLevel { get; set; }
 
         public void Normalize(string defaultDelivery)
         {
@@ -538,6 +546,13 @@ namespace MHServerEmu.Games.MythicRifts
             if (PrototypeDirectoryPrefix.Length > 0 && PrototypeDirectoryPrefix.EndsWith('/') == false)
                 PrototypeDirectoryPrefix += "/";
             ItemRarityPrototype = ItemRarityPrototype?.Trim() ?? string.Empty;
+            ItemRarityPrototypes = ItemRarityPrototypes == null
+                ? new()
+                : ItemRarityPrototypes
+                    .Where(name => string.IsNullOrWhiteSpace(name) == false)
+                    .Select(name => name.Trim())
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .ToList();
             AllowedEquipmentSlots = AllowedEquipmentSlots == null
                 ? new()
                 : AllowedEquipmentSlots

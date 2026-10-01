@@ -238,7 +238,10 @@ namespace MHServerEmu.Games.MetaGames
             // deactivate old mode
             CurrentMode?.OnDeactivate();
 
-            InitializeEventHandler(modeProto.EventHandler);
+            // Age of Doom uses the Age of Ultron prototype only as a client-visible shell. Its
+            // native score/mission event handler belongs to the replaced AoU phase sequencer.
+            if (mode is not MHServerEmu.Games.AgeOfDoom.AgeOfDoomGameMode)
+                InitializeEventHandler(modeProto.EventHandler);
 
             int softLock = proto.SoftLockRegionMode;
             if (softLock >= 0 && _modeIndex < softLock && softLock <= index)

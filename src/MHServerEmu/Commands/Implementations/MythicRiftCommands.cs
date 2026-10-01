@@ -3056,6 +3056,47 @@ namespace MHServerEmu.Commands.Implementations
             lines.Add($"{MythicRiftManager.GetModeDisplayName(mode)} | highestUnlockedRiftLevel={unlockedLevel} | nextLaunchRiftLevel={selectedLevel} | {persistedLabel}={persistedLevel}{accountBestText}");
         }
 
+        [Command("advanceaxis")]
+        [CommandDescription("Completes the current Axis raid setup mission without completing or killing Onslaught.")]
+        [CommandUsage("rift advanceaxis")]
+        [CommandUserLevel(AccountUserLevel.Admin)]
+        [CommandInvokerType(CommandInvokerType.Client)]
+        public string AdvanceAxis(string[] @params, NetClient client)
+        {
+            PlayerConnection playerConnection = (PlayerConnection)client;
+            Player player = playerConnection?.Player;
+            MissionManager missionManager = player?.GetRegion()?.MissionManager;
+            if (missionManager == null)
+                return "Current region mission manager not found.";
+
+            const string finalMissionName = "AxisRaidP3PlazaDefeatOnslaught";
+            Mission nextMission = null;
+            foreach (PrototypeId missionRef in missionManager.ActiveMissions)
+            {
+                string missionName = missionRef.GetNameFormatted();
+                if (missionName.Contains("AxisRaid", StringComparison.OrdinalIgnoreCase) == false)
+                    continue;
+
+                if (missionName.Contains(finalMissionName, StringComparison.OrdinalIgnoreCase))
+                    return "Onslaught's final mission is active. Fight and kill him normally to test his loot.";
+
+                Mission mission = missionManager.FindMissionByDataRef(missionRef);
+                if (mission?.State == MissionState.Active)
+                {
+                    nextMission = mission;
+                    break;
+                }
+            }
+
+            if (nextMission == null)
+                return "No active pre-Onslaught Axis raid mission was found.";
+
+            if (nextMission.SetState(MissionState.Completed, true) == false)
+                return $"Failed to complete {nextMission.PrototypeName}.";
+
+            return $"Completed {nextMission.PrototypeName}. Run the command again for the next stage, or fight Onslaught when his final mission becomes active.";
+        }
+
         private static bool TryParseOptionalModeArguments(
             string[] args,
             out MythicRiftMode mode,

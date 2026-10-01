@@ -896,7 +896,8 @@ namespace MHServerEmu.Games.GameData.Prototypes
             if (Verify.IsNotNull(proceduralAI))
             {
                 HandleContext(proceduralAI, ownerController, DestroyTurretsOnDeath);
-                HandleContext(proceduralAI, ownerController, SpawnDrDoomPhase2);
+                if (MythicRiftStandaloneBossFixups.IsStandaloneBoss(agent) == false)
+                    HandleContext(proceduralAI, ownerController, SpawnDrDoomPhase2);
             }
         }
     }
@@ -969,7 +970,7 @@ namespace MHServerEmu.Games.GameData.Prototypes
                 Verify.IsTrue(ownerController.AttemptActivatePower(DeathStun, agent.Id, agent.RegionLocation.Position));
 
             ProceduralAI proceduralAI = ownerController.Brain;
-            if (Verify.IsNotNull(proceduralAI))
+            if (Verify.IsNotNull(proceduralAI) && MythicRiftStandaloneBossFixups.IsStandaloneBoss(agent) == false)
                 HandleContext(proceduralAI, ownerController, SpawnDrDoomPhase3);
         }
     }

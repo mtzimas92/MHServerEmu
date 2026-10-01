@@ -193,7 +193,28 @@
     }
   ],
   "rewardRecipes": [],
-  "randomItemPools": [],
+  "randomItemPools": [
+    {
+      "id": "infinite-rift-weekly-insignia",
+      "enabled": true,
+      "prototypeDirectoryPrefix": "Entity/Items/Insignias",
+      "itemRarityPrototypes": [
+        "Entity/Items/Rarity/R4Epic.prototype",
+        "Entity/Items/Rarity/R5Cosmic.prototype"
+      ],
+      "chancePercent": 100,
+      "rolls": 1,
+      "itemLevel": 63,
+      "minRiftLevel": 1,
+      "maxRiftLevel": 0,
+      "successOnly": true,
+      "modes": [ "standard" ],
+      "delivery": "ground",
+      "claimPeriod": "weekly",
+      "claimScope": "account",
+      "claimPerRiftLevel": true
+    }
+  ],
   "guaranteedItems": [
     {
       "id": "omega-training-daily-wave-10-cube-shard",
@@ -1066,7 +1087,7 @@
         "enabled": true,
         "id": "infinite-rift-levels-31-plus-xp-orbs",
         "itemPrototypeRuntimeId": 12632728816580106976,
-        "quantity": 8,
+        "quantity": 5,
         "minRiftLevel": 31,
         "maxRiftLevel": 0,
         "successOnly": true,
@@ -1077,67 +1098,144 @@
       },
       {
         "enabled": true,
-        "id": "infinite-rift-levels-5-9-infinity-boxes",
+        "id": "infinite-rift-weekly-infinity-box-level-10",
         "itemPrototypeName": "Entity/Items/Consumables/Prototypes/VeteranRewards/SixInfinityOrbChest.prototype",
         "quantity": 1,
-        "minRiftLevel": 5,
-        "maxRiftLevel": 9,
+        "minRiftLevel": 10,
+        "maxRiftLevel": 10,
         "successOnly": true,
         "modes": [
           "standard"
         ],
+        "claimPeriod": "weekly",
+        "claimScope": "account",
         "delivery": "ground"
       },
       {
         "enabled": true,
-        "id": "infinite-rift-levels-10-19-infinity-boxes",
+        "id": "infinite-rift-weekly-infinity-box-level-20",
+        "itemPrototypeName": "Entity/Items/Consumables/Prototypes/VeteranRewards/SixInfinityOrbChest.prototype",
+        "quantity": 1,
+        "minRiftLevel": 20,
+        "maxRiftLevel": 20,
+        "successOnly": true,
+        "modes": [
+          "standard"
+        ],
+        "claimPeriod": "weekly",
+        "claimScope": "account",
+        "delivery": "ground"
+      },
+      {
+        "enabled": true,
+        "id": "infinite-rift-weekly-infinity-box-level-30",
+        "itemPrototypeName": "Entity/Items/Consumables/Prototypes/VeteranRewards/SixInfinityOrbChest.prototype",
+        "quantity": 1,
+        "minRiftLevel": 30,
+        "maxRiftLevel": 30,
+        "successOnly": true,
+        "modes": [
+          "standard"
+        ],
+        "claimPeriod": "weekly",
+        "claimScope": "account",
+        "delivery": "ground"
+      },
+      {
+        "enabled": true,
+        "id": "infinite-rift-weekly-infinity-box-level-40",
         "itemPrototypeName": "Entity/Items/Consumables/Prototypes/VeteranRewards/SixInfinityOrbChest.prototype",
         "quantity": 2,
-        "minRiftLevel": 10,
-        "maxRiftLevel": 19,
+        "minRiftLevel": 40,
+        "maxRiftLevel": 40,
         "successOnly": true,
         "modes": [
           "standard"
         ],
+        "claimPeriod": "weekly",
+        "claimScope": "account",
         "delivery": "ground"
       },
       {
         "enabled": true,
-        "id": "infinite-rift-levels-20-29-infinity-boxes",
+        "id": "infinite-rift-weekly-infinity-box-level-50",
+        "itemPrototypeName": "Entity/Items/Consumables/Prototypes/VeteranRewards/SixInfinityOrbChest.prototype",
+        "quantity": 2,
+        "minRiftLevel": 50,
+        "maxRiftLevel": 50,
+        "successOnly": true,
+        "modes": [
+          "standard"
+        ],
+        "claimPeriod": "weekly",
+        "claimScope": "account",
+        "delivery": "ground"
+      },
+      {
+        "enabled": true,
+        "id": "infinite-rift-weekly-infinity-box-level-60",
+        "itemPrototypeName": "Entity/Items/Consumables/Prototypes/VeteranRewards/SixInfinityOrbChest.prototype",
+        "quantity": 2,
+        "minRiftLevel": 60,
+        "maxRiftLevel": 60,
+        "successOnly": true,
+        "modes": [ "standard" ],
+        "claimPeriod": "weekly",
+        "claimScope": "account",
+        "delivery": "ground"
+      },
+      {
+        "enabled": true,
+        "id": "infinite-rift-weekly-infinity-box-level-70",
+        "itemPrototypeName": "Entity/Items/Consumables/Prototypes/VeteranRewards/SixInfinityOrbChest.prototype",
+        "quantity": 2,
+        "minRiftLevel": 70,
+        "maxRiftLevel": 70,
+        "successOnly": true,
+        "modes": [ "standard" ],
+        "claimPeriod": "weekly",
+        "claimScope": "account",
+        "delivery": "ground"
+      },
+      {
+        "enabled": true,
+        "id": "infinite-rift-weekly-infinity-box-level-80",
+        "itemPrototypeName": "Entity/Items/Consumables/Prototypes/VeteranRewards/SixInfinityOrbChest.prototype",
+        "quantity": 2,
+        "minRiftLevel": 80,
+        "maxRiftLevel": 80,
+        "successOnly": true,
+        "modes": [ "standard" ],
+        "claimPeriod": "weekly",
+        "claimScope": "account",
+        "delivery": "ground"
+      },
+      {
+        "enabled": true,
+        "id": "infinite-rift-weekly-infinity-box-level-90",
         "itemPrototypeName": "Entity/Items/Consumables/Prototypes/VeteranRewards/SixInfinityOrbChest.prototype",
         "quantity": 3,
-        "minRiftLevel": 20,
-        "maxRiftLevel": 29,
+        "minRiftLevel": 90,
+        "maxRiftLevel": 90,
         "successOnly": true,
-        "modes": [
-          "standard"
-        ],
+        "modes": [ "standard" ],
+        "claimPeriod": "weekly",
+        "claimScope": "account",
         "delivery": "ground"
       },
       {
         "enabled": true,
-        "id": "infinite-rift-levels-30-39-infinity-boxes",
+        "id": "infinite-rift-weekly-infinity-box-level-100-plus",
         "itemPrototypeName": "Entity/Items/Consumables/Prototypes/VeteranRewards/SixInfinityOrbChest.prototype",
-        "quantity": 4,
-        "minRiftLevel": 30,
-        "maxRiftLevel": 39,
-        "successOnly": true,
-        "modes": [
-          "standard"
-        ],
-        "delivery": "ground"
-      },
-      {
-        "enabled": true,
-        "id": "infinite-rift-levels-40-plus-infinity-boxes",
-        "itemPrototypeName": "Entity/Items/Consumables/Prototypes/VeteranRewards/SixInfinityOrbChest.prototype",
-        "quantity": 5,
-        "minRiftLevel": 40,
+        "quantity": 3,
+        "minRiftLevel": 100,
         "maxRiftLevel": 0,
+        "riftLevelInterval": 10,
         "successOnly": true,
-        "modes": [
-          "standard"
-        ],
+        "modes": [ "standard" ],
+        "claimPeriod": "weekly",
+        "claimScope": "account",
+        "claimPerRiftLevel": true,
         "delivery": "ground"
       },
       {

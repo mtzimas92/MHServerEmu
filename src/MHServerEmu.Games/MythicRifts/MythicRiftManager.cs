@@ -4961,7 +4961,9 @@ namespace MHServerEmu.Games.MythicRifts
 
                 resolvedItems.Add(new()
                 {
-                    Id = entry.Id,
+                    Id = entry.ClaimPerRiftLevel
+                        ? $"{entry.Id}/level-{MythicRiftRewardTuning.GetRewardRiftLevel(runState)}"
+                        : entry.Id,
                     ItemProtoRef = itemProtoRef,
                     IsAgentReward = isAgentReward,
                     Quantity = GetGuaranteedRewardQuantity(entry, runState),
@@ -5030,16 +5032,7 @@ namespace MHServerEmu.Games.MythicRifts
                 if (entry == null || entry.AppliesTo(runState, timedSuccess, checkpointSuccess) == false)
                     continue;
 
-                PrototypeId rarityProtoRef = string.IsNullOrWhiteSpace(entry.ItemRarityPrototype)
-                    ? PrototypeId.Invalid
-                    : ResolvePrototype(entry.ItemRarityPrototype);
                 IReadOnlyList<EquipmentInvUISlot> allowedEquipmentSlots = ParseRewardPoolAllowedEquipmentSlots(entry.AllowedEquipmentSlots);
-                IReadOnlyList<PrototypeId> candidates = ResolveRewardItemPool(entry);
-                if (candidates.Count == 0)
-                {
-                    // Logger.Warn($"Mythic Rift reward tuning found no eligible items for random pool id={entry.Id} directory={entry.PrototypeDirectoryPrefix} explicitItems={entry.ItemPrototypePaths?.Count ?? 0}");
-                    continue;
-                }
 
                 for (int roll = 0; roll < entry.Rolls; roll++)
                 {
@@ -5049,6 +5042,22 @@ namespace MHServerEmu.Games.MythicRifts
                         continue;
                     }
 
+                    string rarityPrototypeName = entry.ItemRarityPrototypes.Count > 0
+                        ? entry.ItemRarityPrototypes[Game.Random.Next(0, entry.ItemRarityPrototypes.Count)]
+                        : entry.ItemRarityPrototype;
+                    PrototypeId rarityProtoRef = string.IsNullOrWhiteSpace(rarityPrototypeName)
+                        ? PrototypeId.Invalid
+                        : ResolvePrototype(rarityPrototypeName);
+                    IReadOnlyList<PrototypeId> candidates = entry.ItemPrototypePaths.Count > 0
+                        ? ResolveRewardItemPool(entry)
+                        : ResolveRewardItemPool(entry.PrototypeDirectoryPrefix, rarityPrototypeName, allowedEquipmentSlots);
+                    if (candidates.Count == 0)
+                        continue;
+
+                    string rewardId = entry.ClaimPerRiftLevel
+                        ? $"{entry.Id}/level-{MythicRiftRewardTuning.GetRewardRiftLevel(runState)}"
+                        : entry.Id;
+
                     if (ShouldResolveRandomItemPoolAtGrantTime(entry, allowedEquipmentSlots))
                     {
                         if (entry.RollEachAllowedEquipmentSlot && allowedEquipmentSlots.Count > 0)
@@ -5057,7 +5066,7 @@ namespace MHServerEmu.Games.MythicRifts
                             {
                                 resolvedItems.Add(new()
                                 {
-                                    Id = $"{entry.Id}/{slot}/random",
+                                    Id = $"{rewardId}/{slot}/random",
                                     ItemProtoRef = PrototypeId.Invalid,
                                     CandidateItemProtoRefs = candidates,
                                     CandidateAllowedEquipmentSlots = allowedEquipmentSlots,
@@ -5076,7 +5085,7 @@ namespace MHServerEmu.Games.MythicRifts
 
                         resolvedItems.Add(new()
                         {
-                            Id = $"{entry.Id}/random",
+                            Id = $"{rewardId}/random",
                             ItemProtoRef = PrototypeId.Invalid,
                             CandidateItemProtoRefs = candidates,
                             CandidateAllowedEquipmentSlots = allowedEquipmentSlots,
@@ -5093,7 +5102,9 @@ namespace MHServerEmu.Games.MythicRifts
                     PrototypeId itemProtoRef = candidates[Game.Random.Next(0, candidates.Count)];
                     resolvedItems.Add(new()
                     {
-                        Id = $"{entry.Id}/{itemProtoRef.GetNameFormatted()}",
+                        Id = string.IsNullOrWhiteSpace(entry.ClaimPeriod)
+                            ? $"{rewardId}/{itemProtoRef.GetNameFormatted()}"
+                            : rewardId,
                         ItemProtoRef = itemProtoRef,
                         Quantity = 1,
                         ItemLevel = entry.ItemLevel,

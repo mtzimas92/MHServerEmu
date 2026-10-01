@@ -111,7 +111,7 @@ namespace MHServerEmu.Games.MythicRifts
                     }
 
                     RecordDeathGrant(player.DatabaseUniqueId, mission.PrototypeDataRef);
-                    GrantActivityRewards(player, activity);
+                    GrantActivityRewards(player, activity, entity);
                     grantedRecipients++;
                 }
 
@@ -138,7 +138,7 @@ namespace MHServerEmu.Games.MythicRifts
             return Environment.TickCount64 - grantedAt <= RecentDeathGrantWindowMs;
         }
 
-        private static void GrantActivityRewards(Player player, OmegaContentActivityTuning activity)
+        private static void GrantActivityRewards(Player player, OmegaContentActivityTuning activity, WorldEntity rewardSource = null)
         {
             foreach (OmegaContentRewardEntryTuning reward in activity.Rewards)
             {
@@ -172,7 +172,7 @@ namespace MHServerEmu.Games.MythicRifts
                     Logger.Info($"[OmegaContentRewardTrace] result=invalid-item playerDbId=0x{player.DatabaseUniqueId:X} activity={activity.Id} reward={reward.Id} runtimeId={reward.ItemPrototypeRuntimeId} prototype={reward.ItemPrototype}");
                     continue;
                 }
-                if (GiveStackedItem(player, itemRef, quantity, reward.ItemLevel) == false)
+                if (GiveStackedItem(player, itemRef, quantity, reward.ItemLevel, rewardSource) == false)
                 {
                     Logger.Info($"[OmegaContentRewardTrace] result=delivery-failed playerDbId=0x{player.DatabaseUniqueId:X} activity={activity.Id} reward={reward.Id} item={itemRef.GetNameFormatted()} quantity={quantity} itemLevel={reward.ItemLevel}");
                     continue;
@@ -185,7 +185,7 @@ namespace MHServerEmu.Games.MythicRifts
             }
         }
 
-        private static bool GiveStackedItem(Player player, PrototypeId itemRef, int quantity, int itemLevel)
+        private static bool GiveStackedItem(Player player, PrototypeId itemRef, int quantity, int itemLevel, WorldEntity rewardSource)
         {
             ItemPrototype itemProto = GameDatabase.GetPrototype<ItemPrototype>(itemRef);
             if (itemProto == null)
@@ -205,6 +205,13 @@ namespace MHServerEmu.Games.MythicRifts
                 itemSpec.StackCount = Math.Min(remaining, maxStack);
                 remaining -= itemSpec.StackCount;
                 summary.Add(new LootResult(itemSpec));
+            }
+
+            if (rewardSource?.IsInWorld == true && player.CurrentAvatar?.Region == rewardSource.Region)
+            {
+                using var inputSettingsHandle = LootInputSettingsPool.Get(out LootInputSettings inputSettings);
+                inputSettings.Initialize(LootContext.Drop, player, rewardSource, Math.Max(itemLevel, 1));
+                return player.Game.LootManager.SpawnLootFromSummary(summary, inputSettings);
             }
 
             return player.Game.LootManager.GiveLootFromSummary(summary, player, PrototypeId.Invalid);
