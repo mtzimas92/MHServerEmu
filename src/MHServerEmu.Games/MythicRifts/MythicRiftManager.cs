@@ -1662,10 +1662,6 @@ namespace MHServerEmu.Games.MythicRifts
             PropertyId rarityPropertyId = new(PropertyEnum.LootBonusRarityPct);
             PropertyId specialPropertyId = new(PropertyEnum.LootBonusSpecialPct);
 
-            float originalRarity = avatar.Properties[PropertyEnum.LootBonusRarityPct];
-            float originalSpecial = avatar.Properties[PropertyEnum.LootBonusSpecialPct];
-            bool hadRarityProperty = avatar.Properties.HasProperty(PropertyEnum.LootBonusRarityPct);
-            bool hadSpecialProperty = avatar.Properties.HasProperty(PropertyEnum.LootBonusSpecialPct);
             TraceItemFind(runState, player, "reward-before", rewardOutcome.BonusRarityPct, rewardOutcome.BonusSpecialPct);
             try
             {
@@ -1778,15 +1774,11 @@ namespace MHServerEmu.Games.MythicRifts
             }
             finally
             {
-                if (hadRarityProperty)
-                    avatar.Properties[PropertyEnum.LootBonusRarityPct] = originalRarity;
-                else
-                    avatar.Properties.RemoveProperty(rarityPropertyId);
+                if (rewardOutcome.BonusRarityPct > 0f)
+                    avatar.Properties.AdjustProperty(-rewardOutcome.BonusRarityPct, rarityPropertyId);
 
-                if (hadSpecialProperty)
-                    avatar.Properties[PropertyEnum.LootBonusSpecialPct] = originalSpecial;
-                else
-                    avatar.Properties.RemoveProperty(specialPropertyId);
+                if (rewardOutcome.BonusSpecialPct > 0f)
+                    avatar.Properties.AdjustProperty(-rewardOutcome.BonusSpecialPct, specialPropertyId);
 
                 TraceItemFind(runState, player, "reward-restored", rewardOutcome.BonusRarityPct, rewardOutcome.BonusSpecialPct);
             }
@@ -2155,11 +2147,6 @@ namespace MHServerEmu.Games.MythicRifts
             PropertyId rarityPropertyId = new(PropertyEnum.LootBonusRarityPct);
             PropertyId specialPropertyId = new(PropertyEnum.LootBonusSpecialPct);
 
-            float originalRarity = avatar.Properties[PropertyEnum.LootBonusRarityPct];
-            float originalSpecial = avatar.Properties[PropertyEnum.LootBonusSpecialPct];
-            bool hadRarityProperty = avatar.Properties.HasProperty(PropertyEnum.LootBonusRarityPct);
-            bool hadSpecialProperty = avatar.Properties.HasProperty(PropertyEnum.LootBonusSpecialPct);
-
             TraceItemFind(runState, player, "chest-before", bonusRarityPct, bonusSpecialPct);
 
             try
@@ -2196,15 +2183,11 @@ namespace MHServerEmu.Games.MythicRifts
             }
             finally
             {
-                if (hadRarityProperty)
-                    avatar.Properties[PropertyEnum.LootBonusRarityPct] = originalRarity;
-                else
-                    avatar.Properties.RemoveProperty(rarityPropertyId);
+                if (bonusRarityPct > 0f)
+                    avatar.Properties.AdjustProperty(-bonusRarityPct, rarityPropertyId);
 
-                if (hadSpecialProperty)
-                    avatar.Properties[PropertyEnum.LootBonusSpecialPct] = originalSpecial;
-                else
-                    avatar.Properties.RemoveProperty(specialPropertyId);
+                if (bonusSpecialPct > 0f)
+                    avatar.Properties.AdjustProperty(-bonusSpecialPct, specialPropertyId);
 
                 TraceItemFind(runState, player, "chest-restored", bonusRarityPct, bonusSpecialPct);
             }
