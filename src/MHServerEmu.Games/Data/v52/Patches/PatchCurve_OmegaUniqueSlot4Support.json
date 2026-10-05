@@ -1,0 +1,14 @@
+[
+  {
+    "Enabled": true,
+    "Curve": "Difficulty/Curves/Items/SpecificItems/Unique191SpiritRegenCurve.curve",
+    "Description": "Increase Aunt May's Cane spirit regeneration values for the Omega support unique.",
+    "Scale": 1.53
+  },
+  {
+    "Enabled": true,
+    "Curve": "Difficulty/Curves/Items/SpecificItems/Unique191HealingRegenCurve.curve",
+    "Description": "Increase Aunt May's Cane healing regeneration values for the Omega support unique.",
+    "Scale": 3.08
+  }
+]

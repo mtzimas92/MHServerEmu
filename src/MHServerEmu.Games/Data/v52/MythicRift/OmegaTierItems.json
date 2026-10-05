@@ -91,10 +91,10 @@
       ]
     },
     {
-      "id": "unique049-omega-support-package",
+      "id": "unique191-omega-support-package",
       "enabled": true,
       "itemPrototypes": [
-        "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot4/Unique049.prototype"
+        "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot4/Unique191.prototype"
       ],
       "rarities": [
         "Entity/Items/Rarity/R6Unique.prototype"
@@ -125,7 +125,7 @@
           "replaceExistingSamePosition": false
         },
         {
-          "prototype": "Entity/Items/Affixes/ArmorAffixes/HealthRegen/HealthRegenParent.prototype",
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/BonusHealth/BonusHealthT3.prototype",
           "count": 1,
           "allowInvalidAttachment": true,
           "replaceExistingSamePosition": false

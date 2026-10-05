@@ -1380,30 +1380,18 @@
     },
     {
       "vendor": "omegaRaid",
-      "id": "omega-raid-nans-cane-placeholder",
+      "id": "omega-raid-nans-cane",
       "displayName": "Nan's Cane",
-      "description": "Placeholder Omega Raid Vendor unique slot 4 offer.",
+      "description": "Omega Raid Vendor support unique slot 4 offer based on Aunt May's Cane.",
       "enabled": true,
       "sigilCost": 500,
       "itemPrototypePaths": [
-        "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot4/Unique049.prototype"
+        "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot4/Unique191.prototype"
       ],
       "itemRarityPrototype": "Entity/Items/Rarity/R6Unique.prototype",
       "itemRolls": 1,
       "itemLevel": 69,
       "delivery": "inventory"
-    },
-    {
-      "vendor": "rift",
-      "id": "cosmic-artifact-commendation-vendor",
-      "displayName": "Cosmic Artifact",
-      "description": "Rotating concrete cosmic artifact stock for players who want targeted Rift progress instead of pure drop RNG.",
-      "enabled": true,
-      "sigilCost": 450,
-      "prototypeDirectoryPrefix": "Entity/Items/Artifacts/Prototypes/SpecialArtifacts/CosmicArtifacts",
-      "itemRolls": 3,
-      "itemLevel": 69,
-      "delivery": "ground"
     }
   ]
 }

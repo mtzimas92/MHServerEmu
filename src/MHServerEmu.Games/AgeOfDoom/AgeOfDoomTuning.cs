@@ -20,12 +20,11 @@ public sealed class AgeOfDoomTuning
     public int MaximumLivingEnemiesPerPlayer { get; set; } = 8;
     public float SpawnRadius { get; set; } = 700f;
     public int IncursionKillsPerPlayer { get; set; } = 18;
-    public int TimelineKillsPerPlayer { get; set; } = 24;
-    public int CouncilBosses { get; set; } = 2;
-    public List<int> DoomCountsPerStage { get; set; } = new() { 1, 2, 3, 4 };
+    public int CouncilBosses { get; set; } = 4;
+    public int MidtownDoomBosses { get; set; } = 8;
+    public string MidtownDoomPrototype { get; set; } = "Entity/Characters/Bosses/PatrolMidtown/MidtownEventDoctorDoom.prototype";
     public string ObjectiveWidgetPrototype { get; set; }
     public List<string> MinionPrototypes { get; set; } = new();
-    public List<string> ElitePrototypes { get; set; } = new();
     public List<string> CouncilBossPrototypes { get; set; } = new();
     public List<string> DoomPhasePrototypes { get; set; } = new();
 

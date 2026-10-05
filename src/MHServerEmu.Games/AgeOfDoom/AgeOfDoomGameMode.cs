@@ -20,7 +20,8 @@ namespace MHServerEmu.Games.AgeOfDoom;
 public sealed class AgeOfDoomGameMode : MetaGameMode
 {
     private static readonly PrototypeId FallbackObjectiveWidgetRef = (PrototypeId)1488507445230442250;
-    private enum Stage { Incursion, Timeline, Council, DoomAssault, Complete, Failed }
+    private enum Stage { Incursion, Council, MidtownDooms, DoomAssault, Complete, Failed }
+    private enum DoomAssault { Solo, Red, Blue }
 
     private static readonly Logger Logger = LogManager.CreateLogger();
     private static readonly AgeOfDoomTuning Tuning = AgeOfDoomTuning.Load();
@@ -94,6 +95,8 @@ public sealed class AgeOfDoomGameMode : MetaGameMode
         if (_run == null || _run.IsFinished || evt.Defender == null || _run.Entities.Remove(evt.Defender.Id) == false)
             return;
 
+        if (_run.CurrentStage == Stage.DoomAssault && _run.DoomTargetSlots.Remove(evt.Defender.Id, out int slot))
+            _run.CompletedDoomSlots.Add(slot);
         _run.Progress++;
         RefreshUI();
         if (_run.Progress >= _run.Required)
@@ -109,6 +112,8 @@ public sealed class AgeOfDoomGameMode : MetaGameMode
                 _run.DoomPhaseIndex++;
                 _run.Progress = 0;
                 _run.Entities.Clear();
+                _run.DoomTargetSlots.Clear();
+                _run.CompletedDoomSlots.Clear();
                 SpawnCurrentDoomPhase();
             }
             else
@@ -123,13 +128,13 @@ public sealed class AgeOfDoomGameMode : MetaGameMode
         switch (_run.CurrentStage)
         {
             case Stage.Incursion:
-                BeginDoomAssault(GetDoomCount(0), Stage.Timeline);
-                break;
-            case Stage.Timeline:
-                BeginDoomAssault(GetDoomCount(1), Stage.Council);
+                BeginDoomAssault(DoomAssault.Solo, Stage.Council);
                 break;
             case Stage.Council:
-                BeginDoomAssault(GetDoomCount(2), Stage.DoomAssault);
+                BeginDoomAssault(DoomAssault.Red, Stage.MidtownDooms);
+                break;
+            case Stage.MidtownDooms:
+                BeginDoomAssault(DoomAssault.Blue, Stage.Complete);
                 break;
         }
 
@@ -144,17 +149,15 @@ public sealed class AgeOfDoomGameMode : MetaGameMode
 
         switch (stage)
         {
-            case Stage.Timeline:
-                _run.CurrentStage = Stage.Timeline;
-                BeginKillStage(Tuning.TimelineKillsPerPlayer);
-                break;
             case Stage.Council:
                 _run.CurrentStage = Stage.Council;
                 _run.Required = Math.Max(1, Tuning.CouncilBosses);
                 SpawnCouncil();
                 break;
-            case Stage.DoomAssault:
-                BeginDoomAssault(GetDoomCount(3), Stage.Complete);
+            case Stage.MidtownDooms:
+                _run.CurrentStage = Stage.MidtownDooms;
+                _run.Required = Math.Max(1, Tuning.MidtownDoomBosses);
+                SpawnMidtownDooms();
                 break;
             case Stage.Complete:
                 CompleteRun();
@@ -162,28 +165,21 @@ public sealed class AgeOfDoomGameMode : MetaGameMode
         }
     }
 
-    private void BeginDoomAssault(int doomCount, Stage stageAfterDoom)
+    private void BeginDoomAssault(DoomAssault assault, Stage stageAfterDoom)
     {
         _run.CurrentStage = Stage.DoomAssault;
         _run.StageAfterDoom = stageAfterDoom;
-        _run.DoomCount = Math.Max(1, doomCount);
+        _run.Assault = assault;
         _run.DoomPhaseIndex = 0;
         _run.Progress = 0;
-        _run.Required = _run.DoomCount;
+        _run.Required = assault == DoomAssault.Solo ? 1 : 2;
         _run.Entities.Clear();
+        _run.DoomTargetSlots.Clear();
+        _run.CompletedDoomSlots.Clear();
         SpawnCurrentDoomPhase();
         Logger.Info(
-            $"[AgeOfDoom] doom-assault-start gameId=0x{Game.Id:X} count={_run.DoomCount} " +
+            $"[AgeOfDoom] doom-assault-start gameId=0x{Game.Id:X} assault={assault} count={_run.Required} " +
             $"phases={Tuning.DoomPhasePrototypes.Count} nextStage={stageAfterDoom}");
-    }
-
-    private static int GetDoomCount(int stageIndex)
-    {
-        if (Tuning.DoomCountsPerStage == null || Tuning.DoomCountsPerStage.Count == 0)
-            return stageIndex + 1;
-
-        int index = Math.Clamp(stageIndex, 0, Tuning.DoomCountsPerStage.Count - 1);
-        return Math.Max(1, Tuning.DoomCountsPerStage[index]);
     }
 
     private void BeginKillStage(int killsPerPlayer)
@@ -198,11 +194,20 @@ public sealed class AgeOfDoomGameMode : MetaGameMode
         _tickEvent.Set(null);
         if (_run == null || _run.IsFinished) return;
 
-        _run.Entities.RemoveWhere(id => Game.EntityManager.GetEntity<WorldEntity>(id) == null);
+        _run.Entities.RemoveWhere(id =>
+        {
+            if (Game.EntityManager.GetEntity<WorldEntity>(id) != null)
+                return false;
+            _run.DoomTargetSlots.Remove(id);
+            return true;
+        });
         if (_run.CurrentStage == Stage.DoomAssault)
+        {
+            SpawnCurrentDoomPhase();
             EnsureDoomTargets();
+        }
 
-        if (_run.CurrentStage is Stage.Incursion or Stage.Timeline)
+        if (_run.CurrentStage == Stage.Incursion)
         {
             int cap = Math.Max(3, Tuning.MaximumLivingEnemiesPerPlayer * CountPlayers());
             if (_run.Entities.Count < cap) SpawnWave();
@@ -210,16 +215,15 @@ public sealed class AgeOfDoomGameMode : MetaGameMode
         else if (_run.Entities.Count == 0)
         {
             if (_run.CurrentStage == Stage.Council) SpawnCouncil();
-            if (_run.CurrentStage == Stage.DoomAssault) SpawnCurrentDoomPhase();
+            if (_run.CurrentStage == Stage.MidtownDooms) SpawnMidtownDooms();
         }
         ScheduleTick();
     }
 
     private void SpawnWave()
     {
-        IReadOnlyList<string> pool = _run.CurrentStage == Stage.Timeline && Tuning.ElitePrototypes.Count > 0
-            ? Tuning.ElitePrototypes : Tuning.MinionPrototypes;
-        int count = CountPlayers() * (_run.CurrentStage == Stage.Timeline ? 3 : 4);
+        IReadOnlyList<string> pool = Tuning.MinionPrototypes;
+        int count = CountPlayers() * 4;
         for (int i = 0; i < count && _run.Progress + _run.Entities.Count < _run.Required; i++) SpawnRandom(pool);
     }
 
@@ -227,6 +231,12 @@ public sealed class AgeOfDoomGameMode : MetaGameMode
     {
         int missing = Math.Max(0, _run.Required - _run.Progress - _run.Entities.Count);
         for (int i = 0; i < missing; i++) SpawnRandom(Tuning.CouncilBossPrototypes);
+    }
+
+    private void SpawnMidtownDooms()
+    {
+        int missing = Math.Max(0, _run.Required - _run.Progress - _run.Entities.Count);
+        for (int i = 0; i < missing; i++) SpawnAgent(Tuning.MidtownDoomPrototype);
     }
 
     private void SpawnCurrentDoomPhase()
@@ -237,10 +247,16 @@ public sealed class AgeOfDoomGameMode : MetaGameMode
             return;
         }
 
-        int missing = Math.Max(0, _run.Required - _run.Progress - _run.Entities.Count);
-        string doomPrototype = Tuning.DoomPhasePrototypes[_run.DoomPhaseIndex];
-        for (int i = 0; i < missing; i++)
-            SpawnAgent(doomPrototype);
+        for (int slot = 0; slot < _run.Required; slot++)
+        {
+            if (_run.CompletedDoomSlots.Contains(slot) || _run.DoomTargetSlots.ContainsValue(slot))
+                continue;
+
+            string prototype = slot == 0
+                ? Tuning.DoomPhasePrototypes[_run.DoomPhaseIndex]
+                : Tuning.DoomPhasePrototypes[_run.Assault == DoomAssault.Red ? 1 : 2];
+            SpawnAgent(prototype, slot);
+        }
     }
 
     private void SpawnRandom(IReadOnlyList<string> pool)
@@ -248,7 +264,7 @@ public sealed class AgeOfDoomGameMode : MetaGameMode
         if (pool?.Count > 0) SpawnAgent(pool[Game.Random.Next(0, pool.Count)]);
     }
 
-    private bool SpawnAgent(string name)
+    private bool SpawnAgent(string name, int doomSlot = -1)
     {
         AgentPrototype proto = GameDatabase.GetPrototypeRefByName(name).As<AgentPrototype>();
         Avatar anchor = GetRandomAvatar();
@@ -306,11 +322,13 @@ public sealed class AgeOfDoomGameMode : MetaGameMode
             return false;
         }
         _run.Entities.Add(agent.Id);
+        if (doomSlot >= 0)
+            _run.DoomTargetSlots.Add(agent.Id, doomSlot);
         MythicRiftStandaloneBossFixups.Apply(agent, allowMissingAffixSettingsFallback: true);
-        if (_run.CurrentStage == Stage.DoomAssault)
+        if (_run.CurrentStage is Stage.DoomAssault or Stage.MidtownDooms or Stage.Council)
             AssignNearestAvatarTarget(agent);
         MetaGame.DiscoverEntity(agent);
-        if (_run.CurrentStage is Stage.Council or Stage.DoomAssault)
+        if (_run.CurrentStage is Stage.Council or Stage.MidtownDooms or Stage.DoomAssault)
         {
             Logger.Info(
                 $"[AgeOfDoom] boss-spawned gameId=0x{Game.Id:X} stage={_run.CurrentStage} " +
@@ -414,9 +432,11 @@ public sealed class AgeOfDoomGameMode : MetaGameMode
         public int Progress;
         public int Required;
         public int DoomPhaseIndex;
-        public int DoomCount;
+        public DoomAssault Assault;
         public Stage StageAfterDoom;
         public readonly HashSet<ulong> Entities = new();
+        public readonly Dictionary<ulong, int> DoomTargetSlots = new();
+        public readonly HashSet<int> CompletedDoomSlots = new();
         public bool IsFinished => CurrentStage is Stage.Complete or Stage.Failed;
     }
 

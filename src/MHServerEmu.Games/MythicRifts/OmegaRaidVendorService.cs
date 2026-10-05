@@ -12,7 +12,9 @@ namespace MHServerEmu.Games.MythicRifts
     {
         private static readonly PrototypeId HelicarrierRegionRef = (PrototypeId)13623659297421268224UL;
         private static readonly PrototypeId VendorPrototypeRef = GameDatabase.GetPrototypeRefByName(
-            "Entity/Characters/Vendors/Prototypes/Endgame/DangerRoomRewardsVendor.prototype");
+            "Entity/Characters/Vendors/Prototypes/HUB03Helicarrier/Trainers/HelicarrierACCTrainer.prototype");
+        private static readonly PrototypeId VendorTypeRef = GameDatabase.GetPrototypeRefByName(
+            "Entity/Characters/Vendors/VendorTypes/VendorPatrolSavage.prototype");
         private const float CrafterSideOffset = 180f;
 
         public static bool IsOmegaRaidVendor(WorldEntity vendor)
@@ -23,7 +25,7 @@ namespace MHServerEmu.Games.MythicRifts
 
         public static void SpawnInHelicarrier(Region region)
         {
-            if (region?.PrototypeDataRef != HelicarrierRegionRef || VendorPrototypeRef == PrototypeId.Invalid)
+            if (region?.PrototypeDataRef != HelicarrierRegionRef || VendorPrototypeRef == PrototypeId.Invalid || VendorTypeRef == PrototypeId.Invalid)
                 return;
 
             WorldEntity crafter = null;
@@ -55,7 +57,12 @@ namespace MHServerEmu.Games.MythicRifts
             settings.Position = vendorPosition;
             settings.Orientation = orientation;
             settings.RegionId = region.Id;
-            region.Game.EntityManager.CreateEntity(settings);
+            using var propsHandle = PropertyCollectionPool.Get(out PropertyCollection properties);
+            properties[PropertyEnum.VendorType] = VendorTypeRef;
+            settings.Properties = properties;
+            WorldEntity vendor = region.Game.EntityManager.CreateEntity(settings) as WorldEntity;
+            if (vendor != null)
+                vendor.Properties[PropertyEnum.VendorType] = VendorTypeRef;
         }
     }
 }

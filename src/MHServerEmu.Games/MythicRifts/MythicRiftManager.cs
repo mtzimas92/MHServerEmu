@@ -2784,7 +2784,6 @@ namespace MHServerEmu.Games.MythicRifts
             _pendingBossGauntletFailureRecoveriesAt.Remove(runState.Config.RunId);
             ReviveRunParticipantsInPlace(runState);
             TrySpawnReturnPortal(runState);
-            TrySpawnCompletionArtifactVendor(runState);
             TrySpawnCompletionCrafter(runState);
         }
 
@@ -6219,7 +6218,6 @@ namespace MHServerEmu.Games.MythicRifts
                 // Logger.Warn($"Mythic Rift run {runState.Config.RunId} gave up waiting for the reward room teleport to resolve; granting/spawning in the original zone instead.");
                 TryAutoGrantCompletionRewards(runState);
                 TrySpawnReturnPortal(runState);
-                TrySpawnCompletionArtifactVendor(runState);
                 TrySpawnCompletionCrafter(runState);
                 return;
             }
@@ -6229,7 +6227,6 @@ namespace MHServerEmu.Games.MythicRifts
             ClearNativeRegionPopulationOnSuccess(runState);
             TryAutoGrantCompletionRewards(runState);
             TrySpawnReturnPortal(runState);
-            TrySpawnCompletionArtifactVendor(runState);
             TrySpawnCompletionCrafter(runState);
             // Logger.Trace($"Mythic Rift run {runState.Config.RunId} finalized reward room region 0x{rewardRoomRegionId:X}.");
         }
@@ -7461,7 +7458,6 @@ namespace MHServerEmu.Games.MythicRifts
             else
             {
                 TrySpawnReturnPortal(runState);
-                TrySpawnCompletionArtifactVendor(runState);
                 TrySpawnCompletionCrafter(runState);
             }
 
