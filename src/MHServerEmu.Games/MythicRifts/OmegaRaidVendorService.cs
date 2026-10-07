@@ -14,7 +14,7 @@ namespace MHServerEmu.Games.MythicRifts
         private static readonly PrototypeId VendorPrototypeRef = GameDatabase.GetPrototypeRefByName(
             "Entity/Characters/Vendors/Prototypes/HUB03Helicarrier/Trainers/HelicarrierACCTrainer.prototype");
         private static readonly PrototypeId VendorTypeRef = GameDatabase.GetPrototypeRefByName(
-            "Entity/Characters/Vendors/VendorTypes/VendorPatrolSavage.prototype");
+            "Entity/Characters/Vendors/VendorTypes/VendorDangerRoomEventScenarios.prototype");
         private const float CrafterSideOffset = 180f;
 
         public static bool IsOmegaRaidVendor(WorldEntity vendor)
