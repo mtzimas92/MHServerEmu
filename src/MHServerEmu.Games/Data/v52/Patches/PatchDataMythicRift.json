@@ -217,6 +217,14 @@
   },
   {
     "Enabled": true,
+    "Prototype": "Entity/Characters/Vendors/VendorTypes/VendorARMOREvent.prototype",
+    "Path": "AllowActionRefresh",
+    "Description": "Use the otherwise-unreferenced ARMOR event vendor type as the dedicated Omega Raid Vendor without exposing its native refresh action.",
+    "ValueType": "Boolean",
+    "Value": false
+  },
+  {
+    "Enabled": true,
     "Prototype": "Entity/Items/Crafting/Recipes/Tab3Gear/RerollCosmicReplacement.prototype",
     "Path": "CraftingCost.CostEvalCredits.Value",
     "Description": "This recipe's native 75,000-credit CraftingCost is purely a client-side display value - the server never reads it (see TryHandleMythicRiftCompletionCraft() in Player.Crafting.cs, which intercepts this recipe entirely before the native cost-eval code is ever reached) and it was misleadingly showing 75,000 credits in the crafting UI when the real cost is 100 Champion's Commendations on a successful upgrade. Zeroed to the same CostEvalCredits=0 baseline every no-cost recipe in the game already uses (confirmed via Entity/Items/Crafting/ZAbstract/CraftingCost.defaults), so the UI shows no cost pill instead of a wrong one.",
