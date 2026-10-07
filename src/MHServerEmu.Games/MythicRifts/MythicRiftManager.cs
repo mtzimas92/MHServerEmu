@@ -126,12 +126,13 @@ namespace MHServerEmu.Games.MythicRifts
         private const int RiftCompletionCrafterMaximumItemLevel = 72;
         private const string RiftCompletionCrafterCurrencyPrototypeName = "Entity/Items/CurrencyItems/CurrencyPrototypes/GenoshaRaidCurrency.prototype";
         private const string OmegaRewardRarityPrototypeName = "Entity/Items/Rarity/R6Omega.prototype";
-        private const string RiftEternitySplinterLootTablePrototypeName = "Loot/Tables/ItemType/ESDropNormalDropTable.prototype";
+        private const string RiftEternitySplinterLootTablePrototypeName = "Loot/Tables/SplinterBoostTable.prototype";
         private const float RiftCompletionArtifactVendorSpawnOffset = -260f;
         private const float RiftCompletionCrafterSpawnOffset = 390f;
         private const string BossGauntletArenaContentId = "boss-gauntlet-patrol-savage";
         private const string BossGauntletRewardRoomContentId = "boss-gauntlet-tutorial-arena";
         private static readonly Vector3 BossGauntletRewardRoomCenterPosition = new(-79f, 18f, 307f);
+        private const float BossGauntletRewardDropGridSpacing = 56f;
         private const float SpecialRandomMapChance = 0.05f;
         private static readonly string[] RiftBossIconWidgetNameKeywords =
         {
@@ -1684,6 +1685,10 @@ namespace MHServerEmu.Games.MythicRifts
                 inputSettings.Initialize(LootContext.Drop, player, avatar, groundLootPositionOverride);
 
                 int groundRecipientId = 1;
+                int guaranteedGroundDropIndex = 0;
+                List<ulong> rewardRecipientDbIds = runState.RewardEligiblePlayerDbIds.OrderBy(id => id).ToList();
+                int rewardRecipientIndex = Math.Max(rewardRecipientDbIds.IndexOf(player.DatabaseUniqueId), 0);
+                int rewardRecipientCount = Math.Max(rewardRecipientDbIds.Count, 1);
                 List<PendingRewardDrop> chestRewards = new();
                 if (rewardOutcome.HasBossLootTable)
                 {
@@ -1754,7 +1759,18 @@ namespace MHServerEmu.Games.MythicRifts
                         if (MythicRiftRewardTuning.IsChestDelivery(guaranteedItem.Delivery))
                             chestRewards.Add(PendingRewardDrop.CreateGuaranteedItem(guaranteedItem));
                         else
-                            GrantRewardItem(guaranteedItem, player, avatar, positionOverride: groundLootPositionOverride);
+                        {
+                            Vector3? itemPositionOverride = groundLootPositionOverride;
+                            if (runState.Config.UseBossGauntletMode && MythicRiftRewardTuning.IsGroundDelivery(guaranteedItem.Delivery))
+                            {
+                                itemPositionOverride = GetBossGauntletRewardDropPosition(
+                                    rewardRecipientIndex,
+                                    rewardRecipientCount,
+                                    guaranteedGroundDropIndex++);
+                            }
+
+                            GrantRewardItem(guaranteedItem, player, avatar, positionOverride: itemPositionOverride);
+                        }
                     }
 
                     MarkLimitedRewardClaimed(player, avatar, guaranteedItem);
@@ -1938,11 +1954,56 @@ namespace MHServerEmu.Games.MythicRifts
 
             if (MythicRiftRewardTuning.IsGroundDelivery(delivery))
             {
+                if (positionOverride != null)
+                {
+                    ItemSpec itemSpec = Game.LootManager.CreateItemSpec(itemProtoRef, LootContext.Drop, player);
+                    if (itemSpec == null)
+                        return;
+
+                    using var lootResultSummaryHandle = LootResultSummaryPool.Get(out LootResultSummary lootResultSummary);
+                    lootResultSummary.Add(new LootResult(itemSpec));
+                    using var inputSettingsHandle = LootInputSettingsPool.Get(out LootInputSettings inputSettings);
+                    inputSettings.Initialize(LootContext.Drop, player, rewardSourceEntity, positionOverride);
+                    Game.LootManager.SpawnLootFromSummary(lootResultSummary, inputSettings);
+                    return;
+                }
+
                 Game.LootManager.SpawnItem(itemProtoRef, LootContext.Drop, player, rewardSourceEntity);
                 return;
             }
 
             Game.LootManager.GiveItem(itemProtoRef, LootContext.Drop, player);
+        }
+
+        private static Vector3 GetBossGauntletRewardDropPosition(int playerIndex, int recipientCount, int playerDropIndex)
+        {
+            int gridIndex = playerDropIndex * recipientCount + playerIndex + 1;
+
+            Point2 gridOffset = GetSquareSpiralOffset(gridIndex);
+            return BossGauntletRewardRoomCenterPosition + new Vector3(
+                gridOffset.X * BossGauntletRewardDropGridSpacing,
+                gridOffset.Y * BossGauntletRewardDropGridSpacing,
+                0f);
+        }
+
+        private static Point2 GetSquareSpiralOffset(int index)
+        {
+            if (index <= 0)
+                return new Point2(0, 0);
+
+            int layer = (int)Math.Ceiling((Math.Sqrt(index + 1) - 1) / 2);
+            int sideLength = layer * 2;
+            int offsetFromMaximum = ((layer * 2 + 1) * (layer * 2 + 1) - 1) - index;
+            int side = offsetFromMaximum / sideLength;
+            int offset = offsetFromMaximum % sideLength;
+
+            return side switch
+            {
+                0 => new Point2(layer - offset, -layer),
+                1 => new Point2(-layer, -layer + offset),
+                2 => new Point2(-layer + offset, layer),
+                _ => new Point2(layer, layer - offset)
+            };
         }
 
         private ItemSpec CreateRewardItemSpecFromCandidates(
