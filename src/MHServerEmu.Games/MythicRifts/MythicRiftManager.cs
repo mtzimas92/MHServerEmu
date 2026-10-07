@@ -1905,11 +1905,12 @@ namespace MHServerEmu.Games.MythicRifts
             if (itemProtoRef == PrototypeId.Invalid)
                 return;
 
+            bool hasForcedRarity = guaranteedItem.RarityProtoRef != PrototypeId.Invalid;
             bool useItemFactory = OmegaTierItemFactory.ShouldUseFactory(itemProtoRef, guaranteedItem.RarityProtoRef);
-            if (candidateItemSpec != null || itemLevel > 1 || guaranteedItem.RarityProtoRef != PrototypeId.Invalid || useItemFactory)
+            if (candidateItemSpec != null || itemLevel > 1 || hasForcedRarity || useItemFactory)
             {
                 int resolvedItemLevel = Math.Max(itemLevel, 1);
-                ItemSpec itemSpec = candidateItemSpec ?? (useItemFactory
+                ItemSpec itemSpec = candidateItemSpec ?? (hasForcedRarity || useItemFactory
                     ? OmegaTierItemFactory.CreateItemSpec(Game, itemProtoRef, guaranteedItem.RarityProtoRef, LootContext.Drop, player, resolvedItemLevel)
                     : Game.LootManager.CreateItemSpec(itemProtoRef, LootContext.Drop, player, resolvedItemLevel));
                 if (itemSpec == null)
@@ -1977,8 +1978,9 @@ namespace MHServerEmu.Games.MythicRifts
                 if (RewardPoolItemMatchesAllowedEquipmentSlots(candidateProto, allowedEquipmentSlots, avatarProto, requestedSlot) == false)
                     continue;
 
+                bool hasForcedRarity = guaranteedItem.RarityProtoRef != PrototypeId.Invalid;
                 bool useItemFactory = OmegaTierItemFactory.ShouldUseFactory(candidateRef, guaranteedItem.RarityProtoRef);
-                ItemSpec itemSpec = useItemFactory
+                ItemSpec itemSpec = hasForcedRarity || useItemFactory
                     ? OmegaTierItemFactory.CreateItemSpec(Game, candidateRef, guaranteedItem.RarityProtoRef, LootContext.Drop, player, resolvedItemLevel, logFailures: false)
                     : Game.LootManager.CreateItemSpec(candidateRef, LootContext.Drop, player, resolvedItemLevel);
                 if (itemSpec == null)
