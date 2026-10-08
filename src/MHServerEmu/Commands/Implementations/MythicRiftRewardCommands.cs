@@ -28,5 +28,20 @@ namespace MHServerEmu.Commands.Implementations
             int removed = player.Game.MythicRiftManager.ResetRewardClaimsForTesting(player, resetAccount, resetHero);
             return $"Reset {removed} Mythic Rift reward claim records for scope '{scope}'. Rift progression was not changed.";
         }
+
+        [Command("resetcommendations")]
+        [CommandDescription("Resets Hero, Protector, and Champion weekly commendation cap progress.")]
+        [CommandUsage("riftrewards resetcommendations")]
+        public string ResetCommendations(string[] @params, NetClient client)
+        {
+            if (client is not PlayerConnection connection || connection.Player is not Player player)
+                return "This command must be used by an in-game player.";
+
+            IReadOnlyList<string> results = player.Game.MythicRiftManager.ResetWeeklyCommendationCapsForTesting(player);
+            if (results.Count == 0)
+                return "No weekly commendation cap progress was reset.";
+
+            return $"Weekly commendation cap progress reset:\n{string.Join('\n', results)}";
+        }
     }
 }

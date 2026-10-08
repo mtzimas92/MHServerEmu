@@ -46,8 +46,13 @@ namespace MHServerEmu.Games.MythicRifts
         private static readonly TimeSpan FailedRunEvacuationDelay = TimeSpan.FromMilliseconds(250);
         private const int RiftBossMinimumCharacterLevel = 63;
         private const ulong ChampionCommendationItemPrototypeId = 2852929430040615658;
-        private const int WeeklyChampionCommendationCap = 500;
+        private const int WeeklyChampionCommendationCap = 350;
         private const string WeeklyChampionCommendationClaimId = "mythic-rift:account:champion-commendations-total";
+        private static readonly (string DisplayName, string PrototypeName)[] WeeklyCommendationChannels =
+        {
+            ("Hero Commendations", "Loot/Cooldowns/Channels/EyeOfDemonfireChannelCount.prototype"),
+            ("Protector Commendations", "Loot/Cooldowns/Channels/HeartOfDemonfireChannelCount.prototype")
+        };
         private static readonly TimeSpan FailedRunEvacuationRetryDelay = TimeSpan.FromSeconds(1);
         private static readonly TimeSpan BossGauntletFailureRecoveryDelay = TimeSpan.FromMilliseconds(250);
         private static readonly TimeSpan RewardRoomFinalizeDelay = TimeSpan.FromMilliseconds(1500);
@@ -629,6 +634,33 @@ namespace MHServerEmu.Games.MythicRifts
                 removed++;
 
             return removed;
+        }
+
+        public IReadOnlyList<string> ResetWeeklyCommendationCapsForTesting(Player player)
+        {
+            List<string> results = new();
+            if (player == null)
+                return results;
+
+            foreach ((string displayName, string prototypeName) in WeeklyCommendationChannels)
+            {
+                PrototypeId channelRef = GameDatabase.GetPrototypeRefByName(prototypeName);
+                LootCooldownChannelCountPrototype channelProto = GameDatabase.GetPrototype<LootCooldownChannelCountPrototype>(channelRef);
+                if (channelProto == null)
+                {
+                    results.Add($"{displayName}: unavailable");
+                    continue;
+                }
+
+                player.Properties.RemoveProperty(new(PropertyEnum.LootCooldownCount, channelRef));
+                player.Properties.RemoveProperty(new(PropertyEnum.LootCooldownTimeStartChannel, channelRef));
+                channelProto.UpdateCooldown(player, PrototypeId.Invalid);
+                results.Add($"{displayName}: reset (weekly cap {channelProto.MaxDrops})");
+            }
+
+            player.OmegaContentRewardProgress.RemoveClaim(WeeklyChampionCommendationClaimId);
+            results.Add($"Champion Commendations: reset (weekly cap {WeeklyChampionCommendationCap})");
+            return results;
         }
 
         private void TryResetOmegaTrainingProgressForLeaderboard(Player player)
