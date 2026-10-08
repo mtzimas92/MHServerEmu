@@ -1,6 +1,7 @@
 using System.Globalization;
 using Gazillion;
 using MHServerEmu.Commands.Attributes;
+using MHServerEmu.Core.Logging;
 using MHServerEmu.Core.Memory;
 using MHServerEmu.Core.Network;
 using MHServerEmu.Core.VectorMath;
@@ -26,6 +27,8 @@ namespace MHServerEmu.Commands.Implementations
     [CommandGroupDescription("Debug and inspection commands for the Mythic Rift prototype.")]
     public class MythicRiftCommands : CommandGroup
     {
+        private static readonly Logger Logger = LogManager.CreateLogger();
+
         [Command("list")]
         [CommandDescription("Lists the currently registered Mythic Rift content pool.")]
         [CommandUsage("rift list")]
@@ -436,6 +439,39 @@ namespace MHServerEmu.Commands.Implementations
             return $"Player highest unlocked {MythicRiftManager.GetModeDisplayName(mode)} level set to {appliedLevel}.";
         }
 
+        [Command("setprogress")]
+        [CommandDescription("Sets the invoking player's Infinite Rift or Omega Training progression to an exact level for testing.")]
+        [CommandUsage("rift setprogress [infinite|ot] [level]")]
+        [CommandUserLevel(AccountUserLevel.Admin)]
+        [CommandInvokerType(CommandInvokerType.Client)]
+        public string SetProgress(string[] @params, NetClient client)
+        {
+            PlayerConnection playerConnection = (PlayerConnection)client;
+            Game game = playerConnection?.Game;
+            Player player = playerConnection?.Player;
+            if (game == null || player == null)
+                return "Game or player not found.";
+
+            if (@params.Length != 2 || TryParseRiftModeToken(@params[0], out MythicRiftMode mode) == false)
+                return "Usage: rift setprogress [infinite|ot] [level]";
+
+            if (mode == MythicRiftMode.BossGauntlet)
+                return "Boss Gauntlet does not have persistent player progression.";
+
+            if (TryParsePositiveInt(@params[1], out int requestedLevel) == false)
+                return "Invalid level.";
+
+            int previousLevel = game.MythicRiftManager.GetHighestUnlockedRiftLevel(player.DatabaseUniqueId, mode);
+            int appliedLevel = game.MythicRiftManager.SetHighestUnlockedRiftLevel(
+                player.DatabaseUniqueId,
+                requestedLevel,
+                allowDecrease: true,
+                mode: mode);
+            game.MythicRiftManager.UseHighestUnlockedLaunchRiftLevel(player.DatabaseUniqueId, mode);
+
+            return $"{MythicRiftManager.GetModeDisplayName(mode)} progression changed from {previousLevel} to {appliedLevel}. The next matching Beacon will launch level {appliedLevel}.";
+        }
+
         [Command("resetprogress")]
         [CommandDescription("Resets the invoking player's Cosmic or Rift Gauntlet progression and selected launch level back to level 1.")]
         [CommandUsage("rift resetprogress [cosmic|gauntlet|bossgauntlet]")]
@@ -589,6 +625,110 @@ namespace MHServerEmu.Commands.Implementations
 
             CommandHelper.SendMessages(client, lines);
             return string.Empty;
+        }
+
+        [Command("bossroll")]
+        [CommandDescription("Simulates repeated boss selections for Infinite Rift, Omega Training, or Boss Gauntlet without creating runs.")]
+        [CommandUsage("rift bossroll [infinite|ot|bossgauntlet] [rolls] [level] [players]")]
+        [CommandUserLevel(AccountUserLevel.Admin)]
+        [CommandInvokerType(CommandInvokerType.Client)]
+        public string BossRoll(string[] @params, NetClient client)
+        {
+            PlayerConnection playerConnection = (PlayerConnection)client;
+            Game game = playerConnection?.Game;
+            if (game == null)
+                return "Game not found.";
+
+            if (@params.Length != 4 || TryParseRiftModeToken(@params[0], out MythicRiftMode mode) == false)
+                return "Usage: rift bossroll [infinite|ot|bossgauntlet] [rolls] [level] [players]";
+
+            if (TryParsePositiveInt(@params[1], out int rollCount) == false)
+                return "Invalid roll count.";
+
+            if (TryParsePositiveInt(@params[2], out int level) == false)
+                return "Invalid level.";
+
+            if (TryParsePositiveInt(@params[3], out int requestedPlayers) == false)
+                return "Invalid player count.";
+
+            rollCount = Math.Clamp(rollCount, 1, 200);
+            requestedPlayers = Math.Clamp(requestedPlayers, 1, 5);
+
+            IReadOnlyList<MythicRiftContentEntry> eligibleBosses = game.MythicRiftManager.RandomBossEligibleContentPool;
+            Dictionary<string, int> selectionCounts = eligibleBosses
+                .ToDictionary(entry => entry.Id, _ => 0, StringComparer.OrdinalIgnoreCase);
+            Queue<string> recentBossFamilies = new();
+            const int recentFamilyLimit = 16;
+            int failedRolls = 0;
+            int totalBossSelections = 0;
+            List<string> sampleLines = new();
+
+            for (int roll = 1; roll <= rollCount; roll++)
+            {
+                HashSet<string> exclusions = new(recentBossFamilies, StringComparer.OrdinalIgnoreCase);
+                MythicRiftRunConfig config = game.MythicRiftManager.CreateRandomDebugRunConfig(
+                    level,
+                    requestedPlayers,
+                    0,
+                    TimeSpan.FromMinutes(10),
+                    mode: mode,
+                    excludedBossFamilies: exclusions);
+
+                if (config?.BossWaveContent == null || config.BossWaveContent.Count == 0)
+                {
+                    failedRolls++;
+                    if (sampleLines.Count < 25)
+                        sampleLines.Add($"roll={roll} | FAILED to resolve a boss roster");
+                    continue;
+                }
+
+                List<string> selectedBosses = new();
+                foreach (MythicRiftContentEntry bossContent in config.BossWaveContent)
+                {
+                    if (bossContent == null)
+                        continue;
+
+                    totalBossSelections++;
+                    if (selectionCounts.ContainsKey(bossContent.Id))
+                        selectionCounts[bossContent.Id]++;
+
+                    selectedBosses.Add($"{bossContent.Id}({bossContent.BossProtoRef.GetNameFormatted()})");
+
+                    string family = bossContent.BossFamily?.Trim();
+                    if (string.IsNullOrWhiteSpace(family))
+                        continue;
+
+                    recentBossFamilies = new Queue<string>(recentBossFamilies.Where(existing =>
+                        string.Equals(existing, family, StringComparison.OrdinalIgnoreCase) == false));
+                    recentBossFamilies.Enqueue(family);
+                    while (recentBossFamilies.Count > recentFamilyLimit)
+                        recentBossFamilies.Dequeue();
+                }
+
+                if (sampleLines.Count < 25)
+                    sampleLines.Add($"roll={roll} | map={config.Content.Id} | bosses=[{string.Join(", ", selectedBosses)}]");
+            }
+
+            List<string> lines = new()
+            {
+                $"Rift boss-roll simulation | mode={MythicRiftManager.GetModeDisplayName(mode)} | rolls={rollCount} | level={level} | players={requestedPlayers} | eligibleBossEntries={eligibleBosses.Count} | selectedBossSlots={totalBossSelections} | failedRolls={failedRolls}",
+                $"The first {sampleLines.Count} roll(s) are shown below. Selection counts include all {rollCount} rolls."
+            };
+            lines.AddRange(sampleLines);
+            lines.Add("Boss selection counts:");
+
+            foreach (MythicRiftContentEntry boss in eligibleBosses
+                .OrderByDescending(entry => selectionCounts.GetValueOrDefault(entry.Id))
+                .ThenBy(entry => entry.Id, StringComparer.OrdinalIgnoreCase))
+            {
+                int count = selectionCounts.GetValueOrDefault(boss.Id);
+                lines.Add($"count={count} | id={boss.Id} | family={boss.BossFamily ?? "none"} | prototype={boss.BossProtoRef.GetNameFormatted()}");
+            }
+
+            foreach (string line in lines)
+                Logger.Info($"[MythicRiftBossRoll] {line}");
+
+            return $"Boss-roll simulation complete. Wrote {lines.Count} lines to the server log under [MythicRiftBossRoll].";
         }
 
         [Command("validaterandompool")]
@@ -3147,6 +3287,9 @@ namespace MHServerEmu.Commands.Implementations
             {
                 case "standard":
                 case "cosmic":
+                case "infinite":
+                case "infiniterift":
+                case "infinite-rift":
                 case "mythic":
                 case "rift":
                     mode = MythicRiftMode.Standard;
@@ -3154,6 +3297,10 @@ namespace MHServerEmu.Commands.Implementations
 
                 case "endless":
                 case "gauntlet":
+                case "ot":
+                case "omegatraining":
+                case "omega-training":
+                case "training":
                 case "thirtywave":
                 case "30wave":
                 case "30-wave":

@@ -34,7 +34,6 @@ namespace MHServerEmu.Games.MythicRifts
         public float EndlessCycleBonusSpecialPctCap { get; set; } = 0f;
         public string DefaultDelivery { get; set; } = "ground";
         public int CompletionCrafterUniqueRecipeCost { get; set; } = 100;
-        public int CompletionCrafterCosmicRecipeCost { get; set; } = 100;
         public Dictionary<string, string> LootTableAliases { get; set; } = new(StringComparer.OrdinalIgnoreCase);
         public List<MythicRiftPrimaryLootTableTuning> PrimaryLootTableOverrides { get; set; } = new();
         public List<MythicRiftExtraLootTableTuning> ExtraLootTables { get; set; } = new();
@@ -69,7 +68,6 @@ namespace MHServerEmu.Games.MythicRifts
             EndlessCycleBonusSpecialPctCap = Math.Max(EndlessCycleBonusSpecialPctCap, 0f);
             DefaultDelivery = NormalizeDelivery(DefaultDelivery);
             CompletionCrafterUniqueRecipeCost = Math.Max(CompletionCrafterUniqueRecipeCost, 0);
-            CompletionCrafterCosmicRecipeCost = Math.Max(CompletionCrafterCosmicRecipeCost, 0);
             LootTableAliases = LootTableAliases == null
                 ? new(StringComparer.OrdinalIgnoreCase)
                 : new Dictionary<string, string>(LootTableAliases, StringComparer.OrdinalIgnoreCase);

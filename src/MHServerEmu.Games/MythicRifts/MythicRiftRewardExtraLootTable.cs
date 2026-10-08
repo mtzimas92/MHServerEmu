@@ -12,5 +12,6 @@ namespace MHServerEmu.Games.MythicRifts
         public string Delivery { get; init; } = "inventory";
         public string ClaimPeriod { get; init; }
         public string ClaimScope { get; init; }
+        public int RewardWave { get; init; }
     }
 }

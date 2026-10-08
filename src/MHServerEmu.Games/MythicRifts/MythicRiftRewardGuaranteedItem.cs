@@ -14,6 +14,7 @@ namespace MHServerEmu.Games.MythicRifts
         public string Delivery { get; init; } = "ground";
         public string ClaimPeriod { get; init; }
         public string ClaimScope { get; init; }
+        public int RewardWave { get; init; }
         public IReadOnlyList<PrototypeId> CandidateItemProtoRefs { get; init; }
         public IReadOnlyList<EquipmentInvUISlot> CandidateAllowedEquipmentSlots { get; init; }
         public EquipmentInvUISlot CandidateRequestedEquipmentSlot { get; init; } = EquipmentInvUISlot.Invalid;

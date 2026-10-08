@@ -39,25 +39,16 @@
     "en_us": "Omega Upgrade Crafter"
   },
   "7125873549576570123": {
-    "en_us": "Place a Unique or Cosmic gear piece here to attempt a one-time Rift upgrade."
+    "en_us": "Place an item level 69 Unique gear piece here to upgrade it to item level 72."
   },
   "15040965262186579301": {
     "en_us": "Rift Unique Gear Upgrade"
   },
   "443208439140517184": {
-    "en_us": "Requires: Unique armor or weapon (item level 69-74)"
+    "en_us": "Requires: Unique armor or weapon (item level 69)"
   },
   "8901031692473861378": {
-    "en_us": "Attempt to upgrade a Unique gear piece (slots 1-5, item level 69-74) by +1 item level. Costs 100 Champion's Commendations on a successful upgrade. You have 3 attempts per completed Rift, 30% chance each. A successful upgrade ends your attempts for this run. Maximum item level 75."
-  },
-  "15297019336788215139": {
-    "en_us": "Rift Cosmic Gear Upgrade"
-  },
-  "3296466393336513802": {
-    "en_us": "Requires: Cosmic armor or weapon (item level 63-74)"
-  },
-  "9161134654277420337": {
-    "en_us": "Attempt to upgrade a Cosmic gear piece (slots 1-5, item level 63-74) by +1 item level. Costs 100 Champion's Commendations on a successful upgrade. You have 3 attempts per completed Rift, 30% chance each. A successful upgrade ends your attempts for this run. Maximum item level 75."
+    "en_us": "Upgrade one item level 69 Unique gear piece in slots 1-5 by +3 item levels to item level 72. The upgrade is guaranteed and costs 100 Champion's Commendations. One upgrade is available per completed Rift."
   },
   "16699661896408302853": {
     "en_us": "Champion's Commendation"

@@ -45,6 +45,7 @@ namespace MHServerEmu.Games.MythicRifts
         private static readonly TimeSpan RiftReadyCheckDuration = TimeSpan.FromSeconds(5);
         private static readonly TimeSpan FailedRunEvacuationDelay = TimeSpan.FromMilliseconds(250);
         private const int RiftBossMinimumCharacterLevel = 63;
+        private const int BossGauntletPlayerDeathLimit = 2;
         private const ulong ChampionCommendationItemPrototypeId = 2852929430040615658;
         private const int WeeklyChampionCommendationCap = 350;
         private const string WeeklyChampionCommendationClaimId = "mythic-rift:account:champion-commendations-total";
@@ -120,18 +121,16 @@ namespace MHServerEmu.Games.MythicRifts
         private const string RiftCompletionArtifactVendorTypePrototypeName = "Entity/Characters/Vendors/VendorTypes/VendorDangerRoomRewards.prototype";
         private const string RiftCompletionCrafterTypePrototypeName = "Entity/Characters/Vendors/VendorTypes/TestVendorCrafter.prototype";
         private static readonly PrototypeId RiftCompletionCrafterRecipePrototypeRef = (PrototypeId)9691334961261451315UL;
-        private const string RiftCompletionCrafterCosmicRecipePrototypeName = "Entity/Items/Crafting/Recipes/Tab3Gear/RerollCosmicReplacement.prototype";
         private static readonly PrototypeId CosmicRiftProgressionLeaderboardRef = (PrototypeId)8025666577633582290UL;
         // One place to switch the post-run artifact vendor economy if we later decide to split it
         // from the completion crafter. Currently both use Genosha/Champion's Commendations.
         private static readonly PrototypeId RiftArtifactVendorCurrencyItemPrototypeRef = (PrototypeId)2852929430040615658UL;
         private const string RiftArtifactVendorCurrencyPrototypeName = "Entity/Items/CurrencyItems/CurrencyPrototypes/GenoshaRaidCurrency.prototype";
         private const string RiftArtifactVendorCurrencyDisplayName = "Champion's Commendations";
-        private const int RiftCompletionCrafterAttemptsPerRun = 3;
-        private const float RiftCompletionCrafterUpgradeChance = 0.30f;
+        private const int RiftCompletionCrafterAttemptsPerRun = 1;
         private const int RiftCompletionCrafterMinimumItemLevel = 69;
-        private const int RiftCompletionCrafterCosmicMinimumItemLevel = 63;
         private const int RiftCompletionCrafterMaximumItemLevel = 72;
+        private const int RiftCompletionCrafterItemLevelIncrease = 3;
         private const string RiftCompletionCrafterCurrencyPrototypeName = "Entity/Items/CurrencyItems/CurrencyPrototypes/GenoshaRaidCurrency.prototype";
         private const string OmegaRewardRarityPrototypeName = "Entity/Items/Rarity/R6Omega.prototype";
         private const string RiftEternitySplinterLootTablePrototypeName = "Loot/Tables/SplinterBoostTable.prototype";
@@ -190,6 +189,8 @@ namespace MHServerEmu.Games.MythicRifts
         private readonly Dictionary<ulong, TimeSpan> _pendingFailedRunEvacuationsAt = new();
         private readonly Dictionary<ulong, TimeSpan> _pendingBossGauntletFailureRecoveriesAt = new();
         private readonly Dictionary<ulong, TimeSpan> _pendingRewardRoomFinalizeAt = new();
+        private readonly Dictionary<ulong, TimeSpan> _pendingRewardRoomGiveUpAt = new();
+        private readonly Dictionary<ulong, ulong> _pendingRewardRoomRegionIdByRun = new();
         private readonly Dictionary<ulong, TimeSpan> _nextCheckpointBossSpawnRetryAt = new();
         private readonly Dictionary<ulong, HashSet<Mission>> _serverSuspendedNativeObjectiveMissionsByRun = new();
         private readonly HashSet<(ulong RunId, ulong PlayerDbId, PrototypeId MissionRef)> _nativeMissionTrackerSuppressionsSent = new();
@@ -900,7 +901,7 @@ namespace MHServerEmu.Games.MythicRifts
         {
             MythicRiftContentEntry content = mode == MythicRiftMode.BossGauntlet
                 ? SelectBossGauntletMapContent(requestedPlayerCount, excludedMapContentIds)
-                : SelectRandomMapContent(riftLevel, requestedPlayerCount, excludedMapContentIds);
+                : SelectRandomMapContent(riftLevel, requestedPlayerCount, mode, excludedMapContentIds);
             MythicRiftContentEntry bossContent = SelectBossContentForRandomMap(content, excludedBossFamilies);
             if (content == null || bossContent == null)
                 return null;
@@ -1139,6 +1140,8 @@ namespace MHServerEmu.Games.MythicRifts
                 _pendingFailedRunEvacuationsAt.Remove(runId);
                 _pendingBossGauntletFailureRecoveriesAt.Remove(runId);
                 _pendingRewardRoomFinalizeAt.Remove(runId);
+                _pendingRewardRoomGiveUpAt.Remove(runId);
+                _pendingRewardRoomRegionIdByRun.Remove(runId);
                 _nextNativeCheckpointPopulationSuppressionScanAt.Remove(runId);
                 _nativeMissionTrackerSuppressionsSent.RemoveWhere(key => key.RunId == runId);
                 _nativeBossGauntletPopulationEventsStopped.Remove(runId);
@@ -1155,8 +1158,8 @@ namespace MHServerEmu.Games.MythicRifts
         }
 
         public int CompletionCrafterMinimumItemLevel => RiftCompletionCrafterMinimumItemLevel;
-        public int CompletionCrafterCosmicMinimumItemLevel => RiftCompletionCrafterCosmicMinimumItemLevel;
         public int CompletionCrafterMaximumItemLevel => RiftCompletionCrafterMaximumItemLevel;
+        public int CompletionCrafterItemLevelIncrease => RiftCompletionCrafterItemLevelIncrease;
 
         // The recipes' own native CraftingCost fields (CostEvalCredits/CostEvalCurrencies) are never read for
         // this flow - TryHandleMythicRiftCompletionCraft() in Player.Crafting.cs bypasses the whole native
@@ -1164,27 +1167,13 @@ namespace MHServerEmu.Games.MythicRifts
         // in that custom handler instead of via a data patch to the recipe prototypes.
         public PrototypeId CompletionCrafterCurrencyProtoRef => ResolvePrototype(RiftCompletionCrafterCurrencyPrototypeName);
 
-        // Costs are editable per-recipe in CosmicRiftRewards.json (CompletionCrafterUniqueRecipeCost /
-        // CompletionCrafterCosmicRecipeCost) so testers can retune them without a rebuild.
-        public uint GetCompletionCrafterCurrencyCost(PrototypeId recipeProtoRef)
+        // The cost is editable in CosmicRiftRewards.json so it can be retuned without a rebuild.
+        public uint GetCompletionCrafterCurrencyCost()
         {
             MythicRiftRewardTuning tuning = _rewardTuning ?? MythicRiftRewardTuning.CreateDefault();
-            return (uint)(IsCosmicCompletionCrafterRecipe(recipeProtoRef)
-                ? tuning.CompletionCrafterCosmicRecipeCost
-                : tuning.CompletionCrafterUniqueRecipeCost);
+            return (uint)tuning.CompletionCrafterUniqueRecipeCost;
         }
-        public IReadOnlyList<PrototypeId> CompletionCrafterRecipePrototypeRefs
-        {
-            get
-            {
-                List<PrototypeId> recipeProtoRefs = new() { RiftCompletionCrafterRecipePrototypeRef };
-                PrototypeId cosmicRecipeProtoRef = ResolvePrototype(RiftCompletionCrafterCosmicRecipePrototypeName);
-                if (cosmicRecipeProtoRef != PrototypeId.Invalid)
-                    recipeProtoRefs.Add(cosmicRecipeProtoRef);
-
-                return recipeProtoRefs;
-            }
-        }
+        public IReadOnlyList<PrototypeId> CompletionCrafterRecipePrototypeRefs => new[] { RiftCompletionCrafterRecipePrototypeRef };
 
         public bool IsCompletionCrafter(WorldEntity vendor)
         {
@@ -1239,23 +1228,7 @@ namespace MHServerEmu.Games.MythicRifts
 
         public bool IsCompletionCrafterRecipe(PrototypeId recipeProtoRef)
         {
-            if (recipeProtoRef == PrototypeId.Invalid)
-                return false;
-
-            if (recipeProtoRef == RiftCompletionCrafterRecipePrototypeRef)
-                return true;
-
-            PrototypeId cosmicRecipeProtoRef = ResolvePrototype(RiftCompletionCrafterCosmicRecipePrototypeName);
-            return cosmicRecipeProtoRef != PrototypeId.Invalid && recipeProtoRef == cosmicRecipeProtoRef;
-        }
-
-        public bool IsCosmicCompletionCrafterRecipe(PrototypeId recipeProtoRef)
-        {
-            if (recipeProtoRef == PrototypeId.Invalid)
-                return false;
-
-            PrototypeId cosmicRecipeProtoRef = ResolvePrototype(RiftCompletionCrafterCosmicRecipePrototypeName);
-            return cosmicRecipeProtoRef != PrototypeId.Invalid && recipeProtoRef == cosmicRecipeProtoRef;
+            return recipeProtoRef != PrototypeId.Invalid && recipeProtoRef == RiftCompletionCrafterRecipePrototypeRef;
         }
 
         public bool TryResolveCompletionCrafterRun(WorldEntity crafter, ulong playerDbId, out MythicRiftRunState runState)
@@ -1520,13 +1493,13 @@ namespace MHServerEmu.Games.MythicRifts
 
             if (TryGetCompletionCrafterOpportunity(player.DatabaseUniqueId, out CompletionCrafterOpportunity opportunity) == false)
             {
-                failureReason = "No active Rift completion crafter attempts are available. Clear a Rift to unlock three attempts.";
+                failureReason = "No active Rift completion crafter upgrade is available. Clear a Rift to unlock one upgrade.";
                 return false;
             }
 
             if (opportunity.LockedOut)
             {
-                failureReason = "This Rift completion crafter already succeeded for you. Clear another Rift for a new set of attempts.";
+                failureReason = "This Rift completion crafter upgrade has already been used. Clear another Rift for a new upgrade.";
                 return false;
             }
 
@@ -1537,12 +1510,9 @@ namespace MHServerEmu.Games.MythicRifts
             }
 
             opportunity.AttemptsRemaining--;
-            upgraded = Game.Random.NextFloat() < RiftCompletionCrafterUpgradeChance;
-            if (upgraded)
-            {
-                opportunity.LockedOut = true;
-                opportunity.AttemptsRemaining = 0;
-            }
+            upgraded = true;
+            opportunity.LockedOut = true;
+            opportunity.AttemptsRemaining = 0;
 
             attemptsRemaining = Math.Max(opportunity.AttemptsRemaining, 0);
             return true;
@@ -1806,6 +1776,9 @@ namespace MHServerEmu.Games.MythicRifts
 
                 foreach (MythicRiftRewardExtraLootTable extraLootTable in rewardOutcome.ExtraLootTables)
                 {
+                    if (IsRewardAvailableToParticipant(runState, player.DatabaseUniqueId, extraLootTable.RewardWave) == false)
+                        continue;
+
                     if (CanClaimLimitedReward(player, avatar, extraLootTable.Id, extraLootTable.ClaimPeriod, extraLootTable.ClaimScope) == false)
                     {
                         LogLimitedRewardClaim("blocked", player, avatar, extraLootTable.Id, extraLootTable.ClaimPeriod, extraLootTable.ClaimScope, 0);
@@ -1847,6 +1820,9 @@ namespace MHServerEmu.Games.MythicRifts
 
                 foreach (MythicRiftRewardGuaranteedItem guaranteedItem in rewardOutcome.GuaranteedItems)
                 {
+                    if (IsRewardAvailableToParticipant(runState, player.DatabaseUniqueId, guaranteedItem.RewardWave) == false)
+                        continue;
+
                     if (CanClaimLimitedReward(player, avatar, guaranteedItem) == false)
                     {
                         LogLimitedRewardClaim("blocked", player, avatar, guaranteedItem.Id, guaranteedItem.ClaimPeriod, guaranteedItem.ClaimScope, 0);
@@ -3115,12 +3091,13 @@ namespace MHServerEmu.Games.MythicRifts
             return runState;
         }
 
-        private MythicRiftContentEntry SelectRandomMapContent(int riftLevel, int requestedPlayerCount, IReadOnlyCollection<string> excludedContentIds = null)
+        private MythicRiftContentEntry SelectRandomMapContent(int riftLevel, int requestedPlayerCount, MythicRiftMode mode, IReadOnlyCollection<string> excludedContentIds = null)
         {
             bool isCheckpointLevel = IsCheckpointRiftLevel(riftLevel);
             List<MythicRiftContentEntry> eligibleContent = isCheckpointLevel
                 ? _contentPool
                     .Where(entry => entry.BossOnlyCheckpointEligible &&
+                                    entry.SupportsMode(mode) &&
                                     entry.CanAppearAtRandomRiftLevel(riftLevel) &&
                                     entry.SupportsPlayerCount(requestedPlayerCount) &&
                                     RandomCheckpointContentExclusions.Contains(entry.Id) == false)
@@ -3128,6 +3105,7 @@ namespace MHServerEmu.Games.MythicRifts
                 : _contentPool
                     .Where(entry => entry.RandomMapEligible &&
                                     entry.BossOnlyCheckpointEligible == false &&
+                                    entry.SupportsMode(mode) &&
                                     entry.CanAppearAtRandomRiftLevel(riftLevel) &&
                                     entry.SupportsPlayerCount(requestedPlayerCount))
                     .ToList();
@@ -4781,10 +4759,20 @@ namespace MHServerEmu.Games.MythicRifts
 
             if (runState.Config.UseBossGauntletMode)
             {
+                int deathCount = runState.RecordPlayerDeath();
+                int deathsRemaining = Math.Max(BossGauntletPlayerDeathLimit - deathCount, 0);
+                if (deathsRemaining > 0)
+                {
+                    NotifyRunPlayers(
+                        runState,
+                        $"[Mythic Rift] {deadPlayer.GetName()} fell. Boss Gauntlet deaths remaining: {deathsRemaining}.");
+                    return true;
+                }
+
                 CompleteRunFailure(
                     runState,
                     Game.CurrentTime,
-                    $"{deadPlayer.GetName()} fell. Boss Gauntlet rewards dropped for {runState.BossGauntletCompletedWaves} completed wave(s).");
+                    $"{deadPlayer.GetName()} fell. Death limit reached. Boss Gauntlet rewards dropped for {runState.BossGauntletCompletedWaves} completed wave(s).");
                 return true;
             }
 
@@ -4855,7 +4843,7 @@ namespace MHServerEmu.Games.MythicRifts
                     if (runState.AdmissionFinalized)
                         continue;
 
-                    newlyRegistered = runState.RegisterParticipant(player.DatabaseUniqueId);
+                    newlyRegistered = runState.RegisterParticipant(player.DatabaseUniqueId, runState.Config.WaveNumber);
                 }
 
                 runState.MarkParticipantSeenInRunRegion(player.DatabaseUniqueId);
@@ -4933,7 +4921,15 @@ namespace MHServerEmu.Games.MythicRifts
 
             runState.EnableAdmissionTracking();
             foreach (ulong playerDbId in launchRoster)
-                runState.RegisterParticipant(playerDbId);
+                runState.RegisterParticipant(playerDbId, runState.Config.WaveNumber);
+        }
+
+        private static bool IsRewardAvailableToParticipant(MythicRiftRunState runState, ulong playerDbId, int rewardWave)
+        {
+            if (runState?.Config?.Mode != MythicRiftMode.Endless || rewardWave <= 0)
+                return true;
+
+            return rewardWave >= runState.GetParticipantRewardFloorWave(playerDbId);
         }
 
         public MythicRiftRewardOutcome PreviewRewardOutcome(MythicRiftRunState runState)
@@ -5106,7 +5102,8 @@ namespace MHServerEmu.Games.MythicRifts
                     ItemLevel = entry.ItemLevel,
                     Delivery = MythicRiftRewardTuning.NormalizeDelivery(entry.Delivery),
                     ClaimPeriod = entry.ClaimPeriod,
-                    ClaimScope = entry.ClaimScope
+                    ClaimScope = entry.ClaimScope,
+                    RewardWave = entry.MinWave
                 });
             }
 
@@ -5135,7 +5132,8 @@ namespace MHServerEmu.Games.MythicRifts
                         Rolls = Math.Max(table.Rolls, 1),
                         ChancePercent = table.ChancePercent,
                         ItemLevel = table.ItemLevel,
-                        Delivery = MythicRiftRewardTuning.NormalizeDelivery(table.Delivery)
+                        Delivery = MythicRiftRewardTuning.NormalizeDelivery(table.Delivery),
+                        RewardWave = recipe.MinWave
                     });
                 }
             }
@@ -5184,7 +5182,8 @@ namespace MHServerEmu.Games.MythicRifts
                         : ResolvePrototype(entry.ItemRarityPrototype),
                     Delivery = MythicRiftRewardTuning.NormalizeDelivery(entry.Delivery),
                     ClaimPeriod = entry.ClaimPeriod,
-                    ClaimScope = entry.ClaimScope
+                    ClaimScope = entry.ClaimScope,
+                    RewardWave = entry.MinWave
                 });
             }
 
@@ -5287,7 +5286,8 @@ namespace MHServerEmu.Games.MythicRifts
                                     RarityProtoRef = rarityProtoRef,
                                     Delivery = MythicRiftRewardTuning.NormalizeDelivery(entry.Delivery),
                                     ClaimPeriod = entry.ClaimPeriod,
-                                    ClaimScope = entry.ClaimScope
+                                    ClaimScope = entry.ClaimScope,
+                                    RewardWave = entry.MinWave
                                 });
                             }
 
@@ -5305,7 +5305,8 @@ namespace MHServerEmu.Games.MythicRifts
                             RarityProtoRef = rarityProtoRef,
                             Delivery = MythicRiftRewardTuning.NormalizeDelivery(entry.Delivery),
                             ClaimPeriod = entry.ClaimPeriod,
-                            ClaimScope = entry.ClaimScope
+                            ClaimScope = entry.ClaimScope,
+                            RewardWave = entry.MinWave
                         });
                         continue;
                     }
@@ -5322,7 +5323,8 @@ namespace MHServerEmu.Games.MythicRifts
                         RarityProtoRef = rarityProtoRef,
                         Delivery = MythicRiftRewardTuning.NormalizeDelivery(entry.Delivery),
                         ClaimPeriod = entry.ClaimPeriod,
-                        ClaimScope = entry.ClaimScope
+                        ClaimScope = entry.ClaimScope,
+                        RewardWave = entry.MinWave
                     });
                 }
             }
@@ -6459,25 +6461,15 @@ namespace MHServerEmu.Games.MythicRifts
 
             Region originalRegion = Game.RegionManager.GetRegion(runState.RegionId);
             PrototypeId difficultyTierRef = originalRegion?.DifficultyTierRef ?? GameDatabase.GlobalsPrototype.DifficultyTierDefault;
-            bool usePartyTeleportContext = admittedPlayers.Count > 1;
-
-            if (TryTeleportSinglePlayerToRewardRoom(anchorPlayer, regionProtoRef, areaProtoRef, cellProtoRef, entityProtoRef, difficultyTierRef, runState.Config.RegionAffixes, usePartyTeleportContext) == false)
+            if (TryTeleportSinglePlayerToRewardRoom(anchorPlayer, regionProtoRef, areaProtoRef, cellProtoRef, entityProtoRef, difficultyTierRef, runState.Config.RegionAffixes, usePartyTeleportContext: false) == false)
             {
                 // Logger.Warn($"Mythic Rift run {runState.Config.RunId} failed to teleport playerDbId=0x{anchorPlayer.DatabaseUniqueId:X} to the reward room.");
                 return false;
             }
 
-            foreach (Player member in admittedPlayers)
-            {
-                if (member.DatabaseUniqueId == anchorPlayer.DatabaseUniqueId)
-                    continue;
-
-                if (TryTeleportSinglePlayerToRewardRoom(member, regionProtoRef, areaProtoRef, cellProtoRef, entityProtoRef, difficultyTierRef, runState.Config.RegionAffixes, usePartyTeleportContext: true) == false)
-                    { } // Logger.Warn($"Mythic Rift run {runState.Config.RunId} failed to teleport party member playerDbId=0x{member.DatabaseUniqueId:X} to the reward room.");
-            }
-
             ClearRewardRoomDialogs(runState);
             _pendingRewardRoomFinalizeAt[runState.Config.RunId] = Game.CurrentTime + RewardRoomFinalizeDelay;
+            _pendingRewardRoomGiveUpAt[runState.Config.RunId] = Game.CurrentTime + RewardRoomFinalizeGiveUpAfter;
             // Logger.Info($"Mythic Rift run {runState.Config.RunId} moved party toward reward room content '{BossGauntletRewardRoomContentId}'.");
             return true;
         }
@@ -6505,6 +6497,16 @@ namespace MHServerEmu.Games.MythicRifts
             return teleporter.TeleportToTarget(regionProtoRef, areaProtoRef, cellProtoRef, entityProtoRef);
         }
 
+        private static bool TryTeleportPlayerToRewardRoomInstance(Player player, ulong regionId, Vector3 position)
+        {
+            if (player == null || regionId == 0 || player.PlayerConnection == null || player.PlayerConnection.HasPendingRegionTransfer)
+                return false;
+
+            using var teleporterHandle = TeleporterPool.Get(out Teleporter teleporter);
+            teleporter.Initialize(player, TeleportContextEnum.TeleportContext_Party);
+            return teleporter.TeleportToRegionLocation(regionId, position);
+        }
+
         private void TryProcessPendingRewardRoomFinalize(MythicRiftRunState runState, TimeSpan currentTime)
         {
             if (runState?.Config == null ||
@@ -6514,27 +6516,37 @@ namespace MHServerEmu.Games.MythicRifts
                 return;
             }
 
-            ulong rewardRoomRegionId = 0;
-            foreach (ulong playerDbId in runState.ParticipantPlayerDbIds)
+            ulong runId = runState.Config.RunId;
+            IReadOnlyCollection<ulong> rewardRoomPlayerDbIds = runState.AdmittedPlayerDbIds.Count > 0
+                ? runState.AdmittedPlayerDbIds
+                : runState.ParticipantPlayerDbIds;
+            bool timedOut = _pendingRewardRoomGiveUpAt.TryGetValue(runId, out TimeSpan giveUpAt) && currentTime >= giveUpAt;
+
+            if (_pendingRewardRoomRegionIdByRun.TryGetValue(runId, out ulong rewardRoomRegionId) == false)
             {
-                Avatar avatar = Game.EntityManager.GetEntityByDbGuid<Player>(playerDbId)?.CurrentAvatar;
-                if (avatar?.IsInWorld == true && avatar.Region != null && avatar.Region.Id != runState.RegionId)
+                foreach (ulong playerDbId in rewardRoomPlayerDbIds)
                 {
-                    rewardRoomRegionId = avatar.Region.Id;
-                    break;
+                    Avatar avatar = Game.EntityManager.GetEntityByDbGuid<Player>(playerDbId)?.CurrentAvatar;
+                    if (avatar?.IsInWorld == true && avatar.Region != null && avatar.Region.Id != runState.RegionId)
+                    {
+                        rewardRoomRegionId = avatar.Region.Id;
+                        _pendingRewardRoomRegionIdByRun[runId] = rewardRoomRegionId;
+                        break;
+                    }
                 }
             }
 
             if (rewardRoomRegionId == 0)
             {
-                TimeSpan elapsedSinceCompletion = runState.CompletedAt.HasValue ? currentTime - runState.CompletedAt.Value : TimeSpan.Zero;
-                if (elapsedSinceCompletion < RewardRoomFinalizeGiveUpAfter)
+                if (timedOut == false)
                 {
-                    _pendingRewardRoomFinalizeAt[runState.Config.RunId] = currentTime + RewardRoomFinalizeRetryDelay;
+                    _pendingRewardRoomFinalizeAt[runId] = currentTime + RewardRoomFinalizeRetryDelay;
                     return;
                 }
 
-                _pendingRewardRoomFinalizeAt.Remove(runState.Config.RunId);
+                _pendingRewardRoomFinalizeAt.Remove(runId);
+                _pendingRewardRoomGiveUpAt.Remove(runId);
+                _pendingRewardRoomRegionIdByRun.Remove(runId);
                 // Logger.Warn($"Mythic Rift run {runState.Config.RunId} gave up waiting for the reward room teleport to resolve; granting/spawning in the original zone instead.");
                 TryAutoGrantCompletionRewards(runState);
                 TrySpawnReturnPortal(runState);
@@ -6542,7 +6554,41 @@ namespace MHServerEmu.Games.MythicRifts
                 return;
             }
 
-            _pendingRewardRoomFinalizeAt.Remove(runState.Config.RunId);
+            Avatar rewardRoomAnchor = rewardRoomPlayerDbIds
+                .Select(playerDbId => Game.EntityManager.GetEntityByDbGuid<Player>(playerDbId)?.CurrentAvatar)
+                .FirstOrDefault(avatar => avatar?.IsInWorld == true && avatar.Region?.Id == rewardRoomRegionId);
+            bool waitingForParty = false;
+            if (rewardRoomAnchor != null)
+            {
+                Vector3 joinPosition = rewardRoomAnchor.RegionLocation.Position;
+                foreach (ulong playerDbId in rewardRoomPlayerDbIds)
+                {
+                    Player player = Game.EntityManager.GetEntityByDbGuid<Player>(playerDbId);
+                    if (player == null)
+                        continue;
+
+                    Avatar avatar = player.CurrentAvatar;
+                    if (avatar?.IsInWorld == true && avatar.Region?.Id == rewardRoomRegionId)
+                        continue;
+
+                    waitingForParty = true;
+                    TryTeleportPlayerToRewardRoomInstance(player, rewardRoomRegionId, joinPosition);
+                }
+            }
+            else
+            {
+                waitingForParty = true;
+            }
+
+            if (waitingForParty && timedOut == false)
+            {
+                _pendingRewardRoomFinalizeAt[runId] = currentTime + RewardRoomFinalizeRetryDelay;
+                return;
+            }
+
+            _pendingRewardRoomFinalizeAt.Remove(runId);
+            _pendingRewardRoomGiveUpAt.Remove(runId);
+            _pendingRewardRoomRegionIdByRun.Remove(runId);
             runState.AttachRewardRoomRegion(rewardRoomRegionId);
             ClearNativeRegionPopulationOnSuccess(runState);
             TryAutoGrantCompletionRewards(runState);
@@ -7729,15 +7775,6 @@ namespace MHServerEmu.Games.MythicRifts
                     AttemptsRemaining = RiftCompletionCrafterAttemptsPerRun
                 };
 
-                Player player = Game.EntityManager.GetEntityByDbGuid<Player>(playerDbId);
-                if (player != null)
-                {
-                    MythicRiftRewardTuning tuning = _rewardTuning ?? MythicRiftRewardTuning.CreateDefault();
-                    // Game.ChatManager?.SendChatFromCustomSystem(
-                    //     player,
-                    //     $"[Mythic Rift] Completion crafter unlocked: {RiftCompletionCrafterAttemptsPerRun} attempts, {RiftCompletionCrafterUpgradeChance:P0} chance to upgrade item level {RiftCompletionCrafterMinimumItemLevel}-{RiftCompletionCrafterMaximumItemLevel - 1} Unique or {RiftCompletionCrafterCosmicMinimumItemLevel}-{RiftCompletionCrafterMaximumItemLevel - 1} Cosmic gear slot 1-5 by +1. Costs {FormatCompletionCrafterCostText(tuning.CompletionCrafterUniqueRecipeCost, tuning.CompletionCrafterCosmicRecipeCost)} on a successful upgrade. A success ends this run's attempts.",
-                    //     showSender: false);
-                }
             }
         }
 
@@ -7923,7 +7960,8 @@ namespace MHServerEmu.Games.MythicRifts
 
         private void TryAwardRiftEternitySplinterLoot(MythicRiftRunState runState, in EntityDeadGameEvent evt)
         {
-            if (HasNativeLootDisabledMode(runState) == false ||
+            bool isBossGauntletBoss = runState?.Config?.UseBossGauntletMode == true && IsExpectedBossKill(runState, evt);
+            if ((HasNativeLootDisabledMode(runState) == false && isBossGauntletBoss == false) ||
                 evt.Defender is not Agent defeatedAgent ||
                 defeatedAgent is Avatar ||
                 defeatedAgent.IsHostileToPlayers() == false)
@@ -8335,7 +8373,7 @@ namespace MHServerEmu.Games.MythicRifts
             crafter.Properties[PropertyEnum.VendorType] = vendorTypeProtoRef;
             runState.AttachCompletionCrafter(crafter.Id);
             MythicRiftRewardTuning spawnTuning = _rewardTuning ?? MythicRiftRewardTuning.CreateDefault();
-            NotifyRunPlayers(runState, $"[Mythic Rift] Completion crafter spawned. Use it for item level 69-74 unique or 63-74 cosmic upgrades; each eligible player has three attempts and one success per cleared Rift. Costs {FormatCompletionCrafterCostText(spawnTuning.CompletionCrafterUniqueRecipeCost, spawnTuning.CompletionCrafterCosmicRecipeCost)} on a successful upgrade.");
+            NotifyRunPlayers(runState, $"[Mythic Rift] Completion crafter spawned. Each eligible player may upgrade one item level 69 Unique in slots 1-5 to item level 72 for {spawnTuning.CompletionCrafterUniqueRecipeCost} Champion's Commendations.");
             // Logger.Trace($"Mythic Rift run {runState.Config.RunId} spawned completion crafter {crafter.PrototypeName} (0x{crafter.Id:X}) vendorType={vendorTypeProtoRef.GetNameFormatted()}.");
             return true;
         }
@@ -8795,13 +8833,6 @@ namespace MHServerEmu.Games.MythicRifts
                     (config.BossAffixes != null && config.BossAffixes.Count > 0));
         }
 
-        private static string FormatCompletionCrafterCostText(int uniqueCost, int cosmicCost)
-        {
-            return uniqueCost == cosmicCost
-                ? $"{uniqueCost} Champion's Commendations"
-                : $"{uniqueCost} (Unique) or {cosmicCost} (Cosmic) Champion's Commendations";
-        }
-
         private static string FormatPrototypeNameList(IReadOnlyList<PrototypeId> prototypeRefs)
         {
             if (prototypeRefs == null || prototypeRefs.Count == 0)
@@ -9168,6 +9199,7 @@ namespace MHServerEmu.Games.MythicRifts
                 UseOwnBossSourceWhenSelected = entry.UseOwnBossSourceWhenSelected,
                 UseCustomPopulation = entry.UseCustomPopulation,
                 BossOnlyCheckpointEligible = entry.BossOnlyCheckpointEligible,
+                Modes = entry.Modes?.ToArray() ?? Array.Empty<string>(),
                 BossFamily = ResolveBossFamily(
                     entry.BossFamily,
                     entry.Id,

@@ -13,6 +13,7 @@ namespace MHServerEmu.Games.MythicRifts
         public bool UseOwnBossSourceWhenSelected { get; init; }
         public bool UseCustomPopulation { get; init; }
         public bool BossOnlyCheckpointEligible { get; init; }
+        public IReadOnlyList<string> Modes { get; init; } = Array.Empty<string>();
         public string BossFamily { get; init; }
         public int MinRandomRiftLevel { get; init; } = 1;
         public int MaxRandomRiftLevel { get; init; }
@@ -51,6 +52,16 @@ namespace MHServerEmu.Games.MythicRifts
         public bool SupportsPlayerCount(int playerCount)
         {
             return MaxPlayerCount <= 0 || Math.Max(playerCount, 1) <= MaxPlayerCount;
+        }
+
+        public bool SupportsMode(MythicRiftMode mode)
+        {
+            if (Modes == null || Modes.Count == 0)
+                return true;
+
+            return Modes.Any(configuredMode =>
+                Enum.TryParse(configuredMode, ignoreCase: true, out MythicRiftMode parsedMode) &&
+                parsedMode == mode);
         }
     }
 }

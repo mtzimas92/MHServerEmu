@@ -37,6 +37,18 @@ namespace MHServerEmu.Games.Tests.MythicRifts
         }
 
         [Fact]
+        public void RegisterParticipant_PreservesJoiningWaveAsRewardFloor()
+        {
+            MythicRiftRunState runState = new(CreateConfig());
+
+            Assert.True(runState.RegisterParticipant(100, rewardFloorWave: 29));
+            Assert.False(runState.RegisterParticipant(100, rewardFloorWave: 1));
+
+            Assert.Equal(29, runState.GetParticipantRewardFloorWave(100));
+            Assert.Equal(1, runState.GetParticipantRewardFloorWave(200));
+        }
+
+        [Fact]
         public void UnlockBoss_MarksQuotaCompleteForCheckpointRuns()
         {
             MythicRiftRunState runState = new(CreateConfig());

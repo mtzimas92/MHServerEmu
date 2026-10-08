@@ -17,6 +17,7 @@
   "endlessCycleBonusSpecialPctPerCycle": 0,
   "endlessCycleBonusSpecialPctCap": 0,
   "defaultDelivery": "ground",
+  "completionCrafterUniqueRecipeCost": 100,
   "lootTableAliases": {
     "boss-unique-box": "Loot/Tables/RandomGiftboxes/DailyGift/MysteriousUniqueBoxTable.prototype",
     "cosmic-artifacts": "Loot/Tables/Mob/Bosses/CosmicArtifactsTable.prototype"
