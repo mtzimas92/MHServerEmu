@@ -45,6 +45,9 @@ namespace MHServerEmu.Games.MythicRifts
         private static readonly TimeSpan RiftReadyCheckDuration = TimeSpan.FromSeconds(5);
         private static readonly TimeSpan FailedRunEvacuationDelay = TimeSpan.FromMilliseconds(250);
         private const int RiftBossMinimumCharacterLevel = 63;
+        private const ulong ChampionCommendationItemPrototypeId = 2852929430040615658;
+        private const int WeeklyChampionCommendationCap = 500;
+        private const string WeeklyChampionCommendationClaimId = "mythic-rift:account:champion-commendations-total";
         private static readonly TimeSpan FailedRunEvacuationRetryDelay = TimeSpan.FromSeconds(1);
         private static readonly TimeSpan BossGauntletFailureRecoveryDelay = TimeSpan.FromMilliseconds(250);
         private static readonly TimeSpan RewardRoomFinalizeDelay = TimeSpan.FromMilliseconds(1500);
@@ -170,6 +173,7 @@ namespace MHServerEmu.Games.MythicRifts
         private readonly Dictionary<ulong, int> _highestUnlockedEndlessRiftLevelByPlayer = new();
         private readonly Dictionary<ulong, int> _preferredLaunchRiftLevelByPlayer = new();
         private readonly Dictionary<ulong, int> _preferredLaunchEndlessRiftLevelByPlayer = new();
+        private readonly int _affixShuffleSeed;
         private readonly Dictionary<ulong, int> _completedEndlessCyclesByPlayer = new();
         private readonly Dictionary<ulong, string> _lastCompletedMapContentIdByPlayer = new();
         private readonly Dictionary<ulong, List<string>> _recentRandomMapContentIdsByPlayer = new();
@@ -224,6 +228,7 @@ namespace MHServerEmu.Games.MythicRifts
         public MythicRiftManager(Game game)
         {
             Game = game;
+            _affixShuffleSeed = Game.Random.Next(1, int.MaxValue);
             TryReloadContentPool(out _contentPoolLastLoadMessage);
             // Logger.Trace($"Mythic Rift content pool: {_contentPoolLastLoadMessage}");
             TryReloadRewardTuning(out _rewardTuningLastLoadMessage);
@@ -562,6 +567,68 @@ namespace MHServerEmu.Games.MythicRifts
             {
                 Logger.WarnException(e, $"Standard Rift leaderboard season reset failed for playerDbId=0x{player.DatabaseUniqueId:X}. leaderboardInstanceId={activeInstanceId} seasonMarker={activeSeasonMarker}");
             }
+        }
+
+        public int ResetRewardClaimsForTesting(Player player, bool resetAccountClaims, bool resetHeroClaims)
+        {
+            Avatar avatar = player?.CurrentAvatar;
+            if (player == null || avatar == null || (resetAccountClaims == false && resetHeroClaims == false))
+                return 0;
+
+            MythicRiftRewardTuning tuning = _rewardTuning ?? MythicRiftRewardTuning.CreateDefault();
+            HashSet<string> claimKeys = new(StringComparer.OrdinalIgnoreCase);
+
+            void AddClaim(string rewardId, string claimPeriod, string claimScope)
+            {
+                if (string.IsNullOrWhiteSpace(rewardId) || string.IsNullOrWhiteSpace(claimPeriod))
+                    return;
+
+                bool accountScope = string.Equals(claimScope, "account", StringComparison.OrdinalIgnoreCase);
+                if ((accountScope && resetAccountClaims == false) || (accountScope == false && resetHeroClaims == false))
+                    return;
+
+                claimKeys.Add(BuildLimitedRewardClaimKey(player, avatar, rewardId, claimScope));
+            }
+
+            foreach (MythicRiftExtraLootTableTuning entry in tuning.ExtraLootTables)
+                AddClaim(entry?.Id, entry?.ClaimPeriod, entry?.ClaimScope);
+
+            const int maximumTestResetLevel = 1000;
+            foreach (MythicRiftGuaranteedItemTuning entry in tuning.GuaranteedItems)
+            {
+                if (entry?.ClaimPerRiftLevel == true)
+                {
+                    for (int level = 1; level <= maximumTestResetLevel; level++)
+                        AddClaim($"{entry.Id}/level-{level}", entry.ClaimPeriod, entry.ClaimScope);
+                }
+                else
+                {
+                    AddClaim(entry?.Id, entry?.ClaimPeriod, entry?.ClaimScope);
+                }
+            }
+
+            foreach (MythicRiftRandomItemPoolTuning entry in tuning.RandomItemPools)
+            {
+                if (entry == null)
+                    continue;
+
+                int firstLevel = entry.ClaimPerRiftLevel ? 1 : 0;
+                int lastLevel = entry.ClaimPerRiftLevel ? maximumTestResetLevel : 0;
+                for (int level = firstLevel; level <= lastLevel; level++)
+                {
+                    string rewardId = entry.ClaimPerRiftLevel ? $"{entry.Id}/level-{level}" : entry.Id;
+                    AddClaim(rewardId, entry.ClaimPeriod, entry.ClaimScope);
+                    AddClaim($"{rewardId}/random", entry.ClaimPeriod, entry.ClaimScope);
+                    foreach (EquipmentInvUISlot slot in Enum.GetValues<EquipmentInvUISlot>())
+                        AddClaim($"{rewardId}/{slot}/random", entry.ClaimPeriod, entry.ClaimScope);
+                }
+            }
+
+            int removed = claimKeys.Count(player.OmegaContentRewardProgress.RemoveClaim);
+            if (resetAccountClaims && player.OmegaContentRewardProgress.RemoveClaim(WeeklyChampionCommendationClaimId))
+                removed++;
+
+            return removed;
         }
 
         private void TryResetOmegaTrainingProgressForLeaderboard(Player player)
@@ -1754,10 +1821,23 @@ namespace MHServerEmu.Games.MythicRifts
                         continue;
                     }
 
-                    for (int i = 0; i < guaranteedItem.Quantity; i++)
+                    int quantity = GetCappedGuaranteedRewardQuantity(player, guaranteedItem);
+                    if (quantity <= 0)
+                        continue;
+
+                    ItemPrototype itemProto = guaranteedItem.ItemProtoRef.As<ItemPrototype>();
+                    int maxStack = Math.Max(itemProto?.StackSettings?.MaxStacks ?? 1, 1);
+                    int remaining = quantity;
+                    while (remaining > 0)
                     {
+                        int stackCount = Math.Min(remaining, maxStack);
+                        remaining -= stackCount;
+
                         if (MythicRiftRewardTuning.IsChestDelivery(guaranteedItem.Delivery))
-                            chestRewards.Add(PendingRewardDrop.CreateGuaranteedItem(guaranteedItem));
+                        {
+                            for (int i = 0; i < stackCount; i++)
+                                chestRewards.Add(PendingRewardDrop.CreateGuaranteedItem(guaranteedItem));
+                        }
                         else
                         {
                             Vector3? itemPositionOverride = groundLootPositionOverride;
@@ -1769,12 +1849,13 @@ namespace MHServerEmu.Games.MythicRifts
                                     guaranteedGroundDropIndex++);
                             }
 
-                            GrantRewardItem(guaranteedItem, player, avatar, positionOverride: itemPositionOverride);
+                            GrantRewardItem(guaranteedItem, player, avatar, positionOverride: itemPositionOverride, stackCount: stackCount);
                         }
                     }
 
+                    RecordChampionCommendationsGranted(player, guaranteedItem, quantity);
                     MarkLimitedRewardClaimed(player, avatar, guaranteedItem);
-                    LogLimitedRewardClaim("granted", player, avatar, guaranteedItem.Id, guaranteedItem.ClaimPeriod, guaranteedItem.ClaimScope, guaranteedItem.Quantity);
+                    LogLimitedRewardClaim("granted", player, avatar, guaranteedItem.Id, guaranteedItem.ClaimPeriod, guaranteedItem.ClaimScope, quantity);
                 }
 
                 if (chestRewards.Count > 0 &&
@@ -1877,7 +1958,8 @@ namespace MHServerEmu.Games.MythicRifts
             Avatar avatar,
             WorldEntity sourceEntity = null,
             Vector3? positionOverride = null,
-            string deliveryOverride = null)
+            string deliveryOverride = null,
+            int stackCount = 1)
         {
             if (guaranteedItem == null)
                 return;
@@ -1923,7 +2005,7 @@ namespace MHServerEmu.Games.MythicRifts
 
             bool hasForcedRarity = guaranteedItem.RarityProtoRef != PrototypeId.Invalid;
             bool useItemFactory = OmegaTierItemFactory.ShouldUseFactory(itemProtoRef, guaranteedItem.RarityProtoRef);
-            if (candidateItemSpec != null || itemLevel > 1 || hasForcedRarity || useItemFactory)
+            if (candidateItemSpec != null || itemLevel > 1 || hasForcedRarity || useItemFactory || stackCount > 1)
             {
                 int resolvedItemLevel = Math.Max(itemLevel, 1);
                 ItemSpec itemSpec = candidateItemSpec ?? (hasForcedRarity || useItemFactory
@@ -1934,6 +2016,8 @@ namespace MHServerEmu.Games.MythicRifts
                     // Logger.Warn($"Mythic Rift failed to create reward item {itemProtoRef.GetNameFormatted()} at level {resolvedItemLevel} rarity={guaranteedItem.RarityProtoRef.GetNameFormatted()}.");
                     return;
                 }
+
+                itemSpec.StackCount = Math.Max(stackCount, 1);
 
                 using var lootResultSummaryHandle = LootResultSummaryPool.Get(out LootResultSummary lootResultSummary);
                 lootResultSummary.Add(new LootResult(itemSpec));
@@ -1959,6 +2043,8 @@ namespace MHServerEmu.Games.MythicRifts
                     ItemSpec itemSpec = Game.LootManager.CreateItemSpec(itemProtoRef, LootContext.Drop, player);
                     if (itemSpec == null)
                         return;
+
+                    itemSpec.StackCount = Math.Max(stackCount, 1);
 
                     using var lootResultSummaryHandle = LootResultSummaryPool.Get(out LootResultSummary lootResultSummary);
                     lootResultSummary.Add(new LootResult(itemSpec));
@@ -5233,6 +5319,28 @@ namespace MHServerEmu.Games.MythicRifts
             return player.OmegaContentRewardProgress.GetClaimedAmount(key, period) == 0;
         }
 
+        private static int GetCappedGuaranteedRewardQuantity(Player player, MythicRiftRewardGuaranteedItem reward)
+        {
+            int quantity = Math.Max(reward?.Quantity ?? 0, 0);
+            if (player == null || reward?.ItemProtoRef != (PrototypeId)ChampionCommendationItemPrototypeId)
+                return quantity;
+
+            long period = GetLimitedRewardPeriod("weekly");
+            int claimed = player.OmegaContentRewardProgress.GetClaimedAmount(WeeklyChampionCommendationClaimId, period);
+            return Math.Min(quantity, Math.Max(WeeklyChampionCommendationCap - claimed, 0));
+        }
+
+        private static void RecordChampionCommendationsGranted(Player player, MythicRiftRewardGuaranteedItem reward, int quantity)
+        {
+            if (player == null || quantity <= 0 || reward?.ItemProtoRef != (PrototypeId)ChampionCommendationItemPrototypeId)
+                return;
+
+            player.OmegaContentRewardProgress.AddClaimedAmount(
+                WeeklyChampionCommendationClaimId,
+                GetLimitedRewardPeriod("weekly"),
+                quantity);
+        }
+
         private void MarkLimitedRewardClaimed(Player player, Avatar avatar, string rewardId, string claimPeriod, string claimScope)
         {
             if (player == null || string.IsNullOrWhiteSpace(claimPeriod))
@@ -5912,6 +6020,10 @@ namespace MHServerEmu.Games.MythicRifts
             if (_configuredRiftAffixes.Count == 0 && (affixTableProto?.RegionAffixes == null || affixTableProto.RegionAffixes.Length == 0))
                 return Array.Empty<PrototypeId>();
 
+            MythicRiftAffixTuning tuning = _affixTuning ?? MythicRiftAffixTuning.CreateDefault();
+            if (tuning.UseShuffleBagPairs)
+                return RollRiftAffixPairFromShuffleBag(affixTableProto, levelOrWave, useBossScopedAffixes);
+
             List<PrototypeId> pickedAffixes = new(affixCount);
             HashSet<PrototypeId> blockedAffixes = new();
             for (int pick = 0; pick < affixCount; pick++)
@@ -5956,6 +6068,119 @@ namespace MHServerEmu.Games.MythicRifts
             }
 
             return pickedAffixes;
+        }
+
+        private IReadOnlyList<PrototypeId> RollRiftAffixPairFromShuffleBag(
+            RegionAffixTablePrototype affixTableProto,
+            int levelOrWave,
+            bool useBossScopedAffixes)
+        {
+            List<(PrototypeId Affix, int Weight)> pool = new();
+            if (_configuredRiftAffixes.Count > 0)
+            {
+                pool.AddRange(_configuredRiftAffixes);
+            }
+            else
+            {
+                foreach (RegionAffixWeightedEntryPrototype entry in affixTableProto.RegionAffixes)
+                {
+                    if (entry?.Affix == PrototypeId.Invalid ||
+                        entry.Weight <= 0 ||
+                        IsUsableRiftEnemyAffix(entry.Affix.As<RegionAffixPrototype>()) == false)
+                    {
+                        continue;
+                    }
+
+                    pool.Add((entry.Affix, entry.Weight));
+                }
+            }
+
+            pool = pool
+                .GroupBy(entry => entry.Affix)
+                .Select(group => group.First())
+                .ToList();
+            if (pool.Count == 0)
+                return Array.Empty<PrototypeId>();
+
+            int pairCount = Math.Max((pool.Count + 1) / 2, 1);
+            int zeroBasedLevel = Math.Max(levelOrWave - 1, 0);
+            int cycle = zeroBasedLevel / pairCount;
+            int pairIndex = zeroBasedLevel % pairCount;
+            int seed = GetStableAffixShuffleSeed(cycle, useBossScopedAffixes);
+
+            List<PrototypeId> shuffled = null;
+            for (int attempt = 0; attempt < 64; attempt++)
+            {
+                Random random = new(unchecked(seed + attempt * 7919));
+                List<(PrototypeId Affix, int Weight)> remaining = new(pool);
+                shuffled = new(pool.Count);
+                while (remaining.Count > 0)
+                {
+                    int totalWeight = remaining.Sum(entry => Math.Max(entry.Weight, 1));
+                    int roll = random.Next(totalWeight);
+                    int selectedIndex = 0;
+                    for (; selectedIndex < remaining.Count - 1; selectedIndex++)
+                    {
+                        roll -= Math.Max(remaining[selectedIndex].Weight, 1);
+                        if (roll < 0)
+                            break;
+                    }
+
+                    shuffled.Add(remaining[selectedIndex].Affix);
+                    remaining.RemoveAt(selectedIndex);
+                }
+
+                if (AffixPairsAreCompatible(shuffled))
+                    break;
+            }
+
+            int firstIndex = pairIndex * 2;
+            if (firstIndex >= shuffled.Count)
+                return Array.Empty<PrototypeId>();
+
+            if (firstIndex + 1 >= shuffled.Count)
+                return [shuffled[firstIndex]];
+
+            return [shuffled[firstIndex], shuffled[firstIndex + 1]];
+        }
+
+        private int GetStableAffixShuffleSeed(int cycle, bool useBossScopedAffixes)
+        {
+            const uint offset = 2166136261;
+            const uint prime = 16777619;
+            uint hash = offset;
+            string profileName = (_affixTuning?.ProfileName ?? "default-affixes").ToLowerInvariant();
+            foreach (char character in profileName)
+            {
+                hash ^= character;
+                hash *= prime;
+            }
+
+            hash ^= unchecked((uint)cycle);
+            hash *= prime;
+            hash ^= useBossScopedAffixes ? 1u : 0u;
+            hash *= prime;
+            hash ^= unchecked((uint)_affixShuffleSeed);
+            return unchecked((int)hash);
+        }
+
+        private static bool AffixPairsAreCompatible(IReadOnlyList<PrototypeId> affixes)
+        {
+            for (int index = 0; index + 1 < affixes.Count; index += 2)
+            {
+                if (AffixesAreCompatible(affixes[index], affixes[index + 1]) == false)
+                    return false;
+            }
+
+            return true;
+        }
+
+        private static bool AffixesAreCompatible(PrototypeId first, PrototypeId second)
+        {
+            RegionAffixPrototype firstProto = first.As<RegionAffixPrototype>();
+            RegionAffixPrototype secondProto = second.As<RegionAffixPrototype>();
+            return (firstProto?.RestrictsAffixes?.Contains(second) ?? false) == false &&
+                   (secondProto?.RestrictsAffixes?.Contains(first) ?? false) == false;
         }
 
         private int GetRiftAffixCount(int levelOrWave, bool useBossScopedAffixes)

@@ -16,6 +16,9 @@ namespace MHServerEmu.Games.MythicRifts
     public static class OmegaContentRewardService
     {
         private static readonly Logger Logger = LogManager.CreateLogger();
+        private const ulong ChampionCommendationItemPrototypeId = 2852929430040615658;
+        private const int WeeklyChampionCommendationCap = 500;
+        private const string WeeklyChampionCommendationClaimId = "mythic-rift:account:champion-commendations-total";
         private static readonly object LoadLock = new();
         private static readonly ConcurrentDictionary<(ulong PlayerDbId, PrototypeId MissionRef), long> RecentDeathGrants = new();
         private const long RecentDeathGrantWindowMs = 10 * 60 * 1000;
@@ -172,6 +175,17 @@ namespace MHServerEmu.Games.MythicRifts
                     Logger.Info($"[OmegaContentRewardTrace] result=invalid-item playerDbId=0x{player.DatabaseUniqueId:X} activity={activity.Id} reward={reward.Id} runtimeId={reward.ItemPrototypeRuntimeId} prototype={reward.ItemPrototype}");
                     continue;
                 }
+
+                long championPeriodMarker = 0;
+                if (itemRef == (PrototypeId)ChampionCommendationItemPrototypeId)
+                {
+                    championPeriodMarker = GetPeriodMarker("weekly");
+                    int weeklyClaimed = player.OmegaContentRewardProgress.GetClaimedAmount(WeeklyChampionCommendationClaimId, championPeriodMarker);
+                    quantity = Math.Min(quantity, Math.Max(WeeklyChampionCommendationCap - weeklyClaimed, 0));
+                    if (quantity <= 0)
+                        continue;
+                }
+
                 if (GiveStackedItem(player, itemRef, quantity, reward.ItemLevel, rewardSource) == false)
                 {
                     Logger.Info($"[OmegaContentRewardTrace] result=delivery-failed playerDbId=0x{player.DatabaseUniqueId:X} activity={activity.Id} reward={reward.Id} item={itemRef.GetNameFormatted()} quantity={quantity} itemLevel={reward.ItemLevel}");
@@ -180,6 +194,9 @@ namespace MHServerEmu.Games.MythicRifts
 
                 if (reward.PeriodLimit > 0)
                     player.OmegaContentRewardProgress.AddClaimedAmount(reward.Id, periodMarker, quantity);
+
+                if (championPeriodMarker != 0)
+                    player.OmegaContentRewardProgress.AddClaimedAmount(WeeklyChampionCommendationClaimId, championPeriodMarker, quantity);
 
                 Logger.Info($"[OmegaContentRewardTrace] result=granted playerDbId=0x{player.DatabaseUniqueId:X} activity={activity.Id} reward={reward.Id} item={itemRef.GetNameFormatted()} quantity={quantity} period={reward.Period} periodMarker={periodMarker} limit={reward.PeriodLimit}");
             }

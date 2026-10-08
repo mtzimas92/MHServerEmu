@@ -30,7 +30,7 @@
       "rolls": 2,
       "chancePercent": 100,
       "minWave": 11,
-      "maxWave": 11,
+      "maxWave": 0,
       "successOnly": false,
       "modes": [
         "boss-gauntlet"
@@ -46,7 +46,7 @@
       "rolls": 1,
       "chancePercent": 5,
       "minWave": 11,
-      "maxWave": 15,
+      "maxWave": 20,
       "successOnly": false,
       "modes": [
         "boss-gauntlet"
@@ -60,7 +60,7 @@
       "rolls": 3,
       "chancePercent": 100,
       "minWave": 16,
-      "maxWave": 16,
+      "maxWave": 0,
       "successOnly": false,
       "modes": [
         "boss-gauntlet"
@@ -76,7 +76,7 @@
       "rolls": 4,
       "chancePercent": 100,
       "minWave": 21,
-      "maxWave": 21,
+      "maxWave": 0,
       "successOnly": false,
       "modes": [
         "boss-gauntlet"
@@ -90,9 +90,9 @@
       "enabled": true,
       "lootTablePrototype": "cosmic-artifacts",
       "rolls": 1,
-      "chancePercent": 15,
+      "chancePercent": 20,
       "minWave": 21,
-      "maxWave": 25,
+      "maxWave": 30,
       "successOnly": false,
       "modes": [
         "boss-gauntlet"
@@ -106,7 +106,7 @@
       "rolls": 5,
       "chancePercent": 100,
       "minWave": 26,
-      "maxWave": 26,
+      "maxWave": 0,
       "successOnly": false,
       "modes": [
         "boss-gauntlet"
@@ -122,7 +122,7 @@
       "rolls": 6,
       "chancePercent": 100,
       "minWave": 31,
-      "maxWave": 31,
+      "maxWave": 0,
       "successOnly": false,
       "modes": [
         "boss-gauntlet"
@@ -136,9 +136,9 @@
       "enabled": true,
       "lootTablePrototype": "cosmic-artifacts",
       "rolls": 1,
-      "chancePercent": 25,
+      "chancePercent": 45,
       "minWave": 31,
-      "maxWave": 35,
+      "maxWave": 40,
       "successOnly": false,
       "modes": [
         "boss-gauntlet"
@@ -152,7 +152,7 @@
       "rolls": 7,
       "chancePercent": 100,
       "minWave": 36,
-      "maxWave": 36,
+      "maxWave": 0,
       "successOnly": false,
       "modes": [
         "boss-gauntlet"
@@ -168,7 +168,7 @@
       "rolls": 8,
       "chancePercent": 100,
       "minWave": 41,
-      "maxWave": 41,
+      "maxWave": 0,
       "successOnly": false,
       "modes": [
         "boss-gauntlet"
@@ -182,7 +182,7 @@
       "enabled": true,
       "lootTablePrototype": "cosmic-artifacts",
       "rolls": 1,
-      "chancePercent": 40,
+      "chancePercent": 85,
       "minWave": 41,
       "maxWave": 0,
       "successOnly": false,

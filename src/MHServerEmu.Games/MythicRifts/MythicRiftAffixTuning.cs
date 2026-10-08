@@ -15,6 +15,7 @@ namespace MHServerEmu.Games.MythicRifts
         public int ThirdRegionAffixStartLevel { get; set; } = 70;
         public int SecondBossAffixStartWave { get; set; } = 30;
         public int ThirdBossAffixStartWave { get; set; } = 70;
+        public bool UseShuffleBagPairs { get; set; } = true;
         public string DefaultAffixTablePrototypeName { get; set; } = "Regions/Affixes/RegionAffixTable.defaults";
         public List<MythicRiftAffixPoolEntry> Affixes { get; set; } = new();
 
@@ -55,6 +56,9 @@ namespace MHServerEmu.Games.MythicRifts
         {
             if (Enabled == false)
                 return 0;
+
+            if (UseShuffleBagPairs)
+                return 2;
 
             int secondAffixStart = useBossScopedAffixes ? SecondBossAffixStartWave : SecondRegionAffixStartLevel;
             int thirdAffixStart = useBossScopedAffixes ? ThirdBossAffixStartWave : ThirdRegionAffixStartLevel;
