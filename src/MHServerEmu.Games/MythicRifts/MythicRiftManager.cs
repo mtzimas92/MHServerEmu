@@ -140,9 +140,12 @@ namespace MHServerEmu.Games.MythicRifts
         private const float RiftCompletionCrafterSpawnOffset = 180f;
         private const string BossGauntletArenaContentId = "boss-gauntlet-patrol-savage";
         private const string BossGauntletRewardRoomContentId = "boss-gauntlet-tutorial-arena";
+        private const string RiftRewardRoomRegionPrototypeName = "Regions/StoryRevamp/CH09Asgard/CH0906LokiBossRegion.prototype";
         private static readonly Vector3 BossGauntletRewardPosition = new(-79f, 18f, 307f);
         private static readonly Vector3 RiftRewardRoomAnchorPosition = new(1750f, 585f, 207f);
         private const float BossGauntletRewardDropGridSpacing = 56f;
+        private const int RiftRewardDropReservedCenterSlots = 24;
+        private const float RiftRewardChestSpawnOffset = -260f;
         private const float SpecialRandomMapChance = 0.05f;
         private static readonly string[] RiftBossIconWidgetNameKeywords =
         {
@@ -1753,18 +1756,18 @@ namespace MHServerEmu.Games.MythicRifts
 
                 TraceItemFind(runState, player, "reward-applied", totalBonusRarityPct, totalBonusSpecialPct);
 
+                List<ulong> rewardRecipientDbIds = runState.RewardEligiblePlayerDbIds.OrderBy(id => id).ToList();
+                int rewardRecipientIndex = Math.Max(rewardRecipientDbIds.IndexOf(player.DatabaseUniqueId), 0);
+                int rewardRecipientCount = Math.Max(rewardRecipientDbIds.Count, 1);
                 Vector3? groundLootPositionOverride = UsesFixedRewardRoom(runState)
-                    ? GetRewardRoomCenterPosition(runState)
+                    ? GetFixedRewardDropPosition(runState, rewardRecipientIndex, rewardRecipientCount, 0)
                     : null;
 
                 using var inputSettingsHandle = LootInputSettingsPool.Get(out LootInputSettings inputSettings);
                 inputSettings.Initialize(LootContext.Drop, player, avatar, groundLootPositionOverride);
 
                 int groundRecipientId = 1;
-                int guaranteedGroundDropIndex = 0;
-                List<ulong> rewardRecipientDbIds = runState.RewardEligiblePlayerDbIds.OrderBy(id => id).ToList();
-                int rewardRecipientIndex = Math.Max(rewardRecipientDbIds.IndexOf(player.DatabaseUniqueId), 0);
-                int rewardRecipientCount = Math.Max(rewardRecipientDbIds.Count, 1);
+                int guaranteedGroundDropIndex = 1;
                 List<PendingRewardDrop> chestRewards = new();
                 if (rewardOutcome.HasBossLootTable)
                 {
@@ -1856,9 +1859,9 @@ namespace MHServerEmu.Games.MythicRifts
                         else
                         {
                             Vector3? itemPositionOverride = groundLootPositionOverride;
-                            if (runState.Config.UseBossGauntletMode && MythicRiftRewardTuning.IsGroundDelivery(guaranteedItem.Delivery))
+                            if (UsesFixedRewardRoom(runState) && MythicRiftRewardTuning.IsGroundDelivery(guaranteedItem.Delivery))
                             {
-                                itemPositionOverride = GetBossGauntletRewardDropPosition(
+                                itemPositionOverride = GetFixedRewardDropPosition(
                                     runState,
                                     rewardRecipientIndex,
                                     rewardRecipientCount,
@@ -2077,9 +2080,12 @@ namespace MHServerEmu.Games.MythicRifts
             Game.LootManager.GiveItem(itemProtoRef, LootContext.Drop, player);
         }
 
-        private Vector3 GetBossGauntletRewardDropPosition(MythicRiftRunState runState, int playerIndex, int recipientCount, int playerDropIndex)
+        private Vector3 GetFixedRewardDropPosition(MythicRiftRunState runState, int playerIndex, int recipientCount, int playerDropIndex)
         {
-            int gridIndex = playerDropIndex * recipientCount + playerIndex + 1;
+            int reservedCenterSlots = runState?.Config?.UseBossGauntletMode == true
+                ? 0
+                : RiftRewardDropReservedCenterSlots;
+            int gridIndex = reservedCenterSlots + playerDropIndex * recipientCount + playerIndex + 1;
 
             Point2 gridOffset = GetSquareSpiralOffset(gridIndex);
             return GetRewardRoomCenterPosition(runState) + new Vector3(
@@ -2213,7 +2219,7 @@ namespace MHServerEmu.Games.MythicRifts
                     }
                 }
 
-                position = GetRewardRoomCenterPosition(runState, region) + right * (RiftCompletionCrafterSpawnOffset / 2f);
+                position = GetRewardRoomCenterPosition(runState, region) + right * RiftRewardChestSpawnOffset;
             }
             else if (chestProto.Bounds == null ||
                 EntityHelper.GetSpawnPositionNearAvatar(avatar, region, chestProto.Bounds, 250f, out position) == false)
@@ -4157,6 +4163,13 @@ namespace MHServerEmu.Games.MythicRifts
         {
             if (runState?.Config == null)
                 return PrototypeId.Invalid;
+
+            if (runState.RewardRoomRegionId != 0)
+            {
+                PrototypeId rewardRoomRegionRef = GameDatabase.GetPrototypeRefByName(RiftRewardRoomRegionPrototypeName);
+                if (rewardRoomRegionRef != PrototypeId.Invalid)
+                    return rewardRoomRegionRef;
+            }
 
             return runState.Config.RegionProtoRef;
         }
