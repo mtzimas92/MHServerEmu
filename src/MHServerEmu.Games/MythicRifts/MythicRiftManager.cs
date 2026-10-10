@@ -110,6 +110,8 @@ namespace MHServerEmu.Games.MythicRifts
         private const ulong RiftStatusLocaleBossGauntletRewardTrack = 18000000000000040013UL;
         private const ulong RiftRewardRoomDialogLocale = 18000000000000040014UL;
         private const ulong RiftRewardRoomTravelButtonLocale = 18000000000000040015UL;
+        private const ulong OmegaTrainingRewardRoomTitleLocale = 18000000000000040016UL;
+        private const ulong InfiniteRiftRewardRoomTitleLocale = 18000000000000040017UL;
         private const ulong RiftDangerRoomLevelLocaleStringBase = 18000000000000010000UL;
         private const int RiftDangerRoomLevelLocalizedLevelLimit = 10000;
         private static readonly PrototypeId RiftDangerRoomLevelWidgetPrototypeRef = (PrototypeId)7164846210465729875UL;
@@ -135,10 +137,11 @@ namespace MHServerEmu.Games.MythicRifts
         private const string OmegaRewardRarityPrototypeName = "Entity/Items/Rarity/R6Omega.prototype";
         private const string RiftEternitySplinterLootTablePrototypeName = "Loot/Tables/SplinterBoostTable.prototype";
         private const float RiftCompletionArtifactVendorSpawnOffset = -260f;
-        private const float RiftCompletionCrafterSpawnOffset = 390f;
+        private const float RiftCompletionCrafterSpawnOffset = 180f;
         private const string BossGauntletArenaContentId = "boss-gauntlet-patrol-savage";
         private const string BossGauntletRewardRoomContentId = "boss-gauntlet-tutorial-arena";
-        private static readonly Vector3 BossGauntletRewardRoomCenterPosition = new(-79f, 18f, 307f);
+        private static readonly Vector3 BossGauntletRewardPosition = new(-79f, 18f, 307f);
+        private static readonly Vector3 RiftRewardRoomAnchorPosition = new(1750f, 585f, 207f);
         private const float BossGauntletRewardDropGridSpacing = 56f;
         private const float SpecialRandomMapChance = 0.05f;
         private static readonly string[] RiftBossIconWidgetNameKeywords =
@@ -3938,6 +3941,16 @@ namespace MHServerEmu.Games.MythicRifts
                 return;
 
             RefreshDangerRoomRiftLevelWidget(uiDataProvider, runState, contextRef, currentTime);
+            if (runState.RewardRoomRegionId != 0)
+            {
+                uiDataProvider.DeleteWidget(GetRiftDangerRoomQuotaWidgetPrototypeRef(), contextRef);
+                uiDataProvider.DeleteWidget(GetRiftDangerRoomTimerWidgetPrototypeRef(), contextRef);
+                RefreshRiftReadyCheckWidget(uiDataProvider, runState, contextRef, currentTime);
+                RefreshRiftBossIconWidget(uiDataProvider, runState, contextRef);
+                SuppressRiftRewardTrackWidget(uiDataProvider, runState);
+                return;
+            }
+
             RefreshRiftReadyCheckWidget(uiDataProvider, runState, contextRef, currentTime);
             RefreshRiftBossIconWidget(uiDataProvider, runState, contextRef);
             RefreshRiftModifierButtonWidget(uiDataProvider, runState, contextRef);
@@ -3962,7 +3975,10 @@ namespace MHServerEmu.Games.MythicRifts
 
         private static void RefreshDangerRoomRiftLevelWidget(UIDataProvider uiDataProvider, MythicRiftRunState runState, PrototypeId contextRef, TimeSpan currentTime)
         {
-            LocaleStringId levelText = GetDangerRoomRiftLevelLocaleStringId(runState.Config.RiftLevel);
+            bool isRewardRoom = runState.RewardRoomRegionId != 0;
+            LocaleStringId levelText = isRewardRoom
+                ? GetRewardRoomTitleLocaleStringId(runState.Config.Mode)
+                : GetDangerRoomRiftLevelLocaleStringId(runState.Config.RiftLevel);
             if (levelText == LocaleStringId.Invalid)
                 return;
 
@@ -3975,7 +3991,18 @@ namespace MHServerEmu.Games.MythicRifts
                 return;
 
             levelWidget.SetAreaContext(contextRef);
-            levelWidget.SetText(levelText, GetRiftStatusLocaleStringId(runState, currentTime));
+            levelWidget.SetText(
+                levelText,
+                isRewardRoom ? LocaleStringId.Blank : GetRiftStatusLocaleStringId(runState, currentTime));
+        }
+
+        private static LocaleStringId GetRewardRoomTitleLocaleStringId(MythicRiftMode mode)
+        {
+            return mode switch
+            {
+                MythicRiftMode.Endless => (LocaleStringId)OmegaTrainingRewardRoomTitleLocale,
+                _ => (LocaleStringId)InfiniteRiftRewardRoomTitleLocale
+            };
         }
 
         private static void RefreshRiftObjectiveProgressWidget(UIDataProvider uiDataProvider, MythicRiftRunState runState, PrototypeId contextRef)
@@ -6414,7 +6441,7 @@ namespace MHServerEmu.Games.MythicRifts
             if (player == null)
                 return;
 
-            TryTeleportPartyToRewardRoom(runState, player);
+            TryTeleportPartyToRewardRoom(runState, player, "dialog");
         }
 
         private void ClearRewardRoomDialogs(MythicRiftRunState runState)
@@ -6430,7 +6457,7 @@ namespace MHServerEmu.Games.MythicRifts
             }
         }
 
-        private bool TryTeleportPartyToRewardRoom(MythicRiftRunState runState, Player initiatingPlayer)
+        private bool TryTeleportPartyToRewardRoom(MythicRiftRunState runState, Player initiatingPlayer, string source)
         {
             if (runState?.Config == null || initiatingPlayer == null || runState.RewardRoomTeleportResolved)
                 return false;
@@ -6446,7 +6473,7 @@ namespace MHServerEmu.Games.MythicRifts
             Player anchorPlayer = transferPlayers.FirstOrDefault(player => player.IsPartyLeader()) ?? initiatingPlayer;
 
             Logger.Info(
-                $"[MythicRiftRewardRoomTrace] stage=roster runId={runState.Config.RunId} mode={runState.Config.Mode} " +
+                $"[MythicRiftRewardRoomTrace] stage=roster source={source} runId={runState.Config.RunId} mode={runState.Config.Mode} " +
                 $"initiatorDbId=0x{initiatingPlayer.DatabaseUniqueId:X} anchorDbId=0x{anchorPlayer.DatabaseUniqueId:X} " +
                 $"sourceRegionId=0x{runState.RegionId:X} admitted=[{FormatPlayerDbIds(runState.AdmittedPlayerDbIds)}] " +
                 $"participants=[{FormatPlayerDbIds(runState.ParticipantPlayerDbIds)}] transfer=[{FormatPlayerDbIds(transferPlayerDbIds)}]");
@@ -6472,7 +6499,7 @@ namespace MHServerEmu.Games.MythicRifts
 
             Region originalRegion = Game.RegionManager.GetRegion(runState.RegionId);
             PrototypeId difficultyTierRef = originalRegion?.DifficultyTierRef ?? GameDatabase.GlobalsPrototype.DifficultyTierDefault;
-            bool anchorTeleportRequested = TryTeleportSinglePlayerToRewardRoom(anchorPlayer, regionProtoRef, areaProtoRef, cellProtoRef, entityProtoRef, difficultyTierRef, runState.Config.RegionAffixes, runState.RegionId, usePartyTeleportContext: false);
+            bool anchorTeleportRequested = TryTeleportSinglePlayerToRewardRoom(anchorPlayer, regionProtoRef, areaProtoRef, cellProtoRef, entityProtoRef, difficultyTierRef, Array.Empty<PrototypeId>(), runState.RegionId, usePartyTeleportContext: false);
             Logger.Info(
                 $"[MythicRiftRewardRoomTrace] stage=anchor-request runId={runState.Config.RunId} mode={runState.Config.Mode} " +
                 $"playerDbId=0x{anchorPlayer.DatabaseUniqueId:X} targetRegion={regionProtoRef.GetNameFormatted()} " +
@@ -8713,7 +8740,7 @@ namespace MHServerEmu.Games.MythicRifts
                 runState.RewardRoomTeleportResolved)
                 return false;
 
-            bool teleported = TryTeleportPartyToRewardRoom(runState, player);
+            bool teleported = TryTeleportPartyToRewardRoom(runState, player, "portal");
             if (teleported)
             {
                 // Logger.Info($"Mythic Rift run {runState.Config.RunId} used reward room portal 0x{transition.Id:X} for playerDbId=0x{player.DatabaseUniqueId:X}.");
@@ -8792,7 +8819,7 @@ namespace MHServerEmu.Games.MythicRifts
 
         private static bool UsesSeparateRewardRoom(MythicRiftRunState runState)
         {
-            return runState?.Config?.Mode is MythicRiftMode.Standard or MythicRiftMode.Endless or MythicRiftMode.BossGauntlet;
+            return runState?.Config?.Mode is MythicRiftMode.Standard or MythicRiftMode.Endless;
         }
 
         private static bool IsRunActiveOrInRewardRoom(MythicRiftRunState runState)
@@ -8800,23 +8827,11 @@ namespace MHServerEmu.Games.MythicRifts
             return runState != null && (runState.Status == MythicRiftRunStatus.Active || runState.RewardRoomRegionId != 0);
         }
 
-        private Vector3 GetRewardRoomCenterPosition(MythicRiftRunState runState, Region region = null)
+        private static Vector3 GetRewardRoomCenterPosition(MythicRiftRunState runState, Region region = null)
         {
-            if (runState?.RewardRoomRegionId != 0)
-            {
-                region ??= Game.RegionManager.GetRegion(runState.RewardRoomRegionId);
-                if (region != null)
-                {
-                    foreach (Player player in new PlayerIterator(region))
-                    {
-                        Avatar avatar = player?.CurrentAvatar;
-                        if (avatar?.IsInWorld == true && avatar.Region == region)
-                            return avatar.RegionLocation.Position;
-                    }
-                }
-            }
-
-            return BossGauntletRewardRoomCenterPosition;
+            return runState?.Config?.UseBossGauntletMode == true
+                ? BossGauntletRewardPosition
+                : RiftRewardRoomAnchorPosition;
         }
 
         private bool TryGetReturnPortalSpawnLocation(MythicRiftRunState runState, Region region, out Vector3 position, out Orientation orientation, out Cell cell)
@@ -8836,7 +8851,7 @@ namespace MHServerEmu.Games.MythicRifts
                 bool resolved = FinalizeReturnPortalSpawnLocation(region, ref position, ref cell);
                 if (resolved == false)
                 {
-                    // Logger.Warn($"Mythic Rift run {runState?.Config?.RunId ?? 0} TryGetReturnPortalSpawnLocation(): fixed room-center position {BossGauntletRewardRoomCenterPosition} failed to resolve a valid cell in region 0x{region.Id:X} ({region.PrototypeName}).");
+                    // Logger.Warn($"Mythic Rift run {runState?.Config?.RunId ?? 0} TryGetReturnPortalSpawnLocation(): fixed room-center position {RiftRewardRoomAnchorPosition} failed to resolve a valid cell in region 0x{region.Id:X} ({region.PrototypeName}).");
                 }
 
                 return resolved;
@@ -9380,7 +9395,9 @@ namespace MHServerEmu.Games.MythicRifts
                 DisplayName = entry.DisplayName,
                 DefaultKillQuota = entry.DefaultKillQuota,
                 RegionProtoRef = ResolvePrototype(entry.RegionPrototypeName),
-                StartTargetProtoRef = ResolveStartTarget(entry.RegionPrototypeName),
+                StartTargetProtoRef = string.IsNullOrWhiteSpace(entry.StartTargetPrototypeName)
+                    ? ResolveStartTarget(entry.RegionPrototypeName)
+                    : ResolvePrototype(entry.StartTargetPrototypeName),
                 MissionProtoRef = ResolvePrototype(entry.MissionPrototypeName),
                 BossProtoRef = ResolvePrototype(entry.BossPrototypeName),
                 BossLootTableProtoRef = ResolvePrototype(entry.BossLootTablePrototypeName),

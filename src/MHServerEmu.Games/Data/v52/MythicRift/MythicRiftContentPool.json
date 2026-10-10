@@ -685,6 +685,7 @@
       "displayName": "Loki's Throne Reward Room",
       "defaultKillQuota": 1,
       "regionPrototypeName": "Regions/StoryRevamp/CH09Asgard/CH0906LokiBossRegion.prototype",
+      "startTargetPrototypeName": "Regions/StoryRevamp/CH09Asgard/Transitions/LokiBossPhaseOneTarget.prototype",
       "randomMapEligible": false,
       "randomBossEligible": false,
       "bossOnlyCheckpointEligible": false

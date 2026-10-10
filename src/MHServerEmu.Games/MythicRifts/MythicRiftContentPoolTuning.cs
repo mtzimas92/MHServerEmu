@@ -29,6 +29,7 @@ namespace MHServerEmu.Games.MythicRifts
         public string DisplayName { get; set; }
         public int DefaultKillQuota { get; set; }
         public string RegionPrototypeName { get; set; }
+        public string StartTargetPrototypeName { get; set; }
         public string MissionPrototypeName { get; set; }
         public string BossPrototypeName { get; set; }
         public string BossLootTablePrototypeName { get; set; }
