@@ -4,6 +4,7 @@ using MHServerEmu.Core.Extensions;
 using MHServerEmu.Core.Helpers;
 using MHServerEmu.Core.Logging;
 using MHServerEmu.Core.Memory;
+using MHServerEmu.Core.Network;
 using MHServerEmu.Core.VectorMath;
 using MHServerEmu.Games.Entities;
 using MHServerEmu.Games.Entities.Avatars;
@@ -18,6 +19,7 @@ using MHServerEmu.Games.Loot;
 using MHServerEmu.Games.Loot.Specs;
 using MHServerEmu.Games.Missions;
 using MHServerEmu.Games.Navi;
+using MHServerEmu.Games.Network;
 using MHServerEmu.Games.OmegaTierItems;
 using MHServerEmu.Games.Powers;
 using MHServerEmu.Games.Properties;
@@ -6521,25 +6523,43 @@ namespace MHServerEmu.Games.MythicRifts
 
         private bool TryTeleportSinglePlayerToRewardRoom(Player player, PrototypeId regionProtoRef, PrototypeId areaProtoRef, PrototypeId cellProtoRef, PrototypeId entityProtoRef, PrototypeId difficultyTierRef, IReadOnlyList<PrototypeId> regionAffixes, bool usePartyTeleportContext)
         {
-            if (player == null)
+            if (player?.PlayerConnection == null || player.PlayerConnection.HasPendingRegionTransfer)
                 return false;
 
-            using var teleporterHandle = TeleporterPool.Get(out Teleporter teleporter);
-            teleporter.Initialize(
-                player,
-                usePartyTeleportContext ? TeleportContextEnum.TeleportContext_Party : TeleportContextEnum.TeleportContext_Debug);
-            teleporter.BypassQueueRegionForRift = true;
-            teleporter.DifficultyTierRef = difficultyTierRef;
+            TeleportContextEnum context = usePartyTeleportContext
+                ? TeleportContextEnum.TeleportContext_Party
+                : TeleportContextEnum.TeleportContext_Debug;
+            ChangeRegionRequestHeader header = ChangeRegionRequestHeader.CreateBuilder()
+                .SetRequestingGameId(player.Game.Id)
+                .SetRequestingPlayerGuid(player.DatabaseUniqueId)
+                .SetOrigin(NetStructRegionOrigin.DefaultInstance)
+                .SetType(context)
+                .Build();
+            NetStructRegionTarget destination = NetStructRegionTarget.CreateBuilder()
+                .SetRegionProtoId((ulong)regionProtoRef)
+                .SetAreaProtoId((ulong)areaProtoRef)
+                .SetCellProtoId((ulong)cellProtoRef)
+                .SetEntityProtoId((ulong)entityProtoRef)
+                .Build();
+            NetStructCreateRegionParams.Builder createParamsBuilder = NetStructCreateRegionParams.CreateBuilder()
+                .SetCheat(true)
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
+                .SetDifficultyTierProtoId((ulong)difficultyTierRef)
+#endif
+                .SetOrigin(NetStructRegionOrigin.DefaultInstance);
             if (regionAffixes != null)
             {
                 foreach (PrototypeId affix in regionAffixes)
                 {
                     if (affix != PrototypeId.Invalid)
-                        teleporter.Affixes.Add(affix);
+                        createParamsBuilder.AddAffixes((ulong)affix);
                 }
             }
 
-            return teleporter.TeleportToTarget(regionProtoRef, areaProtoRef, cellProtoRef, entityProtoRef);
+            player.PlayerConnection.BeginRegionTransfer(regionProtoRef);
+            ServiceMessage.ChangeRegionRequest message = new(header, destination, createParamsBuilder.Build());
+            ServerManager.Instance.SendMessageToService(GameServiceType.PlayerManager, message);
+            return true;
         }
 
         private static bool TryTeleportPlayerToRewardRoomInstance(Player player, ulong regionId, Vector3 position)
