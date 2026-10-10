@@ -31,14 +31,20 @@ namespace MHServerEmu.Games.OmegaTierItems
             if (player == null || summary == null)
                 return;
 
-            OmegaLootFilterSettings settings = Get(player.DatabaseUniqueId);
+            if (Settings.TryGetValue(player.DatabaseUniqueId, out OmegaLootFilterSettings settings) == false)
+                return;
+
             AgentPrototype avatarProto = player.CurrentAvatar?.AvatarPrototype;
             string avatarName = player.CurrentAvatar?.PrototypeDataRef.GetNameFormatted();
             OmegaLootFilterSection character = settings.GetCharacter(avatarName, create: false);
+            if (settings.Global?.HasActiveFilters != true && character?.HasActiveFilters != true)
+                return;
+
+            bool enableDiagnostics = OmegaTierItemTuning.Load().EnableDiagnostics;
             summary.ItemSpecs.RemoveAll(itemSpec =>
             {
                 bool filtered = ShouldFilter(itemSpec, avatarProto, settings.Global, character);
-                if (filtered)
+                if (filtered && enableDiagnostics)
                 {
                     ItemPrototype itemProto = itemSpec?.ItemProtoRef.As<ItemPrototype>();
                     EquipmentInvUISlot slot = itemProto?.GetInventorySlotForAgent(avatarProto) ?? EquipmentInvUISlot.Invalid;
@@ -89,7 +95,7 @@ namespace MHServerEmu.Games.OmegaTierItems
             EquipmentInvUISlot slot = itemProto is ArmorPrototype armorProto
                 ? armorProto.DefaultEquipmentSlot
                 : itemProto.GetInventorySlotForAgent(avatarProto);
-            if (slot == EquipmentInvUISlot.Invalid)
+            if (slot == EquipmentInvUISlot.Invalid && itemProto is ArmorPrototype)
                 slot = itemProto.GetInventorySlotForAgent(avatarProto);
 
             bool isOmegaArmor = itemSpec.RarityProtoRef == GetOmegaRarity() || OmegaTierAffixLimits.HasArmorOmegaAffix(itemSpec);
@@ -197,6 +203,7 @@ namespace MHServerEmu.Games.OmegaTierItems
         public HashSet<string> OmegaGearSlots { get; set; } = new(StringComparer.OrdinalIgnoreCase);
         public Dictionary<string, string> RarityThresholds { get; set; } = new(StringComparer.OrdinalIgnoreCase);
         public bool FilterUruForged { get; set; }
+        public bool HasActiveFilters => FilterUruForged || (OmegaGearSlots?.Count ?? 0) > 0 || (RarityThresholds?.Count ?? 0) > 0;
 
         public void Normalize()
         {

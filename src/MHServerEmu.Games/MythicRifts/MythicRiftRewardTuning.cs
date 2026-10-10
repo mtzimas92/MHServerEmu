@@ -44,6 +44,16 @@ namespace MHServerEmu.Games.MythicRifts
 
         public static string ConfigPath => Path.Combine(FileHelper.DataDirectory, RelativeConfigPath);
 
+        private static readonly Lazy<MythicRiftRewardTuning> CachedTuning = new(() =>
+        {
+            MythicRiftRewardTuning tuning = FileHelper.DeserializeJson<MythicRiftRewardTuning>(ConfigPath, JsonOptions)
+                ?? CreateDefault();
+            tuning.Normalize();
+            return tuning.Enabled ? tuning : CreateDefault();
+        });
+
+        public static MythicRiftRewardTuning Load() => CachedTuning.Value;
+
         public static MythicRiftRewardTuning CreateDefault()
         {
             MythicRiftRewardTuning tuning = new();

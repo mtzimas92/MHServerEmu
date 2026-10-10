@@ -20,10 +20,12 @@ namespace MHServerEmu.Games.OmegaTierItems
         };
 
         private static OmegaTierItemTuning _cached;
-        private static DateTime _cachedWriteTimeUtc;
+        private static readonly object TuningLock = new();
+        private static volatile bool _loaded;
 
         public string ProfileName { get; set; } = "default-omega-items";
         public bool Enabled { get; set; } = true;
+        public bool EnableDiagnostics { get; set; }
         public float OmegaDifficultyPromotionChancePct { get; set; } = 33.3333f;
         public float OmegaDifficultyBonusRingChancePct { get; set; } = 0f;
         public float PreferredAffixChancePct { get; set; } = 100f;
@@ -35,38 +37,45 @@ namespace MHServerEmu.Games.OmegaTierItems
         public List<OmegaTierItemOverrideTuning> ItemOverrides { get; set; } = new();
         [JsonIgnore] public HashSet<PrototypeId> DisabledAffixRefs { get; } = new();
         [JsonIgnore] public List<AffixCategoryPrototype> DisabledAffixCategoryPrototypes { get; } = new();
+        [JsonIgnore] public Dictionary<PrototypeId, List<OmegaTierItemOverrideTuning>> ItemOverridesByPrototype { get; } = new();
+        [JsonIgnore] public Dictionary<EquipmentInvUISlot, OmegaTierSlotAffixOverrideTuning> SlotAffixOverridesBySlot { get; } = new();
+        [JsonIgnore] public HashSet<PrototypeId> PreferredAffixRefs { get; } = new();
 
         public static string ConfigPath => Path.Combine(FileHelper.DataDirectory, RelativeConfigPath);
 
         public static OmegaTierItemTuning Load()
         {
-            try
-            {
-                string configPath = ConfigPath;
-                DateTime writeTimeUtc = File.Exists(configPath)
-                    ? File.GetLastWriteTimeUtc(configPath)
-                    : DateTime.MinValue;
+            if (_loaded)
+                return _cached;
 
-                if (_cached != null && writeTimeUtc == _cachedWriteTimeUtc)
+            lock (TuningLock)
+            {
+                if (_loaded)
                     return _cached;
 
-                OmegaTierItemTuning tuning = File.Exists(configPath)
-                    ? FileHelper.DeserializeJson<OmegaTierItemTuning>(configPath, JsonOptions)
-                    : null;
+                try
+                {
+                    string configPath = ConfigPath;
+                    bool fileExists = File.Exists(configPath);
 
-                tuning ??= CreateDefault();
-                tuning.Normalize();
-                _cached = tuning;
-                _cachedWriteTimeUtc = writeTimeUtc;
-                return _cached;
-            }
-            catch
-            {
-                OmegaTierItemTuning tuning = CreateDefault();
-                tuning.Normalize();
-                _cached = tuning;
-                _cachedWriteTimeUtc = DateTime.MinValue;
-                return _cached;
+                    OmegaTierItemTuning tuning = fileExists
+                        ? FileHelper.DeserializeJson<OmegaTierItemTuning>(configPath, JsonOptions)
+                        : null;
+
+                    tuning ??= CreateDefault();
+                    tuning.Normalize();
+                    _cached = tuning;
+                    _loaded = true;
+                    return _cached;
+                }
+                catch
+                {
+                    OmegaTierItemTuning tuning = CreateDefault();
+                    tuning.Normalize();
+                    _cached = tuning;
+                    _loaded = true;
+                    return _cached;
+                }
             }
         }
 
@@ -180,11 +189,44 @@ namespace MHServerEmu.Games.OmegaTierItems
             foreach (OmegaTierPreferredAffixTuning preferredAffix in PreferredAffixes)
                 preferredAffix?.Normalize();
 
+            PreferredAffixRefs.Clear();
+            foreach (OmegaTierPreferredAffixTuning preferredAffix in PreferredAffixes)
+            {
+                PrototypeId affixRef = preferredAffix?.ResolvedAffixPrototype?.DataRef ?? PrototypeId.Invalid;
+                if (affixRef != PrototypeId.Invalid)
+                    PreferredAffixRefs.Add(affixRef);
+            }
+
             foreach (OmegaTierSlotAffixOverrideTuning slotAffixOverride in SlotAffixOverrides)
                 slotAffixOverride?.Normalize();
 
+            SlotAffixOverridesBySlot.Clear();
+            foreach (OmegaTierSlotAffixOverrideTuning slotAffixOverride in SlotAffixOverrides)
+            {
+                if (slotAffixOverride?.SlotRef != EquipmentInvUISlot.Invalid)
+                    SlotAffixOverridesBySlot[slotAffixOverride.SlotRef] = slotAffixOverride;
+            }
+
             foreach (OmegaTierItemOverrideTuning itemOverride in ItemOverrides)
                 itemOverride?.Normalize();
+
+            ItemOverridesByPrototype.Clear();
+            foreach (OmegaTierItemOverrideTuning itemOverride in ItemOverrides)
+            {
+                if (itemOverride == null)
+                    continue;
+
+                foreach (PrototypeId itemPrototypeRef in itemOverride.ItemPrototypeRefs)
+                {
+                    if (ItemOverridesByPrototype.TryGetValue(itemPrototypeRef, out List<OmegaTierItemOverrideTuning> overrides) == false)
+                    {
+                        overrides = new();
+                        ItemOverridesByPrototype[itemPrototypeRef] = overrides;
+                    }
+
+                    overrides.Add(itemOverride);
+                }
+            }
 
             DisabledAffixes = DisabledAffixes
                 .Where(name => string.IsNullOrWhiteSpace(name) == false)
@@ -235,16 +277,23 @@ namespace MHServerEmu.Games.OmegaTierItems
 
         public bool HasItemOverride(PrototypeId itemProtoRef, PrototypeId rarityProtoRef)
         {
-            if (Enabled == false || itemProtoRef == PrototypeId.Invalid || ItemOverrides.Count == 0)
+            if (Enabled == false || itemProtoRef == PrototypeId.Invalid
+                || ItemOverridesByPrototype.TryGetValue(itemProtoRef, out List<OmegaTierItemOverrideTuning> overrides) == false)
                 return false;
 
-            foreach (OmegaTierItemOverrideTuning itemOverride in ItemOverrides)
+            foreach (OmegaTierItemOverrideTuning itemOverride in overrides)
             {
                 if (itemOverride?.Matches(itemProtoRef, rarityProtoRef) == true)
                     return true;
             }
 
             return false;
+        }
+
+        public OmegaTierSlotAffixOverrideTuning GetSlotAffixOverride(EquipmentInvUISlot slot)
+        {
+            SlotAffixOverridesBySlot.TryGetValue(slot, out OmegaTierSlotAffixOverrideTuning slotOverride);
+            return slotOverride;
         }
     }
 

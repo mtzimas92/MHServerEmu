@@ -21,6 +21,16 @@ namespace MHServerEmu.Games.MythicRifts
 
         public static string ConfigPath => Path.Combine(FileHelper.DataDirectory, RelativeConfigPath);
 
+        private static readonly Lazy<MythicRiftAffixTuning> CachedTuning = new(() =>
+        {
+            MythicRiftAffixTuning tuning = FileHelper.DeserializeJson<MythicRiftAffixTuning>(ConfigPath, JsonOptions)
+                ?? CreateDefault();
+            tuning.Normalize();
+            return tuning.Enabled ? tuning : CreateDefault();
+        });
+
+        public static MythicRiftAffixTuning Load() => CachedTuning.Value;
+
         public static MythicRiftAffixTuning CreateDefault()
         {
             MythicRiftAffixTuning tuning = new();

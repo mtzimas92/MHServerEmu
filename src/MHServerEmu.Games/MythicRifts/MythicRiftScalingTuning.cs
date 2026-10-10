@@ -8,9 +8,8 @@ namespace MHServerEmu.Games.MythicRifts
         public const string RelativeConfigPath = "Game/MythicRift/CosmicRiftScaling.json";
 
         private static readonly object TuningLock = new();
-        private static MythicRiftScalingTuning _cachedTuning = CreateDefault();
-        private static DateTime _cachedWriteTimeUtc = DateTime.MinValue;
-        private static bool _cachedFileExists;
+        private static MythicRiftScalingTuning _cachedTuning;
+        private static volatile bool _loaded;
 
         public string ProfileName { get; set; } = "default-scaling";
         public bool Enabled { get; set; } = true;
@@ -55,20 +54,16 @@ namespace MHServerEmu.Games.MythicRifts
 
         public static MythicRiftScalingTuning Load()
         {
-            string configPath = ConfigPath;
-            bool fileExists = File.Exists(configPath);
-            DateTime writeTimeUtc = fileExists ? File.GetLastWriteTimeUtc(configPath) : DateTime.MinValue;
-
-            if (_cachedTuning != null && _cachedFileExists == fileExists && _cachedWriteTimeUtc == writeTimeUtc)
+            if (_loaded)
                 return _cachedTuning;
 
             lock (TuningLock)
             {
-                fileExists = File.Exists(configPath);
-                writeTimeUtc = fileExists ? File.GetLastWriteTimeUtc(configPath) : DateTime.MinValue;
-
-                if (_cachedTuning != null && _cachedFileExists == fileExists && _cachedWriteTimeUtc == writeTimeUtc)
+                if (_loaded)
                     return _cachedTuning;
+
+                string configPath = ConfigPath;
+                bool fileExists = File.Exists(configPath);
 
                 MythicRiftScalingTuning tuning = CreateDefault();
 
@@ -83,8 +78,7 @@ namespace MHServerEmu.Games.MythicRifts
                 }
 
                 _cachedTuning = tuning;
-                _cachedFileExists = fileExists;
-                _cachedWriteTimeUtc = writeTimeUtc;
+                _loaded = true;
                 return _cachedTuning;
             }
         }

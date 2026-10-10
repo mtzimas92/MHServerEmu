@@ -18,6 +18,12 @@ namespace MHServerEmu.Games.MythicRifts
         public List<MythicRiftContentPoolEntryTuning> Content { get; set; } = new();
 
         public static string ConfigPath => Path.Combine(FileHelper.DataDirectory, RelativeConfigPath);
+
+        private static readonly Lazy<MythicRiftContentPoolTuning> CachedTuning = new(() =>
+            FileHelper.DeserializeJson<MythicRiftContentPoolTuning>(ConfigPath, JsonOptions)
+            ?? new MythicRiftContentPoolTuning());
+
+        public static MythicRiftContentPoolTuning Load() => CachedTuning.Value;
     }
 
     /// <summary>JSON schema for one entry in MythicRiftContentPool.json - mirrors the fields of the
