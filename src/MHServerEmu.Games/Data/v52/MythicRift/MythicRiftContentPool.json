@@ -682,9 +682,9 @@
     },
     {
       "id": "boss-gauntlet-tutorial-arena",
-      "displayName": "Danger Room Tutorial Reward Room",
+      "displayName": "Loki's Throne Reward Room",
       "defaultKillQuota": 1,
-      "regionPrototypeName": "Regions/EndGame/DangerRoomMode/UniqueScenarios/Tutorial/DRRegionUniqueTutorialFight.prototype",
+      "regionPrototypeName": "Regions/StoryRevamp/CH09Asgard/CH0906LokiBossRegion.prototype",
       "randomMapEligible": false,
       "randomBossEligible": false,
       "bossOnlyCheckpointEligible": false

@@ -50,7 +50,6 @@ namespace MHServerEmu.Games.Regions
         public PropertyCollection Properties { get; private set; }
         public PrototypeId DangerRoomScenarioRef { get; set; }
         public bool BypassQueueRegionForRift { get; set; }
-        public bool BypassRegionEntryValidationForRiftRewardRoom { get; set; }
         public bool ForcePrivateRegion { get; set; }
 
         public Teleporter() { }     // Use pooling instead of this constructor
@@ -92,7 +91,6 @@ namespace MHServerEmu.Games.Regions
 
             DangerRoomScenarioRef = default;
             BypassQueueRegionForRift = default;
-            BypassRegionEntryValidationForRiftRewardRoom = default;
             ForcePrivateRegion = default;
         }
 
@@ -253,12 +251,10 @@ namespace MHServerEmu.Games.Regions
             else
             {
 #if GAME_VERSION_1_52 || GAME_VERSION_1_53
-                if (BypassRegionEntryValidationForRiftRewardRoom == false &&
-                    Player.CanEnterRegion(regionProtoRef, DifficultyTierRef, false) == false)
+                if (Player.CanEnterRegion(regionProtoRef, DifficultyTierRef, false) == false)
                     return false;
 #else
-                if (BypassRegionEntryValidationForRiftRewardRoom == false &&
-                    Player.CanEnterRegion(regionProtoRef, false) == false)
+                if (Player.CanEnterRegion(regionProtoRef, false) == false)
                     return false;
 #endif
 
