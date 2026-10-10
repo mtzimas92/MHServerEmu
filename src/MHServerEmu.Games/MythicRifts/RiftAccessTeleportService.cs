@@ -236,12 +236,32 @@ namespace MHServerEmu.Games.MythicRifts
             return player.MythicRiftProgress.HasOmegaPatrolAccess(avatar);
         }
 
+        public static bool CanEnterOmegaPatrol(Player player, PrototypeId regionRef, PrototypeId difficultyTierRef)
+        {
+            if (difficultyTierRef != Tier5Omega1Ref || IsOmegaPatrolRegion(regionRef) == false)
+                return true;
+
+            return HasOmegaPatrolAccessForCurrentAvatar(player);
+        }
+
+        public static bool CanEnterOmegaPatrol(Player player, Region region)
+        {
+            if (IsOmegaPatrolRegion(region) == false)
+                return true;
+
+            return HasOmegaPatrolAccessForCurrentAvatar(player);
+        }
+
         private static bool IsOmegaPatrolRegion(Region region)
         {
             if (region == null || region.DifficultyTierRef != Tier5Omega1Ref)
                 return false;
 
-            PrototypeId regionRef = region.PrototypeDataRef;
+            return IsOmegaPatrolRegion(region.PrototypeDataRef);
+        }
+
+        private static bool IsOmegaPatrolRegion(PrototypeId regionRef)
+        {
             return IsTargetRegion(MidtownPatrolTargetCosmicRef, regionRef)
                 || IsTargetRegion(ICPPatrolTargetCosmicRef, regionRef)
                 || IsTargetRegion(HightownPatrolTargetCosmicRef, regionRef);

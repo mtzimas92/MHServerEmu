@@ -662,6 +662,14 @@ namespace MHServerEmu.Games.Entities
             Avatar avatar = CurrentAvatar;
             if (!Verify.IsNotNull(avatar)) return false;
 
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
+            if (RiftAccessTeleportService.CanEnterOmegaPatrol(this, regionProtoRef, difficultyTierProtoRef) == false)
+            {
+                SendBannerMessage(GameDatabase.UIGlobalsPrototype.MessageRegionRestricted);
+                return false;
+            }
+#endif
+
             if (regionProto.HasPvPMetaGame)
             {
                 // Do not allow teleports to PvP regions when PvP is disabled
@@ -4789,6 +4797,12 @@ namespace MHServerEmu.Games.Entities
             // Request queue if we are teleporting to a player in a different region, and it is a match region.
             Player targetPlayer = Game.EntityManager.GetEntityByDbGuid<Player>(targetPlayerDbId);
             Region targetRegion = targetPlayer?.GetRegion();
+
+            if (RiftAccessTeleportService.CanEnterOmegaPatrol(this, targetRegion) == false)
+            {
+                SendBannerMessage(GameDatabase.UIGlobalsPrototype.MessageRegionRestricted);
+                return false;
+            }
 
             // We are guaranteed to have a current region here because we check above that our avatar is in the world.
             if (targetRegion == null || targetRegion.Id != GetRegion().Id)
