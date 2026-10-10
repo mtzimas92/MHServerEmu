@@ -6529,6 +6529,8 @@ namespace MHServerEmu.Games.MythicRifts
                 player,
                 usePartyTeleportContext ? TeleportContextEnum.TeleportContext_Party : TeleportContextEnum.TeleportContext_Debug);
             teleporter.BypassQueueRegionForRift = true;
+            teleporter.BypassRegionEntryValidationForRiftRewardRoom = true;
+            teleporter.ForcePrivateRegion = true;
             teleporter.DifficultyTierRef = difficultyTierRef;
             if (regionAffixes != null)
             {
