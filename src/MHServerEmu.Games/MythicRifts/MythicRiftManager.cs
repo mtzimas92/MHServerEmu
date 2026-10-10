@@ -2941,7 +2941,6 @@ namespace MHServerEmu.Games.MythicRifts
             _pendingBossGauntletFailureRecoveriesAt.Remove(runState.Config.RunId);
             ReviveRunParticipantsInPlace(runState);
             TrySpawnReturnPortal(runState);
-            TrySpawnCompletionCrafter(runState);
         }
 
         private void TryProcessPendingFailedRunEvacuation(MythicRiftRunState runState, TimeSpan currentTime)
@@ -7761,7 +7760,9 @@ namespace MHServerEmu.Games.MythicRifts
 
         private void GrantCompletionCrafterAttempts(MythicRiftRunState runState)
         {
-            if (runState == null || runState.Status != MythicRiftRunStatus.Success)
+            if (runState == null ||
+                runState.Config?.UseBossGauntletMode == true ||
+                runState.Status != MythicRiftRunStatus.Success)
                 return;
 
             foreach (ulong playerDbId in runState.RewardEligiblePlayerDbIds)
@@ -7837,10 +7838,6 @@ namespace MHServerEmu.Games.MythicRifts
             ResolveRewardOutcome(runState);
             TrackLastCompletedMapContent(runState);
             TryAutoGrantCompletionRewards(runState);
-            if (runState.Config.UseBossGauntletMode)
-            {
-                GrantCompletionCrafterAttempts(runState);
-            }
             CleanupRunHazards(runState);
             TryRestoreRegionDifficultyScaling(runState);
             ClearRiftObjectiveWidgets(runState);
@@ -8318,7 +8315,9 @@ namespace MHServerEmu.Games.MythicRifts
 
         private bool TrySpawnCompletionCrafter(MythicRiftRunState runState)
         {
-            if (runState == null || runState.EffectiveRegionId == 0)
+            if (runState == null ||
+                runState.Config?.UseBossGauntletMode == true ||
+                runState.EffectiveRegionId == 0)
                 return false;
 
             if (runState.CompletionCrafterEntityId != 0 && Game.EntityManager.GetEntity<WorldEntity>(runState.CompletionCrafterEntityId) != null)
