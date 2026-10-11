@@ -1817,10 +1817,17 @@ namespace MHServerEmu.Games.MythicRifts
 
                     bool grantedAny = false;
                     int grantedRolls = 0;
+                    bool sharedChancePassed = extraLootTable.RollChanceOnce == false ||
+                        (extraLootTable.ChancePercent > 0f &&
+                         (extraLootTable.ChancePercent >= 100f || Game.Random.NextFloat() * 100f < extraLootTable.ChancePercent));
+                    if (sharedChancePassed == false)
+                        continue;
+
                     for (int i = 0; i < extraLootTable.Rolls; i++)
                     {
-                        if (extraLootTable.ChancePercent <= 0f ||
-                            (extraLootTable.ChancePercent < 100f && Game.Random.NextFloat() * 100f >= extraLootTable.ChancePercent))
+                        if (extraLootTable.RollChanceOnce == false &&
+                            (extraLootTable.ChancePercent <= 0f ||
+                             (extraLootTable.ChancePercent < 100f && Game.Random.NextFloat() * 100f >= extraLootTable.ChancePercent)))
                         {
                             continue;
                         }
@@ -5370,6 +5377,7 @@ namespace MHServerEmu.Games.MythicRifts
                     LootTableProtoRef = lootTableProtoRef,
                     Rolls = Math.Max(entry.Rolls, 1),
                     ChancePercent = entry.ChancePercent,
+                    RollChanceOnce = entry.RollChanceOnce,
                     ItemLevel = entry.ItemLevel,
                     Delivery = MythicRiftRewardTuning.NormalizeDelivery(entry.Delivery),
                     ClaimPeriod = entry.ClaimPeriod,
@@ -5455,7 +5463,9 @@ namespace MHServerEmu.Games.MythicRifts
                     Delivery = MythicRiftRewardTuning.NormalizeDelivery(entry.Delivery),
                     ClaimPeriod = entry.ClaimPeriod,
                     ClaimScope = entry.ClaimScope,
-                    RewardWave = entry.MinWave
+                    RewardWave = entry.Waves.Count > 0
+                        ? MythicRiftRewardTuning.GetRewardWaveNumber(runState)
+                        : entry.MinWave
                 });
             }
 
@@ -5559,7 +5569,9 @@ namespace MHServerEmu.Games.MythicRifts
                                     Delivery = MythicRiftRewardTuning.NormalizeDelivery(entry.Delivery),
                                     ClaimPeriod = entry.ClaimPeriod,
                                     ClaimScope = entry.ClaimScope,
-                                    RewardWave = entry.MinWave
+                                    RewardWave = entry.Waves.Count > 0
+                                        ? MythicRiftRewardTuning.GetRewardWaveNumber(runState)
+                                        : entry.MinWave
                                 });
                             }
 
@@ -5578,7 +5590,9 @@ namespace MHServerEmu.Games.MythicRifts
                             Delivery = MythicRiftRewardTuning.NormalizeDelivery(entry.Delivery),
                             ClaimPeriod = entry.ClaimPeriod,
                             ClaimScope = entry.ClaimScope,
-                            RewardWave = entry.MinWave
+                            RewardWave = entry.Waves.Count > 0
+                                ? MythicRiftRewardTuning.GetRewardWaveNumber(runState)
+                                : entry.MinWave
                         });
                         continue;
                     }
@@ -5596,7 +5610,9 @@ namespace MHServerEmu.Games.MythicRifts
                         Delivery = MythicRiftRewardTuning.NormalizeDelivery(entry.Delivery),
                         ClaimPeriod = entry.ClaimPeriod,
                         ClaimScope = entry.ClaimScope,
-                        RewardWave = entry.MinWave
+                        RewardWave = entry.Waves.Count > 0
+                            ? MythicRiftRewardTuning.GetRewardWaveNumber(runState)
+                            : entry.MinWave
                     });
                 }
             }

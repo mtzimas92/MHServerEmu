@@ -440,6 +440,9 @@ namespace MHServerEmu.Games.Entities.Items
             if (player == null)
                 return false;
 
+            if (Game.MythicRiftLauncherService?.CanBypassNativeUseValidation(player, this) == true)
+                return true;
+
             return PlayerCanUse(player, avatar, checkPower, checkInventory) == InteractionValidateResult.Success;
         }
 
@@ -1482,8 +1485,11 @@ namespace MHServerEmu.Games.Entities.Items
             ItemPrototype itemProto = ItemPrototype;
             if (!Verify.IsNotNull(itemProto)) return false;
 
-            if (PlayerCanUse(player, avatar) != InteractionValidateResult.Success)
+            if (PlayerCanUse(player, avatar) != InteractionValidateResult.Success &&
+                Game.MythicRiftLauncherService?.CanBypassNativeUseValidation(player, this) != true)
+            {
                 return false;
+            }
 
             bool interceptedItemUse = false;
             bool mythicRiftUseSuccess = TryHandleMythicRiftItemUse(player, out interceptedItemUse);

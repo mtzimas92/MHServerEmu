@@ -369,6 +369,7 @@ namespace MHServerEmu.Games.MythicRifts
     {
         public float ChancePercent { get; set; } = 100f;
         public int Rolls { get; set; } = 1;
+        public bool RollChanceOnce { get; set; }
         public int ItemLevel { get; set; }
         public bool SuccessOnly { get; set; } = true;
 
@@ -504,6 +505,7 @@ namespace MHServerEmu.Games.MythicRifts
         public int RiftLevelInterval { get; set; }
         public int MinWave { get; set; } = 1;
         public int MaxWave { get; set; }
+        public List<int> Waves { get; set; } = new();
         public bool SuccessOnly { get; set; } = true;
         public bool CheckpointOnly { get; set; }
         public bool ClassicOnly { get; set; }
@@ -532,6 +534,9 @@ namespace MHServerEmu.Games.MythicRifts
             RiftLevelInterval = Math.Max(RiftLevelInterval, 0);
             MinWave = Math.Max(MinWave, 1);
             MaxWave = Math.Max(MaxWave, 0);
+            Waves = Waves == null
+                ? new()
+                : Waves.Where(wave => wave > 0).Distinct().OrderBy(wave => wave).ToList();
             Modes ??= new();
             ContentIds ??= new();
             BossSourceIds ??= new();
@@ -570,6 +575,9 @@ namespace MHServerEmu.Games.MythicRifts
             if (wave < MinWave || (MaxWave > 0 && wave > MaxWave))
                 return false;
 
+            if (Waves.Count > 0 && Waves.Contains(wave) == false)
+                return false;
+
             if (ContentIds.Count > 0 &&
                 ContentIds.Any(id => string.Equals(id, runState.Config.Content.Id, StringComparison.OrdinalIgnoreCase)) == false)
             {
@@ -597,6 +605,7 @@ namespace MHServerEmu.Games.MythicRifts
         public int MaxRiftLevel { get; set; }
         public int MinWave { get; set; } = 1;
         public int MaxWave { get; set; }
+        public List<int> Waves { get; set; } = new();
         public bool SuccessOnly { get; set; } = true;
         public bool CheckpointOnly { get; set; }
         public bool ClassicOnly { get; set; }
@@ -649,6 +658,9 @@ namespace MHServerEmu.Games.MythicRifts
             MaxRiftLevel = Math.Max(MaxRiftLevel, 0);
             MinWave = Math.Max(MinWave, 1);
             MaxWave = Math.Max(MaxWave, 0);
+            Waves = Waves == null
+                ? new()
+                : Waves.Where(wave => wave > 0).Distinct().OrderBy(wave => wave).ToList();
             Modes ??= new();
             ContentIds ??= new();
             BossSourceIds ??= new();
@@ -683,6 +695,9 @@ namespace MHServerEmu.Games.MythicRifts
 
             int wave = MythicRiftRewardTuning.GetRewardWaveNumber(runState);
             if (wave < MinWave || (MaxWave > 0 && wave > MaxWave))
+                return false;
+
+            if (Waves.Count > 0 && Waves.Contains(wave) == false)
                 return false;
 
             if (ContentIds.Count > 0 &&

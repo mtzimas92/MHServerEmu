@@ -41,7 +41,7 @@
       "delivery": "ground"
     },
     {
-      "id": "boss-gauntlet-waves-11-15-cosmic-artifact",
+      "id": "boss-gauntlet-waves-11-20-cosmic-artifact",
       "enabled": true,
       "lootTablePrototype": "cosmic-artifacts",
       "rolls": 1,
@@ -58,7 +58,7 @@
       "id": "boss-gauntlet-waves-16-20-boss-uniques",
       "enabled": true,
       "lootTablePrototype": "boss-unique-box",
-      "rolls": 3,
+      "rolls": 1,
       "chancePercent": 100,
       "minWave": 16,
       "maxWave": 0,
@@ -74,7 +74,7 @@
       "id": "boss-gauntlet-waves-21-25-boss-uniques",
       "enabled": true,
       "lootTablePrototype": "boss-unique-box",
-      "rolls": 4,
+      "rolls": 1,
       "chancePercent": 100,
       "minWave": 21,
       "maxWave": 0,
@@ -87,11 +87,11 @@
       "delivery": "ground"
     },
     {
-      "id": "boss-gauntlet-waves-21-25-cosmic-artifact",
+      "id": "boss-gauntlet-waves-21-30-cosmic-artifact",
       "enabled": true,
       "lootTablePrototype": "cosmic-artifacts",
       "rolls": 1,
-      "chancePercent": 20,
+      "chancePercent": 10,
       "minWave": 21,
       "maxWave": 30,
       "successOnly": false,
@@ -104,7 +104,7 @@
       "id": "boss-gauntlet-waves-26-30-boss-uniques",
       "enabled": true,
       "lootTablePrototype": "boss-unique-box",
-      "rolls": 5,
+      "rolls": 1,
       "chancePercent": 100,
       "minWave": 26,
       "maxWave": 0,
@@ -120,7 +120,7 @@
       "id": "boss-gauntlet-waves-31-35-boss-uniques",
       "enabled": true,
       "lootTablePrototype": "boss-unique-box",
-      "rolls": 6,
+      "rolls": 1,
       "chancePercent": 100,
       "minWave": 31,
       "maxWave": 0,
@@ -133,11 +133,11 @@
       "delivery": "ground"
     },
     {
-      "id": "boss-gauntlet-waves-31-35-cosmic-artifact",
+      "id": "boss-gauntlet-waves-31-40-cosmic-artifact",
       "enabled": true,
       "lootTablePrototype": "cosmic-artifacts",
       "rolls": 1,
-      "chancePercent": 45,
+      "chancePercent": 15,
       "minWave": 31,
       "maxWave": 40,
       "successOnly": false,
@@ -150,7 +150,7 @@
       "id": "boss-gauntlet-waves-36-40-boss-uniques",
       "enabled": true,
       "lootTablePrototype": "boss-unique-box",
-      "rolls": 7,
+      "rolls": 1,
       "chancePercent": 100,
       "minWave": 36,
       "maxWave": 0,
@@ -166,7 +166,7 @@
       "id": "boss-gauntlet-waves-41-plus-boss-uniques",
       "enabled": true,
       "lootTablePrototype": "boss-unique-box",
-      "rolls": 8,
+      "rolls": 1,
       "chancePercent": 100,
       "minWave": 41,
       "maxWave": 0,
@@ -179,12 +179,102 @@
       "delivery": "ground"
     },
     {
-      "id": "boss-gauntlet-waves-41-plus-cosmic-artifact",
+      "id": "boss-gauntlet-waves-41-45-cosmic-artifact",
       "enabled": true,
       "lootTablePrototype": "cosmic-artifacts",
       "rolls": 1,
-      "chancePercent": 85,
+      "chancePercent": 20,
       "minWave": 41,
+      "maxWave": 45,
+      "successOnly": false,
+      "modes": [
+        "boss-gauntlet"
+      ],
+      "delivery": "ground"
+    },
+    {
+      "id": "boss-gauntlet-wave-46-boss-unique-increment",
+      "enabled": true,
+      "lootTablePrototype": "boss-unique-box",
+      "rolls": 1,
+      "chancePercent": 100,
+      "minWave": 46,
+      "maxWave": 0,
+      "successOnly": false,
+      "modes": [
+        "boss-gauntlet"
+      ],
+      "claimPeriod": "daily",
+      "claimScope": "hero",
+      "delivery": "ground"
+    },
+    {
+      "id": "boss-gauntlet-waves-46-plus-cosmic-artifact",
+      "enabled": true,
+      "lootTablePrototype": "cosmic-artifacts",
+      "rolls": 1,
+      "chancePercent": 25,
+      "minWave": 46,
+      "maxWave": 0,
+      "successOnly": false,
+      "modes": [
+        "boss-gauntlet"
+      ],
+      "delivery": "ground"
+    },
+    {
+      "id": "boss-gauntlet-wave-21-extra-cosmic-artifact-roll",
+      "enabled": true,
+      "lootTablePrototype": "cosmic-artifacts",
+      "rolls": 1,
+      "chancePercent": 2.5,
+      "rollChanceOnce": true,
+      "minWave": 21,
+      "maxWave": 30,
+      "successOnly": false,
+      "modes": [
+        "boss-gauntlet"
+      ],
+      "delivery": "ground"
+    },
+    {
+      "id": "boss-gauntlet-wave-31-extra-cosmic-artifact-roll",
+      "enabled": true,
+      "lootTablePrototype": "cosmic-artifacts",
+      "rolls": 2,
+      "chancePercent": 2.5,
+      "rollChanceOnce": true,
+      "minWave": 31,
+      "maxWave": 40,
+      "successOnly": false,
+      "modes": [
+        "boss-gauntlet"
+      ],
+      "delivery": "ground"
+    },
+    {
+      "id": "boss-gauntlet-wave-41-extra-cosmic-artifact-roll",
+      "enabled": true,
+      "lootTablePrototype": "cosmic-artifacts",
+      "rolls": 3,
+      "chancePercent": 2.5,
+      "rollChanceOnce": true,
+      "minWave": 41,
+      "maxWave": 45,
+      "successOnly": false,
+      "modes": [
+        "boss-gauntlet"
+      ],
+      "delivery": "ground"
+    },
+    {
+      "id": "boss-gauntlet-wave-46-extra-cosmic-artifact-roll",
+      "enabled": true,
+      "lootTablePrototype": "cosmic-artifacts",
+      "rolls": 4,
+      "chancePercent": 2.5,
+      "rollChanceOnce": true,
+      "minWave": 46,
       "maxWave": 0,
       "successOnly": false,
       "modes": [
@@ -214,9 +304,67 @@
       "claimPeriod": "weekly",
       "claimScope": "account",
       "claimPerRiftLevel": true
+    },
+    {
+      "id": "omega-training-repeatable-empty-wave-epic-insignia",
+      "enabled": true,
+      "prototypeDirectoryPrefix": "Entity/Items/Insignias",
+      "itemRarityPrototype": "Entity/Items/Rarity/R4Epic.prototype",
+      "chancePercent": 100,
+      "rolls": 1,
+      "itemLevel": 63,
+      "waves": [ 1, 2, 3, 4, 6, 7, 8, 9, 11, 13, 14, 16, 17, 19, 21, 23, 24 ],
+      "successOnly": true,
+      "modes": [ "rift-gauntlet" ],
+      "delivery": "ground"
+    },
+    {
+      "id": "omega-training-daily-empty-omega-wave-ring",
+      "enabled": true,
+      "itemPrototypePaths": [
+        "Entity/Items/Rings/RingDefenseLoot20.prototype",
+        "Entity/Items/Rings/RingOffenseLoot20.prototype"
+      ],
+      "itemRarityPrototype": "Entity/Items/Rarity/R6Omega.prototype",
+      "chancePercent": 100,
+      "rolls": 1,
+      "itemLevel": 72,
+      "waves": [ 26, 27, 29 ],
+      "successOnly": true,
+      "modes": [ "rift-gauntlet" ],
+      "delivery": "ground",
+      "claimPeriod": "daily",
+      "claimScope": "hero",
+      "claimPerRiftLevel": true
     }
   ],
   "guaranteedItems": [
+    {
+      "id": "omega-training-daily-empty-wave-credits-5k",
+      "enabled": true,
+      "itemPrototypeName": "Entity/Items/Crafting/Ingredients/CreditItem5k.prototype",
+      "quantity": 1,
+      "waves": [ 1, 2, 3, 4, 6, 7, 8, 9, 11, 13, 14, 16, 17, 19, 21, 23, 24 ],
+      "successOnly": true,
+      "modes": [ "rift-gauntlet" ],
+      "claimPeriod": "daily",
+      "claimScope": "hero",
+      "claimPerRiftLevel": true,
+      "delivery": "ground"
+    },
+    {
+      "id": "omega-training-daily-empty-omega-wave-credits-100k",
+      "enabled": true,
+      "itemPrototypeName": "Entity/Items/Crafting/Ingredients/CreditItem100k.prototype",
+      "quantity": 1,
+      "waves": [ 26, 27, 29 ],
+      "successOnly": true,
+      "modes": [ "rift-gauntlet" ],
+      "claimPeriod": "daily",
+      "claimScope": "account",
+      "claimPerRiftLevel": true,
+      "delivery": "ground"
+    },
     {
       "id": "omega-training-daily-wave-10-cube-shard",
       "enabled": true,

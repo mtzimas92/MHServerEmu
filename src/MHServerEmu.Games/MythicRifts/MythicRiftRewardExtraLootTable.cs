@@ -8,6 +8,7 @@ namespace MHServerEmu.Games.MythicRifts
         public PrototypeId LootTableProtoRef { get; init; }
         public int Rolls { get; init; }
         public float ChancePercent { get; init; }
+        public bool RollChanceOnce { get; init; }
         public int ItemLevel { get; init; }
         public string Delivery { get; init; } = "inventory";
         public string ClaimPeriod { get; init; }
