@@ -189,6 +189,7 @@ namespace MHServerEmu.Games.MythicRifts
         private readonly Dictionary<ulong, MythicRiftRunState> _runByCompletionVendorEntityId = new();
         private readonly Dictionary<ulong, Event<EntityDeadGameEvent>.Action> _regionEntityDeadActions = new();
         private readonly Dictionary<ulong, Event<EntityEnteredWorldGameEvent>.Action> _regionEntityEnteredWorldActions = new();
+        private readonly Dictionary<ulong, Event<PlayerEnteredAreaGameEvent>.Action> _regionPlayerEnteredAreaActions = new();
         private readonly Dictionary<ulong, HashSet<ulong>> _pendingEnteredEntityIdsByRegion = new();
         private readonly Dictionary<ulong, int> _highestUnlockedRiftLevelByPlayer = new();
         private readonly Dictionary<ulong, int> _highestUnlockedEndlessRiftLevelByPlayer = new();
@@ -218,9 +219,11 @@ namespace MHServerEmu.Games.MythicRifts
         private readonly HashSet<ulong> _nativeBossGauntletPopulationEventsStopped = new();
         private readonly HashSet<(ulong RunId, ulong SpawnerEntityId)> _nativeBossGauntletSpawnersDisabled = new();
         private readonly Dictionary<string, IReadOnlyList<PrototypeId>> _rewardItemPoolsByDirectory = new(StringComparer.OrdinalIgnoreCase);
-        private readonly Dictionary<(ulong RunId, int Wave), IReadOnlyList<PrototypeId>> _filteredHazardsByRunWave = new();
+        private readonly Dictionary<ulong, CachedRunHazards> _filteredHazardsByRun = new();
         private readonly Dictionary<ulong, CompletionCrafterOpportunity> _completionCrafterOpportunitiesByPlayer = new();
         private readonly Dictionary<ulong, PendingRewardChest> _pendingRewardChestsByEntityId = new();
+        private readonly Dictionary<ulong, HashSet<ulong>> _rewardChestEntityIdsByRun = new();
+        private readonly Dictionary<ulong, int> _rewardChestCountByRegion = new();
         private readonly Dictionary<ulong, Event<PlayerInteractGameEvent>.Action> _regionPlayerInteractActions = new();
         private static PrototypeId _cachedRiftDangerRoomLevelWidgetPrototypeRef = PrototypeId.Invalid;
         private static PrototypeId _cachedRiftDangerRoomQuotaWidgetPrototypeRef = PrototypeId.Invalid;
@@ -1182,8 +1185,7 @@ namespace MHServerEmu.Games.MythicRifts
                 _nativeMissionTrackerSuppressionsSent.RemoveWhere(key => key.RunId == runId);
                 _nativeBossGauntletPopulationEventsStopped.Remove(runId);
                 _nativeBossGauntletSpawnersDisabled.RemoveWhere(key => key.RunId == runId);
-                foreach ((ulong RunId, int Wave) key in _filteredHazardsByRunWave.Keys.Where(key => key.RunId == runId).ToArray())
-                    _filteredHazardsByRunWave.Remove(key);
+                _filteredHazardsByRun.Remove(runId);
                 ClearReadyCheckDialogs(runState);
                 ClearRewardRoomDialogs(runState);
                 ClearRiftModifierButtonCallbacks(runId);
@@ -1355,9 +1357,7 @@ namespace MHServerEmu.Games.MythicRifts
         {
             string vendorKey = OmegaRaidVendorService.IsOmegaRaidVendor(vendor) ? "omegaRaid" : "rift";
             MythicRiftRewardTuning tuning = _rewardTuning ?? MythicRiftRewardTuning.CreateDefault();
-            return tuning.RewardShopOffers
-                .Where(entry => entry?.Enabled == true && string.Equals(entry.Vendor, vendorKey, StringComparison.OrdinalIgnoreCase))
-                .ToList();
+            return tuning.GetRewardShopOffers(vendorKey);
         }
 
         private MythicRiftRewardShopOfferTuning GetRewardShopOffer(WorldEntity vendor, string offerId)
@@ -1366,11 +1366,8 @@ namespace MHServerEmu.Games.MythicRifts
                 return null;
 
             MythicRiftRewardTuning tuning = _rewardTuning ?? MythicRiftRewardTuning.CreateDefault();
-            return tuning.RewardShopOffers.FirstOrDefault(entry =>
-                entry != null &&
-                entry.Enabled &&
-                string.Equals(entry.Vendor, OmegaRaidVendorService.IsOmegaRaidVendor(vendor) ? "omegaRaid" : "rift", StringComparison.OrdinalIgnoreCase) &&
-                string.Equals(entry.Id, offerId, StringComparison.OrdinalIgnoreCase));
+            string vendorKey = OmegaRaidVendorService.IsOmegaRaidVendor(vendor) ? "omegaRaid" : "rift";
+            return tuning.GetRewardShopOffer(vendorKey, offerId);
         }
 
         public bool TryResolveRewardShopOfferVendorStockItemPrototype(MythicRiftRewardShopOfferTuning offer, out PrototypeId itemProtoRef)
@@ -1410,9 +1407,7 @@ namespace MHServerEmu.Games.MythicRifts
 
             if (string.IsNullOrWhiteSpace(offer.RandomItemPoolId) == false && tuning?.RandomItemPools != null)
             {
-                MythicRiftRandomItemPoolTuning configuredPool = tuning.RandomItemPools.FirstOrDefault(pool =>
-                    pool != null &&
-                    string.Equals(pool.Id, offer.RandomItemPoolId, StringComparison.OrdinalIgnoreCase));
+                MythicRiftRandomItemPoolTuning configuredPool = tuning.GetRandomItemPool(offer.RandomItemPoolId);
 
                 if (configuredPool != null)
                     return ResolveRewardItemPool(configuredPool);
@@ -2269,13 +2264,13 @@ namespace MHServerEmu.Games.MythicRifts
                     return false;
                 }
 
-            _pendingRewardChestsByEntityId[chest.Id] = new PendingRewardChest(
+            RegisterPendingRewardChest(chest.Id, new PendingRewardChest(
                 runState.Config.RunId,
                 region.Id,
                 player.DatabaseUniqueId,
                 rewardDrops.ToList(),
                 bonusRarityPct,
-                bonusSpecialPct);
+                bonusSpecialPct));
 
             RegisterRewardChestRegionListener(region);
             // Logger.Info($"Mythic Rift run {runState.Config.RunId} spawned reward chest 0x{chest.Id:X} for playerDbId=0x{player.DatabaseUniqueId:X} drops={rewardDrops.Count}.");
@@ -2305,7 +2300,7 @@ namespace MHServerEmu.Games.MythicRifts
             if (avatar == null)
                 return;
 
-            _pendingRewardChestsByEntityId.Remove(chest.Id);
+            RemovePendingRewardChest(chest.Id, out _);
 
             try
             {
@@ -2666,7 +2661,7 @@ namespace MHServerEmu.Games.MythicRifts
             MythicRiftHazardTuning loadedTuning = MythicRiftHazardTuning.Load();
             _hazardTuning = loadedTuning;
             _cachedRiftHazardPrototypeRefs = null;
-            _filteredHazardsByRunWave.Clear();
+            _filteredHazardsByRun.Clear();
             message = loadedTuning.Enabled
                 ? $"Loaded hazard tuning profile '{_hazardTuning.ProfileName}' from {FileHelper.GetRelativePath(configPath)}. configuredHazards={_hazardTuning.Hazards.Count} keywordDiscovery={_hazardTuning.UseKeywordDiscovery}"
                 : $"Hazard tuning file loaded but disabled; using built-in defaults. path={FileHelper.GetRelativePath(configPath)}";
@@ -2812,6 +2807,7 @@ namespace MHServerEmu.Games.MythicRifts
                     continue;
 
                 _nextRunMaintenanceAt[runState.Config.RunId] = currentTime + RunMaintenanceInterval;
+                TryEvacuateAbandonedRewardRoom(runState);
                 bool participantMaintenanceDue =
                     _nextParticipantMaintenanceAt.TryGetValue(runState.Config.RunId, out TimeSpan nextParticipantMaintenanceAt) == false ||
                     currentTime >= nextParticipantMaintenanceAt;
@@ -3261,6 +3257,11 @@ namespace MHServerEmu.Games.MythicRifts
                 (in EntityEnteredWorldGameEvent evt) => OnRegionEntityEnteredWorld(region.Id, evt);
             region.EntityEnteredWorldEvent.AddActionBack(enteredWorldAction);
             _regionEntityEnteredWorldActions[region.Id] = enteredWorldAction;
+
+            Event<PlayerEnteredAreaGameEvent>.Action playerEnteredAreaAction =
+                (in PlayerEnteredAreaGameEvent evt) => OnRiftPlayerEnteredArea(region.Id, evt);
+            region.PlayerEnteredAreaEvent.AddActionBack(playerEnteredAreaAction);
+            _regionPlayerEnteredAreaActions[region.Id] = playerEnteredAreaAction;
         }
 
         private void CleanupRegionListener(ulong regionId)
@@ -3279,7 +3280,22 @@ namespace MHServerEmu.Games.MythicRifts
             if (_regionEntityEnteredWorldActions.Remove(regionId, out Event<EntityEnteredWorldGameEvent>.Action enteredWorldAction))
                 region?.EntityEnteredWorldEvent.RemoveAction(enteredWorldAction);
 
+            if (_regionPlayerEnteredAreaActions.Remove(regionId, out Event<PlayerEnteredAreaGameEvent>.Action playerEnteredAreaAction))
+                region?.PlayerEnteredAreaEvent.RemoveAction(playerEnteredAreaAction);
+
             _pendingEnteredEntityIdsByRegion.Remove(regionId);
+        }
+
+        private void OnRiftPlayerEnteredArea(ulong regionId, in PlayerEnteredAreaGameEvent evt)
+        {
+            if (evt.Player == null ||
+                _runByRegionId.TryGetValue(regionId, out MythicRiftRunState runState) == false ||
+                runState.IsParticipant(evt.Player.DatabaseUniqueId) == false)
+            {
+                return;
+            }
+
+            RefreshRiftObjectiveWidgets(runState, Game.CurrentTime, force: true);
         }
 
         private void OnRegionEntityEnteredWorld(ulong regionId, in EntityEnteredWorldGameEvent evt)
@@ -3441,8 +3457,7 @@ namespace MHServerEmu.Games.MythicRifts
             if (regionId == 0)
                 return;
 
-            bool regionStillHasRewardChests = _pendingRewardChestsByEntityId.Values.Any(chest => chest.RegionId == regionId);
-            if (regionStillHasRewardChests)
+            if (_rewardChestCountByRegion.TryGetValue(regionId, out int chestCount) && chestCount > 0)
                 return;
 
             if (_regionPlayerInteractActions.TryGetValue(regionId, out Event<PlayerInteractGameEvent>.Action action) == false)
@@ -3458,18 +3473,14 @@ namespace MHServerEmu.Games.MythicRifts
             if (runId == 0)
                 return;
 
-            List<ulong> chestIds = _pendingRewardChestsByEntityId
-                .Where(entry => entry.Value.RunId == runId)
-                .Select(entry => entry.Key)
-                .ToList();
+            if (_rewardChestEntityIdsByRun.TryGetValue(runId, out HashSet<ulong> registeredChestIds) == false)
+                return;
 
             HashSet<ulong> touchedRegionIds = new();
-            foreach (ulong chestId in chestIds)
+            foreach (ulong chestId in registeredChestIds.ToArray())
             {
-                if (_pendingRewardChestsByEntityId.TryGetValue(chestId, out PendingRewardChest pendingChest))
+                if (RemovePendingRewardChest(chestId, out PendingRewardChest pendingChest))
                     touchedRegionIds.Add(pendingChest.RegionId);
-
-                _pendingRewardChestsByEntityId.Remove(chestId);
 
                 WorldEntity chest = Game.EntityManager.GetEntity<WorldEntity>(chestId);
                 if (chest == null)
@@ -3483,6 +3494,50 @@ namespace MHServerEmu.Games.MythicRifts
 
             foreach (ulong regionId in touchedRegionIds)
                 CleanupRewardChestRegionListener(regionId);
+        }
+
+        private void RegisterPendingRewardChest(ulong chestEntityId, PendingRewardChest pendingChest)
+        {
+            if (chestEntityId == 0 || pendingChest == null)
+                return;
+
+            if (_pendingRewardChestsByEntityId.ContainsKey(chestEntityId))
+                RemovePendingRewardChest(chestEntityId, out _);
+
+            _pendingRewardChestsByEntityId[chestEntityId] = pendingChest;
+
+            if (_rewardChestEntityIdsByRun.TryGetValue(pendingChest.RunId, out HashSet<ulong> runChestIds) == false)
+            {
+                runChestIds = new();
+                _rewardChestEntityIdsByRun[pendingChest.RunId] = runChestIds;
+            }
+
+            runChestIds.Add(chestEntityId);
+            _rewardChestCountByRegion.TryGetValue(pendingChest.RegionId, out int regionChestCount);
+            _rewardChestCountByRegion[pendingChest.RegionId] = regionChestCount + 1;
+        }
+
+        private bool RemovePendingRewardChest(ulong chestEntityId, out PendingRewardChest pendingChest)
+        {
+            if (_pendingRewardChestsByEntityId.Remove(chestEntityId, out pendingChest) == false)
+                return false;
+
+            if (_rewardChestEntityIdsByRun.TryGetValue(pendingChest.RunId, out HashSet<ulong> runChestIds))
+            {
+                runChestIds.Remove(chestEntityId);
+                if (runChestIds.Count == 0)
+                    _rewardChestEntityIdsByRun.Remove(pendingChest.RunId);
+            }
+
+            if (_rewardChestCountByRegion.TryGetValue(pendingChest.RegionId, out int regionChestCount))
+            {
+                if (regionChestCount <= 1)
+                    _rewardChestCountByRegion.Remove(pendingChest.RegionId);
+                else
+                    _rewardChestCountByRegion[pendingChest.RegionId] = regionChestCount - 1;
+            }
+
+            return true;
         }
 
         private void ClearNativeRegionPopulationOnSuccess(MythicRiftRunState runState)
@@ -6638,6 +6693,7 @@ namespace MHServerEmu.Games.MythicRifts
                 return false;
             }
 
+            runState.SetRewardRoomAnchorPlayer(anchorPlayer.DatabaseUniqueId);
             ClearRewardRoomDialogs(runState);
             _pendingRewardRoomPlayerDbIdsByRun[runState.Config.RunId] = transferPlayerDbIds;
             _requestedRewardRoomPlayerDbIdsByRun[runState.Config.RunId] = new() { anchorPlayer.DatabaseUniqueId };
@@ -7389,9 +7445,10 @@ namespace MHServerEmu.Games.MythicRifts
             if (runState?.Config == null)
                 return hazardRefs;
 
-            (ulong RunId, int Wave) cacheKey = (runState.Config.RunId, runState.Config.WaveNumber);
-            if (_filteredHazardsByRunWave.TryGetValue(cacheKey, out IReadOnlyList<PrototypeId> cachedHazards))
-                return cachedHazards;
+            ulong runId = runState.Config.RunId;
+            int wave = runState.Config.WaveNumber;
+            if (_filteredHazardsByRun.TryGetValue(runId, out CachedRunHazards cachedHazards) && cachedHazards.Wave == wave)
+                return cachedHazards.Hazards;
 
             MythicRiftHazardTuning tuning = _hazardTuning ?? MythicRiftHazardTuning.CreateDefault();
             bool hasConfiguredHazards = tuning.Hazards.Any(hazard => hazard?.Enabled == true && string.IsNullOrWhiteSpace(hazard.Prototype) == false);
@@ -7399,16 +7456,22 @@ namespace MHServerEmu.Games.MythicRifts
                 .Where(hazard => hazard?.AppliesTo(runState) == true)
                 .ToList();
             if (hasConfiguredHazards && configuredHazards.Count == 0)
-                return _filteredHazardsByRunWave[cacheKey] = Array.Empty<PrototypeId>();
+                return CacheRunHazards(runId, wave, Array.Empty<PrototypeId>());
 
             if (configuredHazards.Count == 0)
-                return _filteredHazardsByRunWave[cacheKey] = hazardRefs;
+                return CacheRunHazards(runId, wave, hazardRefs);
 
             HashSet<PrototypeId> allowedRefs = configuredHazards
                 .Select(hazard => ResolvePrototype(hazard.Prototype))
                 .Where(hazardRef => hazardRef != PrototypeId.Invalid)
                 .ToHashSet();
-            return _filteredHazardsByRunWave[cacheKey] = hazardRefs.Where(allowedRefs.Contains).ToArray();
+            return CacheRunHazards(runId, wave, hazardRefs.Where(allowedRefs.Contains).ToArray());
+        }
+
+        private IReadOnlyList<PrototypeId> CacheRunHazards(ulong runId, int wave, IReadOnlyList<PrototypeId> hazards)
+        {
+            _filteredHazardsByRun[runId] = new(wave, hazards);
+            return hazards;
         }
 
         private static bool IsUsableRiftHazardPrototype(HotspotPrototype hazardProto)
@@ -8882,6 +8945,21 @@ namespace MHServerEmu.Games.MythicRifts
             if (TryResolveDangerRoomHubStartTarget(out PrototypeId dangerRoomHubStartTarget) == false)
                 return false;
 
+            if (runState.RewardRoomRegionId != 0 && player.GetRegion()?.Id == runState.RewardRoomRegionId)
+            {
+                if (runState.RewardRoomAnchorPlayerDbId != 0 &&
+                    player.DatabaseUniqueId != runState.RewardRoomAnchorPlayerDbId)
+                {
+                    Game.ChatManager.SendChatFromCustomSystem(
+                        player,
+                        "[Mythic Rift] The party leader must use the exit portal. The party will leave the reward room together.",
+                        showSender: false);
+                    return true;
+                }
+
+                return ReturnRewardRoomPlayersToDangerRoomHub(runState, dangerRoomHubStartTarget, "reward-room-exit") > 0;
+            }
+
             bool teleported = TryTeleportPlayerToDangerRoomHub(player, runState, dangerRoomHubStartTarget, TeleportContextEnum.TeleportContext_Debug, "exit-portal");
             if (teleported)
             {
@@ -8893,6 +8971,77 @@ namespace MHServerEmu.Games.MythicRifts
             }
 
             return teleported;
+        }
+
+        private int ReturnRewardRoomPlayersToDangerRoomHub(MythicRiftRunState runState, PrototypeId dangerRoomHubStartTarget, string returnPath)
+        {
+            if (runState == null || runState.RewardRoomRegionId == 0 || dangerRoomHubStartTarget == PrototypeId.Invalid)
+                return 0;
+
+            Region rewardRoomRegion = Game.RegionManager.GetRegion(runState.RewardRoomRegionId);
+            if (rewardRoomRegion == null)
+                return 0;
+
+            List<Player> roomPlayers = new();
+            foreach (Player roomPlayer in new PlayerIterator(rewardRoomRegion))
+                roomPlayers.Add(roomPlayer);
+
+            int teleportedPlayerCount = 0;
+            foreach (Player roomPlayer in roomPlayers)
+            {
+                if (roomPlayer?.CurrentAvatar?.IsInWorld != true ||
+                    roomPlayer.PlayerConnection?.HasPendingRegionTransfer == true ||
+                    EnsurePlayerAvatarAliveForRiftExit(roomPlayer, runState, returnPath) == false)
+                {
+                    continue;
+                }
+
+                if (TryTeleportPlayerToDangerRoomHub(
+                    roomPlayer,
+                    runState,
+                    dangerRoomHubStartTarget,
+                    TeleportContextEnum.TeleportContext_Resurrect,
+                    returnPath))
+                {
+                    teleportedPlayerCount++;
+                }
+            }
+
+            return teleportedPlayerCount;
+        }
+
+        private void TryEvacuateAbandonedRewardRoom(MythicRiftRunState runState)
+        {
+            if (runState?.Config == null ||
+                runState.RewardRoomRegionId == 0 ||
+                runState.RewardRoomAnchorPlayerDbId == 0 ||
+                _pendingRewardRoomFinalizeAt.ContainsKey(runState.Config.RunId))
+            {
+                return;
+            }
+
+            Region rewardRoomRegion = Game.RegionManager.GetRegion(runState.RewardRoomRegionId);
+            if (rewardRoomRegion == null)
+                return;
+
+            bool hasOccupants = false;
+            foreach (Player _ in new PlayerIterator(rewardRoomRegion))
+            {
+                hasOccupants = true;
+                break;
+            }
+            if (hasOccupants == false)
+                return;
+
+            Player anchorPlayer = Game.EntityManager.GetEntityByDbGuid<Player>(runState.RewardRoomAnchorPlayerDbId);
+            if (anchorPlayer?.GetRegion()?.Id == runState.RewardRoomRegionId ||
+                anchorPlayer?.PlayerConnection?.HasPendingRegionTransfer == true)
+            {
+                return;
+            }
+
+            if (TryResolveDangerRoomHubStartTarget(out PrototypeId dangerRoomHubStartTarget))
+                ReturnRewardRoomPlayersToDangerRoomHub(runState, dangerRoomHubStartTarget, "reward-room-anchor-left");
         }
 
         public bool TryUseRewardRoomPortal(Player player, Transition transition)
@@ -9798,6 +9947,8 @@ namespace MHServerEmu.Games.MythicRifts
             IReadOnlyList<PendingRewardDrop> RewardDrops,
             float BonusRarityPct,
             float BonusSpecialPct);
+
+        private readonly record struct CachedRunHazards(int Wave, IReadOnlyList<PrototypeId> Hazards);
 
         private sealed class PendingRewardDrop
         {

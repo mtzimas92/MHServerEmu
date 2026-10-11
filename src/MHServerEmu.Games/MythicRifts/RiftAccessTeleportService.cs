@@ -252,7 +252,7 @@ namespace MHServerEmu.Games.MythicRifts
             return HasOmegaPatrolAccessForCurrentAvatar(player);
         }
 
-        private static bool IsOmegaPatrolRegion(Region region)
+        internal static bool IsOmegaPatrolRegion(Region region)
         {
             if (region == null || region.DifficultyTierRef != Tier5Omega1Ref)
                 return false;

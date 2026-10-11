@@ -63,7 +63,7 @@ namespace MHServerEmu.Games.Tests.MythicRifts
         [Fact]
         public void FinalizeAdmission_RebuildsScalingFromSuccessfullyAdmittedPlayers()
         {
-            MythicRiftRunState runState = new(CreateConfig(requestedPlayerCount: 4));
+            MythicRiftRunState runState = new(CreateConfig(requestedPlayerCount: 4, mode: MythicRiftMode.Endless));
             runState.RegisterParticipant(100);
             runState.RegisterParticipant(200);
             runState.RegisterParticipant(300);
@@ -133,7 +133,22 @@ namespace MHServerEmu.Games.Tests.MythicRifts
             Assert.False(runState.MarkMilestoneEncounterSpawned(50));
         }
 
-        private static MythicRiftRunConfig CreateConfig(int requestedPlayerCount = 1, int requiredBossKillCount = 1)
+        [Fact]
+        public void RewardRoomAnchor_IgnoresInvalidPlayerAndTracksTransferOwner()
+        {
+            MythicRiftRunState runState = new(CreateConfig());
+
+            runState.SetRewardRoomAnchorPlayer(0);
+            Assert.Equal(0UL, runState.RewardRoomAnchorPlayerDbId);
+
+            runState.SetRewardRoomAnchorPlayer(100);
+            Assert.Equal(100UL, runState.RewardRoomAnchorPlayerDbId);
+        }
+
+        private static MythicRiftRunConfig CreateConfig(
+            int requestedPlayerCount = 1,
+            int requiredBossKillCount = 1,
+            MythicRiftMode mode = MythicRiftMode.Standard)
         {
             MythicRiftContentEntry content = new()
             {
@@ -149,6 +164,7 @@ namespace MHServerEmu.Games.Tests.MythicRifts
             return new MythicRiftRunConfig
             {
                 RunId = 1,
+                Mode = mode,
                 RiftLevel = 1,
                 Content = content,
                 BossContent = content,
@@ -161,7 +177,7 @@ namespace MHServerEmu.Games.Tests.MythicRifts
                 StartTargetProtoRef = content.StartTargetProtoRef,
                 BossProtoRef = content.BossProtoRef,
                 BossLootTableProtoRef = content.BossLootTableProtoRef,
-                Difficulty = MythicRiftScaling.BuildSnapshot(1, requestedPlayerCount),
+                Difficulty = MythicRiftScaling.BuildSnapshot(1, requestedPlayerCount, mode),
                 RequiredBossKillCount = requiredBossKillCount
             };
         }

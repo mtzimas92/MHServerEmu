@@ -1959,7 +1959,12 @@ namespace MHServerEmu.Games.Entities
             {
                 PrototypeId bodysliderRegionProtoRef = Properties[PropertyEnum.BodySliderRegionRef];
                 RegionPrototype regionProto = bodysliderRegionProtoRef.As<RegionPrototype>();
-                if (regionProto != null && regionProto.Behavior == RegionBehavior.PrivateStory)
+                bool removeBodysliderProperties = regionProto != null && regionProto.Behavior == RegionBehavior.PrivateStory;
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
+                PrototypeId bodysliderDifficultyRef = Properties[PropertyEnum.BodySliderDifficultyRef];
+                removeBodysliderProperties |= RiftAccessTeleportService.CanEnterOmegaPatrol(this, bodysliderRegionProtoRef, bodysliderDifficultyRef) == false;
+#endif
+                if (removeBodysliderProperties)
                     RemoveBodysliderProperties();
             }
 

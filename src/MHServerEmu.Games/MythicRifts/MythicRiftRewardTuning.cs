@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using MHServerEmu.Core.Helpers;
 
 namespace MHServerEmu.Games.MythicRifts
@@ -41,6 +42,10 @@ namespace MHServerEmu.Games.MythicRifts
         public List<MythicRiftRandomItemPoolTuning> RandomItemPools { get; set; } = new();
         public List<MythicRiftGuaranteedItemTuning> GuaranteedItems { get; set; } = new();
         public List<MythicRiftRewardShopOfferTuning> RewardShopOffers { get; set; } = new();
+
+        [JsonIgnore] private Dictionary<string, IReadOnlyList<MythicRiftRewardShopOfferTuning>> RewardShopOffersByVendor { get; } = new(StringComparer.OrdinalIgnoreCase);
+        [JsonIgnore] private Dictionary<string, MythicRiftRewardShopOfferTuning> RewardShopOffersByKey { get; } = new(StringComparer.OrdinalIgnoreCase);
+        [JsonIgnore] private Dictionary<string, MythicRiftRandomItemPoolTuning> RandomItemPoolsById { get; } = new(StringComparer.OrdinalIgnoreCase);
 
         public static string ConfigPath => Path.Combine(FileHelper.DataDirectory, RelativeConfigPath);
 
@@ -105,7 +110,61 @@ namespace MHServerEmu.Games.MythicRifts
 
             foreach (MythicRiftRewardShopOfferTuning offer in RewardShopOffers)
                 offer?.Normalize(DefaultDelivery);
+
+            BuildIndexes();
         }
+
+        private void BuildIndexes()
+        {
+            RewardShopOffersByVendor.Clear();
+            RewardShopOffersByKey.Clear();
+            RandomItemPoolsById.Clear();
+
+            foreach (MythicRiftRandomItemPoolTuning itemPool in RandomItemPools)
+            {
+                if (itemPool == null || string.IsNullOrWhiteSpace(itemPool.Id))
+                    continue;
+
+                RandomItemPoolsById.TryAdd(itemPool.Id, itemPool);
+            }
+
+            foreach (IGrouping<string, MythicRiftRewardShopOfferTuning> vendorOffers in RewardShopOffers
+                         .Where(offer => offer?.Enabled == true && string.IsNullOrWhiteSpace(offer.Vendor) == false)
+                         .GroupBy(offer => offer.Vendor, StringComparer.OrdinalIgnoreCase))
+            {
+                MythicRiftRewardShopOfferTuning[] offers = vendorOffers.ToArray();
+                RewardShopOffersByVendor[vendorOffers.Key] = offers;
+                foreach (MythicRiftRewardShopOfferTuning offer in offers)
+                    RewardShopOffersByKey.TryAdd(GetRewardShopOfferKey(vendorOffers.Key, offer.Id), offer);
+            }
+        }
+
+        public IReadOnlyList<MythicRiftRewardShopOfferTuning> GetRewardShopOffers(string vendor)
+        {
+            return string.IsNullOrWhiteSpace(vendor) == false && RewardShopOffersByVendor.TryGetValue(vendor, out IReadOnlyList<MythicRiftRewardShopOfferTuning> offers)
+                ? offers
+                : Array.Empty<MythicRiftRewardShopOfferTuning>();
+        }
+
+        public MythicRiftRewardShopOfferTuning GetRewardShopOffer(string vendor, string offerId)
+        {
+            if (string.IsNullOrWhiteSpace(vendor) || string.IsNullOrWhiteSpace(offerId))
+                return null;
+
+            RewardShopOffersByKey.TryGetValue(GetRewardShopOfferKey(vendor, offerId), out MythicRiftRewardShopOfferTuning offer);
+            return offer;
+        }
+
+        public MythicRiftRandomItemPoolTuning GetRandomItemPool(string id)
+        {
+            if (string.IsNullOrWhiteSpace(id))
+                return null;
+
+            RandomItemPoolsById.TryGetValue(id, out MythicRiftRandomItemPoolTuning itemPool);
+            return itemPool;
+        }
+
+        private static string GetRewardShopOfferKey(string vendor, string offerId) => $"{vendor}\n{offerId}";
 
         public string ResolveLootTableReference(string lootTableReference)
         {

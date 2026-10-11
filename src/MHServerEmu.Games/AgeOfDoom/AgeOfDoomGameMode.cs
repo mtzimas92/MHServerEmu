@@ -4,13 +4,16 @@ using MHServerEmu.Core.Memory;
 using MHServerEmu.Core.VectorMath;
 using MHServerEmu.Games.Entities;
 using MHServerEmu.Games.Entities.Avatars;
+using MHServerEmu.Games.Entities.Items;
 using MHServerEmu.Games.Events;
 using MHServerEmu.Games.Events.Templates;
 using MHServerEmu.Games.GameData;
 using MHServerEmu.Games.GameData.Prototypes;
+using MHServerEmu.Games.Loot;
 using MHServerEmu.Games.MetaGames;
 using MHServerEmu.Games.MetaGames.GameModes;
 using MHServerEmu.Games.MythicRifts;
+using MHServerEmu.Games.OmegaTierItems;
 using MHServerEmu.Games.Properties;
 using MHServerEmu.Games.Regions;
 using MHServerEmu.Games.UI.Widgets;
@@ -374,11 +377,120 @@ public sealed class AgeOfDoomGameMode : MetaGameMode
 
     private void CompleteRun()
     {
+        if (_run == null || _run.IsFinished)
+            return;
+
         _run.CurrentStage = Stage.Complete;
         RefreshUI();
         foreach (Player player in MetaGame.Players)
+        {
             player.OnScoringEvent(new(ScoringEventType.MetaGameModeComplete, Prototype));
+            GrantCompletionRewards(player);
+        }
+        _run.RewardsGranted = true;
         Logger.Info($"[AgeOfDoom] run-complete gameId=0x{Game.Id:X} metaGameId=0x{MetaGame.Id:X}");
+    }
+
+    private void GrantCompletionRewards(Player player)
+    {
+        Avatar avatar = player?.CurrentAvatar;
+        if (_run.RewardsGranted || avatar?.IsInWorld != true || avatar.Region != Region)
+            return;
+
+        int groundRecipientId = 1;
+        foreach (AgeOfDoomCompletionRewardTuning reward in Tuning.CompletionRewards)
+        {
+            if (reward?.Enabled != true || Game.Random.NextFloat() * 100f >= reward.ChancePercent)
+                continue;
+
+            if (string.IsNullOrWhiteSpace(reward.LootTablePrototype) == false)
+            {
+                GrantCompletionLootTable(player, avatar, reward, ref groundRecipientId);
+                continue;
+            }
+
+            if (string.IsNullOrWhiteSpace(reward.ItemPrototype) == false)
+                GrantCompletionItem(player, avatar, reward, ref groundRecipientId);
+        }
+    }
+
+    private void GrantCompletionLootTable(
+        Player player,
+        Avatar avatar,
+        AgeOfDoomCompletionRewardTuning reward,
+        ref int groundRecipientId)
+    {
+        PrototypeId lootTableRef = GameDatabase.GetPrototypeRefByName(reward.LootTablePrototype);
+        if (lootTableRef.As<LootTablePrototype>() == null)
+        {
+            Logger.Warn($"[AgeOfDoom] completion reward '{reward.Id}' has invalid loot table '{reward.LootTablePrototype}'.");
+            return;
+        }
+
+        int itemLevel = reward.ItemLevel > 0 ? reward.ItemLevel : avatar.CharacterLevel;
+        for (int roll = 0; roll < reward.Rolls; roll++)
+        {
+            using var inputSettingsHandle = LootInputSettingsPool.Get(out LootInputSettings inputSettings);
+            inputSettings.Initialize(LootContext.Drop, player, avatar, itemLevel);
+            if (reward.Delivery == "inventory")
+                Game.LootManager.GiveLootFromTable(lootTableRef, inputSettings);
+            else
+                Game.LootManager.SpawnLootFromTable(lootTableRef, inputSettings, groundRecipientId++);
+        }
+    }
+
+    private void GrantCompletionItem(
+        Player player,
+        Avatar avatar,
+        AgeOfDoomCompletionRewardTuning reward,
+        ref int groundRecipientId)
+    {
+        PrototypeId itemRef = GameDatabase.GetPrototypeRefByName(reward.ItemPrototype);
+        ItemPrototype itemProto = itemRef.As<ItemPrototype>();
+        if (itemProto == null)
+        {
+            Logger.Warn($"[AgeOfDoom] completion reward '{reward.Id}' has invalid item '{reward.ItemPrototype}'.");
+            return;
+        }
+
+        PrototypeId rarityRef = string.IsNullOrWhiteSpace(reward.RarityPrototype)
+            ? PrototypeId.Invalid
+            : GameDatabase.GetPrototypeRefByName(reward.RarityPrototype);
+        if (string.IsNullOrWhiteSpace(reward.RarityPrototype) == false && rarityRef == PrototypeId.Invalid)
+        {
+            Logger.Warn($"[AgeOfDoom] completion reward '{reward.Id}' has invalid rarity '{reward.RarityPrototype}'.");
+            return;
+        }
+
+        int itemLevel = reward.ItemLevel > 0 ? reward.ItemLevel : avatar.CharacterLevel;
+        int maximumStack = Math.Max(itemProto.StackSettings?.MaxStacks ?? 1, 1);
+        int remaining = reward.Quantity;
+        using var summaryHandle = LootResultSummaryPool.Get(out LootResultSummary summary);
+        while (remaining > 0)
+        {
+            ItemSpec itemSpec = rarityRef != PrototypeId.Invalid
+                ? OmegaTierItemFactory.CreateItemSpec(Game, itemRef, rarityRef, LootContext.Drop, player, itemLevel)
+                : Game.LootManager.CreateItemSpec(itemRef, LootContext.Drop, player, itemLevel);
+            if (itemSpec == null)
+            {
+                Logger.Warn($"[AgeOfDoom] completion reward '{reward.Id}' failed to create item '{reward.ItemPrototype}'.");
+                return;
+            }
+
+            itemSpec.StackCount = Math.Min(remaining, maximumStack);
+            remaining -= itemSpec.StackCount;
+            summary.Add(new LootResult(itemSpec));
+        }
+
+        if (reward.Delivery == "inventory")
+        {
+            Game.LootManager.GiveLootFromSummary(summary, player, PrototypeId.Invalid);
+            return;
+        }
+
+        using var inputSettingsHandle = LootInputSettingsPool.Get(out LootInputSettings inputSettings);
+        inputSettings.Initialize(LootContext.Drop, player, avatar, itemLevel);
+        Game.LootManager.SpawnLootFromSummary(summary, inputSettings, groundRecipientId++);
     }
 
     private void FailRun()
@@ -437,6 +549,7 @@ public sealed class AgeOfDoomGameMode : MetaGameMode
         public readonly HashSet<ulong> Entities = new();
         public readonly Dictionary<ulong, int> DoomTargetSlots = new();
         public readonly HashSet<int> CompletedDoomSlots = new();
+        public bool RewardsGranted;
         public bool IsFinished => CurrentStage is Stage.Complete or Stage.Failed;
     }
 

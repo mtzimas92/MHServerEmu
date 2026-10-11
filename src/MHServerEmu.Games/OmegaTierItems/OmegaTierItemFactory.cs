@@ -14,6 +14,7 @@ using MHServerEmu.Games.GameData.PatchManager;
 using MHServerEmu.Games.GameData.Prototypes;
 using MHServerEmu.Games.GameData.Tables;
 using MHServerEmu.Games.Loot;
+using MHServerEmu.Games.MythicRifts;
 using MHServerEmu.Games.Properties;
 using ReflectionPropertyInfo = System.Reflection.PropertyInfo;
 
@@ -113,12 +114,12 @@ namespace MHServerEmu.Games.OmegaTierItems
                 return;
             }
 
-            // Preserve the resolved slot for bonus-ring generation and downstream loot filtering.
+            // Preserve the resolved slot for Omega finalization and downstream loot filtering.
             filterArgs.Slot = slot;
 
-            float promotionRoll = slot == EquipmentInvUISlot.Ring ? 0f : resolver.Random.NextFloat() * 100f;
+            float promotionRoll = resolver.Random.NextFloat() * 100f;
             if (tuning?.Enabled != true ||
-                (slot != EquipmentInvUISlot.Ring && promotionRoll >= tuning.OmegaDifficultyPromotionChancePct))
+                promotionRoll >= tuning.OmegaDifficultyPromotionChancePct)
             {
                 if (tuning?.EnableDiagnostics == true)
                     Logger.Info($"[OmegaDropTrace] stage=promotion-skipped playerDbId=0x{resolver.Player?.DatabaseUniqueId:X} avatar={resolver.Player?.CurrentAvatar?.PrototypeDataRef.GetNameFormatted()} item={itemProto.DataRef.GetNameFormatted()} rollFor={filterArgs.RollFor.GetNameFormatted()} resolvedSlot={slot} roll={promotionRoll:F2} chance={tuning.OmegaDifficultyPromotionChancePct:F2} context={resolver.LootContext} source={resolver.SourceEntityPrototypeRef.GetNameFormatted()} sourceId=0x{resolver.SourceEntityId:X}");
@@ -198,43 +199,6 @@ namespace MHServerEmu.Games.OmegaTierItems
             return true;
 #else
             return false;
-#endif
-        }
-
-        public static void TryPushBonusOmegaRing(ItemResolver resolver, DropFilterArguments sourceArgs, RestrictionTestFlags restrictionFlags)
-        {
-#if GAME_VERSION_1_52 || GAME_VERSION_1_53
-            if (resolver == null || sourceArgs?.ItemProto is not ItemPrototype sourceProto)
-                return;
-
-            PrototypeId cosmicRarityRef = GameDatabase.GetPrototypeRefByName(CosmicRarityName);
-            bool isCosmicOrOmega = sourceArgs.Rarity == cosmicRarityRef || IsOmegaRarity(sourceArgs.Rarity);
-            if (IsSupportedOmegaPromotionLootContext(resolver.LootContext) == false ||
-                IsSupportedOmegaPromotionSource(resolver) == false ||
-                sourceArgs.Slot == EquipmentInvUISlot.Ring || isCosmicOrOmega == false ||
-                IsArmorSlotOneThroughFive(sourceProto, sourceArgs.Slot) == false ||
-                IsOmegaDifficulty(resolver, null) == false)
-                return;
-
-            OmegaTierItemTuning tuning = OmegaTierItemTuning.Load();
-            float chance = tuning?.OmegaDifficultyBonusRingChancePct ?? 0f;
-            float roll = resolver.Random.NextFloat() * 100f;
-            if (tuning?.Enabled != true || chance <= 0f || roll >= chance)
-                return;
-
-            string ringName = resolver.Random.NextFloat() < 0.5f
-                ? RingOffensePrototypeName
-                : RingDefensePrototypeName;
-            ItemPrototype ringProto = GameDatabase.GetPrototype<ItemPrototype>(GameDatabase.GetPrototypeRefByName(ringName));
-            if (ringProto == null)
-                return;
-
-            using var ringArgsHandle = DropFilterArgumentsPool.Get(out DropFilterArguments ringArgs);
-            DropFilterArguments.Initialize(ringArgs, ringProto, sourceArgs.RollFor, OmegaDifficultyItemLevel,
-                sourceArgs.Rarity, sourceArgs.Rank, EquipmentInvUISlot.Ring, sourceArgs.LootContext);
-            LootRollResult result = resolver.PushItem(ringArgs, restrictionFlags, 1, null);
-            if (tuning.EnableDiagnostics)
-                Logger.Info($"[OmegaRingDropTrace] playerDbId=0x{resolver.Player?.DatabaseUniqueId:X} avatar={resolver.Player?.CurrentAvatar?.PrototypeDataRef.GetNameFormatted()} sourceItem={sourceProto.DataRef.GetNameFormatted()} sourceSlot={sourceArgs.Slot} sourceRollFor={sourceArgs.RollFor.GetNameFormatted()} ring={ringProto.DataRef.GetNameFormatted()} rarity={ringArgs.Rarity.GetNameFormatted()} level={ringArgs.Level} chance={chance:F2} roll={roll:F2} pushResult={result} context={resolver.LootContext}");
 #endif
         }
 
@@ -2044,13 +2008,20 @@ namespace MHServerEmu.Games.OmegaTierItems
 
         private static bool IsSupportedOmegaPromotionLootContext(LootContext lootContext)
         {
-            return lootContext.HasFlag(LootContext.Drop) &&
-                lootContext.HasFlag(LootContext.MissionReward) == false &&
-                lootContext.HasFlag(LootContext.MysteryChest) == false;
+            if (lootContext.HasFlag(LootContext.MysteryChest))
+                return false;
+
+            if (lootContext.HasFlag(LootContext.MissionReward))
+                return true;
+
+            return lootContext.HasFlag(LootContext.Drop);
         }
 
         private static bool IsSupportedOmegaPromotionSource(ItemResolver resolver)
         {
+            if (resolver?.LootContext.HasFlag(LootContext.MissionReward) == true)
+                return RiftAccessTeleportService.IsOmegaPatrolRegion(resolver.Region);
+
             AgentPrototype sourceProto = resolver?.SourceEntityPrototypeRef.As<AgentPrototype>();
             return sourceProto != null && sourceProto is not AvatarPrototype;
         }

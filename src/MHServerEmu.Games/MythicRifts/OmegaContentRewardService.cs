@@ -123,10 +123,15 @@ namespace MHServerEmu.Games.MythicRifts
 
         private static bool WasRecentlyGrantedFromEntityDeath(ulong playerDbId, PrototypeId missionRef)
         {
-            if (RecentDeathGrants.TryGetValue((playerDbId, missionRef), out long grantedAt) == false)
+            (ulong PlayerDbId, PrototypeId MissionRef) key = (playerDbId, missionRef);
+            if (RecentDeathGrants.TryGetValue(key, out long grantedAt) == false)
                 return false;
 
-            return Environment.TickCount64 - grantedAt <= RecentDeathGrantWindowMs;
+            if (Environment.TickCount64 - grantedAt <= RecentDeathGrantWindowMs)
+                return true;
+
+            RecentDeathGrants.TryRemove(key, out _);
+            return false;
         }
 
         private static void GrantActivityRewards(Player player, OmegaContentActivityTuning activity, WorldEntity rewardSource = null)

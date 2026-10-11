@@ -27,6 +27,7 @@ public sealed class AgeOfDoomTuning
     public List<string> MinionPrototypes { get; set; } = new();
     public List<string> CouncilBossPrototypes { get; set; } = new();
     public List<string> DoomPhasePrototypes { get; set; } = new();
+    public List<AgeOfDoomCompletionRewardTuning> CompletionRewards { get; set; } = new();
 
     public static string ConfigPath => Path.Combine(FileHelper.DataDirectory, RelativeConfigPath);
 
@@ -34,6 +35,40 @@ public sealed class AgeOfDoomTuning
     {
         if (File.Exists(ConfigPath) == false)
             return new() { Enabled = false };
-        return FileHelper.DeserializeJson<AgeOfDoomTuning>(ConfigPath, JsonOptions) ?? new() { Enabled = false };
+
+        AgeOfDoomTuning tuning = FileHelper.DeserializeJson<AgeOfDoomTuning>(ConfigPath, JsonOptions) ?? new() { Enabled = false };
+        tuning.CompletionRewards ??= new();
+        foreach (AgeOfDoomCompletionRewardTuning reward in tuning.CompletionRewards)
+            reward?.Normalize();
+        return tuning;
+    }
+}
+
+public sealed class AgeOfDoomCompletionRewardTuning
+{
+    public string Id { get; set; }
+    public bool Enabled { get; set; } = true;
+    public string LootTablePrototype { get; set; }
+    public int Rolls { get; set; } = 1;
+    public string ItemPrototype { get; set; }
+    public int Quantity { get; set; } = 1;
+    public int ItemLevel { get; set; }
+    public string RarityPrototype { get; set; }
+    public float ChancePercent { get; set; } = 100f;
+    public string Delivery { get; set; } = "ground";
+
+    public void Normalize()
+    {
+        Id = Id?.Trim();
+        LootTablePrototype = LootTablePrototype?.Trim();
+        ItemPrototype = ItemPrototype?.Trim();
+        RarityPrototype = RarityPrototype?.Trim();
+        Rolls = Math.Max(Rolls, 1);
+        Quantity = Math.Max(Quantity, 1);
+        ItemLevel = Math.Max(ItemLevel, 0);
+        ChancePercent = Math.Clamp(ChancePercent, 0f, 100f);
+        Delivery = string.Equals(Delivery?.Trim(), "inventory", StringComparison.OrdinalIgnoreCase)
+            ? "inventory"
+            : "ground";
     }
 }

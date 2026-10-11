@@ -42,6 +42,7 @@ namespace MHServerEmu.Games.MythicRifts
         public ulong CompletionVendorEntityId { get; private set; }
         public ulong CompletionCrafterEntityId { get; private set; }
         public ulong RewardRoomRegionId { get; private set; }
+        public ulong RewardRoomAnchorPlayerDbId { get; private set; }
         public bool RewardRoomTeleportOffered { get; private set; }
         public bool RewardRoomTeleportResolved { get; private set; }
         public ulong EffectiveRegionId => RewardRoomRegionId != 0 ? RewardRoomRegionId : RegionId;
@@ -168,6 +169,12 @@ namespace MHServerEmu.Games.MythicRifts
         {
             RewardRoomRegionId = regionId;
             RewardRoomTeleportResolved = true;
+        }
+
+        public void SetRewardRoomAnchorPlayer(ulong playerDbId)
+        {
+            if (playerDbId != 0)
+                RewardRoomAnchorPlayerDbId = playerDbId;
         }
 
         public void CaptureRegionDifficultyScaling(float playerToMobDamageMultiplier, float mobToPlayerDamageMultiplier)
