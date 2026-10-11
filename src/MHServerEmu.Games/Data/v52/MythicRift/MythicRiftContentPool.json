@@ -234,15 +234,6 @@
       "randomMapEligible": false
     },
     {
-      "id": "boss-midtown-mole-man",
-      "displayName": "Mole Man",
-      "defaultKillQuota": 1,
-      "bossPrototypeName": "Entity/Characters/Bosses/PatrolMidtown/SideBosses/MidtownEventMoleMan.prototype",
-      "bossLootTablePrototypeName": "Loot/Tables/Mob/Bosses/PatrolMidtown/Subtable/SharedPatrolMidtownBossesCosmic.prototype",
-      "randomMapEligible": false,
-      "randomBossEligible": false
-    },
-    {
       "id": "boss-brooklyn-batroc",
       "displayName": "Batroc",
       "defaultKillQuota": 1,
@@ -509,6 +500,7 @@
       "displayName": "Bronx Zoo",
       "defaultKillQuota": 80,
       "regionPrototypeName": "Regions/EndGame/OneShotMissions/NonChapterBound/BronxZoo/AltRegions/BronxZooRegionL60.prototype",
+      "missionPrototypeName": "Missions/Prototypes/PVEEndgame/OneShots/BronxZoo/BronzZooRegion/OneShotMissionBronxZoo.prototype",
       "randomBossEligible": false
     },
     {
@@ -523,6 +515,7 @@
       "displayName": "HYDRA Island One-Shot",
       "defaultKillQuota": 65,
       "regionPrototypeName": "Regions/EndGame/OneShotMissions/NonChapterBound/HydraIslandPartDeux/AltRegions/HYDRAIslandPartDeuxRegionL60.prototype",
+      "missionPrototypeName": "Missions/Prototypes/PVEEndgame/OneShots/RedSkull/OneShotMissionRedSkull.prototype",
       "randomBossEligible": false
     },
     {

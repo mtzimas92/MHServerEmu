@@ -27,13 +27,13 @@
     "en_us": "Boss Gauntlet Scenario"
   },
   "18000000000000080031": {
-    "en_us": "Opens a single-use Boss Gauntlet. Survive increasingly difficult sequential boss waves. Rewards are awarded when the gauntlet ends, followed by access to the Rift reward room. Can only be used in the Danger Room."
+    "en_us": "Opens a single-use Boss Gauntlet. Survive increasingly difficult sequential boss waves. Rewards are awarded where the gauntlet ends. Can only be used in the Danger Room."
   },
   "6934926540613879050": {
     "en_us": "Boss Gauntlet Scenario"
   },
   "18388199697347446112": {
-    "en_us": "Opens a single-use Boss Gauntlet. Survive increasingly difficult sequential boss waves. Rewards are awarded when the gauntlet ends, followed by access to the Rift reward room. Can only be used in the Danger Room."
+    "en_us": "Opens a single-use Boss Gauntlet. Survive increasingly difficult sequential boss waves. Rewards are awarded where the gauntlet ends. Can only be used in the Danger Room."
   },
   "18125085293394986243": {
     "en_us": "Omega Upgrade Crafter"
@@ -52,14 +52,5 @@
   },
   "16699661896408302853": {
     "en_us": "Champion's Commendation"
-  },
-  "18000000000000080100": {
-    "en_us": "Rift Sigil"
-  },
-  "18000000000000080101": {
-    "en_us": "Earned from Rift modes. Spend at the Rift vendor for targeted upgrade caches and progression rewards."
-  },
-  "18000000000000080102": {
-    "en_us": "Rift Sigils"
   }
 }

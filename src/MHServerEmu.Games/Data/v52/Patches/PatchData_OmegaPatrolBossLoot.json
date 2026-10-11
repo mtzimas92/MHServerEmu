@@ -1,0 +1,40 @@
+[
+  {
+    "Enabled": true,
+    "Prototype": "Loot/Tables/Mob/Bosses/PatrolHightown/Subtable/SharedPatrolHightownBossesCosmicSub.prototype",
+    "Path": "Choices[3].NumMin",
+    "Description": "Prevent Hightown event bosses from repeating their nested five-roll armor bundle five times.",
+    "ValueType": "Long",
+    "Value": 1
+  },
+  {
+    "Enabled": false,
+    "Prototype": "Loot/Tables/Mob/Bosses/PatrolHightown/Subtable/SharedPatrolHightownBossesCosmicSub.prototype",
+    "Path": "Choices[]",
+    "Description": "Restore the native shared boss-extra rewards, including the normal offense-or-defense ring roll, to Hightown event bosses.",
+    "ValueType": "Prototype",
+    "Value": {
+      "ParentDataRef": 9530294106229904425
+    }
+  },
+  {
+    "Enabled": false,
+    "Prototype": "Loot/Tables/Mob/Bosses/PatrolMidtown/Subtable/SharedPatrolMidtownBossesCosmicSub.prototype",
+    "Path": "Choices[]",
+    "Description": "Restore the native shared boss-extra rewards, including the normal offense-or-defense ring roll, to Midtown event bosses.",
+    "ValueType": "Prototype",
+    "Value": {
+      "ParentDataRef": 9530294106229904425
+    }
+  },
+  {
+    "Enabled": false,
+    "Prototype": "Loot/Tables/Mob/Bosses/PatrolBrooklyn/Subtable/SharedPatrolBrooklynBossesCosmicSub.prototype",
+    "Path": "Choices[]",
+    "Description": "Restore the native shared boss-extra rewards, including the normal offense-or-defense ring roll, to Industry City event bosses.",
+    "ValueType": "Prototype",
+    "Value": {
+      "ParentDataRef": 9530294106229904425
+    }
+  }
+]

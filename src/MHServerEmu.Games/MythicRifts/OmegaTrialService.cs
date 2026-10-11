@@ -657,16 +657,16 @@ namespace MHServerEmu.Games.MythicRifts
         {
             bool grantedAccess = RiftAccessTeleportService.GrantOmegaPatrolAccessForCurrentAvatar(player);
             Logger.Info($"[OmegaTrialTrace] stage=complete playerDbId=0x{state.PlayerDbId:X} grantedOmegaAccess={grantedAccess}");
+            SendStopTrialTimer(player, state);
+            TrySpawnReturnPortal(player, state.CachedRegion, state);
+            RefreshTrialWidgets(state.CachedRegion?.UIDataProvider, state, player.Game.CurrentTime, complete: true);
+            EndTrial(state.PlayerDbId, clearWidgets: false);
+
             if (grantedAccess)
             {
                 player.SendBannerMessage(OmegaPatrolUnlockedMessageRef, doNotQueue: true, showImmediately: true);
                 SendTrialChat(player, "Omega Patrols unlocked. Use the portal to return to the Helicarrier.");
             }
-
-            SendStopTrialTimer(player, state);
-            TrySpawnReturnPortal(player, state.CachedRegion, state);
-            RefreshTrialWidgets(state.CachedRegion?.UIDataProvider, state, player.Game.CurrentTime, complete: true);
-            EndTrial(state.PlayerDbId, clearWidgets: false);
         }
 
         private static void SchedulePostEntryNativeSuppression(Player player, OmegaTrialState state)

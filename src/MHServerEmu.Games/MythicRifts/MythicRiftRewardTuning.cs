@@ -494,6 +494,7 @@ namespace MHServerEmu.Games.MythicRifts
         public string ItemPrototypeName { get; set; }
         public string ItemRarityPrototype { get; set; }
         public int Quantity { get; set; } = 1;
+        public bool CombineStacks { get; set; }
         public bool QuantityMatchesRewardWave { get; set; }
         public bool CumulativeWaveQuantity { get; set; }
         public int QuantityCap { get; set; }

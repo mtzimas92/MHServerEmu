@@ -68,21 +68,29 @@ namespace MHServerEmu.Games.Tests.MythicRifts
         }
 
         [Fact]
-        public void BuildSnapshot_StandardDamageCapsAtHighLevels()
+        public void BuildSnapshot_StandardDamageContinuesScalingPastLevel150()
         {
+            MythicRiftDifficultySnapshot levelOneHundredFifty = MythicRiftScaling.BuildSnapshot(150, 1);
             MythicRiftDifficultySnapshot levelTwoHundred = MythicRiftScaling.BuildSnapshot(200, 1);
+            MythicRiftDifficultySnapshot levelOneThousandOne = MythicRiftScaling.BuildSnapshot(1001, 1);
 
-            Assert.InRange(levelTwoHundred.DamageMultiplier, 1.999f, 2.001f);
+            Assert.True(levelTwoHundred.DamageMultiplier > levelOneHundredFifty.DamageMultiplier);
+            Assert.True(levelOneThousandOne.DamageMultiplier > levelTwoHundred.DamageMultiplier);
+            Assert.InRange(levelOneThousandOne.DamageMultiplier, 2.75f, 2.77f);
         }
 
         [Fact]
-        public void BuildSnapshot_StandardEffectiveHealthCapsAtHighLevels()
+        public void BuildSnapshot_StandardEffectiveHealthContinuesScalingPastLevel150()
         {
+            MythicRiftDifficultySnapshot levelOneHundredFifty = MythicRiftScaling.BuildSnapshot(150, 5);
             MythicRiftDifficultySnapshot levelTwoHundredFullParty = MythicRiftScaling.BuildSnapshot(200, 5);
+            MythicRiftDifficultySnapshot levelOneThousandOne = MythicRiftScaling.BuildSnapshot(1001, 5);
 
             Assert.Equal(5, levelTwoHundredFullParty.EffectivePlayerCount);
             Assert.InRange(levelTwoHundredFullParty.GroupHealthMultiplier, 0.999f, 1.001f);
-            Assert.InRange(levelTwoHundredFullParty.HealthMultiplier, 4.999f, 5.001f);
+            Assert.True(levelTwoHundredFullParty.HealthMultiplier > levelOneHundredFifty.HealthMultiplier);
+            Assert.True(levelOneThousandOne.HealthMultiplier > levelTwoHundredFullParty.HealthMultiplier);
+            Assert.InRange(levelOneThousandOne.HealthMultiplier, 20.90f, 20.94f);
         }
 
         [Theory]

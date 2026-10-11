@@ -35,11 +35,11 @@
       "postCapScaling": {
         "enabled": true,
         "startLevel": 49,
-        "capLevel": 150,
-        "healthCap": 5.0,
-        "damageCap": 2.0,
-        "healthCurveStrength": 0.08,
-        "damageCurveStrength": 0.06
+        "capLevel": 2000,
+        "healthCap": 30.0,
+        "damageCap": 3.0,
+        "healthCurveStrength": 0.002,
+        "damageCurveStrength": 0.2
       },
       "levels": [
         { "level": 1, "difficultyTierPrototype": "Difficulty/Tiers/Tier2Heroic.prototype", "healthMultiplier": 1.0, "damageMultiplier": 1.0, "bossCount": 1 },

@@ -93,19 +93,36 @@ namespace MHServerEmu.Games.OmegaTierItems
                 return;
             }
 
-            PrototypeId cosmicRarityRef = GameDatabase.GetPrototypeRefByName(CosmicRarityName);
-            PrototypeId omegaRarityRef = GameDatabase.GetPrototypeRefByName(OmegaRarityName);
-            if (cosmicRarityRef == PrototypeId.Invalid || omegaRarityRef == PrototypeId.Invalid || filterArgs.Rarity != cosmicRarityRef)
-                return;
-
-            if (IsUniqueItemPrototype(itemProto))
-                return;
-
             OmegaTierItemTuning tuning = OmegaTierItemTuning.Load();
 
             EquipmentInvUISlot slot = filterArgs.Slot;
             if (slot == EquipmentInvUISlot.Invalid)
                 slot = itemProto.GetInventorySlotForAgent(filterArgs.RollFor.As<AgentPrototype>());
+
+            bool traceRing = slot == EquipmentInvUISlot.Ring && tuning.EnableRingDiagnostics;
+            if (traceRing)
+                Logger.Info($"[OmegaRingPromotionTrace] stage=candidate playerDbId=0x{resolver.Player?.DatabaseUniqueId:X} avatar={resolver.Player?.CurrentAvatar?.PrototypeDataRef.GetNameFormatted()} item={itemProto.DataRef.GetNameFormatted()} rollFor={filterArgs.RollFor.GetNameFormatted()} rarity={filterArgs.Rarity.GetNameFormatted()} context={resolver.LootContext} source={resolver.SourceEntityPrototypeRef.GetNameFormatted()} sourceId=0x{resolver.SourceEntityId:X}");
+            if (tuning.EnableLootSourceDiagnostics &&
+                (IsArmorSlotOneThroughFive(itemProto, slot) || slot == EquipmentInvUISlot.Ring))
+            {
+                Logger.Info($"[OmegaLootSourceTrace] playerDbId=0x{resolver.Player?.DatabaseUniqueId:X} avatar={resolver.Player?.CurrentAvatar?.PrototypeDataRef.GetNameFormatted()} region={resolver.Player?.CurrentAvatar?.Region?.PrototypeDataRef.GetNameFormatted()} item={itemProto.DataRef.GetNameFormatted()} rollFor={filterArgs.RollFor.GetNameFormatted()} resolvedSlot={slot} rarity={filterArgs.Rarity.GetNameFormatted()} context={resolver.LootContext} source={resolver.SourceEntityPrototypeRef.GetNameFormatted()} sourceId=0x{resolver.SourceEntityId:X}");
+            }
+
+            PrototypeId cosmicRarityRef = GameDatabase.GetPrototypeRefByName(CosmicRarityName);
+            PrototypeId omegaRarityRef = GameDatabase.GetPrototypeRefByName(OmegaRarityName);
+            if (cosmicRarityRef == PrototypeId.Invalid || omegaRarityRef == PrototypeId.Invalid || filterArgs.Rarity != cosmicRarityRef)
+            {
+                if (traceRing)
+                    Logger.Info($"[OmegaRingPromotionTrace] stage=ineligible item={itemProto.DataRef.GetNameFormatted()} rarity={filterArgs.Rarity.GetNameFormatted()} reason=not-cosmic");
+                return;
+            }
+
+            if (IsUniqueItemPrototype(itemProto))
+            {
+                if (traceRing)
+                    Logger.Info($"[OmegaRingPromotionTrace] stage=ineligible item={itemProto.DataRef.GetNameFormatted()} reason=unique");
+                return;
+            }
 
             if (IsArmorSlotOneThroughFive(itemProto, slot) == false && slot != EquipmentInvUISlot.Ring)
             {
@@ -117,19 +134,22 @@ namespace MHServerEmu.Games.OmegaTierItems
             // Preserve the resolved slot for Omega finalization and downstream loot filtering.
             filterArgs.Slot = slot;
 
+            float promotionChancePct = slot == EquipmentInvUISlot.Ring
+                ? tuning.OmegaDifficultyRingPromotionChancePct
+                : tuning.OmegaDifficultyPromotionChancePct;
             float promotionRoll = resolver.Random.NextFloat() * 100f;
             if (tuning?.Enabled != true ||
-                promotionRoll >= tuning.OmegaDifficultyPromotionChancePct)
+                promotionRoll >= promotionChancePct)
             {
-                if (tuning?.EnableDiagnostics == true)
-                    Logger.Info($"[OmegaDropTrace] stage=promotion-skipped playerDbId=0x{resolver.Player?.DatabaseUniqueId:X} avatar={resolver.Player?.CurrentAvatar?.PrototypeDataRef.GetNameFormatted()} item={itemProto.DataRef.GetNameFormatted()} rollFor={filterArgs.RollFor.GetNameFormatted()} resolvedSlot={slot} roll={promotionRoll:F2} chance={tuning.OmegaDifficultyPromotionChancePct:F2} context={resolver.LootContext} source={resolver.SourceEntityPrototypeRef.GetNameFormatted()} sourceId=0x{resolver.SourceEntityId:X}");
+                if (tuning?.EnableDiagnostics == true || traceRing)
+                    Logger.Info($"[OmegaDropTrace] stage=promotion-skipped playerDbId=0x{resolver.Player?.DatabaseUniqueId:X} avatar={resolver.Player?.CurrentAvatar?.PrototypeDataRef.GetNameFormatted()} item={itemProto.DataRef.GetNameFormatted()} rollFor={filterArgs.RollFor.GetNameFormatted()} resolvedSlot={slot} roll={promotionRoll:F2} chance={promotionChancePct:F2} context={resolver.LootContext} source={resolver.SourceEntityPrototypeRef.GetNameFormatted()} sourceId=0x{resolver.SourceEntityId:X}");
                 return;
             }
 
             PendingOmegaPromotions.Remove(itemSpec);
             PendingOmegaPromotions.Add(itemSpec, PromotionMarker);
-            if (tuning.EnableDiagnostics)
-                Logger.Info($"[OmegaDropTrace] stage=promotion-selected playerDbId=0x{resolver.Player?.DatabaseUniqueId:X} avatar={resolver.Player?.CurrentAvatar?.PrototypeDataRef.GetNameFormatted()} item={itemProto.DataRef.GetNameFormatted()} rollFor={filterArgs.RollFor.GetNameFormatted()} resolvedSlot={slot} sourceRarity={filterArgs.Rarity.GetNameFormatted()} targetRarity={omegaRarityRef.GetNameFormatted()} targetLevel={OmegaDifficultyItemLevel} roll={promotionRoll:F2} chance={tuning.OmegaDifficultyPromotionChancePct:F2} context={resolver.LootContext} source={resolver.SourceEntityPrototypeRef.GetNameFormatted()} sourceId=0x{resolver.SourceEntityId:X}");
+            if (tuning.EnableDiagnostics || traceRing)
+                Logger.Info($"[OmegaDropTrace] stage=promotion-selected playerDbId=0x{resolver.Player?.DatabaseUniqueId:X} avatar={resolver.Player?.CurrentAvatar?.PrototypeDataRef.GetNameFormatted()} item={itemProto.DataRef.GetNameFormatted()} rollFor={filterArgs.RollFor.GetNameFormatted()} resolvedSlot={slot} sourceRarity={filterArgs.Rarity.GetNameFormatted()} targetRarity={omegaRarityRef.GetNameFormatted()} targetLevel={OmegaDifficultyItemLevel} roll={promotionRoll:F2} chance={promotionChancePct:F2} context={resolver.LootContext} source={resolver.SourceEntityPrototypeRef.GetNameFormatted()} sourceId=0x{resolver.SourceEntityId:X}");
 #endif
         }
 
@@ -160,9 +180,10 @@ namespace MHServerEmu.Games.OmegaTierItems
 
             AgentPrototype rollForProto = resolvedRollFor.As<AgentPrototype>();
             EquipmentInvUISlot slot = itemProto.GetInventorySlotForAgent(rollForProto ?? avatarProto);
+            bool traceRing = slot == EquipmentInvUISlot.Ring && tuning.EnableRingDiagnostics;
             if (IsArmorSlotOneThroughFive(itemProto, slot) == false && slot != EquipmentInvUISlot.Ring)
             {
-                if (tuning.EnableDiagnostics)
+                if (tuning.EnableDiagnostics || traceRing)
                     Logger.Info($"[OmegaDropTrace] stage=finalize-ineligible playerDbId=0x{resolver.Player?.DatabaseUniqueId:X} avatar={avatarProto?.DataRef.GetNameFormatted()} item={itemProto.DataRef.GetNameFormatted()} rollFor={resolvedRollFor.GetNameFormatted()} resolvedSlot={slot} rarity={itemSpec.RarityProtoRef.GetNameFormatted()} level={itemSpec.ItemLevel} context={resolver.LootContext} reason=unsupported-slot-for-avatar");
                 return false;
             }
@@ -189,7 +210,7 @@ namespace MHServerEmu.Games.OmegaTierItems
             bool challengeAffixAdded = TryApplyOmegaChallengeAffix(resolver, filterArgs, itemSpec, slot);
             LogOmegaAffixTrace("after-finalize", resolver, itemSpec, itemProto, resolvedRollFor, slot,
                 challengeAffixWasPresent, challengeAffixAdded, naturalChallengeAffixesRemoved);
-            if (tuning.EnableDiagnostics)
+            if (tuning.EnableDiagnostics || traceRing)
             {
                 string affixes = string.Join(",", itemSpec.AffixSpecs.Select(spec => spec?.AffixProto == null
                     ? "invalid"

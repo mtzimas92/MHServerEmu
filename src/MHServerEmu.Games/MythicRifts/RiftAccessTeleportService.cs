@@ -122,7 +122,7 @@ namespace MHServerEmu.Games.MythicRifts
         {
             if (HasOmegaPatrolAccessForCurrentAvatar(player) == false)
             {
-                player.SendBannerMessage(OmegaPatrolLockedMessageRef);
+                player.SendBannerMessage(OmegaPatrolLockedMessageRef, doNotQueue: true, showImmediately: true);
                 return;
             }
 
