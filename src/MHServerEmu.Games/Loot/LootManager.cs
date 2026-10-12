@@ -56,6 +56,7 @@ namespace MHServerEmu.Games.Loot
             if (lootResultSummary.HasAnyResult == false)
                 return;
 
+	    LogDinosBossLootIfApplicable(inputSettings, lootResultSummary);
 	    SpawnLootFromSummary(lootResultSummary, inputSettings, recipientId);
         }
 
