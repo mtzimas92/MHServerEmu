@@ -43,6 +43,7 @@ namespace MHServerEmu.Games.MythicRifts
         private static readonly TimeSpan NativeBossSuppressionScanInterval = TimeSpan.FromSeconds(30);
         private static readonly TimeSpan NativeCheckpointPopulationSuppressionScanInterval = TimeSpan.FromSeconds(30);
         private static readonly TimeSpan RewardRoomPopulationSuppressionInterval = TimeSpan.FromSeconds(30);
+        private static readonly TimeSpan NativeWidgetSuppressionInterval = TimeSpan.FromMilliseconds(250);
         private static readonly TimeSpan RiftObjectiveWidgetRefreshInterval = TimeSpan.FromSeconds(2);
         private static readonly TimeSpan RiftReadyCheckDuration = TimeSpan.FromSeconds(5);
         private static readonly TimeSpan FailedRunEvacuationDelay = TimeSpan.FromMilliseconds(250);
@@ -207,6 +208,7 @@ namespace MHServerEmu.Games.MythicRifts
         private readonly Dictionary<ulong, TimeSpan> _nextParticipantMaintenanceAt = new();
         private readonly Dictionary<ulong, TimeSpan> _nextNativeCheckpointPopulationSuppressionScanAt = new();
         private readonly Dictionary<ulong, TimeSpan> _nextRewardRoomPopulationSuppressionAt = new();
+        private readonly Dictionary<ulong, TimeSpan> _nextNativeWidgetSuppressionAt = new();
         private readonly Dictionary<ulong, TimeSpan> _nextRiftObjectiveWidgetRefreshAt = new();
         private readonly Dictionary<ulong, TimeSpan> _pendingFailedRunEvacuationsAt = new();
         private readonly Dictionary<ulong, TimeSpan> _pendingBossGauntletFailureRecoveriesAt = new();
@@ -1180,6 +1182,7 @@ namespace MHServerEmu.Games.MythicRifts
                 _nextRunMaintenanceAt.Remove(runId);
                 _nextParticipantMaintenanceAt.Remove(runId);
                 _nextRewardRoomPopulationSuppressionAt.Remove(runId);
+                _nextNativeWidgetSuppressionAt.Remove(runId);
                 _nextRiftObjectiveWidgetRefreshAt.Remove(runId);
                 _nextCheckpointBossSpawnRetryAt.Remove(runId);
                 _serverSuspendedNativeObjectiveMissionsByRun.Remove(runId);
@@ -2785,6 +2788,7 @@ namespace MHServerEmu.Games.MythicRifts
             if (runState == null || region == null)
                 return false;
 
+            region.AvatarSwapEnabled = false;
             AttachRunRegion(runState, region.Id);
             RegisterRegionPlayersAsParticipants(runState, region);
             ApplyRunDifficultyToRegion(runState, region);
@@ -2832,6 +2836,7 @@ namespace MHServerEmu.Games.MythicRifts
                 TryProcessPendingFailedRunEvacuation(runState, currentTime);
                 TryProcessPendingBossGauntletFailureRecovery(runState, currentTime);
                 TryProcessPendingRewardRoomFinalize(runState, currentTime);
+                MaintainNativeWidgetSuppression(runState, currentTime);
                 if (_nextRunMaintenanceAt.TryGetValue(runState.Config.RunId, out TimeSpan nextMaintenanceAt) &&
                     currentTime < nextMaintenanceAt)
                     continue;
@@ -3079,7 +3084,10 @@ namespace MHServerEmu.Games.MythicRifts
 
             runState.AttachRewardRoomRegion(regionId);
             _runByRewardRoomRegionId[regionId] = runState;
-            EnsureRegionListener(Game.RegionManager.GetRegion(regionId));
+            Region rewardRoomRegion = Game.RegionManager.GetRegion(regionId);
+            if (rewardRoomRegion != null)
+                rewardRoomRegion.AvatarSwapEnabled = false;
+            EnsureRegionListener(rewardRoomRegion);
         }
 
         private void RemoveRunIndexes(MythicRiftRunState runState)
@@ -4105,6 +4113,24 @@ namespace MHServerEmu.Games.MythicRifts
             }
 
             _nextRiftObjectiveWidgetRefreshAt[runState.Config.RunId] = currentTime + RiftObjectiveWidgetRefreshInterval;
+
+            Region region = Game.RegionManager.GetRegion(runState.EffectiveRegionId);
+            if (region?.UIDataProvider != null)
+                RemoveNativeRegionWidgets(region.UIDataProvider, runState);
+        }
+
+        private void MaintainNativeWidgetSuppression(MythicRiftRunState runState, TimeSpan currentTime)
+        {
+            if (IsRunActiveOrInRewardRoom(runState) == false || runState.EffectiveRegionId == 0)
+                return;
+
+            if (_nextNativeWidgetSuppressionAt.TryGetValue(runState.Config.RunId, out TimeSpan nextSuppressionAt) &&
+                currentTime < nextSuppressionAt)
+            {
+                return;
+            }
+
+            _nextNativeWidgetSuppressionAt[runState.Config.RunId] = currentTime + NativeWidgetSuppressionInterval;
 
             Region region = Game.RegionManager.GetRegion(runState.EffectiveRegionId);
             if (region?.UIDataProvider != null)
