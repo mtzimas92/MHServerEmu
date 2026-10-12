@@ -53,23 +53,21 @@ namespace MHServerEmu.Games.Loot
             using var lootResultSummaryHandle = LootResultSummaryPool.Get(out LootResultSummary lootResultSummary);
             RollLootTable(lootTableProtoRef, inputSettings, lootResultSummary);
 
-            if (lootResultSummary.HasAnyResult == false) return;
-            
-	    // DINO LOOT ENTRY
-            LogDinosBossLootIfApplicable(inputSettings, lootResultSummary);
-            //
+            if (lootResultSummary.HasAnyResult == false)
+                return;
 
 	    SpawnLootFromSummary(lootResultSummary, inputSettings, recipientId);
         }
 
-        public void GiveLootFromTable(PrototypeId lootTableProtoRef, LootInputSettings inputSettings)
+        public void GiveLootFromTable(PrototypeId lootTableProtoRef, LootInputSettings inputSettings, PrototypeId inventoryProtoRef = PrototypeId.Invalid)
         {
             using var lootResultSummaryHandle = LootResultSummaryPool.Get(out LootResultSummary lootResultSummary);
             RollLootTable(lootTableProtoRef, inputSettings, lootResultSummary);
 
-            if (lootResultSummary.HasAnyResult == false) return;
+            if (lootResultSummary.HasAnyResult == false)
+                return;
 
-            GiveLootFromSummary(lootResultSummary, inputSettings.Player);
+            GiveLootFromSummary(lootResultSummary, inputSettings.Player, inventoryProtoRef);
         }
 
         // Dinos Invade Manhattan's final boss is a random toss-up between these two repurposed EG02
@@ -564,6 +562,7 @@ namespace MHServerEmu.Games.Loot
             AvatarPrototype avatarProto = player?.CurrentAvatar?.AvatarPrototype;
 
             using var filterArgsHandle = DropFilterArgumentsPool.Get(out DropFilterArguments filterArgs);
+            DropFilterArguments.Initialize(filterArgs, lootContext);
             filterArgs.ItemProto = itemProto;
             filterArgs.Level = level;
             filterArgs.RollFor = _resolver.ResolveAvatarPrototype(avatarProto, true, 1f).DataRef;
