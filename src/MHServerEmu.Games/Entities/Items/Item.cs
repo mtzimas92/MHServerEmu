@@ -55,6 +55,9 @@ namespace MHServerEmu.Games.Entities.Items
     public partial class Item : WorldEntity
     {
         private static readonly Logger Logger = LogManager.CreateLogger();
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
+        private static readonly PrototypeId Unique089PrototypeRef = (PrototypeId)15537345795464436995UL;
+#endif
 
         private ItemSpec _itemSpec = new();
         private List<AffixPropertiesCopyEntry> _affixProperties = new();
@@ -436,6 +439,9 @@ namespace MHServerEmu.Games.Entities.Items
             Player player = avatar.GetOwnerOfType<Player>();
             if (player == null)
                 return false;
+
+            if (Game.MythicRiftLauncherService?.CanBypassNativeUseValidation(player, this) == true)
+                return true;
 
             return PlayerCanUse(player, avatar, checkPower, checkInventory) == InteractionValidateResult.Success;
         }
@@ -966,10 +972,14 @@ namespace MHServerEmu.Games.Entities.Items
             GRandom random = new(_itemSpec.Seed);
 
             // Apply built-in properties
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
+            TraceUnique089BuiltInProperties("native-before", itemProto.PropertiesBuiltIn);
+#endif
             if (itemProto.PropertiesBuiltIn.HasValue())
             {
-                foreach (PropertyEntryPrototype propertyEntryProto in itemProto.PropertiesBuiltIn)
+                for (int builtInIndex = 0; builtInIndex < itemProto.PropertiesBuiltIn.Length; builtInIndex++)
                 {
+                    PropertyEntryPrototype propertyEntryProto = itemProto.PropertiesBuiltIn[builtInIndex];
                     float randomMult = random.NextFloat();
 
                     PropertyPickInRangeEntryPrototype propPickEntryProto = propertyEntryProto as PropertyPickInRangeEntryPrototype;
@@ -977,9 +987,15 @@ namespace MHServerEmu.Games.Entities.Items
                     if (!Verify.IsTrue(propPickEntryProto != null || propSetEntryProto != null))
                         continue;
 
-                    ApplyBuiltInPropertyEntry(randomMult, propPickEntryProto, propSetEntryProto);
+                    bool applied = ApplyBuiltInPropertyEntry(randomMult, propPickEntryProto, propSetEntryProto);
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
+                    TraceUnique089BuiltInProperty("native-entry", builtInIndex, propertyEntryProto, applied, randomMult);
+#endif
                 }
             }
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
+            TraceUnique089BuiltInProperties("native-complete", itemProto.PropertiesBuiltIn);
+#endif
 
             // NOTE: RNG is reseeded for each affix individually.
             // Save the current state of random to restore it later for rolling action index.
@@ -987,7 +1003,9 @@ namespace MHServerEmu.Games.Entities.Items
 
 #if GAME_VERSION_1_52 || GAME_VERSION_1_53
             ApplyOmegaTierBuiltInPropertyTemplate(random);
+            TraceUnique089BuiltInProperties("omega-template-complete", itemProto.PropertiesBuiltIn);
             OmegaTierItemFactory.ApplyConfiguredRuntimeProperties(this);
+            TraceUnique089BuiltInProperties("omega-runtime-properties-complete", itemProto.PropertiesBuiltIn);
 #endif
 
             // Apply built-in affixes
@@ -1020,6 +1038,7 @@ namespace MHServerEmu.Games.Entities.Items
 
 #if GAME_VERSION_1_52 || GAME_VERSION_1_53
             ApplyOmegaTierRuntimeAffixReplacements(random);
+            TraceUnique089BuiltInProperties("item-finalized", itemProto.PropertiesBuiltIn);
 #endif
 
             // Pick triggered power
@@ -1056,6 +1075,40 @@ namespace MHServerEmu.Games.Entities.Items
         }
 
 #if GAME_VERSION_1_52 || GAME_VERSION_1_53
+        private void TraceUnique089BuiltInProperties(string stage, PropertyEntryPrototype[] propertyEntries)
+        {
+            if (_itemSpec?.ItemProtoRef != Unique089PrototypeRef)
+                return;
+
+            int builtInCount = propertyEntries?.Length ?? 0;
+            int tooltipBlockCount = ItemPrototype?.TooltipCustomPropertyBlocks?.Length ?? 0;
+            Logger.Info($"[Unique089BuiltInTrace] stage={stage} itemId=0x{Id:X} rarity={_itemSpec.RarityProtoRef.GetNameFormatted()} level={_itemSpec.ItemLevel} seed={_itemSpec.Seed} builtInCount={builtInCount} tooltipBlockCount={tooltipBlockCount}");
+
+            if (propertyEntries == null)
+                return;
+
+            for (int i = 0; i < propertyEntries.Length; i++)
+                TraceUnique089BuiltInProperty(stage, i, propertyEntries[i], null, null);
+        }
+
+        private void TraceUnique089BuiltInProperty(string stage, int index, PropertyEntryPrototype propertyEntry, bool? applied, float? randomMult)
+        {
+            if (_itemSpec?.ItemProtoRef != Unique089PrototypeRef)
+                return;
+
+            PropertyId propertyId = GetBuiltInPropertyId(propertyEntry);
+            bool resolved = propertyId != PropertyId.Invalid;
+            bool present = resolved && Properties.HasProperty(propertyId);
+            PropertyInfo propertyInfo = resolved ? GameDatabase.PropertyInfoTable.LookupPropertyInfo(propertyId.Enum) : null;
+            string value = present && propertyInfo != null
+                ? Properties.GetProperty(propertyId).Print(propertyInfo.DataType)
+                : "<missing>";
+            string dataType = propertyInfo?.DataType.ToString() ?? "<unresolved>";
+            string appliedText = applied?.ToString() ?? "n/a";
+            string randomMultText = randomMult?.ToString("F6") ?? "n/a";
+            Logger.Info($"[Unique089BuiltInTrace] stage={stage} itemId=0x{Id:X} index={index} entryType={propertyEntry?.GetType().Name ?? "<null>"} propertyId={propertyId} property={propertyId.Enum} dataType={dataType} resolved={resolved} applied={appliedText} randomMult={randomMultText} present={present} value={value}");
+        }
+
         private bool ApplyOmegaTierBuiltInPropertyTemplate(GRandom random)
         {
             if (_itemSpec == null || _itemSpec.IsValid == false)
@@ -1066,10 +1119,19 @@ namespace MHServerEmu.Games.Entities.Items
                 return false;
 
             bool changed = false;
+            bool traceUnique089 = _itemSpec.ItemProtoRef == Unique089PrototypeRef;
+            bool matchedOverride = false;
             foreach (OmegaTierItemOverrideTuning itemOverride in tuning.ItemOverrides)
             {
                 if (itemOverride?.Matches(_itemSpec.ItemProtoRef, _itemSpec.RarityProtoRef) != true)
                     continue;
+
+                matchedOverride = true;
+                if (traceUnique089)
+                {
+                    bool prototypeOverride = OmegaTierItemFactory.HasConfiguredBuiltInPropertyPrototypeOverride(_itemSpec.ItemProtoRef, _itemSpec.RarityProtoRef);
+                    Logger.Info($"[Unique089BuiltInTrace] stage=omega-template-match itemId=0x{Id:X} override={itemOverride.Id} clearBuiltIns={itemOverride.ClearBuiltInProperties} replaceFromTemplate={itemOverride.ReplaceBuiltInPropertiesFromTemplate} preserveProcBuiltIns={itemOverride.PreserveProcBuiltInProperties} prototypeOverride={prototypeOverride}");
+                }
 
                 if (OmegaTierItemFactory.HasConfiguredBuiltInPropertyPrototypeOverride(_itemSpec.ItemProtoRef, _itemSpec.RarityProtoRef))
                     continue;
@@ -1117,6 +1179,9 @@ namespace MHServerEmu.Games.Entities.Items
 
                 Logger.Info($"Omega item override copied built-in template: override={itemOverride.Id} item={_itemSpec.ItemProtoRef.GetNameFormatted()} template={templateItemProto.DataRef.GetNameFormatted()} copyTemplateProcProperties={itemOverride.CopyTemplateProcProperties}");
             }
+
+            if (traceUnique089)
+                Logger.Info($"[Unique089BuiltInTrace] stage=omega-template-result itemId=0x{Id:X} matchedOverride={matchedOverride} changed={changed}");
 
             return changed;
         }
@@ -1420,8 +1485,11 @@ namespace MHServerEmu.Games.Entities.Items
             ItemPrototype itemProto = ItemPrototype;
             if (!Verify.IsNotNull(itemProto)) return false;
 
-            if (PlayerCanUse(player, avatar) != InteractionValidateResult.Success)
+            if (PlayerCanUse(player, avatar) != InteractionValidateResult.Success &&
+                Game.MythicRiftLauncherService?.CanBypassNativeUseValidation(player, this) != true)
+            {
                 return false;
+            }
 
             bool interceptedItemUse = false;
             bool mythicRiftUseSuccess = TryHandleMythicRiftItemUse(player, out interceptedItemUse);

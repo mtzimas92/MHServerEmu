@@ -8,9 +8,8 @@ namespace MHServerEmu.Games.MythicRifts
         public const string RelativeConfigPath = "Game/MythicRift/MythicRiftFeatureFlags.json";
 
         private static readonly object TuningLock = new();
-        private static MythicRiftFeatureTuning _cachedTuning = CreateDefault();
-        private static DateTime _cachedWriteTimeUtc = DateTime.MinValue;
-        private static bool _cachedFileExists;
+        private static MythicRiftFeatureTuning _cachedTuning;
+        private static volatile bool _loaded;
 
         public bool Enabled { get; set; } = true;
         public bool VendorEnabled { get; set; } = true;
@@ -35,20 +34,16 @@ namespace MHServerEmu.Games.MythicRifts
 
         public static MythicRiftFeatureTuning Load()
         {
-            string configPath = ConfigPath;
-            bool fileExists = File.Exists(configPath);
-            DateTime writeTimeUtc = fileExists ? File.GetLastWriteTimeUtc(configPath) : DateTime.MinValue;
-
-            if (_cachedTuning != null && _cachedFileExists == fileExists && _cachedWriteTimeUtc == writeTimeUtc)
+            if (_loaded)
                 return _cachedTuning;
 
             lock (TuningLock)
             {
-                fileExists = File.Exists(configPath);
-                writeTimeUtc = fileExists ? File.GetLastWriteTimeUtc(configPath) : DateTime.MinValue;
-
-                if (_cachedTuning != null && _cachedFileExists == fileExists && _cachedWriteTimeUtc == writeTimeUtc)
+                if (_loaded)
                     return _cachedTuning;
+
+                string configPath = ConfigPath;
+                bool fileExists = File.Exists(configPath);
 
                 MythicRiftFeatureTuning tuning = CreateDefault();
                 if (fileExists)
@@ -62,8 +57,7 @@ namespace MHServerEmu.Games.MythicRifts
                 }
 
                 _cachedTuning = tuning;
-                _cachedFileExists = fileExists;
-                _cachedWriteTimeUtc = writeTimeUtc;
+                _loaded = true;
                 return _cachedTuning;
             }
         }

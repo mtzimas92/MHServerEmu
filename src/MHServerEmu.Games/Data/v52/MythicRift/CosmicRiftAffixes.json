@@ -1,6 +1,7 @@
 {
   "profileName": "default-affixes-v1",
   "enabled": true,
+  "useShuffleBagPairs": true,
   "secondRegionAffixStartLevel": 30,
   "thirdRegionAffixStartLevel": 70,
   "secondBossAffixStartWave": 30,

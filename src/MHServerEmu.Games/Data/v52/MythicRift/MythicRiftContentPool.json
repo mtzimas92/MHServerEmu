@@ -234,15 +234,6 @@
       "randomMapEligible": false
     },
     {
-      "id": "boss-midtown-mole-man",
-      "displayName": "Mole Man",
-      "defaultKillQuota": 1,
-      "bossPrototypeName": "Entity/Characters/Bosses/PatrolMidtown/SideBosses/MidtownEventMoleMan.prototype",
-      "bossLootTablePrototypeName": "Loot/Tables/Mob/Bosses/PatrolMidtown/Subtable/SharedPatrolMidtownBossesCosmic.prototype",
-      "randomMapEligible": false,
-      "randomBossEligible": false
-    },
-    {
       "id": "boss-brooklyn-batroc",
       "displayName": "Batroc",
       "defaultKillQuota": 1,
@@ -272,6 +263,7 @@
       "displayName": "Crossbones",
       "defaultKillQuota": 1,
       "bossPrototypeName": "Entity/Characters/Bosses/CivilWar/CrossbonesPatrolBossMidtown.prototype",
+      "bossLootTablePrototypeName": "Loot/Tables/Mob/Bosses/PatrolMidtown/Subtable/SharedPatrolMidtownBossesCosmic.prototype",
       "randomMapEligible": false,
       "randomBossEligible": true,
       "bossFamily": "crossbones"
@@ -281,6 +273,7 @@
       "displayName": "Surtur Demon Maul",
       "defaultKillQuota": 1,
       "bossPrototypeName": "Entity/Characters/Bosses/PatrolBrooklyn/BrooklynEventSurturDemonMaulBoss.prototype",
+      "bossLootTablePrototypeName": "Loot/Tables/Mob/Bosses/PatrolBrooklyn/Subtable/SharedPatrolBrooklynBossesCosmic.prototype",
       "randomMapEligible": false,
       "randomBossEligible": true,
       "bossFamily": "surtur-demon-maul"
@@ -290,6 +283,7 @@
       "displayName": "Surtur Demon Archer",
       "defaultKillQuota": 1,
       "bossPrototypeName": "Entity/Characters/Bosses/PatrolBrooklyn/BrooklynEventSurturDemonArcherBoss.prototype",
+      "bossLootTablePrototypeName": "Loot/Tables/Mob/Bosses/PatrolBrooklyn/Subtable/SharedPatrolBrooklynBossesCosmic.prototype",
       "randomMapEligible": false,
       "randomBossEligible": true,
       "bossFamily": "surtur-demon-archer"
@@ -299,6 +293,7 @@
       "displayName": "Surtur Demon Sword",
       "defaultKillQuota": 1,
       "bossPrototypeName": "Entity/Characters/Bosses/PatrolBrooklyn/BrooklynEventSurturDemonSwordBoss.prototype",
+      "bossLootTablePrototypeName": "Loot/Tables/Mob/Bosses/PatrolBrooklyn/Subtable/SharedPatrolBrooklynBossesCosmic.prototype",
       "randomMapEligible": false,
       "randomBossEligible": true,
       "bossFamily": "surtur-demon-sword"
@@ -308,6 +303,7 @@
       "displayName": "Surtur Demon Dual",
       "defaultKillQuota": 1,
       "bossPrototypeName": "Entity/Characters/Bosses/PatrolBrooklyn/BrooklynEventSurturDemonDualBoss.prototype",
+      "bossLootTablePrototypeName": "Loot/Tables/Mob/Bosses/PatrolBrooklyn/Subtable/SharedPatrolBrooklynBossesCosmic.prototype",
       "randomMapEligible": false,
       "randomBossEligible": true,
       "bossFamily": "surtur-demon-dual"
@@ -381,6 +377,7 @@
       "displayName": "MODOK",
       "defaultKillQuota": 1,
       "bossPrototypeName": "Entity/Characters/Bosses/DangerRoom/DangerRoomMODOK.prototype",
+      "bossLootTablePrototypeName": "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/AIMWeaponFacility/ModokTerminalLoot.prototype",
       "randomMapEligible": false,
       "randomBossEligible": true,
       "bossFamily": "modok"
@@ -503,6 +500,7 @@
       "displayName": "Bronx Zoo",
       "defaultKillQuota": 80,
       "regionPrototypeName": "Regions/EndGame/OneShotMissions/NonChapterBound/BronxZoo/AltRegions/BronxZooRegionL60.prototype",
+      "missionPrototypeName": "Missions/Prototypes/PVEEndgame/OneShots/BronxZoo/BronzZooRegion/OneShotMissionBronxZoo.prototype",
       "randomBossEligible": false
     },
     {
@@ -517,6 +515,7 @@
       "displayName": "HYDRA Island One-Shot",
       "defaultKillQuota": 65,
       "regionPrototypeName": "Regions/EndGame/OneShotMissions/NonChapterBound/HydraIslandPartDeux/AltRegions/HYDRAIslandPartDeuxRegionL60.prototype",
+      "missionPrototypeName": "Missions/Prototypes/PVEEndgame/OneShots/RedSkull/OneShotMissionRedSkull.prototype",
       "randomBossEligible": false
     },
     {
@@ -662,6 +661,7 @@
       "randomBossEligible": false,
       "isSpecialRandomMap": true,
       "useOwnBossSourceWhenSelected": true,
+      "modes": [ "Endless" ],
       "minRandomRiftLevel": 25
     },
     {
@@ -675,12 +675,13 @@
     },
     {
       "id": "boss-gauntlet-tutorial-arena",
-      "displayName": "Danger Room Tutorial Reward Room",
+      "displayName": "Loki's Throne Reward Room",
       "defaultKillQuota": 1,
-      "regionPrototypeName": "Regions/EndGame/DangerRoomMode/UniqueScenarios/Tutorial/DRRegionUniqueTutorialFight.prototype",
+      "regionPrototypeName": "Regions/StoryRevamp/CH09Asgard/CH0906LokiBossRegion.prototype",
+      "startTargetPrototypeName": "Regions/StoryRevamp/CH09Asgard/Transitions/LokiBossPhaseOneTarget.prototype",
       "randomMapEligible": false,
       "randomBossEligible": false,
-      "bossOnlyCheckpointEligible": true
+      "bossOnlyCheckpointEligible": false
     },
     {
       "id": "sabretooth-showdown",

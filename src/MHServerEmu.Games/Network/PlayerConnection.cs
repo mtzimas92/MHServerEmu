@@ -349,7 +349,8 @@ namespace MHServerEmu.Games.Network
             AOI.SetRegion(0, true);
             if (Player != null)
             {
-                OmegaGearLootFilter.ClearSession(Player.DatabaseUniqueId);
+                if (HasPendingRegionTransfer == false)
+                    OmegaGearLootFilter.ClearSession(Player.DatabaseUniqueId);
 
                 // Do an AOI update here to remove from the fake "party" after exiting match regions,
                 // see AreaOfInterest.GetInventoryInterestPolicies() for more details.

@@ -109,6 +109,16 @@ namespace MHServerEmu.Games.MythicRifts
             return TryResolveCandidateEntryPointId(item.PrototypeDataRef, out _);
         }
 
+        public bool CanBypassNativeUseValidation(Player player, Item item)
+        {
+            return player != null &&
+                item != null &&
+                item.CurrentStackSize > 0 &&
+                player.Owns(item) &&
+                CanHandleItem(item) &&
+                CanUseLauncherFromCurrentRegion(player);
+        }
+
         public MythicRiftLauncherItemCandidate ResolveCandidate(Item item)
         {
             if (item == null)

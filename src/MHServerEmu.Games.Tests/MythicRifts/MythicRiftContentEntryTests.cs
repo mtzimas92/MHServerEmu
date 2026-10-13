@@ -6,6 +6,29 @@ namespace MHServerEmu.Games.Tests.MythicRifts
     public class MythicRiftContentEntryTests
     {
         [Fact]
+        public void SupportsMode_EmptyModes_AllowsEveryMode()
+        {
+            MythicRiftContentEntry content = new();
+
+            Assert.True(content.SupportsMode(MythicRiftMode.Standard));
+            Assert.True(content.SupportsMode(MythicRiftMode.Endless));
+            Assert.True(content.SupportsMode(MythicRiftMode.BossGauntlet));
+        }
+
+        [Fact]
+        public void SupportsMode_ConfiguredMode_AllowsOnlyThatMode()
+        {
+            MythicRiftContentEntry content = new()
+            {
+                Modes = new[] { "Endless" }
+            };
+
+            Assert.False(content.SupportsMode(MythicRiftMode.Standard));
+            Assert.True(content.SupportsMode(MythicRiftMode.Endless));
+            Assert.False(content.SupportsMode(MythicRiftMode.BossGauntlet));
+        }
+
+        [Fact]
         public void IsValid_AllowsBossOnlySource()
         {
             MythicRiftContentEntry content = new()

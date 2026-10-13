@@ -29,6 +29,14 @@ namespace MHServerEmu.Games.MythicRifts
             };
         }
 
+        public bool RemoveClaim(string rewardId)
+        {
+            if (string.IsNullOrWhiteSpace(rewardId))
+                return false;
+
+            return _claims.Remove(GetStableKey(rewardId));
+        }
+
         public bool Serialize(Archive archive)
         {
             return Serializer.Transfer(archive, ref _claims);

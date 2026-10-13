@@ -15,9 +15,7 @@ namespace MHServerEmu.Games.Entities
 {
     public partial class Player
     {
-        private const string MythicRiftCompletionCrafterCosmicRarityPrototypeName = "Entity/Items/Rarity/R5Cosmic.prototype";
         private const string MythicRiftCompletionCrafterUniqueRarityPrototypeName = "Entity/Items/Rarity/R6Unique.prototype";
-        private static PrototypeId _mythicRiftCompletionCrafterCosmicRarityProtoRef = PrototypeId.Invalid;
         private static PrototypeId _mythicRiftCompletionCrafterUniqueRarityProtoRef = PrototypeId.Invalid;
 
         private bool TryHandleMythicRiftCompletionCraft(
@@ -63,7 +61,7 @@ namespace MHServerEmu.Games.Entities
                 craftingResult = CraftingResult.IngredientLevelRestricted;
                 Game.ChatManager?.SendChatFromCustomSystem(
                     this,
-                    $"[Mythic Rift] Completion crafter accepts only item level {Game.MythicRiftManager.CompletionCrafterMinimumItemLevel}-{Game.MythicRiftManager.CompletionCrafterMaximumItemLevel - 1} Unique or {Game.MythicRiftManager.CompletionCrafterCosmicMinimumItemLevel}-{Game.MythicRiftManager.CompletionCrafterMaximumItemLevel - 1} Cosmic gear in slots 1-5.",
+                    $"[Mythic Rift] Completion crafter accepts only item level {Game.MythicRiftManager.CompletionCrafterMinimumItemLevel} Unique gear in slots 1-5.",
                     showSender: false);
                 return true;
             }
@@ -79,9 +77,9 @@ namespace MHServerEmu.Games.Entities
             // GetCraftingCost()'s callers in Player.cs/Item.cs - neither is ever reached here since this
             // whole method returns before Craft() gets to them), so the cost has to be checked and charged
             // directly here instead. Checked before spending an attempt below so a player who can't afford
-            // it doesn't burn one of their 3 attempts for nothing.
+            // it does not consume their single upgrade opportunity when they cannot afford it.
             PrototypeId currencyProtoRef = Game.MythicRiftManager.CompletionCrafterCurrencyProtoRef;
-            uint currencyCost = Game.MythicRiftManager.GetCompletionCrafterCurrencyCost(recipeItem.PrototypeDataRef);
+            uint currencyCost = Game.MythicRiftManager.GetCompletionCrafterCurrencyCost();
             int availableCurrency = currencyProtoRef != PrototypeId.Invalid ? Properties[PropertyEnum.Currency, currencyProtoRef] : 0;
             if (currencyProtoRef != PrototypeId.Invalid && currencyCost > 0 && availableCurrency < currencyCost)
             {
@@ -96,21 +94,13 @@ namespace MHServerEmu.Games.Entities
                 return true;
             }
 
-            if (upgraded == false)
-            {
-                Game.ChatManager?.SendChatFromCustomSystem(
-                    this,
-                    $"[Mythic Rift] Upgrade attempt failed. Attempts remaining={attemptsRemaining}.",
-                    showSender: false);
-                return true;
-            }
-
-            // Charged only on a successful upgrade - a failed attempt still costs one of the 3 tries
-            // above, but not the currency.
+            // The single upgrade is guaranteed, so reaching this point always consumes the currency.
             if (currencyProtoRef != PrototypeId.Invalid && currencyCost > 0)
                 Properties.AdjustProperty(-(int)currencyCost, new(PropertyEnum.Currency, currencyProtoRef));
 
-            int outputLevel = Math.Min(sourceLevel + 1, Game.MythicRiftManager.CompletionCrafterMaximumItemLevel);
+            int outputLevel = Math.Min(
+                sourceLevel + Game.MythicRiftManager.CompletionCrafterItemLevelIncrease,
+                Game.MythicRiftManager.CompletionCrafterMaximumItemLevel);
             Item outputItem = CreateMythicRiftCompletionCraftOutput(sourceItem, resultsInv, outputLevel);
             if (outputItem == null)
             {
@@ -184,7 +174,7 @@ namespace MHServerEmu.Games.Entities
             if (rarityProtoRef == PrototypeId.Invalid)
                 rarityProtoRef = item.Properties[PropertyEnum.ItemRarity];
 
-            if (TryGetMythicRiftCompletionCraftEligibleRarity(rarityProtoRef, out bool isCosmic) == false)
+            if (IsMythicRiftCompletionCraftEligibleUniqueRarity(rarityProtoRef) == false)
                 return false;
 
             EquipmentInvUISlot slot = armorProto.GetInventorySlotForAgent(CurrentAvatar?.AvatarPrototype);
@@ -194,57 +184,26 @@ namespace MHServerEmu.Games.Entities
             if (slot < EquipmentInvUISlot.Gear01 || slot > EquipmentInvUISlot.Gear05)
                 return false;
 
-            int minimumItemLevel = isCosmic
-                ? Game.MythicRiftManager.CompletionCrafterCosmicMinimumItemLevel
-                : Game.MythicRiftManager.CompletionCrafterMinimumItemLevel;
-
-            return itemLevel >= minimumItemLevel &&
-                   itemLevel < Game.MythicRiftManager.CompletionCrafterMaximumItemLevel;
+            return itemLevel == Game.MythicRiftManager.CompletionCrafterMinimumItemLevel;
         }
 
-        private static bool TryGetMythicRiftCompletionCraftEligibleRarity(PrototypeId rarityProtoRef, out bool isCosmic)
+        private static bool IsMythicRiftCompletionCraftEligibleUniqueRarity(PrototypeId rarityProtoRef)
         {
-            isCosmic = false;
-
             if (rarityProtoRef == PrototypeId.Invalid)
                 return false;
-
-            if (_mythicRiftCompletionCrafterCosmicRarityProtoRef == PrototypeId.Invalid)
-                _mythicRiftCompletionCrafterCosmicRarityProtoRef = GameDatabase.GetPrototypeRefByName(MythicRiftCompletionCrafterCosmicRarityPrototypeName);
 
             if (_mythicRiftCompletionCrafterUniqueRarityProtoRef == PrototypeId.Invalid)
                 _mythicRiftCompletionCrafterUniqueRarityProtoRef = GameDatabase.GetPrototypeRefByName(MythicRiftCompletionCrafterUniqueRarityPrototypeName);
 
-            if (rarityProtoRef == _mythicRiftCompletionCrafterCosmicRarityProtoRef ||
-                rarityProtoRef == GameDatabase.LootGlobalsPrototype.RarityCosmic)
-            {
-                isCosmic = true;
-                return true;
-            }
-
             if (rarityProtoRef == _mythicRiftCompletionCrafterUniqueRarityProtoRef ||
                 rarityProtoRef == GameDatabase.LootGlobalsPrototype.RarityUnique)
-            {
                 return true;
-            }
 
-            return TryGetMythicRiftCompletionCraftEligibleRarityName(GameDatabase.GetPrototypeName(rarityProtoRef), out isCosmic);
-        }
-
-        private static bool TryGetMythicRiftCompletionCraftEligibleRarityName(string rarityPrototypeName, out bool isCosmic)
-        {
-            isCosmic = false;
+            string rarityPrototypeName = GameDatabase.GetPrototypeName(rarityProtoRef);
             if (string.IsNullOrWhiteSpace(rarityPrototypeName))
                 return false;
 
             string normalizedName = rarityPrototypeName.Trim().Replace('\\', '/');
-            if (normalizedName.EndsWith("/R5Cosmic.prototype", StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(normalizedName, "R5Cosmic.prototype", StringComparison.OrdinalIgnoreCase))
-            {
-                isCosmic = true;
-                return true;
-            }
-
             return normalizedName.EndsWith("/R6Unique.prototype", StringComparison.OrdinalIgnoreCase) ||
                    string.Equals(normalizedName, "R6Unique.prototype", StringComparison.OrdinalIgnoreCase);
         }

@@ -120,9 +120,9 @@ namespace MHServerEmu.Games.MythicRifts
 
         private static void UseOmegaPatrolTeleporter(Player player, WorldEntity npc)
         {
-            if (HasOmegaPatrolAccessForCurrentAvatar(player) == false)
+            if (TraceOmegaPatrolAccess(player, player?.CurrentAvatar, "teleporter") == false)
             {
-                player.SendBannerMessage(OmegaPatrolLockedMessageRef);
+                player.SendBannerMessage(OmegaPatrolLockedMessageRef, doNotQueue: true, showImmediately: true);
                 return;
             }
 
@@ -224,7 +224,7 @@ namespace MHServerEmu.Games.MythicRifts
 
         public static bool HasOmegaPatrolAccessForCurrentAvatar(Player player)
         {
-            return player?.MythicRiftProgress.HasOmegaPatrolAccess(player.CurrentAvatar) == true;
+            return TraceOmegaPatrolAccess(player, player?.CurrentAvatar, "current-avatar-check");
         }
 
         public static bool CanUseAvatarInCurrentOmegaPatrol(Player player, Avatar avatar)
@@ -233,15 +233,45 @@ namespace MHServerEmu.Games.MythicRifts
             if (IsOmegaPatrolRegion(region) == false)
                 return true;
 
-            return player.MythicRiftProgress.HasOmegaPatrolAccess(avatar);
+            return TraceOmegaPatrolAccess(
+                player,
+                avatar,
+                "avatar-swap",
+                region.PrototypeDataRef,
+                region.DifficultyTierRef);
         }
 
-        private static bool IsOmegaPatrolRegion(Region region)
+        public static bool CanEnterOmegaPatrol(Player player, PrototypeId regionRef, PrototypeId difficultyTierRef)
+        {
+            if (difficultyTierRef != Tier5Omega1Ref || IsOmegaPatrolRegion(regionRef) == false)
+                return true;
+
+            return TraceOmegaPatrolAccess(player, player?.CurrentAvatar, "region-transfer", regionRef, difficultyTierRef);
+        }
+
+        public static bool CanEnterOmegaPatrol(Player player, Region region)
+        {
+            if (IsOmegaPatrolRegion(region) == false)
+                return true;
+
+            return TraceOmegaPatrolAccess(
+                player,
+                player?.CurrentAvatar,
+                "region-instance-entry",
+                region.PrototypeDataRef,
+                region.DifficultyTierRef);
+        }
+
+        internal static bool IsOmegaPatrolRegion(Region region)
         {
             if (region == null || region.DifficultyTierRef != Tier5Omega1Ref)
                 return false;
 
-            PrototypeId regionRef = region.PrototypeDataRef;
+            return IsOmegaPatrolRegion(region.PrototypeDataRef);
+        }
+
+        private static bool IsOmegaPatrolRegion(PrototypeId regionRef)
+        {
             return IsTargetRegion(MidtownPatrolTargetCosmicRef, regionRef)
                 || IsTargetRegion(ICPPatrolTargetCosmicRef, regionRef)
                 || IsTargetRegion(HightownPatrolTargetCosmicRef, regionRef);
@@ -257,10 +287,42 @@ namespace MHServerEmu.Games.MythicRifts
         {
             Avatar avatar = player?.CurrentAvatar;
             if (avatar == null)
+            {
+                Logger.Info($"[OmegaTrialAccessTrace] stage=grant playerDbId=0x{player?.DatabaseUniqueId ?? 0:X} result=False reason=no-current-avatar");
                 return false;
+            }
 
+            bool accessBefore = player.MythicRiftProgress.HasOmegaPatrolAccess(avatar);
             player.MythicRiftProgress.SetOmegaPatrolAccess(avatar);
+            bool accessAfter = player.MythicRiftProgress.HasOmegaPatrolAccess(avatar);
+            Region region = player.GetRegion();
+            Logger.Info(
+                $"[OmegaTrialAccessTrace] stage=grant playerDbId=0x{player.DatabaseUniqueId:X} " +
+                $"avatarId=0x{avatar.Id:X} avatar={avatar.PrototypeDataRef.GetNameFormatted()} avatarRef=0x{(ulong)avatar.PrototypeDataRef:X} " +
+                $"region={region?.PrototypeDataRef.GetNameFormatted()} difficulty={region?.DifficultyTierRef.GetNameFormatted()} " +
+                $"accessBefore={accessBefore} accessAfter={accessAfter} result=True");
             return true;
+        }
+
+        private static bool TraceOmegaPatrolAccess(
+            Player player,
+            Avatar avatar,
+            string path,
+            PrototypeId targetRegionRef = default,
+            PrototypeId targetDifficultyRef = default)
+        {
+            bool hasProgress = player?.MythicRiftProgress != null;
+            bool hasAccess = hasProgress && avatar != null && player.MythicRiftProgress.HasOmegaPatrolAccess(avatar);
+            Region currentRegion = player?.GetRegion();
+
+            Logger.Info(
+                $"[OmegaTrialAccessTrace] stage=check path={path} playerDbId=0x{player?.DatabaseUniqueId ?? 0:X} " +
+                $"avatarId=0x{avatar?.Id ?? 0:X} avatar={avatar?.PrototypeDataRef.GetNameFormatted()} avatarRef=0x{(ulong)(avatar?.PrototypeDataRef ?? PrototypeId.Invalid):X} " +
+                $"hasProgress={hasProgress} hasAccess={hasAccess} " +
+                $"currentRegion={currentRegion?.PrototypeDataRef.GetNameFormatted()} currentDifficulty={currentRegion?.DifficultyTierRef.GetNameFormatted()} " +
+                $"targetRegion={targetRegionRef.GetNameFormatted()} targetDifficulty={targetDifficultyRef.GetNameFormatted()} result={hasAccess}");
+
+            return hasAccess;
         }
 
     }

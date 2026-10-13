@@ -15,10 +15,21 @@ namespace MHServerEmu.Games.MythicRifts
         public int ThirdRegionAffixStartLevel { get; set; } = 70;
         public int SecondBossAffixStartWave { get; set; } = 30;
         public int ThirdBossAffixStartWave { get; set; } = 70;
+        public bool UseShuffleBagPairs { get; set; } = true;
         public string DefaultAffixTablePrototypeName { get; set; } = "Regions/Affixes/RegionAffixTable.defaults";
         public List<MythicRiftAffixPoolEntry> Affixes { get; set; } = new();
 
         public static string ConfigPath => Path.Combine(FileHelper.DataDirectory, RelativeConfigPath);
+
+        private static readonly Lazy<MythicRiftAffixTuning> CachedTuning = new(() =>
+        {
+            MythicRiftAffixTuning tuning = FileHelper.DeserializeJson<MythicRiftAffixTuning>(ConfigPath, JsonOptions)
+                ?? CreateDefault();
+            tuning.Normalize();
+            return tuning.Enabled ? tuning : CreateDefault();
+        });
+
+        public static MythicRiftAffixTuning Load() => CachedTuning.Value;
 
         public static MythicRiftAffixTuning CreateDefault()
         {
@@ -55,6 +66,9 @@ namespace MHServerEmu.Games.MythicRifts
         {
             if (Enabled == false)
                 return 0;
+
+            if (UseShuffleBagPairs)
+                return 2;
 
             int secondAffixStart = useBossScopedAffixes ? SecondBossAffixStartWave : SecondRegionAffixStartLevel;
             int thirdAffixStart = useBossScopedAffixes ? ThirdBossAffixStartWave : ThirdRegionAffixStartLevel;

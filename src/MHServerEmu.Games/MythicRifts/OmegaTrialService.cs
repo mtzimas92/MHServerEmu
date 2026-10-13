@@ -655,11 +655,23 @@ namespace MHServerEmu.Games.MythicRifts
 
         private static void CompleteTrial(Player player, OmegaTrialState state)
         {
+            Avatar avatar = player?.CurrentAvatar;
+            bool accessBefore = player?.MythicRiftProgress.HasOmegaPatrolAccess(avatar) == true;
             bool grantedAccess = RiftAccessTeleportService.GrantOmegaPatrolAccessForCurrentAvatar(player);
-            Logger.Info($"[OmegaTrialTrace] stage=complete playerDbId=0x{state.PlayerDbId:X} grantedOmegaAccess={grantedAccess}");
+            bool accessAfter = player?.MythicRiftProgress.HasOmegaPatrolAccess(avatar) == true;
+            Logger.Info(
+                $"[OmegaTrialAccessTrace] stage=trial-complete playerDbId=0x{state.PlayerDbId:X} " +
+                $"statePlayerMatches={player?.DatabaseUniqueId == state.PlayerDbId} avatarId=0x{avatar?.Id ?? 0:X} " +
+                $"avatar={avatar?.PrototypeDataRef.GetNameFormatted()} avatarRef=0x{(ulong)(avatar?.PrototypeDataRef ?? PrototypeId.Invalid):X} " +
+                $"trialRegionId=0x{state.RegionId:X} currentRegionId=0x{player?.GetRegion()?.Id ?? 0:X} " +
+                $"accessBefore={accessBefore} grantedOmegaAccess={grantedAccess} accessAfter={accessAfter}");
             if (grantedAccess)
             {
-                player.SendBannerMessage(OmegaPatrolUnlockedMessageRef, doNotQueue: true, showImmediately: true);
+                bool bannerSent = player.SendBannerMessage(OmegaPatrolUnlockedMessageRef, doNotQueue: true, showImmediately: true);
+                Logger.Info(
+                    $"[OmegaTrialAccessTrace] stage=unlock-notification playerDbId=0x{state.PlayerDbId:X} " +
+                    $"bannerLocale=0x{(ulong)OmegaPatrolUnlockedMessageRef:X} bannerSent={bannerSent} " +
+                    $"avatarInWorld={player.CurrentAvatar?.IsInWorld} regionId=0x{player.GetRegion()?.Id ?? 0:X}");
                 SendTrialChat(player, "Omega Patrols unlocked. Use the portal to return to the Helicarrier.");
             }
 
@@ -1637,7 +1649,14 @@ namespace MHServerEmu.Games.MythicRifts
                 uiDataProvider.DeleteWidget(GetOmegaTrialTimerWidgetPrototypeRef(), contextRef);
             }
 
-            // Logger.Info($"[OmegaTrialTrace] stage=widgets-refreshed playerDbId=0x{state.PlayerDbId:X} context={contextRef.GetNameFormatted()} trialStage={state.Stage} complete={complete} levelWidget={(levelWidget != null)} objectiveWidget={(objectiveWidget != null)} timerWidget={(timerWidget != null)} count={(complete ? 2 : GetStageProgressCount(state.Stage))}/2 remainingMs={remainingMs}");
+            if (complete)
+            {
+                Logger.Info(
+                    $"[OmegaTrialAccessTrace] stage=completion-hud playerDbId=0x{state.PlayerDbId:X} " +
+                    $"context={contextRef.GetNameFormatted()} titleLocale=0x{(ulong)OmegaTrialTitleTextRef:X} " +
+                    $"unlockedLocale=0x{(ulong)OmegaPatrolUnlockedMessageRef:X} levelWidget={levelWidget != null} " +
+                    $"objectiveWidget={objectiveWidget != null} timerWidget={timerWidget != null} count=2/2");
+            }
         }
 
         private static void ClearTrialWidgets(UIDataProvider uiDataProvider)

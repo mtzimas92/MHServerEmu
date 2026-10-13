@@ -22,6 +22,7 @@ namespace MHServerEmu.Games.MythicRifts
         private readonly HashSet<ulong> _participantsSeenInRunRegion = new();
         private readonly HashSet<ulong> _earlyExitPlayerDbIds = new();
         private readonly HashSet<ulong> _riftEntryBannerSentPlayerDbIds = new();
+        private readonly Dictionary<ulong, int> _participantRewardFloorWaveByPlayerDbId = new();
         private readonly HashSet<ulong> _customPopulationEntityIds = new();
         private readonly HashSet<ulong> _hazardEntityIds = new();
         private readonly HashSet<ulong> _activeBossEntityIds = new();
@@ -41,6 +42,7 @@ namespace MHServerEmu.Games.MythicRifts
         public ulong CompletionVendorEntityId { get; private set; }
         public ulong CompletionCrafterEntityId { get; private set; }
         public ulong RewardRoomRegionId { get; private set; }
+        public ulong RewardRoomAnchorPlayerDbId { get; private set; }
         public bool RewardRoomTeleportOffered { get; private set; }
         public bool RewardRoomTeleportResolved { get; private set; }
         public ulong EffectiveRegionId => RewardRoomRegionId != 0 ? RewardRoomRegionId : RegionId;
@@ -64,6 +66,7 @@ namespace MHServerEmu.Games.MythicRifts
         public int BossSpawnCount { get; private set; }
         public int BossKillCount { get; private set; }
         public int BossGauntletCompletedWaves { get; private set; }
+        public int PlayerDeathCount { get; private set; }
         public float RegionPlayerToMobDamageMultiplierBeforeScaling { get; private set; } = 1f;
         public float RegionMobToPlayerDamageMultiplierBeforeScaling { get; private set; } = 1f;
         public IReadOnlyCollection<ulong> ParticipantPlayerDbIds => _participantPlayerDbIds;
@@ -132,6 +135,11 @@ namespace MHServerEmu.Games.MythicRifts
             BossGauntletCompletedWaves = Math.Max(BossGauntletCompletedWaves, Config?.WaveNumber ?? 0);
         }
 
+        public int RecordPlayerDeath()
+        {
+            return ++PlayerDeathCount;
+        }
+
         public void AttachExitPortal(ulong exitPortalEntityId)
         {
             ExitPortalEntityId = exitPortalEntityId;
@@ -161,6 +169,12 @@ namespace MHServerEmu.Games.MythicRifts
         {
             RewardRoomRegionId = regionId;
             RewardRoomTeleportResolved = true;
+        }
+
+        public void SetRewardRoomAnchorPlayer(ulong playerDbId)
+        {
+            if (playerDbId != 0)
+                RewardRoomAnchorPlayerDbId = playerDbId;
         }
 
         public void CaptureRegionDifficultyScaling(float playerToMobDamageMultiplier, float mobToPlayerDamageMultiplier)
@@ -272,7 +286,7 @@ namespace MHServerEmu.Games.MythicRifts
             RewardsGranted = true;
         }
 
-        public bool RegisterParticipant(ulong playerDbId)
+        public bool RegisterParticipant(ulong playerDbId, int rewardFloorWave = 1)
         {
             if (playerDbId == 0)
                 return false;
@@ -280,7 +294,18 @@ namespace MHServerEmu.Games.MythicRifts
             if (_earlyExitPlayerDbIds.Contains(playerDbId))
                 return false;
 
-            return _participantPlayerDbIds.Add(playerDbId);
+            bool added = _participantPlayerDbIds.Add(playerDbId);
+            if (added)
+                _participantRewardFloorWaveByPlayerDbId[playerDbId] = Math.Max(rewardFloorWave, 1);
+
+            return added;
+        }
+
+        public int GetParticipantRewardFloorWave(ulong playerDbId)
+        {
+            return playerDbId != 0 && _participantRewardFloorWaveByPlayerDbId.TryGetValue(playerDbId, out int rewardFloorWave)
+                ? Math.Max(rewardFloorWave, 1)
+                : 1;
         }
 
         public bool IsParticipant(ulong playerDbId)
@@ -301,7 +326,11 @@ namespace MHServerEmu.Games.MythicRifts
             if (AdmissionTrackingEnabled == false || AdmissionFinalized || playerDbId == 0 || _admittedPlayerDbIds.Contains(playerDbId))
                 return false;
 
-            return _participantPlayerDbIds.Remove(playerDbId);
+            bool removed = _participantPlayerDbIds.Remove(playerDbId);
+            if (removed)
+                _participantRewardFloorWaveByPlayerDbId.Remove(playerDbId);
+
+            return removed;
         }
 
         public void EnableAdmissionTracking()
@@ -332,6 +361,7 @@ namespace MHServerEmu.Games.MythicRifts
             _progressionEligiblePlayerDbIds.Remove(playerDbId);
             _rewardEligiblePlayerDbIds.Remove(playerDbId);
             _riftEntryBannerSentPlayerDbIds.Remove(playerDbId);
+            _participantRewardFloorWaveByPlayerDbId.Remove(playerDbId);
             _earlyExitPlayerDbIds.Add(playerDbId);
             return wasParticipant;
         }

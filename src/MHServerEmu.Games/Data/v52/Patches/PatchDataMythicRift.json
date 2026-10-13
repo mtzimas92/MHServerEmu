@@ -225,17 +225,9 @@
   },
   {
     "Enabled": true,
-    "Prototype": "Entity/Items/Crafting/Recipes/Tab3Gear/RerollCosmicReplacement.prototype",
-    "Path": "CraftingCost.CostEvalCredits.Value",
-    "Description": "This recipe's native 75,000-credit CraftingCost is purely a client-side display value - the server never reads it (see TryHandleMythicRiftCompletionCraft() in Player.Crafting.cs, which intercepts this recipe entirely before the native cost-eval code is ever reached) and it was misleadingly showing 75,000 credits in the crafting UI when the real cost is 100 Champion's Commendations on a successful upgrade. Zeroed to the same CostEvalCredits=0 baseline every no-cost recipe in the game already uses (confirmed via Entity/Items/Crafting/ZAbstract/CraftingCost.defaults), so the UI shows no cost pill instead of a wrong one.",
-    "ValueType": "Integer",
-    "Value": 0
-  },
-  {
-    "Enabled": true,
     "Prototype": "Entity/Items/Crafting/Recipes/Tab3Gear/UnbindUnique.prototype",
     "Path": "CraftingCost.CostEvalCredits.Value",
-    "Description": "Same fix as RerollCosmicReplacement.prototype above, for the Unique-gear completion-crafter recipe (was showing a misleading 200,000 credits).",
+    "Description": "Hide the Unique recipe's native 200,000-credit display cost because the Rift completion crafter charges 100 Champion's Commendations server-side.",
     "ValueType": "Integer",
     "Value": 0
   }

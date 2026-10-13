@@ -9,11 +9,13 @@ namespace MHServerEmu.Games.MythicRifts
         public PrototypeId ItemProtoRef { get; init; }
         public bool IsAgentReward { get; init; }
         public int Quantity { get; init; }
+        public bool CombineStacks { get; init; }
         public int ItemLevel { get; init; } = 1;
         public PrototypeId RarityProtoRef { get; init; }
         public string Delivery { get; init; } = "ground";
         public string ClaimPeriod { get; init; }
         public string ClaimScope { get; init; }
+        public int RewardWave { get; init; }
         public IReadOnlyList<PrototypeId> CandidateItemProtoRefs { get; init; }
         public IReadOnlyList<EquipmentInvUISlot> CandidateAllowedEquipmentSlots { get; init; }
         public EquipmentInvUISlot CandidateRequestedEquipmentSlot { get; init; } = EquipmentInvUISlot.Invalid;

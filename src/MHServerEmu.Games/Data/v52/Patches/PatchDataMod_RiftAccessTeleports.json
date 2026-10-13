@@ -17,6 +17,14 @@
   },
   {
     "Enabled": true,
+    "Prototype": "Entity/Characters/NPCs/MistyKnight.prototype",
+    "Path": "InteractRangeBonus",
+    "Description": "[Rift Access] Keep Misty Knight's custom Helicarrier placement within validated interaction range.",
+    "ValueType": "Float",
+    "Value": 300
+  },
+  {
+    "Enabled": true,
     "Prototype": "Entity/Characters/NPCs/DoctorStrange.prototype",
     "Path": "DesignState",
     "Description": "[Rift Access] Enable Doctor Strange as the raid access selector NPC.",

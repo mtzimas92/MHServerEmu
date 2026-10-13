@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using MHServerEmu.Core.Helpers;
 
 namespace MHServerEmu.Games.MythicRifts
@@ -34,7 +35,6 @@ namespace MHServerEmu.Games.MythicRifts
         public float EndlessCycleBonusSpecialPctCap { get; set; } = 0f;
         public string DefaultDelivery { get; set; } = "ground";
         public int CompletionCrafterUniqueRecipeCost { get; set; } = 100;
-        public int CompletionCrafterCosmicRecipeCost { get; set; } = 100;
         public Dictionary<string, string> LootTableAliases { get; set; } = new(StringComparer.OrdinalIgnoreCase);
         public List<MythicRiftPrimaryLootTableTuning> PrimaryLootTableOverrides { get; set; } = new();
         public List<MythicRiftExtraLootTableTuning> ExtraLootTables { get; set; } = new();
@@ -43,7 +43,21 @@ namespace MHServerEmu.Games.MythicRifts
         public List<MythicRiftGuaranteedItemTuning> GuaranteedItems { get; set; } = new();
         public List<MythicRiftRewardShopOfferTuning> RewardShopOffers { get; set; } = new();
 
+        [JsonIgnore] private Dictionary<string, IReadOnlyList<MythicRiftRewardShopOfferTuning>> RewardShopOffersByVendor { get; } = new(StringComparer.OrdinalIgnoreCase);
+        [JsonIgnore] private Dictionary<string, MythicRiftRewardShopOfferTuning> RewardShopOffersByKey { get; } = new(StringComparer.OrdinalIgnoreCase);
+        [JsonIgnore] private Dictionary<string, MythicRiftRandomItemPoolTuning> RandomItemPoolsById { get; } = new(StringComparer.OrdinalIgnoreCase);
+
         public static string ConfigPath => Path.Combine(FileHelper.DataDirectory, RelativeConfigPath);
+
+        private static readonly Lazy<MythicRiftRewardTuning> CachedTuning = new(() =>
+        {
+            MythicRiftRewardTuning tuning = FileHelper.DeserializeJson<MythicRiftRewardTuning>(ConfigPath, JsonOptions)
+                ?? CreateDefault();
+            tuning.Normalize();
+            return tuning.Enabled ? tuning : CreateDefault();
+        });
+
+        public static MythicRiftRewardTuning Load() => CachedTuning.Value;
 
         public static MythicRiftRewardTuning CreateDefault()
         {
@@ -69,7 +83,6 @@ namespace MHServerEmu.Games.MythicRifts
             EndlessCycleBonusSpecialPctCap = Math.Max(EndlessCycleBonusSpecialPctCap, 0f);
             DefaultDelivery = NormalizeDelivery(DefaultDelivery);
             CompletionCrafterUniqueRecipeCost = Math.Max(CompletionCrafterUniqueRecipeCost, 0);
-            CompletionCrafterCosmicRecipeCost = Math.Max(CompletionCrafterCosmicRecipeCost, 0);
             LootTableAliases = LootTableAliases == null
                 ? new(StringComparer.OrdinalIgnoreCase)
                 : new Dictionary<string, string>(LootTableAliases, StringComparer.OrdinalIgnoreCase);
@@ -97,7 +110,61 @@ namespace MHServerEmu.Games.MythicRifts
 
             foreach (MythicRiftRewardShopOfferTuning offer in RewardShopOffers)
                 offer?.Normalize(DefaultDelivery);
+
+            BuildIndexes();
         }
+
+        private void BuildIndexes()
+        {
+            RewardShopOffersByVendor.Clear();
+            RewardShopOffersByKey.Clear();
+            RandomItemPoolsById.Clear();
+
+            foreach (MythicRiftRandomItemPoolTuning itemPool in RandomItemPools)
+            {
+                if (itemPool == null || string.IsNullOrWhiteSpace(itemPool.Id))
+                    continue;
+
+                RandomItemPoolsById.TryAdd(itemPool.Id, itemPool);
+            }
+
+            foreach (IGrouping<string, MythicRiftRewardShopOfferTuning> vendorOffers in RewardShopOffers
+                         .Where(offer => offer?.Enabled == true && string.IsNullOrWhiteSpace(offer.Vendor) == false)
+                         .GroupBy(offer => offer.Vendor, StringComparer.OrdinalIgnoreCase))
+            {
+                MythicRiftRewardShopOfferTuning[] offers = vendorOffers.ToArray();
+                RewardShopOffersByVendor[vendorOffers.Key] = offers;
+                foreach (MythicRiftRewardShopOfferTuning offer in offers)
+                    RewardShopOffersByKey.TryAdd(GetRewardShopOfferKey(vendorOffers.Key, offer.Id), offer);
+            }
+        }
+
+        public IReadOnlyList<MythicRiftRewardShopOfferTuning> GetRewardShopOffers(string vendor)
+        {
+            return string.IsNullOrWhiteSpace(vendor) == false && RewardShopOffersByVendor.TryGetValue(vendor, out IReadOnlyList<MythicRiftRewardShopOfferTuning> offers)
+                ? offers
+                : Array.Empty<MythicRiftRewardShopOfferTuning>();
+        }
+
+        public MythicRiftRewardShopOfferTuning GetRewardShopOffer(string vendor, string offerId)
+        {
+            if (string.IsNullOrWhiteSpace(vendor) || string.IsNullOrWhiteSpace(offerId))
+                return null;
+
+            RewardShopOffersByKey.TryGetValue(GetRewardShopOfferKey(vendor, offerId), out MythicRiftRewardShopOfferTuning offer);
+            return offer;
+        }
+
+        public MythicRiftRandomItemPoolTuning GetRandomItemPool(string id)
+        {
+            if (string.IsNullOrWhiteSpace(id))
+                return null;
+
+            RandomItemPoolsById.TryGetValue(id, out MythicRiftRandomItemPoolTuning itemPool);
+            return itemPool;
+        }
+
+        private static string GetRewardShopOfferKey(string vendor, string offerId) => $"{vendor}\n{offerId}";
 
         public string ResolveLootTableReference(string lootTableReference)
         {
@@ -302,6 +369,7 @@ namespace MHServerEmu.Games.MythicRifts
     {
         public float ChancePercent { get; set; } = 100f;
         public int Rolls { get; set; } = 1;
+        public bool RollChanceOnce { get; set; }
         public int ItemLevel { get; set; }
         public bool SuccessOnly { get; set; } = true;
 
@@ -427,6 +495,7 @@ namespace MHServerEmu.Games.MythicRifts
         public string ItemPrototypeName { get; set; }
         public string ItemRarityPrototype { get; set; }
         public int Quantity { get; set; } = 1;
+        public bool CombineStacks { get; set; }
         public bool QuantityMatchesRewardWave { get; set; }
         public bool CumulativeWaveQuantity { get; set; }
         public int QuantityCap { get; set; }
@@ -436,6 +505,7 @@ namespace MHServerEmu.Games.MythicRifts
         public int RiftLevelInterval { get; set; }
         public int MinWave { get; set; } = 1;
         public int MaxWave { get; set; }
+        public List<int> Waves { get; set; } = new();
         public bool SuccessOnly { get; set; } = true;
         public bool CheckpointOnly { get; set; }
         public bool ClassicOnly { get; set; }
@@ -464,6 +534,9 @@ namespace MHServerEmu.Games.MythicRifts
             RiftLevelInterval = Math.Max(RiftLevelInterval, 0);
             MinWave = Math.Max(MinWave, 1);
             MaxWave = Math.Max(MaxWave, 0);
+            Waves = Waves == null
+                ? new()
+                : Waves.Where(wave => wave > 0).Distinct().OrderBy(wave => wave).ToList();
             Modes ??= new();
             ContentIds ??= new();
             BossSourceIds ??= new();
@@ -502,6 +575,9 @@ namespace MHServerEmu.Games.MythicRifts
             if (wave < MinWave || (MaxWave > 0 && wave > MaxWave))
                 return false;
 
+            if (Waves.Count > 0 && Waves.Contains(wave) == false)
+                return false;
+
             if (ContentIds.Count > 0 &&
                 ContentIds.Any(id => string.Equals(id, runState.Config.Content.Id, StringComparison.OrdinalIgnoreCase)) == false)
             {
@@ -529,6 +605,7 @@ namespace MHServerEmu.Games.MythicRifts
         public int MaxRiftLevel { get; set; }
         public int MinWave { get; set; } = 1;
         public int MaxWave { get; set; }
+        public List<int> Waves { get; set; } = new();
         public bool SuccessOnly { get; set; } = true;
         public bool CheckpointOnly { get; set; }
         public bool ClassicOnly { get; set; }
@@ -581,6 +658,9 @@ namespace MHServerEmu.Games.MythicRifts
             MaxRiftLevel = Math.Max(MaxRiftLevel, 0);
             MinWave = Math.Max(MinWave, 1);
             MaxWave = Math.Max(MaxWave, 0);
+            Waves = Waves == null
+                ? new()
+                : Waves.Where(wave => wave > 0).Distinct().OrderBy(wave => wave).ToList();
             Modes ??= new();
             ContentIds ??= new();
             BossSourceIds ??= new();
@@ -615,6 +695,9 @@ namespace MHServerEmu.Games.MythicRifts
 
             int wave = MythicRiftRewardTuning.GetRewardWaveNumber(runState);
             if (wave < MinWave || (MaxWave > 0 && wave > MaxWave))
+                return false;
+
+            if (Waves.Count > 0 && Waves.Contains(wave) == false)
                 return false;
 
             if (ContentIds.Count > 0 &&

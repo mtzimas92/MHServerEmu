@@ -8,9 +8,8 @@ namespace MHServerEmu.Games.MythicRifts
         public const string RelativeConfigPath = "Game/MythicRift/CosmicRiftScaling.json";
 
         private static readonly object TuningLock = new();
-        private static MythicRiftScalingTuning _cachedTuning = CreateDefault();
-        private static DateTime _cachedWriteTimeUtc = DateTime.MinValue;
-        private static bool _cachedFileExists;
+        private static MythicRiftScalingTuning _cachedTuning;
+        private static volatile bool _loaded;
 
         public string ProfileName { get; set; } = "default-scaling";
         public bool Enabled { get; set; } = true;
@@ -55,20 +54,16 @@ namespace MHServerEmu.Games.MythicRifts
 
         public static MythicRiftScalingTuning Load()
         {
-            string configPath = ConfigPath;
-            bool fileExists = File.Exists(configPath);
-            DateTime writeTimeUtc = fileExists ? File.GetLastWriteTimeUtc(configPath) : DateTime.MinValue;
-
-            if (_cachedTuning != null && _cachedFileExists == fileExists && _cachedWriteTimeUtc == writeTimeUtc)
+            if (_loaded)
                 return _cachedTuning;
 
             lock (TuningLock)
             {
-                fileExists = File.Exists(configPath);
-                writeTimeUtc = fileExists ? File.GetLastWriteTimeUtc(configPath) : DateTime.MinValue;
-
-                if (_cachedTuning != null && _cachedFileExists == fileExists && _cachedWriteTimeUtc == writeTimeUtc)
+                if (_loaded)
                     return _cachedTuning;
+
+                string configPath = ConfigPath;
+                bool fileExists = File.Exists(configPath);
 
                 MythicRiftScalingTuning tuning = CreateDefault();
 
@@ -83,8 +78,7 @@ namespace MHServerEmu.Games.MythicRifts
                 }
 
                 _cachedTuning = tuning;
-                _cachedFileExists = fileExists;
-                _cachedWriteTimeUtc = writeTimeUtc;
+                _loaded = true;
                 return _cachedTuning;
             }
         }
@@ -317,11 +311,11 @@ namespace MHServerEmu.Games.MythicRifts
     {
         public bool Enabled { get; set; }
         public int StartLevel { get; set; } = 49;
-        public int CapLevel { get; set; } = 150;
-        public float HealthCap { get; set; } = 5f;
-        public float DamageCap { get; set; } = 2f;
-        public double HealthCurveStrength { get; set; } = 0.08d;
-        public double DamageCurveStrength { get; set; } = 0.06d;
+        public int CapLevel { get; set; } = 2000;
+        public float HealthCap { get; set; } = 30f;
+        public float DamageCap { get; set; } = 3f;
+        public double HealthCurveStrength { get; set; } = 0.002d;
+        public double DamageCurveStrength { get; set; } = 0.2d;
 
         public void Normalize()
         {
@@ -337,11 +331,11 @@ namespace MHServerEmu.Games.MythicRifts
         {
             Enabled = true,
             StartLevel = 49,
-            CapLevel = 150,
-            HealthCap = 5f,
-            DamageCap = 2f,
-            HealthCurveStrength = 0.08d,
-            DamageCurveStrength = 0.06d
+            CapLevel = 2000,
+            HealthCap = 30f,
+            DamageCap = 3f,
+            HealthCurveStrength = 0.002d,
+            DamageCurveStrength = 0.2d
         };
     }
 

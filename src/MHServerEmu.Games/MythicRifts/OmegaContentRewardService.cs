@@ -16,10 +16,12 @@ namespace MHServerEmu.Games.MythicRifts
     public static class OmegaContentRewardService
     {
         private static readonly Logger Logger = LogManager.CreateLogger();
-        private static readonly object LoadLock = new();
+        private const ulong ChampionCommendationItemPrototypeId = 2852929430040615658;
+        private const int WeeklyChampionCommendationCap = 350;
+        private const string WeeklyChampionCommendationClaimId = "mythic-rift:account:champion-commendations-total";
         private static readonly ConcurrentDictionary<(ulong PlayerDbId, PrototypeId MissionRef), long> RecentDeathGrants = new();
         private const long RecentDeathGrantWindowMs = 10 * 60 * 1000;
-        private static OmegaContentRewardTuning _tuning;
+        private static readonly OmegaContentRewardTuning Tuning = OmegaContentRewardTuning.Load();
 
         public static void TryHandleMissionCompletion(in PlayerCompletedMissionGameEvent evt)
         {
@@ -31,34 +33,27 @@ namespace MHServerEmu.Games.MythicRifts
             if (tuning.Enabled == false)
                 return;
 
-            Logger.Info($"[OmegaContentRewardTrace] result=mission-observed playerDbId=0x{player.DatabaseUniqueId:X} mission={evt.MissionRef.GetNameFormatted()} participant={evt.Participant} contributor={evt.Contributor} region={player.CurrentAvatar.Region?.PrototypeDataRef.GetNameFormatted()} difficulty={player.CurrentAvatar.Region?.DifficultyTierRef.GetNameFormatted()}");
+            if (tuning.EnableDiagnostics)
+                Logger.Info($"[OmegaContentRewardTrace] result=mission-observed playerDbId=0x{player.DatabaseUniqueId:X} mission={evt.MissionRef.GetNameFormatted()} participant={evt.Participant} contributor={evt.Contributor} region={player.CurrentAvatar.Region?.PrototypeDataRef.GetNameFormatted()} difficulty={player.CurrentAvatar.Region?.DifficultyTierRef.GetNameFormatted()}");
 
-            foreach (OmegaContentActivityTuning activity in tuning.Activities)
+            foreach (OmegaContentActivityTuning activity in tuning.GetActivities(evt.MissionRef))
             {
-                if (activity?.Enabled != true)
-                    continue;
-
-                PrototypeId missionRef = GameDatabase.GetPrototypeRefByName(activity.CompletionMission);
-                if (missionRef == PrototypeId.Invalid)
-                {
-                    Logger.Info($"[OmegaContentRewardTrace] result=invalid-completion-mission activity={activity.Id} configuredMission={activity.CompletionMission}");
-                    continue;
-                }
-                if (missionRef != evt.MissionRef)
-                    continue;
-
-                PrototypeId difficultyRef = GameDatabase.GetPrototypeRefByName(activity.RequiredDifficulty);
+                PrototypeId missionRef = activity.CompletionMissionRef;
+                PrototypeId difficultyRef = activity.RequiredDifficultyRef;
                 if (difficultyRef != PrototypeId.Invalid && player.CurrentAvatar.Region?.DifficultyTierRef != difficultyRef)
                 {
-                    Logger.Info($"[OmegaContentRewardTrace] result=difficulty-mismatch playerDbId=0x{player.DatabaseUniqueId:X} activity={activity.Id} mission={evt.MissionRef.GetNameFormatted()} required={difficultyRef.GetNameFormatted()} actual={player.CurrentAvatar.Region?.DifficultyTierRef.GetNameFormatted()}");
+                    if (tuning.EnableDiagnostics)
+                        Logger.Info($"[OmegaContentRewardTrace] result=difficulty-mismatch playerDbId=0x{player.DatabaseUniqueId:X} activity={activity.Id} mission={evt.MissionRef.GetNameFormatted()} required={difficultyRef.GetNameFormatted()} actual={player.CurrentAvatar.Region?.DifficultyTierRef.GetNameFormatted()}");
                     return;
                 }
 
-                Logger.Info($"[OmegaContentRewardTrace] result=activity-matched playerDbId=0x{player.DatabaseUniqueId:X} activity={activity.Id} mission={evt.MissionRef.GetNameFormatted()} rewardCount={activity.Rewards.Count}");
+                if (tuning.EnableDiagnostics)
+                    Logger.Info($"[OmegaContentRewardTrace] result=activity-matched playerDbId=0x{player.DatabaseUniqueId:X} activity={activity.Id} mission={evt.MissionRef.GetNameFormatted()} rewardCount={activity.Rewards.Count}");
 
                 if (WasRecentlyGrantedFromEntityDeath(player.DatabaseUniqueId, evt.MissionRef))
                 {
-                    Logger.Info($"[OmegaContentRewardTrace] result=duplicate-completion-suppressed playerDbId=0x{player.DatabaseUniqueId:X} activity={activity.Id} mission={evt.MissionRef.GetNameFormatted()}");
+                    if (tuning.EnableDiagnostics)
+                        Logger.Info($"[OmegaContentRewardTrace] result=duplicate-completion-suppressed playerDbId=0x{player.DatabaseUniqueId:X} activity={activity.Id} mission={evt.MissionRef.GetNameFormatted()}");
                     return;
                 }
 
@@ -76,16 +71,10 @@ namespace MHServerEmu.Games.MythicRifts
             if (tuning.Enabled == false)
                 return;
 
-            foreach (OmegaContentActivityTuning activity in tuning.Activities)
+            foreach (OmegaContentActivityTuning activity in tuning.GetActivities(mission.PrototypeDataRef))
             {
-                if (activity?.Enabled != true)
-                    continue;
-
-                PrototypeId missionRef = GameDatabase.GetPrototypeRefByName(activity.CompletionMission);
-                if (missionRef != mission.PrototypeDataRef)
-                    continue;
-
-                Logger.Info($"[OmegaContentRewardTrace] result=mission-entity-death activity={activity.Id} mission={mission.PrototypeDataRef.GetNameFormatted()} entity={entity.PrototypeDataRef.GetNameFormatted()} entityId=0x{entity.Id:X} entityPos={entity.RegionLocation.Position} killerDbId=0x{killer?.DatabaseUniqueId ?? 0:X} conditionCount={nextCount}/{requiredCount}");
+                if (tuning.EnableDiagnostics)
+                    Logger.Info($"[OmegaContentRewardTrace] result=mission-entity-death activity={activity.Id} mission={mission.PrototypeDataRef.GetNameFormatted()} entity={entity.PrototypeDataRef.GetNameFormatted()} entityId=0x{entity.Id:X} entityPos={entity.RegionLocation.Position} killerDbId=0x{killer?.DatabaseUniqueId ?? 0:X} conditionCount={nextCount}/{requiredCount}");
 
                 using var recipientsHandle = HashSetPool<Player>.Get(out HashSet<Player> recipients);
                 using var playersHandle = ListPool<Player>.Get(out List<Player> players);
@@ -103,10 +92,11 @@ namespace MHServerEmu.Games.MythicRifts
                     if (player?.CurrentAvatar == null || player.CurrentAvatar.Region != entity.Region)
                         continue;
 
-                    PrototypeId difficultyRef = GameDatabase.GetPrototypeRefByName(activity.RequiredDifficulty);
+                    PrototypeId difficultyRef = activity.RequiredDifficultyRef;
                     if (difficultyRef != PrototypeId.Invalid && player.CurrentAvatar.Region.DifficultyTierRef != difficultyRef)
                     {
-                        Logger.Info($"[OmegaContentRewardTrace] result=difficulty-mismatch playerDbId=0x{player.DatabaseUniqueId:X} activity={activity.Id} mission={mission.PrototypeDataRef.GetNameFormatted()} required={difficultyRef.GetNameFormatted()} actual={player.CurrentAvatar.Region.DifficultyTierRef.GetNameFormatted()}");
+                        if (tuning.EnableDiagnostics)
+                            Logger.Info($"[OmegaContentRewardTrace] result=difficulty-mismatch playerDbId=0x{player.DatabaseUniqueId:X} activity={activity.Id} mission={mission.PrototypeDataRef.GetNameFormatted()} required={difficultyRef.GetNameFormatted()} actual={player.CurrentAvatar.Region.DifficultyTierRef.GetNameFormatted()}");
                         continue;
                     }
 
@@ -115,7 +105,8 @@ namespace MHServerEmu.Games.MythicRifts
                     grantedRecipients++;
                 }
 
-                Logger.Info($"[OmegaContentRewardTrace] result=death-rewards-processed activity={activity.Id} mission={mission.PrototypeDataRef.GetNameFormatted()} recipients={grantedRecipients}");
+                if (tuning.EnableDiagnostics)
+                    Logger.Info($"[OmegaContentRewardTrace] result=death-rewards-processed activity={activity.Id} mission={mission.PrototypeDataRef.GetNameFormatted()} recipients={grantedRecipients}");
                 return;
             }
         }
@@ -132,14 +123,20 @@ namespace MHServerEmu.Games.MythicRifts
 
         private static bool WasRecentlyGrantedFromEntityDeath(ulong playerDbId, PrototypeId missionRef)
         {
-            if (RecentDeathGrants.TryGetValue((playerDbId, missionRef), out long grantedAt) == false)
+            (ulong PlayerDbId, PrototypeId MissionRef) key = (playerDbId, missionRef);
+            if (RecentDeathGrants.TryGetValue(key, out long grantedAt) == false)
                 return false;
 
-            return Environment.TickCount64 - grantedAt <= RecentDeathGrantWindowMs;
+            if (Environment.TickCount64 - grantedAt <= RecentDeathGrantWindowMs)
+                return true;
+
+            RecentDeathGrants.TryRemove(key, out _);
+            return false;
         }
 
         private static void GrantActivityRewards(Player player, OmegaContentActivityTuning activity, WorldEntity rewardSource = null)
         {
+            bool enableDiagnostics = GetTuning().EnableDiagnostics;
             foreach (OmegaContentRewardEntryTuning reward in activity.Rewards)
             {
                 if (reward?.Enabled != true || reward.Quantity <= 0)
@@ -147,7 +144,8 @@ namespace MHServerEmu.Games.MythicRifts
                 float chanceRoll = player.Game.Random.NextFloat() * 100f;
                 if (chanceRoll >= reward.ChancePercent)
                 {
-                    Logger.Info($"[OmegaContentRewardTrace] result=chance-failed playerDbId=0x{player.DatabaseUniqueId:X} activity={activity.Id} reward={reward.Id} roll={chanceRoll:F4} chance={reward.ChancePercent:F4}");
+                    if (enableDiagnostics)
+                        Logger.Info($"[OmegaContentRewardTrace] result=chance-failed playerDbId=0x{player.DatabaseUniqueId:X} activity={activity.Id} reward={reward.Id} roll={chanceRoll:F4} chance={reward.ChancePercent:F4}");
                     continue;
                 }
 
@@ -159,29 +157,43 @@ namespace MHServerEmu.Games.MythicRifts
                     quantity = Math.Min(quantity, Math.Max(reward.PeriodLimit - claimed, 0));
                     if (quantity <= 0)
                     {
-                        Logger.Info($"[OmegaContentRewardTrace] result=blocked playerDbId=0x{player.DatabaseUniqueId:X} activity={activity.Id} reward={reward.Id} period={reward.Period} periodMarker={periodMarker} claimed={claimed} limit={reward.PeriodLimit}");
+                        if (enableDiagnostics)
+                            Logger.Info($"[OmegaContentRewardTrace] result=blocked playerDbId=0x{player.DatabaseUniqueId:X} activity={activity.Id} reward={reward.Id} period={reward.Period} periodMarker={periodMarker} claimed={claimed} limit={reward.PeriodLimit}");
                         continue;
                     }
                 }
 
-                PrototypeId itemRef = reward.ItemPrototypeRuntimeId != 0
-                    ? (PrototypeId)reward.ItemPrototypeRuntimeId
-                    : GameDatabase.GetPrototypeRefByName(reward.ItemPrototype);
+                PrototypeId itemRef = reward.ItemPrototypeRef;
                 if (itemRef == PrototypeId.Invalid)
                 {
-                    Logger.Info($"[OmegaContentRewardTrace] result=invalid-item playerDbId=0x{player.DatabaseUniqueId:X} activity={activity.Id} reward={reward.Id} runtimeId={reward.ItemPrototypeRuntimeId} prototype={reward.ItemPrototype}");
+                    Logger.Warn($"Invalid Omega content reward item: activity={activity.Id} reward={reward.Id} runtimeId={reward.ItemPrototypeRuntimeId} prototype={reward.ItemPrototype}");
                     continue;
                 }
+
+                long championPeriodMarker = 0;
+                if (itemRef == (PrototypeId)ChampionCommendationItemPrototypeId)
+                {
+                    championPeriodMarker = GetPeriodMarker("weekly");
+                    int weeklyClaimed = player.OmegaContentRewardProgress.GetClaimedAmount(WeeklyChampionCommendationClaimId, championPeriodMarker);
+                    quantity = Math.Min(quantity, Math.Max(WeeklyChampionCommendationCap - weeklyClaimed, 0));
+                    if (quantity <= 0)
+                        continue;
+                }
+
                 if (GiveStackedItem(player, itemRef, quantity, reward.ItemLevel, rewardSource) == false)
                 {
-                    Logger.Info($"[OmegaContentRewardTrace] result=delivery-failed playerDbId=0x{player.DatabaseUniqueId:X} activity={activity.Id} reward={reward.Id} item={itemRef.GetNameFormatted()} quantity={quantity} itemLevel={reward.ItemLevel}");
+                    Logger.Warn($"Failed to deliver Omega content reward: playerDbId=0x{player.DatabaseUniqueId:X} activity={activity.Id} reward={reward.Id} item={itemRef.GetNameFormatted()} quantity={quantity} itemLevel={reward.ItemLevel}");
                     continue;
                 }
 
                 if (reward.PeriodLimit > 0)
                     player.OmegaContentRewardProgress.AddClaimedAmount(reward.Id, periodMarker, quantity);
 
-                Logger.Info($"[OmegaContentRewardTrace] result=granted playerDbId=0x{player.DatabaseUniqueId:X} activity={activity.Id} reward={reward.Id} item={itemRef.GetNameFormatted()} quantity={quantity} period={reward.Period} periodMarker={periodMarker} limit={reward.PeriodLimit}");
+                if (championPeriodMarker != 0)
+                    player.OmegaContentRewardProgress.AddClaimedAmount(WeeklyChampionCommendationClaimId, championPeriodMarker, quantity);
+
+                if (enableDiagnostics)
+                    Logger.Info($"[OmegaContentRewardTrace] result=granted playerDbId=0x{player.DatabaseUniqueId:X} activity={activity.Id} reward={reward.Id} item={itemRef.GetNameFormatted()} quantity={quantity} period={reward.Period} periodMarker={periodMarker} limit={reward.PeriodLimit}");
             }
         }
 
@@ -245,11 +257,7 @@ namespace MHServerEmu.Games.MythicRifts
 
         private static OmegaContentRewardTuning GetTuning()
         {
-            if (_tuning != null)
-                return _tuning;
-
-            lock (LoadLock)
-                return _tuning ??= OmegaContentRewardTuning.Load();
+            return Tuning;
         }
     }
 }

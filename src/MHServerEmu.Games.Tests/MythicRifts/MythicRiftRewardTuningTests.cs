@@ -123,6 +123,44 @@ namespace MHServerEmu.Games.Tests.MythicRifts
             Assert.False(itemPool.AppliesTo(new(CreateConfig("boss-a", 25)), timedSuccess: false, checkpointSuccess: false));
         }
 
+        [Fact]
+        public void Normalize_IndexesEnabledRewardShopOffersByVendorAndId()
+        {
+            MythicRiftRewardTuning tuning = new()
+            {
+                RewardShopOffers = new()
+                {
+                    new() { Id = "rift-offer", Vendor = "rift", Enabled = true, SigilCost = 10, ItemPrototypePaths = new() { "Entity/Items/Test.prototype" } },
+                    new() { Id = "raid-offer", Vendor = "omegaRaid", Enabled = true, SigilCost = 20, ItemPrototypePaths = new() { "Entity/Items/Test.prototype" } },
+                    new() { Id = "disabled-offer", Vendor = "rift", Enabled = false, SigilCost = 30, ItemPrototypePaths = new() { "Entity/Items/Test.prototype" } }
+                }
+            };
+
+            tuning.Normalize();
+
+            Assert.Single(tuning.GetRewardShopOffers("RIFT"));
+            Assert.Equal("rift-offer", tuning.GetRewardShopOffer("rift", "RIFT-OFFER")?.Id);
+            Assert.Equal("raid-offer", tuning.GetRewardShopOffer("omegaRaid", "raid-offer")?.Id);
+            Assert.Null(tuning.GetRewardShopOffer("rift", "disabled-offer"));
+        }
+
+        [Fact]
+        public void Normalize_IndexesRandomItemPoolsCaseInsensitively()
+        {
+            MythicRiftRewardTuning tuning = new()
+            {
+                RandomItemPools = new()
+                {
+                    new() { Id = "cosmic-artifacts", ItemPrototypePaths = new() { "Entity/Items/Test.prototype" } }
+                }
+            };
+
+            tuning.Normalize();
+
+            Assert.Equal("cosmic-artifacts", tuning.GetRandomItemPool("COSMIC-ARTIFACTS")?.Id);
+            Assert.Null(tuning.GetRandomItemPool("missing"));
+        }
+
         private static MythicRiftRunConfig CreateConfig(
             string bossSourceId,
             int riftLevel,

@@ -28,62 +28,69 @@ namespace MHServerEmu.Games.Tests.MythicRifts
         }
 
         [Fact]
-        public void BuildSnapshot_LevelTwentyFiveSolo_UsesCompressedD3EquivalentScaling()
+        public void BuildSnapshot_LevelTwentyFiveSolo_UsesConfiguredStandardScaling()
         {
             MythicRiftDifficultySnapshot snapshot = MythicRiftScaling.BuildSnapshot(25, 1);
 
             Assert.Equal(25, snapshot.RiftLevel);
             Assert.Equal(1, snapshot.EffectivePlayerCount);
-            Assert.InRange(snapshot.EquivalentD3RiftLevel, 9.999f, 10.001f);
+            Assert.Equal(25f, snapshot.EquivalentD3RiftLevel);
             Assert.InRange(snapshot.GroupHealthMultiplier, 0.999f, 1.001f);
-            Assert.InRange(snapshot.HealthMultiplier, 4.107f, 4.109f);
-            Assert.InRange(snapshot.DamageMultiplier, 1.719f, 1.721f);
+            Assert.Equal(1f, snapshot.HealthMultiplier);
+            Assert.Equal(1f, snapshot.DamageMultiplier);
         }
 
         [Fact]
-        public void BuildSnapshot_LevelTwentyFiveFourPlayers_AppliesGroupHealthOnlyToHealth()
+        public void BuildSnapshot_LevelTwentyFiveStandard_DoesNotApplyPartyHealthScaling()
         {
             MythicRiftDifficultySnapshot soloSnapshot = MythicRiftScaling.BuildSnapshot(25, 1);
             MythicRiftDifficultySnapshot groupSnapshot = MythicRiftScaling.BuildSnapshot(25, 4);
 
             Assert.Equal(4, groupSnapshot.EffectivePlayerCount);
-            Assert.InRange(groupSnapshot.EquivalentD3RiftLevel, 9.999f, 10.001f);
-            Assert.InRange(groupSnapshot.GroupHealthMultiplier, 2.499f, 2.501f);
-            Assert.InRange(groupSnapshot.HealthMultiplier, (soloSnapshot.HealthMultiplier * 2.5f) - 0.001f, (soloSnapshot.HealthMultiplier * 2.5f) + 0.001f);
+            Assert.Equal(25f, groupSnapshot.EquivalentD3RiftLevel);
+            Assert.Equal(1f, groupSnapshot.GroupHealthMultiplier);
+            Assert.Equal(soloSnapshot.HealthMultiplier, groupSnapshot.HealthMultiplier);
             Assert.InRange(groupSnapshot.DamageMultiplier, soloSnapshot.DamageMultiplier - 0.001f, soloSnapshot.DamageMultiplier + 0.001f);
         }
 
         [Fact]
-        public void BuildSnapshot_HigherRiftLevelsRemainMonotonic()
+        public void BuildSnapshot_StandardPostCapScalingRemainsMonotonic()
         {
-            MythicRiftDifficultySnapshot levelTen = MythicRiftScaling.BuildSnapshot(10, 1);
             MythicRiftDifficultySnapshot levelTwentyFive = MythicRiftScaling.BuildSnapshot(25, 1);
             MythicRiftDifficultySnapshot levelFifty = MythicRiftScaling.BuildSnapshot(50, 1);
+            MythicRiftDifficultySnapshot levelOneHundredFifty = MythicRiftScaling.BuildSnapshot(150, 1);
 
-            Assert.True(levelTwentyFive.EquivalentD3RiftLevel > levelTen.EquivalentD3RiftLevel);
             Assert.True(levelFifty.EquivalentD3RiftLevel > levelTwentyFive.EquivalentD3RiftLevel);
-            Assert.True(levelTwentyFive.HealthMultiplier > levelTen.HealthMultiplier);
             Assert.True(levelFifty.HealthMultiplier > levelTwentyFive.HealthMultiplier);
-            Assert.True(levelTwentyFive.DamageMultiplier > levelTen.DamageMultiplier);
             Assert.True(levelFifty.DamageMultiplier > levelTwentyFive.DamageMultiplier);
+            Assert.True(levelOneHundredFifty.HealthMultiplier > levelFifty.HealthMultiplier);
+            Assert.True(levelOneHundredFifty.DamageMultiplier > levelFifty.DamageMultiplier);
         }
 
         [Fact]
-        public void BuildSnapshot_StandardDamageCapsAtHighLevels()
+        public void BuildSnapshot_StandardDamageContinuesScalingPastLevel150()
         {
+            MythicRiftDifficultySnapshot levelOneHundredFifty = MythicRiftScaling.BuildSnapshot(150, 1);
             MythicRiftDifficultySnapshot levelTwoHundred = MythicRiftScaling.BuildSnapshot(200, 1);
+            MythicRiftDifficultySnapshot levelOneThousandOne = MythicRiftScaling.BuildSnapshot(1001, 1);
 
-            Assert.InRange(levelTwoHundred.DamageMultiplier, 2.399f, 2.401f);
+            Assert.True(levelTwoHundred.DamageMultiplier > levelOneHundredFifty.DamageMultiplier);
+            Assert.True(levelOneThousandOne.DamageMultiplier > levelTwoHundred.DamageMultiplier);
+            Assert.InRange(levelOneThousandOne.DamageMultiplier, 2.75f, 2.77f);
         }
 
         [Fact]
-        public void BuildSnapshot_StandardEffectiveHealthCapsAtHighLevels()
+        public void BuildSnapshot_StandardEffectiveHealthContinuesScalingPastLevel150()
         {
+            MythicRiftDifficultySnapshot levelOneHundredFifty = MythicRiftScaling.BuildSnapshot(150, 5);
             MythicRiftDifficultySnapshot levelTwoHundredFullParty = MythicRiftScaling.BuildSnapshot(200, 5);
+            MythicRiftDifficultySnapshot levelOneThousandOne = MythicRiftScaling.BuildSnapshot(1001, 5);
 
             Assert.Equal(5, levelTwoHundredFullParty.EffectivePlayerCount);
-            Assert.InRange(levelTwoHundredFullParty.GroupHealthMultiplier, 2.999f, 3.001f);
-            Assert.InRange(levelTwoHundredFullParty.HealthMultiplier, 11.999f, 12.001f);
+            Assert.InRange(levelTwoHundredFullParty.GroupHealthMultiplier, 0.999f, 1.001f);
+            Assert.True(levelTwoHundredFullParty.HealthMultiplier > levelOneHundredFifty.HealthMultiplier);
+            Assert.True(levelOneThousandOne.HealthMultiplier > levelTwoHundredFullParty.HealthMultiplier);
+            Assert.InRange(levelOneThousandOne.HealthMultiplier, 20.90f, 20.94f);
         }
 
         [Theory]
@@ -101,15 +108,15 @@ namespace MHServerEmu.Games.Tests.MythicRifts
         }
 
         [Fact]
-        public void BuildSnapshot_EndlessUsesConfiguredScalingWithoutPartyHealthStacking()
+        public void BuildSnapshot_EndlessUsesConfiguredScalingWithPartyHealthStacking()
         {
             MythicRiftDifficultySnapshot solo = MythicRiftScaling.BuildSnapshot(20, 1, useThirtyWaveMode: true);
             MythicRiftDifficultySnapshot party = MythicRiftScaling.BuildSnapshot(20, 4, useThirtyWaveMode: true);
 
             Assert.Equal(20f, solo.EquivalentD3RiftLevel);
             Assert.Equal(1f, solo.HealthMultiplier);
-            Assert.Equal(1f, party.HealthMultiplier);
-            Assert.Equal(1f, party.GroupHealthMultiplier);
+            Assert.Equal(2.5f, party.HealthMultiplier);
+            Assert.Equal(2.5f, party.GroupHealthMultiplier);
             Assert.Equal(4, party.EffectivePlayerCount);
         }
 

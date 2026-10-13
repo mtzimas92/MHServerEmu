@@ -18,6 +18,12 @@ namespace MHServerEmu.Games.MythicRifts
         public List<MythicRiftContentPoolEntryTuning> Content { get; set; } = new();
 
         public static string ConfigPath => Path.Combine(FileHelper.DataDirectory, RelativeConfigPath);
+
+        private static readonly Lazy<MythicRiftContentPoolTuning> CachedTuning = new(() =>
+            FileHelper.DeserializeJson<MythicRiftContentPoolTuning>(ConfigPath, JsonOptions)
+            ?? new MythicRiftContentPoolTuning());
+
+        public static MythicRiftContentPoolTuning Load() => CachedTuning.Value;
     }
 
     /// <summary>JSON schema for one entry in MythicRiftContentPool.json - mirrors the fields of the
@@ -29,6 +35,7 @@ namespace MHServerEmu.Games.MythicRifts
         public string DisplayName { get; set; }
         public int DefaultKillQuota { get; set; }
         public string RegionPrototypeName { get; set; }
+        public string StartTargetPrototypeName { get; set; }
         public string MissionPrototypeName { get; set; }
         public string BossPrototypeName { get; set; }
         public string BossLootTablePrototypeName { get; set; }
@@ -38,6 +45,7 @@ namespace MHServerEmu.Games.MythicRifts
         public bool UseOwnBossSourceWhenSelected { get; set; }
         public bool UseCustomPopulation { get; set; }
         public bool BossOnlyCheckpointEligible { get; set; }
+        public List<string> Modes { get; set; } = new();
         public string BossFamily { get; set; }
         public int MinRandomRiftLevel { get; set; } = 1;
         public int MaxRandomRiftLevel { get; set; }

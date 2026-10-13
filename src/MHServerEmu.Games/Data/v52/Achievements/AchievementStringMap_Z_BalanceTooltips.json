@@ -53,7 +53,7 @@
   "9290130780033910027": {
     "en_us": "Deafen, damage, and knock down nearby enemies with a supersonic battlecry from your resonant Osmium body. The knockdown cannot be resisted by enemies. When #emphasis#Osmium Challenge#/emphasis# is selected this power auto-casts #emphasis#Heroic Challenge#/emphasis#."
   },
-  "10306729331235947840": {
+  "3568740905858041105": {
     "en_us": "When you Critically Hit with a Melee Power, gain  +$param1.power.condition0.castspeedincrpct.pct$% Attack Speed for 15s. (Stacks up to 4 times) At 4 stacks gain +$param1.power.onPowerStartPower0.onStackCountPower0.condition0.statFightingSkillsModifier$ Fighting and +$param1.power.onPowerStartPower0.onStackCountPower0.condition0.statSpeedModifier$ Speed for 5s."
   },
   "12607443750062916921": {

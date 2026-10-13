@@ -24,5 +24,6 @@
     "Entity/Characters/Bosses/PVEDailies/Cosmic/EGD09CDrDoomPhase1.prototype",
     "Entity/Characters/Bosses/PVEDailies/Cosmic/EGD09CDrDoomPhase2.prototype",
     "Entity/Characters/Bosses/PVEDailies/Cosmic/EGD09CDrDoomPhase3.prototype"
-  ]
+  ],
+  "completionRewards": []
 }
