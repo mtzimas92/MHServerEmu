@@ -140,7 +140,6 @@ namespace MHServerEmu.Games.MythicRifts
         private const string OmegaRewardRarityPrototypeName = "Entity/Items/Rarity/R6Omega.prototype";
         private const string RiftEternitySplinterLootTablePrototypeName = "Loot/Tables/SplinterBoostTable.prototype";
         private static readonly PrototypeId EternitySplinterItemPrototypeRef = (PrototypeId)11087194553833821680UL;
-        private const string BlobBossPrototypeName = "Entity/Characters/Bosses/PVEDailies/Green/EGDGSBBlob.prototype";
         private const float RiftCompletionArtifactVendorSpawnOffset = -260f;
         private const float RiftCompletionCrafterSpawnOffset = 180f;
         private const string BossGauntletArenaContentId = "boss-gauntlet-patrol-savage";
@@ -218,7 +217,6 @@ namespace MHServerEmu.Games.MythicRifts
         private readonly Dictionary<ulong, HashSet<ulong>> _pendingRewardRoomPlayerDbIdsByRun = new();
         private readonly Dictionary<ulong, HashSet<ulong>> _requestedRewardRoomPlayerDbIdsByRun = new();
         private readonly Dictionary<ulong, TimeSpan> _nextCheckpointBossSpawnRetryAt = new();
-        private readonly Dictionary<ulong, TimeSpan> _pendingBlobBossDiagnosticsAt = new();
         private readonly Dictionary<ulong, HashSet<Mission>> _serverSuspendedNativeObjectiveMissionsByRun = new();
         private readonly HashSet<(ulong RunId, ulong PlayerDbId, PrototypeId MissionRef)> _nativeMissionTrackerSuppressionsSent = new();
         private readonly HashSet<ulong> _nativeBossGauntletPopulationEventsStopped = new();
@@ -1763,7 +1761,6 @@ namespace MHServerEmu.Games.MythicRifts
             PropertyId rarityPropertyId = new(PropertyEnum.LootBonusRarityPct);
             PropertyId specialPropertyId = new(PropertyEnum.LootBonusSpecialPct);
 
-            TraceItemFind(runState, player, "reward-before", rewardOutcome.BonusRarityPct, rewardOutcome.BonusSpecialPct);
             try
             {
                 float totalBonusRarityPct = rewardOutcome.BonusRarityPct;
@@ -1774,8 +1771,6 @@ namespace MHServerEmu.Games.MythicRifts
 
                 if (totalBonusSpecialPct > 0f)
                     avatar.Properties.AdjustProperty(totalBonusSpecialPct, specialPropertyId);
-
-                TraceItemFind(runState, player, "reward-applied", totalBonusRarityPct, totalBonusSpecialPct);
 
                 List<ulong> rewardRecipientDbIds = runState.RewardEligiblePlayerDbIds.OrderBy(id => id).ToList();
                 int rewardRecipientIndex = Math.Max(rewardRecipientDbIds.IndexOf(player.DatabaseUniqueId), 0);
@@ -1814,7 +1809,6 @@ namespace MHServerEmu.Games.MythicRifts
 
                     if (CanClaimLimitedReward(player, avatar, extraLootTable.Id, extraLootTable.ClaimPeriod, extraLootTable.ClaimScope) == false)
                     {
-                        LogLimitedRewardClaim("blocked", player, avatar, extraLootTable.Id, extraLootTable.ClaimPeriod, extraLootTable.ClaimScope, 0);
                         continue;
                     }
 
@@ -1854,7 +1848,6 @@ namespace MHServerEmu.Games.MythicRifts
                     if (grantedAny)
                     {
                         MarkLimitedRewardClaimed(player, avatar, extraLootTable.Id, extraLootTable.ClaimPeriod, extraLootTable.ClaimScope);
-                        LogLimitedRewardClaim("granted", player, avatar, extraLootTable.Id, extraLootTable.ClaimPeriod, extraLootTable.ClaimScope, grantedRolls);
                     }
                 }
 
@@ -1865,7 +1858,6 @@ namespace MHServerEmu.Games.MythicRifts
 
                     if (CanClaimLimitedReward(player, avatar, guaranteedItem) == false)
                     {
-                        LogLimitedRewardClaim("blocked", player, avatar, guaranteedItem.Id, guaranteedItem.ClaimPeriod, guaranteedItem.ClaimScope, 0);
                         continue;
                     }
 
@@ -1899,14 +1891,6 @@ namespace MHServerEmu.Games.MythicRifts
 
                     RecordChampionCommendationsGranted(player, guaranteedItem, quantity);
                     MarkLimitedRewardClaimed(player, avatar, guaranteedItem);
-                    LogLimitedRewardClaim("granted", player, avatar, guaranteedItem.Id, guaranteedItem.ClaimPeriod, guaranteedItem.ClaimScope, quantity);
-                    Logger.Info(
-                        $"[MythicRiftRewardGrantTrace] runId={runState.Config.RunId} mode={runState.Config.Mode} " +
-                        $"riftLevel={runState.Config.RiftLevel} wave={runState.Config.WaveNumber} " +
-                        $"playerDbId=0x{player.DatabaseUniqueId:X} avatar={avatar.PrototypeDataRef.GetNameFormatted()} " +
-                        $"reward={guaranteedItem.Id} item={guaranteedItem.ItemProtoRef.GetNameFormatted()} " +
-                        $"quantity={quantity} rewardWave={guaranteedItem.RewardWave} " +
-                        $"participantFloor={runState.GetParticipantRewardFloorWave(player.DatabaseUniqueId)} delivery={guaranteedItem.Delivery}");
                 }
 
                 foreach ((MythicRiftRewardGuaranteedItem reward, int quantity) in combinedGuaranteedItems.Values)
@@ -1943,42 +1927,7 @@ namespace MHServerEmu.Games.MythicRifts
                 if (rewardOutcome.BonusSpecialPct > 0f)
                     avatar.Properties.AdjustProperty(-rewardOutcome.BonusSpecialPct, specialPropertyId);
 
-                TraceItemFind(runState, player, "reward-restored", rewardOutcome.BonusRarityPct, rewardOutcome.BonusSpecialPct);
             }
-        }
-
-        private static void TraceItemFind(
-            MythicRiftRunState runState,
-            Player player,
-            string stage,
-            float rewardRarityPct = 0f,
-            float rewardSpecialPct = 0f)
-        {
-            Avatar avatar = player?.CurrentAvatar;
-            Region region = avatar?.Region;
-            if (runState?.Config == null || avatar == null || region == null)
-                return;
-
-            float regionRarityPct = region.Properties[PropertyEnum.LootBonusRarityPct];
-            float regionSpecialPct = region.Properties[PropertyEnum.LootBonusSpecialPct];
-            float regionStackingRarityPct = Avatar.GetStackingLootBonusRarityPct(region.Properties);
-            float regionStackingSpecialPct = Avatar.GetStackingLootBonusSpecialPct(region.Properties);
-            float avatarRarityPct = avatar.Properties[PropertyEnum.LootBonusRarityPct];
-            float avatarSpecialPct = avatar.Properties[PropertyEnum.LootBonusSpecialPct];
-            float avatarStackingRarityPct = Avatar.GetStackingLootBonusRarityPct(avatar.Properties);
-            float avatarStackingSpecialPct = Avatar.GetStackingLootBonusSpecialPct(avatar.Properties);
-            float effectiveRarityPct = regionRarityPct + regionStackingRarityPct + avatarRarityPct + avatarStackingRarityPct;
-            float effectiveSpecialPct = regionSpecialPct + regionStackingSpecialPct + avatarSpecialPct + avatarStackingSpecialPct;
-            DifficultyTierPrototype difficulty = region.DifficultyTierRef.As<DifficultyTierPrototype>();
-
-            Logger.Info(
-                $"[MythicRiftItemFindTrace] stage={stage} runId={runState.Config.RunId} mode={runState.Config.Mode} " +
-                $"riftLevel={runState.Config.RiftLevel} wave={runState.Config.WaveNumber} playerDbId=0x{player.DatabaseUniqueId:X} " +
-                $"avatar={avatar.PrototypeDataRef.GetNameFormatted()} region={region.PrototypeDataRef.GetNameFormatted()} " +
-                $"difficulty={region.DifficultyTierRef.GetNameFormatted()} difficultyRIF={(difficulty?.ItemFindRarePct ?? 0f):F4} difficultySIF={(difficulty?.ItemFindSpecialPct ?? 0f):F4} " +
-                $"regionRIF={regionRarityPct:F4} regionStackRIF={regionStackingRarityPct:F4} avatarRIF={avatarRarityPct:F4} avatarStackRIF={avatarStackingRarityPct:F4} " +
-                $"regionSIF={regionSpecialPct:F4} regionStackSIF={regionStackingSpecialPct:F4} avatarSIF={avatarSpecialPct:F4} avatarStackSIF={avatarStackingSpecialPct:F4} " +
-                $"rewardRIF={rewardRarityPct:F4} rewardSIF={rewardSpecialPct:F4} effectiveRIFPct={(effectiveRarityPct * 100f):F2} effectiveSIFPct={(effectiveSpecialPct * 100f):F2}");
         }
 
         private void GrantRewardLootTable(PrototypeId lootTableProtoRef, LootInputSettings inputSettings, string delivery, ref int groundRecipientId, int itemLevel = 0)
@@ -2365,8 +2314,6 @@ namespace MHServerEmu.Games.MythicRifts
             PropertyId rarityPropertyId = new(PropertyEnum.LootBonusRarityPct);
             PropertyId specialPropertyId = new(PropertyEnum.LootBonusSpecialPct);
 
-            TraceItemFind(runState, player, "chest-before", bonusRarityPct, bonusSpecialPct);
-
             try
             {
                 if (bonusRarityPct > 0f)
@@ -2374,8 +2321,6 @@ namespace MHServerEmu.Games.MythicRifts
 
                 if (bonusSpecialPct > 0f)
                     avatar.Properties.AdjustProperty(bonusSpecialPct, specialPropertyId);
-
-                TraceItemFind(runState, player, "chest-applied", bonusRarityPct, bonusSpecialPct);
 
                 int groundRecipientId = 1;
                 Vector3? positionOverride = sourceEntity?.IsInWorld == true
@@ -2407,7 +2352,6 @@ namespace MHServerEmu.Games.MythicRifts
                 if (bonusSpecialPct > 0f)
                     avatar.Properties.AdjustProperty(-bonusSpecialPct, specialPropertyId);
 
-                TraceItemFind(runState, player, "chest-restored", bonusRarityPct, bonusSpecialPct);
             }
         }
 
@@ -2792,8 +2736,6 @@ namespace MHServerEmu.Games.MythicRifts
             AttachRunRegion(runState, region.Id);
             RegisterRegionPlayersAsParticipants(runState, region);
             ApplyRunDifficultyToRegion(runState, region);
-            foreach (Player player in new PlayerIterator(region))
-                TraceItemFind(runState, player, "rift-entry");
             EnsureRegionListener(region);
             DisableNativeLootForRiftRegion(runState, region);
             if (runState.Config.UseBossGauntletMode)
@@ -2827,7 +2769,6 @@ namespace MHServerEmu.Games.MythicRifts
 
         public void Update(TimeSpan currentTime)
         {
-            ProcessPendingBlobBossDiagnostics(currentTime);
 
             List<ulong> runsToRemove = null;
 
@@ -3386,7 +3327,8 @@ namespace MHServerEmu.Games.MythicRifts
             if (entity is Agent agent && agent is not Avatar && HasNativeLootDisabledRiftRun(regionId))
                 DisableNativeLootForAgent(agent);
 
-            if (_runByRegionId.ContainsKey(regionId) == false && _runByRewardRoomRegionId.ContainsKey(regionId) == false)
+            bool isRiftRegion = _runByRegionId.TryGetValue(regionId, out MythicRiftRunState runState);
+            if (isRiftRegion == false && _runByRewardRoomRegionId.ContainsKey(regionId) == false)
                 return;
 
             if (_pendingEnteredEntityIdsByRegion.TryGetValue(regionId, out HashSet<ulong> pendingEntityIds) == false)
@@ -3415,7 +3357,10 @@ namespace MHServerEmu.Games.MythicRifts
                 pendingEntityIds.Count == 0)
                 return;
 
-            foreach (ulong entityId in pendingEntityIds)
+            ulong[] entityIds = pendingEntityIds.ToArray();
+            pendingEntityIds.Clear();
+
+            foreach (ulong entityId in entityIds)
             {
                 Entity entity = Game.EntityManager.GetEntity<Entity>(entityId);
                 if (entity == null || entity.IsDestroyed || (entity is WorldEntity worldEntity && worldEntity.IsInWorld == false))
@@ -3435,7 +3380,6 @@ namespace MHServerEmu.Games.MythicRifts
                     entity.Destroy();
             }
 
-            pendingEntityIds.Clear();
         }
 
         private bool ShouldSuppressRewardRoomEntity(MythicRiftRunState runState, Entity entity)
@@ -5729,15 +5673,6 @@ namespace MHServerEmu.Games.MythicRifts
             return new DateTimeOffset(dailyPeriodStart, TimeSpan.Zero).ToUnixTimeSeconds();
         }
 
-        private static void LogLimitedRewardClaim(string result, Player player, Avatar avatar, string rewardId, string claimPeriod, string claimScope, int quantity)
-        {
-            if (string.IsNullOrWhiteSpace(claimPeriod))
-                return;
-
-            long periodMarker = GetLimitedRewardPeriod(claimPeriod);
-            Logger.Info($"[MythicRiftLimitedRewardTrace] result={result} playerDbId=0x{player?.DatabaseUniqueId:X} avatar={avatar?.PrototypeDataRef.GetNameFormatted()} reward={rewardId} period={claimPeriod} scope={claimScope} periodMarker={periodMarker} quantity={quantity}");
-        }
-
         private static bool ShouldResolveRandomItemPoolAtGrantTime(MythicRiftRandomItemPoolTuning entry, IReadOnlyList<EquipmentInvUISlot> allowedEquipmentSlots)
         {
             if (entry == null || string.IsNullOrWhiteSpace(entry.PrototypeDirectoryPrefix))
@@ -6724,7 +6659,7 @@ namespace MHServerEmu.Games.MythicRifts
             if (player == null)
                 return;
 
-            TryTeleportPartyToRewardRoom(runState, player, "dialog");
+            TryTeleportPartyToRewardRoom(runState, player);
         }
 
         private void ClearRewardRoomDialogs(MythicRiftRunState runState)
@@ -6740,7 +6675,7 @@ namespace MHServerEmu.Games.MythicRifts
             }
         }
 
-        private bool TryTeleportPartyToRewardRoom(MythicRiftRunState runState, Player initiatingPlayer, string source)
+        private bool TryTeleportPartyToRewardRoom(MythicRiftRunState runState, Player initiatingPlayer)
         {
             if (runState?.Config == null || initiatingPlayer == null || runState.RewardRoomTeleportResolved)
                 return false;
@@ -6754,12 +6689,6 @@ namespace MHServerEmu.Games.MythicRifts
                 transferPlayers.Add(initiatingPlayer);
 
             Player anchorPlayer = transferPlayers.FirstOrDefault(player => player.IsPartyLeader()) ?? initiatingPlayer;
-
-            Logger.Info(
-                $"[MythicRiftRewardRoomTrace] stage=roster source={source} runId={runState.Config.RunId} mode={runState.Config.Mode} " +
-                $"initiatorDbId=0x{initiatingPlayer.DatabaseUniqueId:X} anchorDbId=0x{anchorPlayer.DatabaseUniqueId:X} " +
-                $"sourceRegionId=0x{runState.RegionId:X} admitted=[{FormatPlayerDbIds(runState.AdmittedPlayerDbIds)}] " +
-                $"participants=[{FormatPlayerDbIds(runState.ParticipantPlayerDbIds)}] transfer=[{FormatPlayerDbIds(transferPlayerDbIds)}]");
 
             MythicRiftContentEntry arenaContent = GetContent(BossGauntletRewardRoomContentId);
             if (arenaContent?.HasValidMap != true)
@@ -6783,11 +6712,6 @@ namespace MHServerEmu.Games.MythicRifts
             Region originalRegion = Game.RegionManager.GetRegion(runState.RegionId);
             PrototypeId difficultyTierRef = originalRegion?.DifficultyTierRef ?? GameDatabase.GlobalsPrototype.DifficultyTierDefault;
             bool anchorTeleportRequested = TryTeleportSinglePlayerToRewardRoom(anchorPlayer, regionProtoRef, areaProtoRef, cellProtoRef, entityProtoRef, difficultyTierRef, Array.Empty<PrototypeId>(), runState.RegionId, usePartyTeleportContext: false);
-            Logger.Info(
-                $"[MythicRiftRewardRoomTrace] stage=anchor-request runId={runState.Config.RunId} mode={runState.Config.Mode} " +
-                $"playerDbId=0x{anchorPlayer.DatabaseUniqueId:X} targetRegion={regionProtoRef.GetNameFormatted()} " +
-                $"difficulty={difficultyTierRef.GetNameFormatted()} requested={anchorTeleportRequested} " +
-                $"pendingTransfer={anchorPlayer.PlayerConnection?.HasPendingRegionTransfer == true}");
             if (anchorTeleportRequested == false)
             {
                 // Logger.Warn($"Mythic Rift run {runState.Config.RunId} failed to teleport playerDbId=0x{anchorPlayer.DatabaseUniqueId:X} to the reward room.");
@@ -6923,9 +6847,6 @@ namespace MHServerEmu.Games.MythicRifts
                     {
                         rewardRoomRegionId = generatedRewardRoom.Id;
                         _pendingRewardRoomRegionIdByRun[runId] = rewardRoomRegionId;
-                        Logger.Info(
-                            $"[MythicRiftRewardRoomTrace] stage=instance-resolved-early runId={runId} mode={runState.Config.Mode} " +
-                            $"rewardRoomRegionId=0x{rewardRoomRegionId:X} parentRegionId=0x{runState.RegionId:X}");
                     }
                 }
 
@@ -6939,10 +6860,6 @@ namespace MHServerEmu.Games.MythicRifts
                     {
                         rewardRoomRegionId = avatar.Region.Id;
                         _pendingRewardRoomRegionIdByRun[runId] = rewardRoomRegionId;
-                        Logger.Info(
-                            $"[MythicRiftRewardRoomTrace] stage=instance-resolved runId={runId} mode={runState.Config.Mode} " +
-                            $"anchorDbId=0x{playerDbId:X} rewardRoomRegionId=0x{rewardRoomRegionId:X} " +
-                            $"anchorPos={avatar.RegionLocation.Position}");
                         break;
                     }
                 }
@@ -7032,11 +6949,6 @@ namespace MHServerEmu.Games.MythicRifts
 
                         requestedPlayerDbIds.Add(playerDbId);
                     }
-                    Logger.Info(
-                        $"[MythicRiftRewardRoomTrace] stage=member-request runId={runId} mode={runState.Config.Mode} " +
-                        $"playerDbId=0x{playerDbId:X} fromRegionId=0x{avatar?.Region?.Id ?? 0UL:X} " +
-                        $"rewardRoomRegionId=0x{rewardRoomRegionId:X} requested={memberTeleportRequested} " +
-                        $"pendingTransfer={player.PlayerConnection?.HasPendingRegionTransfer == true}");
                 }
             }
             else
@@ -7067,10 +6979,6 @@ namespace MHServerEmu.Games.MythicRifts
             TryAutoGrantCompletionRewards(runState);
             TrySpawnReturnPortal(runState);
             TrySpawnCompletionCrafter(runState);
-            Logger.Info(
-                $"[MythicRiftRewardRoomTrace] stage=finalized runId={runId} mode={runState.Config.Mode} " +
-                $"rewardRoomRegionId=0x{rewardRoomRegionId:X} waitingForParty={waitingForParty} " +
-                $"rewardsGranted={runState.RewardsGranted} players=[{FormatRewardRoomPlayerStates(rewardRoomPlayerDbIds)}]");
             // Logger.Trace($"Mythic Rift run {runState.Config.RunId} finalized reward room region 0x{rewardRoomRegionId:X}.");
         }
 
@@ -7929,46 +7837,10 @@ namespace MHServerEmu.Games.MythicRifts
 
                 // Native mission contexts may be removed by Rift suppression. The run
                 // tracks these bosses directly, so do not retain stale native contexts.
-                bossAgent.TrackingContextMap.Clear();
                 MythicRiftStandaloneBossFixups.Apply(bossAgent, allowMissingAffixSettingsFallback: true);
-                if (bossProto.DataRef == ResolvePrototype(BlobBossPrototypeName))
-                {
-                    LogBlobBossState(runState, bossAgent, "spawned");
-                    _pendingBlobBossDiagnosticsAt[bossAgent.Id] = Game.CurrentTime + TimeSpan.FromSeconds(5);
-                }
-
-                long baselineHealth = (long)bossAgent.Properties[PropertyEnum.Health];
-                long baselineHealthMax = (long)bossAgent.Properties[PropertyEnum.HealthMax];
-                long baselineHealthMaxOther = (long)bossAgent.Properties[PropertyEnum.HealthMaxOther];
-                float baselineHealthPctBonus = bossAgent.Properties[PropertyEnum.HealthPctBonus];
+                bossAgent.TrackingContextMap.Clear();
 
                 ApplyCheckpointBossTuning(runState, bossAgent);
-
-                long finalHealth = (long)bossAgent.Properties[PropertyEnum.Health];
-                long finalHealthMax = (long)bossAgent.Properties[PropertyEnum.HealthMax];
-                long finalHealthMaxOther = (long)bossAgent.Properties[PropertyEnum.HealthMaxOther];
-                float finalHealthPctBonus = bossAgent.Properties[PropertyEnum.HealthPctBonus];
-                float checkpointHealthMultiplier = baselineHealthMax > 0
-                    ? (float)finalHealthMax / baselineHealthMax
-                    : 1f;
-                float riftHealthMultiplier = Math.Max(runState.Difficulty.HealthMultiplier, 0.01f);
-                float regionPlayerToMobMultiplier = region.Properties[PropertyEnum.DamageRegionPlayerToMob];
-                long riftScaledEffectiveHealth = (long)Math.Round(finalHealthMax * (double)riftHealthMultiplier);
-                long totalEffectiveHealth = regionPlayerToMobMultiplier > 0f
-                    ? (long)Math.Round(finalHealthMax / (double)regionPlayerToMobMultiplier)
-                    : finalHealthMax;
-
-                Logger.Info(
-                    $"[MythicRiftBossHealthTrace] runId={runState.Config.RunId} mode={runState.Config.Mode} " +
-                    $"riftLevel={runState.Config.RiftLevel} wave={runState.Config.WaveNumber} players={runState.Difficulty.EffectivePlayerCount} " +
-                    $"boss={bossAgent.PrototypeDataRef.GetNameFormatted()} entityId=0x{bossAgent.Id:X} characterLevel={bossAgent.CharacterLevel} " +
-                    $"difficulty={region.DifficultyTierRef.GetNameFormatted()} rank={(bossProto.Rank?.DataRef ?? PrototypeId.Invalid).GetNameFormatted()} " +
-                    $"baselineHealth={baselineHealth} baselineHealthMax={baselineHealthMax} baselineHealthMaxOther={baselineHealthMaxOther} " +
-                    $"baselineHealthPctBonus={baselineHealthPctBonus:F4} checkpointHealthMultiplier={checkpointHealthMultiplier:F4} " +
-                    $"finalHealth={finalHealth} finalHealthMax={finalHealthMax} finalHealthMaxOther={finalHealthMaxOther} " +
-                    $"finalHealthPctBonus={finalHealthPctBonus:F4} riftHealthMultiplier={riftHealthMultiplier:F4} " +
-                    $"groupHealthMultiplier={runState.Difficulty.GroupHealthMultiplier:F4} riftScaledEffectiveHealth={riftScaledEffectiveHealth} " +
-                    $"regionPlayerToMobMultiplier={regionPlayerToMobMultiplier:F4} totalEffectiveHealth={totalEffectiveHealth}");
 
                 runState.AttachBoss(bossAgent.Id);
                 spawnedThisCall++;
@@ -7977,38 +7849,6 @@ namespace MHServerEmu.Games.MythicRifts
 
             return spawnedThisCall > 0 &&
                    (runState.Config.UseBossGauntletMode || runState.BossSpawnCount >= requiredBossCount);
-        }
-
-        private void ProcessPendingBlobBossDiagnostics(TimeSpan currentTime)
-        {
-            foreach ((ulong entityId, TimeSpan diagnosticAt) in _pendingBlobBossDiagnosticsAt.ToArray())
-            {
-                if (currentTime < diagnosticAt)
-                    continue;
-
-                _pendingBlobBossDiagnosticsAt.Remove(entityId);
-                Agent blob = Game.EntityManager.GetEntity<Agent>(entityId);
-                if (blob == null || blob.IsDestroyed)
-                {
-                    Logger.Info($"[MythicRiftBlobTrace] stage=delayed entityId=0x{entityId:X} state=missing-or-destroyed");
-                    continue;
-                }
-
-                _runByRegionId.TryGetValue(blob.Region?.Id ?? 0UL, out MythicRiftRunState runState);
-                LogBlobBossState(runState, blob, "delayed");
-            }
-        }
-
-        private static void LogBlobBossState(MythicRiftRunState runState, Agent blob, string stage)
-        {
-            PropertyCollection blackboard = blob?.AIController?.Blackboard?.PropertyCollection;
-            ulong targetId = blackboard != null ? blackboard[PropertyEnum.AIRawTargetEntityID] : 0UL;
-            Logger.Info(
-                $"[MythicRiftBlobTrace] stage={stage} runId={runState?.Config?.RunId ?? 0UL} " +
-                $"mode={runState?.Config?.Mode} map={runState?.Config?.Content?.Id ?? "unknown"} " +
-                $"entityId=0x{blob?.Id ?? 0UL:X} position={blob?.RegionLocation.Position} " +
-                $"inWorld={blob?.IsInWorld == true} simulated={blob?.IsSimulated == true} dormant={blob?.Properties[PropertyEnum.Dormant] == true} " +
-                $"aiController={blob?.AIController != null} brain={blob?.AgentPrototype?.BehaviorProfile?.Brain.GetNameFormatted()} targetId=0x{targetId:X}");
         }
 
         private void TrySpawnPendingMilestoneEncounters(MythicRiftRunState runState, bool allowAfterBossUnlock = false)
@@ -9196,7 +9036,7 @@ namespace MHServerEmu.Games.MythicRifts
                 runState.RewardRoomTeleportResolved)
                 return false;
 
-            bool teleported = TryTeleportPartyToRewardRoom(runState, player, "portal");
+            bool teleported = TryTeleportPartyToRewardRoom(runState, player);
             if (teleported)
             {
                 // Logger.Info($"Mythic Rift run {runState.Config.RunId} used reward room portal 0x{transition.Id:X} for playerDbId=0x{player.DatabaseUniqueId:X}.");

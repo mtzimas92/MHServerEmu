@@ -510,12 +510,6 @@ namespace MHServerEmu.Games.Loot
                     isVaporized = LootVaporizer.ShouldVaporizeLootResult(settings.Player, pendingItem.LootResult, pendingItem.RollFor);
                 }
 
-                if (pendingItemSpec != null &&
-                    OmegaGearLootFilter.TryGetActiveOmegaFilterDescription(settings.Player, out string omegaFilterDescription))
-                {
-                    Logger.Info($"[OmegaFilterInteractionTrace] stage=native-vaporizer item={pendingItemSpec.ItemProtoRef.GetNameFormatted()} rarity={pendingItemSpec.RarityProtoRef.GetNameFormatted()} level={pendingItemSpec.ItemLevel} rollFor={pendingItem.RollFor.GetNameFormatted()} currentAvatar={settings.Player?.CurrentAvatar?.PrototypeDataRef.GetNameFormatted()} queuedForOmega={queuedForOmega} nativeEligible={nativeVaporizerEligible} nativeBypassed={queuedForOmega && nativeVaporizerEligible} vaporized={isVaporized} context={context} filters=[{omegaFilterDescription}]");
-                }
-
                 switch (pendingItem.LootResult.Type)
                 {
                     case LootType.Item:

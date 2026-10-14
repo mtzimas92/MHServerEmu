@@ -3,170 +3,332 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Rift and Omega Rewards</title>
+  <title>Current Rift Rewards</title>
   <style>
     :root {
       color-scheme: dark;
-      --bg: #101214;
-      --panel: #191d20;
-      --line: #343b40;
-      --text: #f1f3f4;
-      --muted: #aeb7bd;
+      --bg: #0d1012;
+      --surface: #171b1e;
+      --surface-2: #20262a;
+      --line: #394248;
+      --text: #f4f6f7;
+      --muted: #b6c0c6;
       --gold: #f1c75b;
-      --cyan: #5bd6d0;
-      --green: #79d58b;
-      --red: #ff8178;
+      --cyan: #62d7d1;
+      --green: #82d995;
+      --red: #ff8d83;
     }
+
     * { box-sizing: border-box; }
-    body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 system-ui, sans-serif; }
-    header, main { width: min(1180px, calc(100% - 32px)); margin: auto; }
-    header { padding: 36px 0 22px; border-bottom: 1px solid var(--line); }
-    h1 { margin: 0 0 8px; font-size: 32px; letter-spacing: 0; }
-    h2 { margin: 32px 0 12px; font-size: 22px; letter-spacing: 0; }
-    h3 { margin: 22px 0 8px; font-size: 17px; letter-spacing: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 15px/1.55 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    header, main, footer { width: min(1180px, calc(100% - 32px)); margin-inline: auto; }
+    header { padding: 34px 0 24px; border-bottom: 1px solid var(--line); }
+    main { padding-bottom: 28px; }
+    h1, h2, h3 { letter-spacing: 0; line-height: 1.2; }
+    h1 { margin: 0 0 8px; font-size: 32px; }
+    h2 { margin: 38px 0 10px; font-size: 24px; }
+    h3 { margin: 25px 0 9px; font-size: 18px; color: var(--cyan); }
     p { margin: 8px 0; }
-    .muted { color: var(--muted); }
-    .summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 18px; }
-    .summary article { padding: 14px; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; }
-    .summary strong { display: block; color: var(--gold); margin-bottom: 4px; }
-    .note { padding: 12px 14px; border-left: 3px solid var(--cyan); background: var(--panel); }
-    .warning { border-left-color: var(--red); }
-    .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 6px; }
-    table { width: 100%; border-collapse: collapse; min-width: 680px; background: var(--panel); }
-    th, td { padding: 9px 11px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); }
-    th { color: var(--gold); background: #202529; }
-    tr:last-child td { border-bottom: 0; }
+    a { color: var(--cyan); }
     code { color: var(--cyan); }
+    .muted { color: var(--muted); }
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 20px;
+    }
+    .summary article {
+      padding: 14px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+    }
+    .summary strong { display: block; margin-bottom: 3px; color: var(--gold); }
+    .note {
+      margin: 14px 0;
+      padding: 12px 14px;
+      background: var(--surface);
+      border-left: 3px solid var(--cyan);
+    }
+    .warning { border-left-color: var(--red); }
+    .good { border-left-color: var(--green); }
+    .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 6px; }
+    table { width: 100%; min-width: 700px; border-collapse: collapse; background: var(--surface); }
+    th, td { padding: 9px 11px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); }
+    th { color: var(--gold); background: var(--surface-2); }
+    tbody tr:last-child td { border-bottom: 0; }
+    tbody tr:hover td { background: #1b2023; }
+    .repeat { color: var(--cyan); font-weight: 700; }
     .daily { color: var(--green); font-weight: 700; }
     .weekly { color: var(--gold); font-weight: 700; }
-    .repeat { color: var(--cyan); font-weight: 700; }
-    footer { margin: 34px 0; color: var(--muted); font-size: 13px; }
+    .toc { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+    .toc a { padding: 6px 9px; border: 1px solid var(--line); border-radius: 4px; text-decoration: none; }
+    footer { padding: 18px 0 34px; border-top: 1px solid var(--line); color: var(--muted); font-size: 13px; }
+
     @media (max-width: 760px) {
       .summary { grid-template-columns: 1fr; }
-      h1 { font-size: 26px; }
+      h1 { font-size: 27px; }
+      h2 { font-size: 21px; }
+    }
+
+    @media print {
+      :root { color-scheme: light; }
+      body { background: #fff; color: #111; font-size: 11px; }
+      header, main, footer { width: 100%; }
+      header { padding-top: 0; }
+      .summary article, .note, table { background: #fff; }
+      th { background: #eee; color: #111; }
+      th, td, .summary article, .table-wrap { border-color: #aaa; }
+      h2 { break-after: avoid; }
+      .table-wrap { overflow: visible; break-inside: avoid; }
+      a { color: #111; text-decoration: none; }
     }
   </style>
 </head>
 <body>
   <header>
-    <h1>Rift and Omega Rewards</h1>
-    <p class="muted">Current server configuration for Omega Training, Infinite Rift, Boss Gauntlet, Omega raids, Omega Limbo, and reward vendors.</p>
+    <h1>Current Rift Rewards</h1>
+    <p class="muted">Community review copy for Omega Training, Infinite Rift, and Boss Gauntlet. Generated from the active source configuration on October 12, 2026.</p>
+
     <div class="summary">
-      <article><strong>Daily reset</strong>10:00 UTC<br>Per-hero where stated</article>
-      <article><strong>Weekly reset</strong>Wednesday at 10:00 UTC<br>Account-wide where stated</article>
-      <article><strong>Repeatable</strong>No reset or claim marker<br>Granted on every eligible run</article>
+      <article><strong>Daily reset</strong>10:00 UTC. Claims are per hero or per account as identified below.</article>
+      <article><strong>Weekly reset</strong>Wednesday at 10:00 UTC. Weekly account claims are shared by every hero.</article>
+      <article><strong>Delivery</strong>Configured rewards drop on the ground. Party members receive their own rewards.</article>
     </div>
+
+    <nav class="toc" aria-label="Reward modes">
+      <a href="#omega-training">Omega Training</a>
+      <a href="#infinite-rift">Infinite Rift</a>
+      <a href="#boss-gauntlet">Boss Gauntlet</a>
+      <a href="#shared-rules">Shared Rules</a>
+      <a href="#review-points">Review Points</a>
+    </nav>
   </header>
 
   <main>
-    <h2>Omega Training</h2>
-    <p>Checkpoint rewards are granted only on successful completion of the exact listed wave. Daily rewards are tracked separately for each hero. Infinity boxes have no claim limit and are repeatable.</p>
-    <div class="table-wrap">
-      <table>
-        <thead><tr><th>Wave</th><th>Daily per hero</th><th>Repeatable per run</th></tr></thead>
-        <tbody>
-          <tr><td>5</td><td>-</td><td>1 Six Infinity Orb Chest</td></tr>
-          <tr><td>10</td><td>1 Cube Shard</td><td>2 Six Infinity Orb Chests</td></tr>
-          <tr><td>12</td><td>1 Cosmic Fragment</td><td>-</td></tr>
-          <tr><td>15</td><td>2 Cube Shards</td><td>3 Six Infinity Orb Chests</td></tr>
-          <tr><td>18</td><td>1 Cosmic Fragment</td><td>-</td></tr>
-          <tr><td>20</td><td>3 Cube Shards</td><td>4 Six Infinity Orb Chests</td></tr>
-          <tr><td>22</td><td>1 Cosmic Fragment</td><td>-</td></tr>
-          <tr><td>25</td><td>4 Cube Shards</td><td>5 Six Infinity Orb Chests</td></tr>
-          <tr><td>28</td><td>1 Cosmic Fragment</td><td>-</td></tr>
-          <tr><td>30</td><td>5 Cube Shards and 15 Champion Commendations</td><td>6 Six Infinity Orb Chests</td></tr>
-        </tbody>
-      </table>
-    </div>
+    <section id="omega-training">
+      <h2>Omega Training</h2>
+      <p>Omega Training is the 30-wave party-enabled mode. Milestone rewards require successful completion of the listed wave.</p>
 
-    <h2>Infinite Rift</h2>
-    <p>Commendation rewards are weekly and account-wide. Each level is its own claim. Progress made on another hero continues from the highest reward level already claimed by the account. XP orbs and Infinity boxes are repeatable on every successful eligible run.</p>
-    <div class="table-wrap">
-      <table>
-        <thead><tr><th>Completed level</th><th>Weekly account reward per level</th><th>Repeatable reward per run</th></tr></thead>
-        <tbody>
-          <tr><td>1-4</td><td>-</td><td>-</td></tr>
-          <tr><td>5-9</td><td>-</td><td>5 Super Mega XP Orbs and 1 Six Infinity Orb Chest</td></tr>
-          <tr><td>10-19</td><td>10 Hero Commendations for each newly claimed level</td><td>5 Super Mega XP Orbs and 2 Six Infinity Orb Chests</td></tr>
-          <tr><td>20-29</td><td>15 Protector Commendations for each newly claimed level</td><td>5 Super Mega XP Orbs and 3 Six Infinity Orb Chests</td></tr>
-          <tr><td>30</td><td>5 Champion Commendations</td><td>5 Super Mega XP Orbs and 4 Six Infinity Orb Chests</td></tr>
-          <tr><td>31-34</td><td>5 Champion Commendations for each newly claimed level</td><td>8 Super Mega XP Orbs and 4 Six Infinity Orb Chests</td></tr>
-          <tr><td>35-39</td><td>10 Champion Commendations for each newly claimed level</td><td>8 Super Mega XP Orbs and 4 Six Infinity Orb Chests</td></tr>
-          <tr><td>40-45</td><td>10 Champion Commendations for each newly claimed level</td><td>8 Super Mega XP Orbs and 5 Six Infinity Orb Chests</td></tr>
-          <tr><td>46+</td><td>No configured weekly commendation entry</td><td>8 Super Mega XP Orbs and 5 Six Infinity Orb Chests</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <p class="note">Example: level 18 claims levels 10-18. A later clear at level 28, even on another hero, claims only levels 19-28 because the weekly scope is account-wide.</p>
+      <h3>Repeatable rewards</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Wave</th><th>Reward</th><th>Limit</th></tr></thead>
+          <tbody>
+            <tr><td>1-4</td><td>1 random level-63 <code>R4Epic</code> insignia per wave</td><td class="repeat">Repeatable</td></tr>
+            <tr><td>5</td><td>1 Six-Infinity-Orb Chest</td><td class="repeat">Repeatable</td></tr>
+            <tr><td>6-9</td><td>1 random level-63 <code>R4Epic</code> insignia per wave</td><td class="repeat">Repeatable</td></tr>
+            <tr><td>10</td><td>2 Six-Infinity-Orb Chests</td><td class="repeat">Repeatable</td></tr>
+            <tr><td>11, 13-14</td><td>1 random level-63 <code>R4Epic</code> insignia per wave</td><td class="repeat">Repeatable</td></tr>
+            <tr><td>15</td><td>2 Six-Infinity-Orb Chests</td><td class="repeat">Repeatable</td></tr>
+            <tr><td>16-17, 19, 21, 23-24</td><td>1 random level-63 <code>R4Epic</code> insignia per wave</td><td class="repeat">Repeatable</td></tr>
+            <tr><td>20</td><td>3 Six-Infinity-Orb Chests</td><td class="repeat">Repeatable</td></tr>
+            <tr><td>25</td><td>4 Six-Infinity-Orb Chests</td><td class="repeat">Repeatable</td></tr>
+            <tr><td>30</td><td>10 Six-Infinity-Orb Chests</td><td class="repeat">Repeatable</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note good">A complete wave 1-30 cycle awards 22 Six-Infinity-Orb Chests, in addition to the other rewards below.</p>
 
-    <h2>Boss Gauntlet</h2>
-    <p>Boss Unique boxes are awarded only when the run ends on an exact reward checkpoint. The reached-wave band determines one repeatable XP/IP package. Cosmic Artifact chances are non-cumulative. Champion Commendation checkpoints accumulate during the week and are account-wide.</p>
-    <div class="table-wrap">
-      <table>
-        <thead><tr><th>Reached wave</th><th>Daily per hero</th><th>Cosmic Artifact chance per run</th><th>Repeatable XP/IP reward</th><th>Weekly account checkpoint</th></tr></thead>
-        <tbody>
-          <tr><td>1-9</td><td>-</td><td>-</td><td>-</td><td>-</td></tr>
-          <tr><td>10</td><td>-</td><td>-</td><td>10 XP Orbs and 2 Six Infinity Orb Chests</td><td>5 Champion Commendations</td></tr>
-          <tr><td>11</td><td>2 Mysterious Unique Boxes</td><td>5%</td><td>10 XP Orbs and 2 Six Infinity Orb Chests</td><td>Wave 10 checkpoint</td></tr>
-          <tr><td>12-15</td><td>-</td><td>5%</td><td>10 XP Orbs and 2 Six Infinity Orb Chests</td><td>Wave 10 checkpoint</td></tr>
-          <tr><td>16</td><td>3 Mysterious Unique Boxes</td><td>-</td><td>10 XP Orbs and 2 Six Infinity Orb Chests</td><td>Wave 10 checkpoint</td></tr>
-          <tr><td>17-19</td><td>-</td><td>-</td><td>10 XP Orbs and 2 Six Infinity Orb Chests</td><td>Wave 10 checkpoint</td></tr>
-          <tr><td>20</td><td>-</td><td>-</td><td>20 XP Orbs and 4 Six Infinity Orb Chests</td><td>10 total Champion Commendations</td></tr>
-          <tr><td>21</td><td>4 Mysterious Unique Boxes</td><td>15%</td><td>20 XP Orbs and 4 Six Infinity Orb Chests</td><td>Wave 10 and 20 checkpoints</td></tr>
-          <tr><td>22-25</td><td>-</td><td>15%</td><td>20 XP Orbs and 4 Six Infinity Orb Chests</td><td>Wave 10 and 20 checkpoints</td></tr>
-          <tr><td>26</td><td>5 Mysterious Unique Boxes</td><td>-</td><td>20 XP Orbs and 4 Six Infinity Orb Chests</td><td>Wave 10 and 20 checkpoints</td></tr>
-          <tr><td>27-29</td><td>-</td><td>-</td><td>20 XP Orbs and 4 Six Infinity Orb Chests</td><td>Wave 10 and 20 checkpoints</td></tr>
-          <tr><td>30</td><td>-</td><td>-</td><td>30 XP Orbs and 6 Six Infinity Orb Chests</td><td>15 total Champion Commendations</td></tr>
-          <tr><td>31</td><td>6 Mysterious Unique Boxes</td><td>25%</td><td>30 XP Orbs and 6 Six Infinity Orb Chests</td><td>Through wave 30 checkpoint</td></tr>
-          <tr><td>32-35</td><td>-</td><td>25%</td><td>30 XP Orbs and 6 Six Infinity Orb Chests</td><td>Through wave 30 checkpoint</td></tr>
-          <tr><td>36</td><td>7 Mysterious Unique Boxes</td><td>-</td><td>30 XP Orbs and 6 Six Infinity Orb Chests</td><td>Through wave 30 checkpoint</td></tr>
-          <tr><td>37-39</td><td>-</td><td>-</td><td>30 XP Orbs and 6 Six Infinity Orb Chests</td><td>Through wave 30 checkpoint</td></tr>
-          <tr><td>40</td><td>-</td><td>-</td><td>40 XP Orbs and 8 Six Infinity Orb Chests</td><td>20 total Champion Commendations</td></tr>
-          <tr><td>41</td><td>8 Mysterious Unique Boxes</td><td>40%</td><td>40 XP Orbs and 8 Six Infinity Orb Chests</td><td>All four checkpoints</td></tr>
-          <tr><td>42+</td><td>-</td><td>40%</td><td>40 XP Orbs and 8 Six Infinity Orb Chests</td><td>All four checkpoints</td></tr>
-        </tbody>
-      </table>
-    </div>
+      <h3>Daily rewards</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Wave</th><th>Reward</th><th>Claim scope</th></tr></thead>
+          <tbody>
+            <tr><td>1-4, 6-9, 11, 13-14, 16-17, 19, 21, 23-24</td><td>1 × 5,000-credit item per wave</td><td class="daily">Daily per hero</td></tr>
+            <tr><td>10</td><td>1 Cube Shard</td><td class="daily">Daily per hero</td></tr>
+            <tr><td>12</td><td>1 Cosmic Fragment</td><td class="daily">Daily per hero</td></tr>
+            <tr><td>15</td><td>2 Cube Shards</td><td class="daily">Daily per hero</td></tr>
+            <tr><td>18</td><td>1 Cosmic Fragment</td><td class="daily">Daily per hero</td></tr>
+            <tr><td>20</td><td>3 Cube Shards</td><td class="daily">Daily per hero</td></tr>
+            <tr><td>22</td><td>1 Cosmic Fragment</td><td class="daily">Daily per hero</td></tr>
+            <tr><td>25</td><td>4 Cube Shards</td><td class="daily">Daily per hero</td></tr>
+            <tr><td>26, 27, 29</td><td>1 random offensive or defensive level-72 Omega ring per wave</td><td class="daily">Daily per hero</td></tr>
+            <tr><td>26, 27, 29</td><td>1 × 100,000-credit item per wave</td><td class="weekly">Daily per account</td></tr>
+            <tr><td>28</td><td>1 Cosmic Fragment</td><td class="daily">Daily per hero</td></tr>
+            <tr><td>30</td><td>5 Cube Shards + 15 Champion Commendations</td><td class="daily">Daily per hero</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note">Backfill protection is enabled. A player joining an advanced party run can earn rewards from the level at which they joined onward, but does not receive every earlier reward.</p>
+    </section>
 
-    <h2>Omega Content</h2>
-    <div class="table-wrap">
-      <table>
-        <thead><tr><th>Activity</th><th>Guaranteed limited reward</th><th>Repeatable chance rewards</th><th>Reset</th></tr></thead>
-        <tbody>
-          <tr><td>Omega Muspelheim</td><td>300 Champion Commendations</td><td>2% each: Unique238, Unique304, Unique298, Unique294 at item level 69</td><td>Weekly, Wednesday 10:00 UTC</td></tr>
-          <tr><td>Cosmic Axis</td><td>200 Champion Commendations and 100 Protector Commendations</td><td>2% each: Unique238, Unique304, Unique298, Unique294 at item level 69</td><td>Weekly, Wednesday 10:00 UTC</td></tr>
-          <tr><td>Omega Limbo</td><td>1 S.H.I.E.L.D. Supply Boost box and 2 Mystic Mayhem Coffers</td><td>-</td><td>Repeatable; no configured claim period</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <p class="note warning">Omega Muspelheim and Cosmic Axis use separate reward IDs. Their Champion Commendation limits are not one shared 300-point cap.</p>
+    <section id="infinite-rift">
+      <h2>Infinite Rift</h2>
+      <p>Infinite Rift is the solo progression and leaderboard mode. Its limited rewards are account-wide and reset weekly.</p>
 
-    <h2>Reward Vendors</h2>
-    <div class="table-wrap">
-      <table>
-        <thead><tr><th>Vendor</th><th>Offer</th><th>Cost</th><th>Result</th></tr></thead>
-        <tbody>
-          <tr><td>Omega Raid</td><td>Fire Giant Aegis</td><td>500 Champion Commendations</td><td>Unique294, item level 69</td></tr>
-          <tr><td>Omega Raid</td><td>Fire Giant Greaves</td><td>500 Champion Commendations</td><td>Unique298, item level 69</td></tr>
-          <tr><td>Omega Raid</td><td>Fire Giant's Horns</td><td>500 Champion Commendations</td><td>Unique238, item level 69</td></tr>
-          <tr><td>Omega Raid</td><td>Monument of Ell</td><td>500 Champion Commendations</td><td>Unique304, item level 69</td></tr>
-          <tr><td>Omega Raid</td><td>Nan's Cane</td><td>500 Champion Commendations</td><td>Placeholder: Unique238, item level 69</td></tr>
-          <tr><td>Rift Artifact Vendor</td><td>Cosmic Artifact</td><td>450 Champion Commendations</td><td>3 rolls from the configured Cosmic Artifact pool, delivered on the ground</td></tr>
-        </tbody>
-      </table>
-    </div>
+      <h3>Per-level rewards</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Completed level</th><th>Repeatable reward</th><th>Weekly account reward</th></tr></thead>
+          <tbody>
+            <tr><td>1-4</td><td>None</td><td>1 random level-63 <code>R4Epic</code> or <code>R5Cosmic</code> insignia per level</td></tr>
+            <tr><td>5-9</td><td>5 SUPERMEGA XP orbs per level</td><td>1 random level-63 <code>R4Epic</code> or <code>R5Cosmic</code> insignia per level</td></tr>
+            <tr><td>10-19</td><td>5 SUPERMEGA XP orbs per level</td><td>Insignia + 10 Hero Commendations per level</td></tr>
+            <tr><td>20-29</td><td>5 SUPERMEGA XP orbs per level</td><td>Insignia + 15 Protector Commendations per level</td></tr>
+            <tr><td>30-34</td><td>5 SUPERMEGA XP orbs per level</td><td>Insignia + 5 Champion Commendations per level</td></tr>
+            <tr><td>35-45</td><td>5 SUPERMEGA XP orbs per level</td><td>Insignia + 10 Champion Commendations per level</td></tr>
+            <tr><td>46+</td><td>5 SUPERMEGA XP orbs per level</td><td>1 insignia per level; no further commendations configured</td></tr>
+          </tbody>
+        </table>
+      </div>
 
-    <h2>Global Reward Behavior</h2>
-    <ul>
-      <li>Native Rift boss loot is suppressed.</li>
-      <li>Boss loot on Rift success, failure, and Omega Training is disabled by this reward profile.</li>
-      <li>Curated milestone rewards and all old rarity/special percentage bonuses are disabled.</li>
-      <li>Daily and weekly claim records persist through server restarts.</li>
-      <li>Daily period: most recent 10:00 UTC boundary.</li>
-      <li>Weekly period: most recent Wednesday 10:00 UTC boundary.</li>
-    </ul>
+      <h3>Weekly commendation totals</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Levels</th><th>Reward at each level</th><th>Total for the band</th></tr></thead>
+          <tbody>
+            <tr><td>10-19</td><td>10 Hero Commendations</td><td><strong>100 Hero Commendations</strong></td></tr>
+            <tr><td>20-29</td><td>15 Protector Commendations</td><td><strong>150 Protector Commendations</strong></td></tr>
+            <tr><td>30-34</td><td>5 Champion Commendations</td><td><strong>25 Champion Commendations</strong></td></tr>
+            <tr><td>35-45</td><td>10 Champion Commendations</td><td><strong>110 Champion Commendations</strong></td></tr>
+            <tr><td>Through level 45</td><td colspan="2"><strong>100 Hero + 150 Protector + 135 Champion Commendations per weekly account period</strong></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note warning">Each commendation level is a separate weekly account claim. Reaching a high level with missing claims can grant every earlier unclaimed entry. Different heroes cannot duplicate claims already collected by the account during that week.</p>
 
-    <footer>Generated from the active v52 Mythic Rift and Omega content reward configuration.</footer>
+      <h3>Weekly Six-Infinity-Orb Chests</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Completed level</th><th>Chests</th><th>Running total</th></tr></thead>
+          <tbody>
+            <tr><td>10</td><td>1</td><td>1</td></tr>
+            <tr><td>20</td><td>1</td><td>2</td></tr>
+            <tr><td>30</td><td>1</td><td>3</td></tr>
+            <tr><td>40</td><td>2</td><td>5</td></tr>
+            <tr><td>50</td><td>2</td><td>7</td></tr>
+            <tr><td>60</td><td>2</td><td>9</td></tr>
+            <tr><td>70</td><td>2</td><td>11</td></tr>
+            <tr><td>80</td><td>2</td><td>13</td></tr>
+            <tr><td>90</td><td>3</td><td>16</td></tr>
+            <tr><td>100</td><td>3</td><td>19</td></tr>
+            <tr><td>Every 10 levels after 100</td><td>3 each milestone</td><td>+3 every 10 levels</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Weekly leaderboard rewards</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Placement tier</th><th>Reward</th></tr></thead>
+          <tbody>
+            <tr><td>1st place</td><td>15 SSB boxes + 3 Cosmic Artifact boxes</td></tr>
+            <tr><td>Top 10%</td><td>10 SSB boxes + 2 Cosmic Artifact boxes</td></tr>
+            <tr><td>Top 50%</td><td>5 SSB boxes + 1 Cosmic Artifact box</td></tr>
+            <tr><td>All remaining placements</td><td>1 SSB box</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note">Leaderboard tiers are exclusive rather than cumulative. Leaderboard distribution follows the configured leaderboard schedule separately from per-level claims.</p>
+    </section>
+
+    <section id="boss-gauntlet">
+      <h2>Boss Gauntlet</h2>
+      <p>Boss Gauntlet rewards use completed waves, including when a run ends through death. Rewards drop directly in the arena rather than in a separate reward room.</p>
+
+      <h3>Repeatable run rewards</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Completed waves</th><th>SUPERMEGA XP orbs</th><th>Six-Infinity-Orb Chests</th></tr></thead>
+          <tbody>
+            <tr><td>0-9</td><td>0</td><td>0</td></tr>
+            <tr><td>10-19</td><td>10</td><td>2</td></tr>
+            <tr><td>20-29</td><td>20</td><td>4</td></tr>
+            <tr><td>30-39</td><td>30</td><td>6</td></tr>
+            <tr><td>40+</td><td>40</td><td>8</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note">Only the final completed-wave band applies. These XP and chest bands are not added together.</p>
+
+      <h3>Daily boss-unique unlocks</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Completed waves</th><th>Total boss-unique rolls unlocked</th><th>Claim scope</th></tr></thead>
+          <tbody>
+            <tr><td>0-10</td><td>0</td><td>-</td></tr>
+            <tr><td>11-15</td><td>2</td><td class="daily">Daily per hero</td></tr>
+            <tr><td>16-20</td><td>3</td><td class="daily">Daily per hero</td></tr>
+            <tr><td>21-25</td><td>4</td><td class="daily">Daily per hero</td></tr>
+            <tr><td>26-30</td><td>5</td><td class="daily">Daily per hero</td></tr>
+            <tr><td>31-35</td><td>6</td><td class="daily">Daily per hero</td></tr>
+            <tr><td>36-40</td><td>7</td><td class="daily">Daily per hero</td></tr>
+            <tr><td>41-45</td><td>8</td><td class="daily">Daily per hero</td></tr>
+            <tr><td>46+</td><td>9</td><td class="daily">Daily per hero</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note">These unlocks are cumulative. A first run reaching wave 31 grants six rolls. If two rolls were already claimed at wave 11 that day, reaching wave 16 later grants only the newly unlocked additional roll.</p>
+
+      <h3>Repeatable Cosmic Artifact chances</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Completed waves</th><th>Base roll</th><th>Additional jackpot</th><th>Maximum artifacts</th></tr></thead>
+          <tbody>
+            <tr><td>0-10</td><td>None</td><td>None</td><td>0</td></tr>
+            <tr><td>11-20</td><td>5% for 1 artifact</td><td>None</td><td>1</td></tr>
+            <tr><td>21-30</td><td>10% for 1 artifact</td><td>2.5% for 1 additional artifact</td><td>2</td></tr>
+            <tr><td>31-40</td><td>15% for 1 artifact</td><td>2.5% for 2 additional artifacts</td><td>3</td></tr>
+            <tr><td>41-45</td><td>20% for 1 artifact</td><td>2.5% for 3 additional artifacts</td><td>4</td></tr>
+            <tr><td>46+</td><td>25% for 1 artifact</td><td>2.5% for 4 additional artifacts</td><td>5</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note warning">The 2.5% jackpot is rolled once. If it succeeds, it grants the complete additional quantity shown; it is not a separate 2.5% roll for every artifact.</p>
+
+      <h3>Weekly Champion Commendations</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Threshold reached</th><th>New reward</th><th>Weekly running total</th></tr></thead>
+          <tbody>
+            <tr><td>Wave 10</td><td>5 Champion Commendations</td><td>5</td></tr>
+            <tr><td>Wave 20</td><td>+5 Champion Commendations</td><td>10</td></tr>
+            <tr><td>Wave 30</td><td>+5 Champion Commendations</td><td>15</td></tr>
+            <tr><td>Wave 40</td><td>+5 Champion Commendations</td><td>20</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="shared-rules">
+      <h2>Shared Rules</h2>
+      <ul>
+        <li>Champion Commendations use a shared account-wide weekly cap of <strong>350</strong> across Rift and Omega reward systems.</li>
+        <li>Native Rift boss loot is suppressed. The rewards above are the configured completion rewards.</li>
+        <li>Eligible enemies in Omega Training and Infinite Rift, and expected bosses in Boss Gauntlet, separately roll <code>Loot/Tables/SplinterBoostTable.prototype</code>.</li>
+        <li>Normal Eternity Splinter cooldown rules still apply.</li>
+        <li>Boss Gauntlet Eternity Splinters are protected from wave cleanup.</li>
+        <li>Limited claims persist through server restarts.</li>
+      </ul>
+    </section>
+
+    <section id="review-points">
+      <h2>Points to Review</h2>
+      <div class="note warning">
+        <strong>Infinite Rift commendation volume:</strong> a full weekly progression through level 45 grants 100 Hero, 150 Protector, and 135 Champion Commendations. This is intentionally shown prominently so the community can judge whether it is excessive.
+      </div>
+      <div class="note warning">
+        <strong>Infinite Rift catch-up behavior:</strong> reaching a high level can grant every earlier unclaimed commendation entry for the current weekly period. Account-wide claims prevent the same levels from being collected again on another hero.
+      </div>
+      <div class="note warning">
+        <strong>Omega Training XP:</strong> all Six-Infinity-Orb Chest milestones are repeatable, totaling 22 chests per complete 30-wave cycle.
+      </div>
+      <div class="note warning">
+        <strong>Boss Gauntlet farming:</strong> XP, Infinity Chests, and Cosmic Artifact chances are repeatable per run. Boss-unique rolls are daily per hero and Champion Commendations are weekly per account.
+      </div>
+    </section>
   </main>
+
+  <footer>
+    This document describes the active source configuration. Omega Raid vendor offers are intentionally excluded because they are shop inventory rather than Rift completion rewards.
+  </footer>
 </body>
 </html>

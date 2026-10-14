@@ -874,7 +874,9 @@ namespace MHServerEmu.Games.MythicRifts
                 usePartyTeleportContext ? TeleportContextEnum.TeleportContext_Party : TeleportContextEnum.TeleportContext_Debug);
             teleporter.BypassQueueRegionForRift = true;
             teleporter.DifficultyTierRef = difficultyTierRef;
-            if (runState?.Config?.RegionAffixes != null)
+            RegionPrototype regionProto = regionProtoRef.As<RegionPrototype>();
+            bool supportsRegionAffixes = regionProto?.AffixTable.As<RegionAffixTablePrototype>() != null;
+            if (supportsRegionAffixes && runState?.Config?.RegionAffixes != null)
             {
                 foreach (PrototypeId affix in runState.Config.RegionAffixes)
                 {

@@ -2,9 +2,8 @@
   "profileName": "omega-tier-items-v1",
   "enabled": true,
   "enableRingDiagnostics": true,
-  "enableLootSourceDiagnostics": true,
   "omegaDifficultyPromotionChancePct": 50,
-  "omegaDifficultyRingPromotionChancePct": 75,
+  "omegaDifficultyRingPromotionChancePct": 100,
   "preferredAffixChancePct": 100,
   "maxPreferredAffixesPerItem": 1,
   "preferredAffixes": [

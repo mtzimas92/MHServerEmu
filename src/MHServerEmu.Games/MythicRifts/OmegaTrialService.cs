@@ -80,7 +80,7 @@ namespace MHServerEmu.Games.MythicRifts
         private static readonly TimeSpan LokiPhase1SpawnDelay = TimeSpan.FromSeconds(3);
         private static readonly TimeSpan LokiFightTimeLimit = TimeSpan.FromMinutes(5);
         private static readonly TimeSpan SurturFightTimeLimit = TimeSpan.FromMinutes(5);
-        private const int PlayerDeathLimit = 5;
+        private const int PlayerDeathLimit = 3;
         private static readonly TimeSpan SurturHealthThresholdCheckInterval = TimeSpan.FromMilliseconds(250);
         private static readonly TimeSpan PostEntryNativeSuppressionDelay = TimeSpan.FromSeconds(1);
         private static readonly TimeSpan TrialReturnPortalLifespan = TimeSpan.FromMinutes(10);
@@ -157,91 +157,6 @@ namespace MHServerEmu.Games.MythicRifts
                 powerResults.Properties[PropertyEnum.Damage, damageType] *= damageMultiplier;
                 powerResults.SetDamageForClient(damageType, powerResults.GetDamageForClient(damageType) * damageMultiplier);
             }
-
-            return true;
-        }
-
-        public static bool TryLogPlayerDamage(WorldEntity target, PowerResults powerResults, WorldEntity ultimateOwner, WorldEntity powerUser, long startHealth, long endHealth, long adjustHealth)
-        {
-            if (adjustHealth >= 0 || powerResults == null || target is not Avatar targetAvatar)
-                return false;
-
-            Player player = targetAvatar.GetOwnerOfType<Player>();
-            if (player == null)
-                return false;
-
-            OmegaTrialState state;
-            lock (SyncRoot)
-            {
-                if (TrialStates.TryGetValue(player.DatabaseUniqueId, out state) == false)
-                    return false;
-            }
-
-            Region region = target.Region;
-            if (state == null || region == null || state.RegionId != region.Id)
-                return false;
-
-            bool isLokiStage = state.Stage == OmegaTrialStage.LokiPhase1Active || state.Stage == OmegaTrialStage.LokiActive;
-            bool isMistressWave =
-                state.Stage == OmegaTrialStage.SurturActive &&
-                state.SurturBanishInProgress &&
-                state.NextSurturBanishWaveIndex == SurturBanishHealthThresholds.Length &&
-                state.SurturMistressDefeated == false;
-            bool isSurturOwnedDamage =
-                ultimateOwner?.Id == state.SurturEntityId ||
-                powerUser?.Id == state.SurturEntityId;
-
-            if (isLokiStage == false && (isMistressWave == false || isSurturOwnedDamage))
-                return false;
-
-            float rawPhysical = powerResults.Properties[PropertyEnum.Damage, DamageType.Physical];
-            float rawEnergy = powerResults.Properties[PropertyEnum.Damage, DamageType.Energy];
-            float rawMental = powerResults.Properties[PropertyEnum.Damage, DamageType.Mental];
-            float rawTotal = rawPhysical + rawEnergy + rawMental;
-            float clientPhysical = powerResults.GetDamageForClient(DamageType.Physical);
-            float clientEnergy = powerResults.GetDamageForClient(DamageType.Energy);
-            float clientMental = powerResults.GetDamageForClient(DamageType.Mental);
-            float clientTotal = clientPhysical + clientEnergy + clientMental;
-
-            string powerName = powerResults.PowerPrototype?.DataRef.GetNameFormatted() ?? "unknown";
-            string ultimateOwnerName = ultimateOwner?.PrototypeDataRef.GetNameFormatted() ?? "unknown";
-            string powerUserName = powerUser?.PrototypeDataRef.GetNameFormatted() ?? "unknown";
-            Vector3 ownerPosition = ultimateOwner?.RegionLocation.Position ?? Vector3.Zero;
-            Vector3 targetPosition = target.RegionLocation.Position;
-            float ownerDistance = ultimateOwner != null ? Vector3.Distance2D(ownerPosition, targetPosition) : -1f;
-            bool sourceHasLineOfSight = ultimateOwner?.LineOfSightTo(target) ?? false;
-            bool powerRequiresLineOfSight = powerResults.PowerPrototype != null && Power.RequiresLineOfSight(powerResults.PowerPrototype);
-            WorldEntity nearestCover = null;
-            float nearestCoverDistance = float.MaxValue;
-            foreach (ulong coverEntityId in state.SurturCoverEntityIds)
-            {
-                WorldEntity coverEntity = region.Game.EntityManager.GetEntity<WorldEntity>(coverEntityId);
-                if (coverEntity?.IsInWorld != true || coverEntity.IsDestroyed)
-                    continue;
-
-                float coverDistance = Vector3.Distance2D(coverEntity.RegionLocation.Position, targetPosition);
-                if (coverDistance >= nearestCoverDistance)
-                    continue;
-
-                nearestCover = coverEntity;
-                nearestCoverDistance = coverDistance;
-            }
-
-            Logger.Info(
-                $"[OmegaTrialDamageTrace] playerDbId=0x{player.DatabaseUniqueId:X} stage={state.Stage} damagePhase={(isLokiStage ? "Loki" : "MistressOfMagma")} " +
-                $"target={target.PrototypeDataRef.GetNameFormatted()} targetId=0x{target.Id:X} targetPos={targetPosition} " +
-                $"source={ultimateOwnerName} sourceId=0x{ultimateOwner?.Id ?? 0UL:X} sourcePos={ownerPosition} sourceDistance={ownerDistance} " +
-                $"powerUser={powerUserName} powerUserId=0x{powerUser?.Id ?? 0UL:X} power={powerName} " +
-                $"sourceHasLOS={sourceHasLineOfSight} powerRequiresLOS={powerRequiresLineOfSight} " +
-                $"nearestCover={(nearestCover?.PrototypeDataRef.GetNameFormatted() ?? "none")} nearestCoverId=0x{nearestCover?.Id ?? 0UL:X} " +
-                $"nearestCoverPos={(nearestCover?.RegionLocation.Position ?? Vector3.Zero)} nearestCoverOrientation={(nearestCover?.RegionLocation.Orientation ?? Orientation.Zero)} nearestCoverDistance={(nearestCover != null ? nearestCoverDistance : -1f)} " +
-                $"health={startHealth}->{endHealth} delta={adjustHealth} rawDamage={rawTotal} rawPhysical={rawPhysical} rawEnergy={rawEnergy} rawMental={rawMental} " +
-                $"clientDamage={clientTotal} clientPhysical={clientPhysical} clientEnergy={clientEnergy} clientMental={clientMental} " +
-                $"flags={powerResults.Flags} hostile={powerResults.TestFlag(PowerResultFlags.Hostile)} critical={powerResults.TestFlag(PowerResultFlags.Critical)} " +
-                $"superCritical={powerResults.TestFlag(PowerResultFlags.SuperCritical)} blocked={powerResults.TestFlag(PowerResultFlags.Blocked)} " +
-                $"dodged={powerResults.TestFlag(PowerResultFlags.Dodged)} resisted={powerResults.TestFlag(PowerResultFlags.Resisted)} " +
-                $"unaffected={powerResults.TestFlag(PowerResultFlags.Unaffected)} overTime={powerResults.TestFlag(PowerResultFlags.OverTime)} " +
-                $"instantKill={powerResults.TestFlag(PowerResultFlags.InstantKill)}");
 
             return true;
         }
@@ -655,23 +570,10 @@ namespace MHServerEmu.Games.MythicRifts
 
         private static void CompleteTrial(Player player, OmegaTrialState state)
         {
-            Avatar avatar = player?.CurrentAvatar;
-            bool accessBefore = player?.MythicRiftProgress.HasOmegaPatrolAccess(avatar) == true;
             bool grantedAccess = RiftAccessTeleportService.GrantOmegaPatrolAccessForCurrentAvatar(player);
-            bool accessAfter = player?.MythicRiftProgress.HasOmegaPatrolAccess(avatar) == true;
-            Logger.Info(
-                $"[OmegaTrialAccessTrace] stage=trial-complete playerDbId=0x{state.PlayerDbId:X} " +
-                $"statePlayerMatches={player?.DatabaseUniqueId == state.PlayerDbId} avatarId=0x{avatar?.Id ?? 0:X} " +
-                $"avatar={avatar?.PrototypeDataRef.GetNameFormatted()} avatarRef=0x{(ulong)(avatar?.PrototypeDataRef ?? PrototypeId.Invalid):X} " +
-                $"trialRegionId=0x{state.RegionId:X} currentRegionId=0x{player?.GetRegion()?.Id ?? 0:X} " +
-                $"accessBefore={accessBefore} grantedOmegaAccess={grantedAccess} accessAfter={accessAfter}");
             if (grantedAccess)
             {
-                bool bannerSent = player.SendBannerMessage(OmegaPatrolUnlockedMessageRef, doNotQueue: true, showImmediately: true);
-                Logger.Info(
-                    $"[OmegaTrialAccessTrace] stage=unlock-notification playerDbId=0x{state.PlayerDbId:X} " +
-                    $"bannerLocale=0x{(ulong)OmegaPatrolUnlockedMessageRef:X} bannerSent={bannerSent} " +
-                    $"avatarInWorld={player.CurrentAvatar?.IsInWorld} regionId=0x{player.GetRegion()?.Id ?? 0:X}");
+                player.SendBannerMessage(OmegaPatrolUnlockedMessageRef, doNotQueue: true, showImmediately: true);
                 SendTrialChat(player, "Omega Patrols unlocked. Use the portal to return to the Helicarrier.");
             }
 
@@ -1649,14 +1551,6 @@ namespace MHServerEmu.Games.MythicRifts
                 uiDataProvider.DeleteWidget(GetOmegaTrialTimerWidgetPrototypeRef(), contextRef);
             }
 
-            if (complete)
-            {
-                Logger.Info(
-                    $"[OmegaTrialAccessTrace] stage=completion-hud playerDbId=0x{state.PlayerDbId:X} " +
-                    $"context={contextRef.GetNameFormatted()} titleLocale=0x{(ulong)OmegaTrialTitleTextRef:X} " +
-                    $"unlockedLocale=0x{(ulong)OmegaPatrolUnlockedMessageRef:X} levelWidget={levelWidget != null} " +
-                    $"objectiveWidget={objectiveWidget != null} timerWidget={timerWidget != null} count=2/2");
-            }
         }
 
         private static void ClearTrialWidgets(UIDataProvider uiDataProvider)

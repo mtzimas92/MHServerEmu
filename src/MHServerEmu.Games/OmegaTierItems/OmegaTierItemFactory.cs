@@ -102,11 +102,6 @@ namespace MHServerEmu.Games.OmegaTierItems
             bool traceRing = slot == EquipmentInvUISlot.Ring && tuning.EnableRingDiagnostics;
             if (traceRing)
                 Logger.Info($"[OmegaRingPromotionTrace] stage=candidate playerDbId=0x{resolver.Player?.DatabaseUniqueId:X} avatar={resolver.Player?.CurrentAvatar?.PrototypeDataRef.GetNameFormatted()} item={itemProto.DataRef.GetNameFormatted()} rollFor={filterArgs.RollFor.GetNameFormatted()} rarity={filterArgs.Rarity.GetNameFormatted()} context={resolver.LootContext} source={resolver.SourceEntityPrototypeRef.GetNameFormatted()} sourceId=0x{resolver.SourceEntityId:X}");
-            if (tuning.EnableLootSourceDiagnostics &&
-                (IsArmorSlotOneThroughFive(itemProto, slot) || slot == EquipmentInvUISlot.Ring))
-            {
-                Logger.Info($"[OmegaLootSourceTrace] playerDbId=0x{resolver.Player?.DatabaseUniqueId:X} avatar={resolver.Player?.CurrentAvatar?.PrototypeDataRef.GetNameFormatted()} region={resolver.Player?.CurrentAvatar?.Region?.PrototypeDataRef.GetNameFormatted()} item={itemProto.DataRef.GetNameFormatted()} rollFor={filterArgs.RollFor.GetNameFormatted()} resolvedSlot={slot} rarity={filterArgs.Rarity.GetNameFormatted()} context={resolver.LootContext} source={resolver.SourceEntityPrototypeRef.GetNameFormatted()} sourceId=0x{resolver.SourceEntityId:X}");
-            }
 
             PrototypeId cosmicRarityRef = GameDatabase.GetPrototypeRefByName(CosmicRarityName);
             PrototypeId omegaRarityRef = GameDatabase.GetPrototypeRefByName(OmegaRarityName);

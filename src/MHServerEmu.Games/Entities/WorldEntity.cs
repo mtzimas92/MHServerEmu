@@ -2228,7 +2228,6 @@ namespace MHServerEmu.Games.Entities
                 return false;
 
             PowerDamageMetricsLogger.RecordDamage(powerResults, this, ultimateOwner, powerUser, startHealth, health, adjustHealth);
-            OmegaTrialService.TryLogPlayerDamage(this, powerResults, ultimateOwner, powerUser, startHealth, health, adjustHealth);
 
             // Apply health change
             bool killed = false;
