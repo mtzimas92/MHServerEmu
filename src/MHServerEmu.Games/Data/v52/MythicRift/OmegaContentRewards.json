@@ -25,14 +25,6 @@
           "itemLevel": 69
         },
         {
-          "id": "omega-muspelheim-unique304",
-          "enabled": true,
-          "itemPrototype": "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot5/Unique304.prototype",
-          "quantity": 1,
-          "chancePercent": 2,
-          "itemLevel": 69
-        },
-        {
           "id": "omega-muspelheim-unique298",
           "enabled": true,
           "itemPrototype": "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot4/Unique298.prototype",
@@ -91,12 +83,12 @@
           "itemLevel": 69
         },
         {
-          "id": "cosmic-axis-unique304",
+          "id": "cosmic-axis-monument-of-ell",
           "enabled": true,
           "itemPrototype": "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot5/Unique304.prototype",
           "quantity": 1,
           "chancePercent": 2,
-          "itemLevel": 69
+          "itemLevel": 72
         },
         {
           "id": "cosmic-axis-unique298",
