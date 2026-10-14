@@ -1,7 +1,6 @@
 {
   "profileName": "omega-tier-items-v1",
   "enabled": true,
-  "enableRingDiagnostics": true,
   "omegaDifficultyPromotionChancePct": 50,
   "omegaDifficultyRingPromotionChancePct": 100,
   "preferredAffixChancePct": 100,

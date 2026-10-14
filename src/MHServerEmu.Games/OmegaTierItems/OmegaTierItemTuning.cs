@@ -25,8 +25,6 @@ namespace MHServerEmu.Games.OmegaTierItems
 
         public string ProfileName { get; set; } = "default-omega-items";
         public bool Enabled { get; set; } = true;
-        public bool EnableDiagnostics { get; set; }
-        public bool EnableRingDiagnostics { get; set; }
         public float OmegaDifficultyPromotionChancePct { get; set; } = 33.3333f;
         public float OmegaDifficultyRingPromotionChancePct { get; set; } = 100f;
         public float PreferredAffixChancePct { get; set; } = 100f;

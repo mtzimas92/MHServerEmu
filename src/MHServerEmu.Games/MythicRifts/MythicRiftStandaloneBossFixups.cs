@@ -1,4 +1,3 @@
-using MHServerEmu.Core.Logging;
 using MHServerEmu.Games.Entities;
 using MHServerEmu.Games.GameData;
 using MHServerEmu.Games.GameData.Prototypes;
@@ -8,7 +7,6 @@ namespace MHServerEmu.Games.MythicRifts
 {
     public static class MythicRiftStandaloneBossFixups
     {
-        private static readonly Logger Logger = LogManager.CreateLogger();
         private static readonly HashSet<ulong> StandaloneBossIds = new();
         private static readonly HashSet<ulong> StandaloneBossAffixFallbackIds = new();
         private const float StandaloneBossAggroRange = 3000f;
@@ -46,7 +44,6 @@ namespace MHServerEmu.Games.MythicRifts
 
             blackboard[PropertyEnum.AICustomStateVal1] = 2; // ProceduralProfileMODOKPrototype.State.GenericProcedural
             blackboard[PropertyEnum.AICustomTimeVal1] = (long)agent.Game.CurrentTime.TotalMilliseconds + 3_600_000_000L;
-            // Logger.Debug($"ApplyStandaloneBossFixups(): forced standalone MODOK {agent} into GenericProcedural with long aggro range.");
         }
 
         public static void Clear(ulong entityId)

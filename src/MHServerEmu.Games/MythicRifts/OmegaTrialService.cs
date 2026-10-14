@@ -1,6 +1,5 @@
 using Gazillion;
 using MHServerEmu.Core.Extensions;
-using MHServerEmu.Core.Logging;
 using MHServerEmu.Core.Memory;
 using MHServerEmu.Core.VectorMath;
 using MHServerEmu.Games.Entities;
@@ -20,8 +19,6 @@ namespace MHServerEmu.Games.MythicRifts
 {
     public static class OmegaTrialService
     {
-        private static readonly Logger Logger = LogManager.CreateLogger();
-
         private const string SilverSableOmegaTrialGuidePrototypeName = "Entity/Characters/NPCs/SilverSableHelicarrier.prototype";
         private const string SurturTrialEntryTargetPrototypeName = "Regions/RAIDS/MuspelheimRaid/ConnectionNodes/SurturRaidReduxEntryTargetBase.prototype";
         private const string SurturFinalEncounterHotspotPrototypeName = "Entity/Missions/Hotspots/SurturRaidFinalEncTriggerHotspot.prototype";
@@ -39,9 +36,6 @@ namespace MHServerEmu.Games.MythicRifts
         private const string SurturBanishHellfireSpawnerPrototypeName = "Entity/Spawners/Raids/Surtur/SurturBossFight/FiveMan/Minibosses/SurturFightHellfireSpawner.prototype";
         private const string SurturBanishBrimstoneSpawnerPrototypeName = "Entity/Spawners/Raids/Surtur/SurturBossFight/FiveMan/Minibosses/SurturFightBrimstoneSpawner.prototype";
         private const string SurturBanishMistressSpawnerPrototypeName = "Entity/Spawners/Raids/Surtur/SurturBossFight/FiveMan/Minibosses/SurturFightMistressSpawner.prototype";
-        private const string SurturReturnFromSlagSpawnerPrototypeName = "Entity/Spawners/Raids/Surtur/SurturBossFight/SurturRaidReturnFromSlagSpawner.prototype";
-        private const string SurturReturnFromTwinsSpawnerPrototypeName = "Entity/Spawners/Raids/Surtur/SurturBossFight/SurturRaidReturnFromTwinsSpawner.prototype";
-        private const string SurturReturnFromMistressSpawnerPrototypeName = "Entity/Spawners/Raids/Surtur/SurturBossFight/SurturRaidReturnFromMistrSpawner.prototype";
         private const string SurturSlagMiniBossPrototypeName = "Entity/Characters/Bosses/SurturRaid/FiveMan/SurturFightMinibosses/SlagMiniBoss.prototype";
         private const string SurturHellfireMiniBossPrototypeName = "Entity/Characters/Bosses/SurturRaid/FiveMan/SurturFightMinibosses/HellfireMiniBoss.prototype";
         private const string SurturBrimstoneMiniBossPrototypeName = "Entity/Characters/Bosses/SurturRaid/FiveMan/SurturFightMinibosses/BrimstoneMiniBoss.prototype";
@@ -199,61 +193,6 @@ namespace MHServerEmu.Games.MythicRifts
             return ShouldSuppressNativeTrialMissionNotification(player, PrototypeId.Invalid);
         }
 
-        public static bool TryUseOmegaTrialPortal(Player player, Transition transition)
-        {
-            if (player?.CurrentAvatar == null || transition == null)
-                return false;
-
-            OmegaTrialState state;
-            lock (SyncRoot)
-            {
-                if (TrialStates.TryGetValue(player.DatabaseUniqueId, out state) == false)
-                    return false;
-            }
-
-            if (state == null || state.RegionId == 0 || player.CurrentAvatar.Region?.Id != state.RegionId)
-                return false;
-
-            if (transition.Id == state.BanishPortalEntityId)
-                return TryUseOmegaTrialPortal(player, transition, state, state.BanishPortalDestination, state.BanishPortalDestinationOrientation, "banish");
-
-            if (transition.Id == state.BanishReturnPortalEntityId)
-            {
-                Region region = player.CurrentAvatar.Region;
-                bool handled = TryUseOmegaTrialPortal(player, transition, state, state.BanishReturnPortalDestination, state.BanishReturnPortalDestinationOrientation, "banish-return");
-                if (handled)
-                    ResumeSurturAfterBanish(player, region, state);
-
-                return handled;
-            }
-
-            return false;
-        }
-
-        private static bool TryUseOmegaTrialPortal(Player player, Transition transition, OmegaTrialState state, Vector3 destination, Orientation orientation, string portalType)
-        {
-            Region region = player.CurrentAvatar.Region;
-            if (region == null)
-                return false;
-
-            Cell destinationCell = region.GetCellAtPosition(destination);
-            if (destinationCell == null)
-            {
-                Logger.Info($"[OmegaTrialTrace] stage=portal-use-failed playerDbId=0x{state.PlayerDbId:X} portalType={portalType} portalId=0x{transition.Id:X} reason=no-cell destination={destination}");
-                return true;
-            }
-
-            Vector3 resolvedPosition = RegionLocation.ProjectToFloor(region, destinationCell, destination);
-            resolvedPosition.Z = destination.Z;
-            ChangePositionResult result = player.CurrentAvatar.ChangeRegionPosition(resolvedPosition, orientation, ChangePositionFlags.Teleport);
-            Logger.Info($"[OmegaTrialTrace] stage=portal-used playerDbId=0x{state.PlayerDbId:X} portalType={portalType} portalId=0x{transition.Id:X} result={result} destination={resolvedPosition}");
-
-            if (result != ChangePositionResult.InvalidPosition)
-                transition.Destroy();
-
-            return true;
-        }
-
         public static void OnAvatarEnteredRegion(Player player, Region region)
         {
             if (player == null || region == null)
@@ -269,18 +208,15 @@ namespace MHServerEmu.Games.MythicRifts
             PrototypeId trialRegionRef = GetSurturTrialRegionRef();
             if (trialRegionRef == PrototypeId.Invalid || region.PrototypeDataRef != trialRegionRef)
             {
-                // Logger.Info($"[OmegaTrialTrace] stage=wrong-region playerDbId=0x{player.DatabaseUniqueId:X} region={region.PrototypeDataRef.GetNameFormatted()} expected={trialRegionRef.GetNameFormatted()}");
                 EndTrial(player.DatabaseUniqueId);
                 return;
             }
 
             if (state.Stage != OmegaTrialStage.Traveling)
             {
-                // Logger.Info($"[OmegaTrialTrace] stage=entered-existing playerDbId=0x{player.DatabaseUniqueId:X} region={region.PrototypeDataRef.GetNameFormatted()} regionId=0x{region.Id:X} trialStage={state.Stage}");
                 return;
             }
 
-            // Logger.Info($"[OmegaTrialTrace] stage=entered playerDbId=0x{player.DatabaseUniqueId:X} avatar={player.CurrentAvatar} region={region.PrototypeDataRef.GetNameFormatted()} regionId=0x{region.Id:X} difficulty={region.DifficultyTierRef.GetNameFormatted()}");
             state.RegionId = region.Id;
             state.CachedRegion = region;
             ApplyTrialRegionScaling(state, region);
@@ -288,7 +224,6 @@ namespace MHServerEmu.Games.MythicRifts
             SuppressNativeTrialContent(player, region, state);
             SchedulePostEntryNativeSuppression(player, state);
             bool movedToArena = TryMoveAvatarToFinalArena(player, region, state);
-            // Logger.Info($"[OmegaTrialTrace] stage=arena-move playerDbId=0x{player.DatabaseUniqueId:X} regionId=0x{region.Id:X} moved={movedToArena} avatarPosition={player.CurrentAvatar?.RegionLocation.Position}");
             RefreshTrialWidgets(region.UIDataProvider, state, player.Game.CurrentTime);
 
             state.Stage = OmegaTrialStage.LokiPhase1Active;
@@ -327,7 +262,6 @@ namespace MHServerEmu.Games.MythicRifts
 
             if (TrySpawnBossForTrial(player, region, state, GetPrototypeRefByName(LokiPhase1PrototypeName), LokiSpawnDistance, out Agent loki) == false)
             {
-                // Logger.Info($"[OmegaTrialTrace] stage=spawn-failed playerDbId=0x{player.DatabaseUniqueId:X} boss={LokiPhase1PrototypeName} regionId=0x{region.Id:X}");
                 TrySpawnReturnPortal(player, region, state);
                 EndTrial(player.DatabaseUniqueId);
                 return;
@@ -336,7 +270,6 @@ namespace MHServerEmu.Games.MythicRifts
             state.LokiEntityId = loki.Id;
             StartPhaseTimer(player, state, LokiFightTimeLimit);
             SendTrialChat(player, "Defeat Loki. Time limit: 5 minutes.");
-            Logger.Info($"[OmegaTrialTrace] stage=spawned-loki-phase1 playerDbId=0x{player.DatabaseUniqueId:X} entityId=0x{loki.Id:X} position={loki.RegionLocation.Position} level={loki.Properties[PropertyEnum.CharacterLevel]} difficulty={region.DifficultyTierRef.GetNameFormatted()}");
             RefreshTrialWidgets(region.UIDataProvider, state, player.Game.CurrentTime);
         }
 
@@ -359,11 +292,9 @@ namespace MHServerEmu.Games.MythicRifts
             dialog.AddButton(GameDialogResultEnum.eGDR_Option1, YesButtonRef, ButtonStyle.SecondaryPositive, false, true);
             dialog.AddButton(GameDialogResultEnum.eGDR_Option2, NoButtonRef, ButtonStyle.SecondaryNegative, false, true);
             game.GameDialogManager.PostDialogToClient(dialog);
-            // Logger.Info($"[OmegaTrialTrace] stage=dialog-posted playerDbId=0x{player.DatabaseUniqueId:X} guide={silverSable}");
 
             void OnSilverSableOmegaTrialGuideDialogResponse(ulong playerGuid, DialogResponse response)
             {
-                // Logger.Info($"[OmegaTrialTrace] stage=dialog-response playerDbId=0x{playerGuid:X} response={response.ButtonIndex}");
                 if (response.ButtonIndex != GameDialogResultEnum.eGDR_Option1)
                     return;
 
@@ -379,7 +310,6 @@ namespace MHServerEmu.Games.MythicRifts
         {
             if (player.GetParty() != null)
             {
-                // Logger.Info($"[OmegaTrialTrace] stage=start-rejected playerDbId=0x{player.DatabaseUniqueId:X} reason=party");
                 player.SendBannerMessage(GameDatabase.UIGlobalsPrototype.MessageRegionRestricted);
                 return;
             }
@@ -387,7 +317,6 @@ namespace MHServerEmu.Games.MythicRifts
             PrototypeId entryTargetRef = GetPrototypeRefByName(SurturTrialEntryTargetPrototypeName);
             if (entryTargetRef == PrototypeId.Invalid)
             {
-                // Logger.Info($"[OmegaTrialTrace] stage=start-rejected playerDbId=0x{player.DatabaseUniqueId:X} reason=missing-entry-target target={SurturTrialEntryTargetPrototypeName}");
                 return;
             }
 
@@ -408,10 +337,8 @@ namespace MHServerEmu.Games.MythicRifts
             teleporter.BypassQueueRegionForRift = true;
             teleporter.ForcePrivateRegion = true;
 
-            // Logger.Info($"[OmegaTrialTrace] stage=teleport-start playerDbId=0x{player.DatabaseUniqueId:X} target={entryTargetRef.GetNameFormatted()} difficulty={OmegaTrialDifficultyTierRef.GetNameFormatted()}");
             if (teleporter.TeleportToTarget(entryTargetRef) == false)
             {
-                // Logger.Info($"[OmegaTrialTrace] stage=teleport-failed playerDbId=0x{player.DatabaseUniqueId:X} target={entryTargetRef.GetNameFormatted()}");
                 EndTrial(player.DatabaseUniqueId);
             }
         }
@@ -484,28 +411,24 @@ namespace MHServerEmu.Games.MythicRifts
             Player player = game.EntityManager.GetEntityByDbGuid<Player>(state.PlayerDbId);
             if (player?.CurrentAvatar == null || player.CurrentAvatar.Region?.Id != regionId)
             {
-                // Logger.Info($"[OmegaTrialTrace] stage=ending-missing-player playerDbId=0x{state.PlayerDbId:X} regionId=0x{regionId:X}");
                 EndTrial(state.PlayerDbId);
                 return;
             }
 
             if (state.Stage == OmegaTrialStage.LokiPhase1Active && IsTrackedDeath(evt.Defender, state.LokiEntityId, LokiPhase1PrototypeName))
             {
-                // Logger.Info($"[OmegaTrialTrace] stage=loki-phase1-dead playerDbId=0x{state.PlayerDbId:X} entityId=0x{evt.Defender.Id:X} prototype={evt.Defender.PrototypeDataRef.GetNameFormatted()}");
                 SpawnLokiPhase2(player, player.CurrentAvatar.Region, state);
                 return;
             }
 
             if (state.Stage == OmegaTrialStage.LokiActive && IsTrackedDeath(evt.Defender, state.LokiEntityId, LokiPhase2PrototypeName))
             {
-                // Logger.Info($"[OmegaTrialTrace] stage=loki-phase2-dead playerDbId=0x{state.PlayerDbId:X} entityId=0x{evt.Defender.Id:X} prototype={evt.Defender.PrototypeDataRef.GetNameFormatted()}");
                 SpawnSurturPhase(player, player.CurrentAvatar.Region, state);
                 return;
             }
 
             if (state.Stage == OmegaTrialStage.SurturActive && IsTrackedDeath(evt.Defender, state.SurturEntityId, SurturBossPrototypeName))
             {
-                Logger.Info($"[OmegaTrialTrace] stage=surtur-dead playerDbId=0x{state.PlayerDbId:X} entityId=0x{evt.Defender.Id:X} trackedEntityId=0x{state.SurturEntityId:X} prototype={evt.Defender.PrototypeDataRef.GetNameFormatted()}");
                 CompleteTrial(player, state);
                 return;
             }
@@ -513,8 +436,6 @@ namespace MHServerEmu.Games.MythicRifts
             if (state.Stage == OmegaTrialStage.SurturActive)
             {
                 bool handledBanishDeath = TryHandleSurturBanishMiniBossDeath(player, player.CurrentAvatar.Region, state, evt.Defender);
-                if (handledBanishDeath == false && IsTrialBossPrototype(evt.Defender))
-                    Logger.Info($"[OmegaTrialTrace] stage=unhandled-trial-boss-death playerDbId=0x{state.PlayerDbId:X} defenderId=0x{evt.Defender.Id:X} trackedSurturId=0x{state.SurturEntityId:X} prototype={evt.Defender.PrototypeDataRef.GetNameFormatted()} isDead={evt.Defender.IsDead} isDestroyed={evt.Defender.IsDestroyed}");
             }
         }
 
@@ -524,7 +445,6 @@ namespace MHServerEmu.Games.MythicRifts
             if (TrySpawnBossForTrial(player, region, state, lokiRef, LokiSpawnDistance, out Agent loki) == false)
             {
                 string regionIdText = region != null ? $"0x{region.Id:X}" : "unknown";
-                // Logger.Info($"[OmegaTrialTrace] stage=spawn-failed playerDbId=0x{state.PlayerDbId:X} boss={LokiPhase2PrototypeName} regionId={regionIdText}");
                 SendStopTrialTimer(player, state);
                 TrySpawnReturnPortal(player, region, state);
                 EndTrial(state.PlayerDbId);
@@ -533,7 +453,6 @@ namespace MHServerEmu.Games.MythicRifts
 
             state.Stage = OmegaTrialStage.LokiActive;
             state.LokiEntityId = loki.Id;
-            Logger.Info($"[OmegaTrialTrace] stage=spawned-loki-phase2 playerDbId=0x{state.PlayerDbId:X} entityId=0x{loki.Id:X} position={loki.RegionLocation.Position} level={(int)loki.Properties[PropertyEnum.CharacterLevel]} health={(long)loki.Properties[PropertyEnum.Health]} healthMax={(long)loki.Properties[PropertyEnum.HealthMax]} healthMaxOther={(long)loki.Properties[PropertyEnum.HealthMaxOther]} difficulty={region.DifficultyTierRef.GetNameFormatted()}");
             RefreshTrialWidgets(region.UIDataProvider, state, player.Game.CurrentTime);
         }
 
@@ -549,7 +468,6 @@ namespace MHServerEmu.Games.MythicRifts
             if (spawnedSurtur == false)
             {
                 string regionIdText = region != null ? $"0x{region.Id:X}" : "unknown";
-                // Logger.Info($"[OmegaTrialTrace] stage=spawn-failed playerDbId=0x{state.PlayerDbId:X} boss={SurturBossPrototypeName} regionId={regionIdText}");
                 SendStopTrialTimer(player, state);
                 TrySpawnReturnPortal(player, region, state);
                 EndTrial(state.PlayerDbId);
@@ -564,7 +482,6 @@ namespace MHServerEmu.Games.MythicRifts
             StartPhaseTimer(player, state, SurturFightTimeLimit);
             ScheduleSurturHealthThresholdCheck(player, state);
             SendTrialChat(player, "Defeat Surtur. Time limit: 5 minutes.");
-            Logger.Info($"[OmegaTrialTrace] stage=spawned-surtur playerDbId=0x{state.PlayerDbId:X} entityId=0x{surtur.Id:X} prototype={surtur.PrototypeDataRef.GetNameFormatted()} position={surtur.RegionLocation.Position} level={(int)surtur.Properties[PropertyEnum.CharacterLevel]} health={(long)surtur.Properties[PropertyEnum.Health]} healthMax={(long)surtur.Properties[PropertyEnum.HealthMax]} healthMaxOther={(long)surtur.Properties[PropertyEnum.HealthMaxOther]} difficulty={region.DifficultyTierRef.GetNameFormatted()}");
             RefreshTrialWidgets(region.UIDataProvider, state, player.Game.CurrentTime);
         }
 
@@ -668,7 +585,6 @@ namespace MHServerEmu.Games.MythicRifts
             if (player?.CurrentAvatar == null || region == null || region.ShutdownRequested)
                 return;
 
-            // Logger.Info($"[OmegaTrialTrace] stage=phase-timeout playerDbId=0x{state.PlayerDbId:X} trialStage={state.Stage} regionId=0x{region.Id:X}");
             FailTrial(player, state, "Time expired. Omega Trial failed.");
         }
 
@@ -693,9 +609,6 @@ namespace MHServerEmu.Games.MythicRifts
             state.SurturHellfireDefeated = false;
             state.SurturBrimstoneDefeated = false;
             state.SurturMistressDefeated = false;
-            state.SurturSlagReturnTriggered = false;
-            state.SurturTwinsReturnTriggered = false;
-            state.SurturMistressReturnTriggered = false;
             state.SurturBanishInProgress = false;
             state.SurturWasInvulnerableBeforeBanish = false;
         }
@@ -747,12 +660,10 @@ namespace MHServerEmu.Games.MythicRifts
                 return;
             }
 
-            ClearSurturBanishPortals(region, state);
             SetSurturBanishInvulnerable(state, surtur, true);
             ClampSurturHealthToThreshold(surtur, thresholdPct);
             state.SurturBanishInProgress = true;
             int triggered = TriggerSurturBanishWave(player, region, state, waveIndex);
-            Logger.Info($"[OmegaTrialTrace] stage=banish-wave-fired playerDbId=0x{playerDbId:X} wave={waveIndex + 1}/{SurturBanishHealthThresholds.Length} thresholdPct={thresholdPct} healthPct={healthPct} triggered={triggered}");
             if (triggered > 0)
             {
                 SendTrialChat(player, "Surtur becomes invulnerable. Defeat the summoned champion.");
@@ -792,25 +703,21 @@ namespace MHServerEmu.Games.MythicRifts
             PrototypeId miniBossRef = GetPrototypeRefByName(miniBossPrototypeName);
             if (miniBossRef == PrototypeId.Invalid)
             {
-                Logger.Info($"[OmegaTrialTrace] stage=banish-fallback-missing-prototype playerDbId=0x{state.PlayerDbId:X} miniboss={label} prototype={miniBossPrototypeName}");
                 MarkSurturBanishMiniBossUnavailable(state, label);
                 return 0;
             }
 
             if (HasLivingEntityPrototype(region, miniBossRef))
             {
-                Logger.Info($"[OmegaTrialTrace] stage=banish-fallback-skipped-existing playerDbId=0x{state.PlayerDbId:X} miniboss={label} prototype={miniBossRef.GetNameFormatted()}");
                 return 0;
             }
 
             if (TrySpawnSurturBanishMiniBoss(player, region, state, miniBossRef, label, out Agent miniBoss) == false)
             {
-                Logger.Info($"[OmegaTrialTrace] stage=banish-fallback-failed playerDbId=0x{state.PlayerDbId:X} miniboss={label} prototype={miniBossRef.GetNameFormatted()}");
                 MarkSurturBanishMiniBossUnavailable(state, label);
                 return 0;
             }
 
-            Logger.Info($"[OmegaTrialTrace] stage=banish-arena-boss-spawned playerDbId=0x{state.PlayerDbId:X} miniboss={label} entityId=0x{miniBoss.Id:X} prototype={miniBoss.PrototypeDataRef.GetNameFormatted()} position={miniBoss.RegionLocation.Position} health={(long)miniBoss.Properties[PropertyEnum.Health]} healthMax={(long)miniBoss.Properties[PropertyEnum.HealthMax]}");
             return 1;
         }
 
@@ -835,7 +742,6 @@ namespace MHServerEmu.Games.MythicRifts
                     break;
             }
 
-            Logger.Info($"[OmegaTrialTrace] stage=banish-miniboss-unavailable-counted playerDbId=0x{state.PlayerDbId:X} miniboss={label}");
         }
 
         private static bool TrySpawnSurturBanishMiniBoss(Player player, Region region, OmegaTrialState state, PrototypeId miniBossRef, string label, out Agent miniBoss)
@@ -849,7 +755,6 @@ namespace MHServerEmu.Games.MythicRifts
 
             if (TryResolveSurturBanishSpawnLocation(avatar, region, state, miniBossProto, label, out Vector3 spawnPosition, out Orientation spawnOrientation, out Cell spawnCell) == false)
             {
-                Logger.Info($"[OmegaTrialTrace] stage=banish-fallback-location-failed playerDbId=0x{state.PlayerDbId:X} miniboss={label} reason=no-banish-room-position");
                 return false;
             }
 
@@ -869,7 +774,6 @@ namespace MHServerEmu.Games.MythicRifts
             if (IsPrototype(defender, SurturSlagMiniBossPrototypeName))
             {
                 state.SurturSlagDefeated = true;
-                Logger.Info($"[OmegaTrialTrace] stage=banish-miniboss-dead playerDbId=0x{state.PlayerDbId:X} miniboss=Slag entityId=0x{defender.Id:X}");
                 TryResumeSurturAfterArenaBosses(player, region, state);
                 return true;
             }
@@ -877,7 +781,6 @@ namespace MHServerEmu.Games.MythicRifts
             if (IsPrototype(defender, SurturHellfireMiniBossPrototypeName))
             {
                 state.SurturHellfireDefeated = true;
-                Logger.Info($"[OmegaTrialTrace] stage=banish-miniboss-dead playerDbId=0x{state.PlayerDbId:X} miniboss=Hellfire entityId=0x{defender.Id:X} brimstoneDefeated={state.SurturBrimstoneDefeated}");
                 if (state.SurturBrimstoneDefeated)
                     TryResumeSurturAfterArenaBosses(player, region, state);
 
@@ -887,7 +790,6 @@ namespace MHServerEmu.Games.MythicRifts
             if (IsPrototype(defender, SurturBrimstoneMiniBossPrototypeName))
             {
                 state.SurturBrimstoneDefeated = true;
-                Logger.Info($"[OmegaTrialTrace] stage=banish-miniboss-dead playerDbId=0x{state.PlayerDbId:X} miniboss=Brimstone entityId=0x{defender.Id:X} hellfireDefeated={state.SurturHellfireDefeated}");
                 if (state.SurturHellfireDefeated)
                     TryResumeSurturAfterArenaBosses(player, region, state);
 
@@ -897,7 +799,6 @@ namespace MHServerEmu.Games.MythicRifts
             if (IsPrototype(defender, SurturMistressMiniBossPrototypeName))
             {
                 state.SurturMistressDefeated = true;
-                Logger.Info($"[OmegaTrialTrace] stage=banish-miniboss-dead playerDbId=0x{state.PlayerDbId:X} miniboss=Mistress entityId=0x{defender.Id:X}");
                 TryResumeSurturAfterArenaBosses(player, region, state);
                 return true;
             }
@@ -913,7 +814,6 @@ namespace MHServerEmu.Games.MythicRifts
             if (IsCurrentSurturBanishWaveDefeated(state) == false)
                 return;
 
-            Logger.Info($"[OmegaTrialTrace] stage=banish-wave-cleared playerDbId=0x{state.PlayerDbId:X} activeWave={state.NextSurturBanishWaveIndex}");
             ResumeSurturAfterBanish(player, region, state);
             SendTrialChat(player, "Surtur is vulnerable again.");
         }
@@ -933,22 +833,6 @@ namespace MHServerEmu.Games.MythicRifts
             };
         }
 
-        private static bool TriggerSurturReturnSpawnerOnce(Player player, Region region, OmegaTrialState state, string spawnerPrototypeName, ref bool alreadyTriggered)
-        {
-            if (alreadyTriggered)
-                return true;
-
-            alreadyTriggered = true;
-            int triggered = TriggerSpawnerPrototype(region, spawnerPrototypeName, EntityTriggerEnum.Enabled);
-            Logger.Info($"[OmegaTrialTrace] stage=banish-return-triggered playerDbId=0x{state?.PlayerDbId ?? 0:X} spawner={spawnerPrototypeName} triggered={triggered}");
-            bool servicePortalSpawned = triggered <= 0 && TrySpawnSurturBanishReturnPortal(player, region, state);
-
-            if (triggered > 0)
-                SendTrialChat(player, "A return portal has opened.");
-
-            return triggered > 0 || servicePortalSpawned;
-        }
-
         private static void ResumeSurturAfterBanish(Player player, Region region, OmegaTrialState state)
         {
             if (state == null)
@@ -958,100 +842,6 @@ namespace MHServerEmu.Games.MythicRifts
             SetSurturBanishInvulnerable(state, surtur, false);
             state.SurturBanishInProgress = false;
             ScheduleSurturHealthThresholdCheck(player, state);
-        }
-
-        private static bool TrySpawnSurturBanishPortal(Player player, Region region, OmegaTrialState state, Agent miniBoss)
-        {
-            if (player?.CurrentAvatar == null || region == null || state == null || miniBoss == null)
-                return false;
-
-            if (state.BanishPortalEntityId != Entity.InvalidId && region.Game.EntityManager.GetEntity<Transition>(state.BanishPortalEntityId) != null)
-                return true;
-
-            if (TryResolveReturnPortalLocation(player.CurrentAvatar, region, state, out Vector3 portalPosition, out Orientation portalOrientation, out Cell portalCell) == false)
-                return false;
-
-            Transition portal = SpawnOmegaTrialPortal(player, region, portalPosition, portalOrientation, portalCell, "banish");
-            if (portal == null)
-                return false;
-
-            state.BanishPortalEntityId = portal.Id;
-            state.BanishPortalDestination = miniBoss.RegionLocation.Position;
-            state.BanishPortalDestinationOrientation = miniBoss.RegionLocation.Orientation;
-            Logger.Info($"[OmegaTrialTrace] stage=banish-portal-spawned playerDbId=0x{state.PlayerDbId:X} portalId=0x{portal.Id:X} position={portalPosition} destination={state.BanishPortalDestination}");
-            return true;
-        }
-
-        private static bool TrySpawnSurturBanishReturnPortal(Player player, Region region, OmegaTrialState state)
-        {
-            if (player?.CurrentAvatar == null || region == null || state == null)
-                return false;
-
-            if (state.BanishReturnPortalEntityId != Entity.InvalidId && region.Game.EntityManager.GetEntity<Transition>(state.BanishReturnPortalEntityId) != null)
-                return true;
-
-            if (TryResolvePortalLocationNearAvatar(player.CurrentAvatar, region, out Vector3 portalPosition, out Orientation portalOrientation, out Cell portalCell) == false)
-                return false;
-
-            Transition portal = SpawnOmegaTrialPortal(player, region, portalPosition, portalOrientation, portalCell, "banish-return");
-            if (portal == null)
-                return false;
-
-            state.BanishReturnPortalEntityId = portal.Id;
-            state.BanishReturnPortalDestination = state.HasArenaAnchor ? state.ArenaAnchorPosition : player.CurrentAvatar.RegionLocation.Position;
-            state.BanishReturnPortalDestinationOrientation = state.HasArenaAnchor ? state.ArenaAnchorOrientation : player.CurrentAvatar.RegionLocation.Orientation;
-            SendTrialChat(player, "A return portal has opened.");
-            Logger.Info($"[OmegaTrialTrace] stage=banish-return-portal-spawned playerDbId=0x{state.PlayerDbId:X} portalId=0x{portal.Id:X} position={portalPosition} destination={state.BanishReturnPortalDestination}");
-            return true;
-        }
-
-        private static Transition SpawnOmegaTrialPortal(Player player, Region region, Vector3 position, Orientation orientation, Cell cell, string portalType)
-        {
-            PrototypeId portalRef = GetPrototypeRefByName(ReturnPortalPrototypeName);
-            if (portalRef == PrototypeId.Invalid || player?.CurrentAvatar == null || region?.Game?.EntityManager == null || cell == null)
-                return null;
-
-            using var settingsHandle = EntitySettingsPool.Get(out EntitySettings settings);
-            settings.EntityRef = portalRef;
-            settings.RegionId = region.Id;
-            settings.Position = position;
-            settings.Orientation = orientation;
-            settings.Cell = cell;
-            settings.Lifespan = TrialReturnPortalLifespan;
-            settings.SourceEntityId = player.CurrentAvatar.Id;
-
-            using var settingsPropertiesHandle = PropertyCollectionPool.Get(out PropertyCollection settingsProperties);
-            settingsProperties[PropertyEnum.Interactable] = (int)TriBool.True;
-            settingsProperties[PropertyEnum.InteractableUsesLeft] = -1;
-            settingsProperties[PropertyEnum.Visible] = true;
-            settings.Properties = settingsProperties;
-
-            Transition portal = region.Game.EntityManager.CreateEntity(settings) as Transition;
-            Logger.Info($"[OmegaTrialTrace] stage=service-portal-spawned playerDbId=0x{player.DatabaseUniqueId:X} portalType={portalType} portalId=0x{portal?.Id ?? 0UL:X} position={position}");
-            return portal;
-        }
-
-        private static void ClearSurturBanishPortals(Region region, OmegaTrialState state)
-        {
-            if (region?.Game?.EntityManager == null || state == null)
-                return;
-
-            DestroyPortalIfPresent(region, state.BanishPortalEntityId);
-            DestroyPortalIfPresent(region, state.BanishReturnPortalEntityId);
-            state.BanishPortalEntityId = Entity.InvalidId;
-            state.BanishReturnPortalEntityId = Entity.InvalidId;
-            state.BanishPortalDestination = Vector3.Zero;
-            state.BanishPortalDestinationOrientation = Orientation.Zero;
-            state.BanishReturnPortalDestination = Vector3.Zero;
-            state.BanishReturnPortalDestinationOrientation = Orientation.Zero;
-        }
-
-        private static void DestroyPortalIfPresent(Region region, ulong portalEntityId)
-        {
-            if (portalEntityId == Entity.InvalidId)
-                return;
-
-            region?.Game?.EntityManager.GetEntity<Transition>(portalEntityId)?.Destroy();
         }
 
         private static float GetHealthPct(WorldEntity entity)
@@ -1085,14 +875,12 @@ namespace MHServerEmu.Games.MythicRifts
             {
                 state.SurturWasInvulnerableBeforeBanish = surtur.Properties[PropertyEnum.Invulnerable];
                 surtur.Properties[PropertyEnum.Invulnerable] = true;
-                Logger.Info($"[OmegaTrialTrace] stage=surtur-banish-invulnerable playerDbId=0x{state.PlayerDbId:X} entityId=0x{surtur.Id:X} enabled=True health={(long)surtur.Properties[PropertyEnum.Health]} healthMax={(long)surtur.Properties[PropertyEnum.HealthMax]}");
                 return;
             }
 
             surtur.Properties.RemoveProperty(PropertyEnum.Invulnerable);
             state.SurturWasInvulnerableBeforeBanish = false;
 
-            Logger.Info($"[OmegaTrialTrace] stage=surtur-banish-invulnerable playerDbId=0x{state.PlayerDbId:X} entityId=0x{surtur.Id:X} enabled=False health={(long)surtur.Properties[PropertyEnum.Health]} healthMax={(long)surtur.Properties[PropertyEnum.HealthMax]}");
         }
 
         private static void EnsureBanishMiniBossDamageable(OmegaTrialState state, Agent miniBoss, string label)
@@ -1100,17 +888,11 @@ namespace MHServerEmu.Games.MythicRifts
             if (miniBoss == null)
                 return;
 
-            bool wasInvulnerable = miniBoss.Properties[PropertyEnum.Invulnerable];
-            bool wasUntargetable = miniBoss.Properties[PropertyEnum.Untargetable];
-            bool wasImmuneToPower = miniBoss.Properties[PropertyEnum.ImmuneToPower];
-            bool wasTutorialInvulnerable = miniBoss.Properties[PropertyEnum.TutorialInvulnerable];
-
             miniBoss.Properties.RemoveProperty(PropertyEnum.Invulnerable);
             miniBoss.Properties.RemoveProperty(PropertyEnum.Untargetable);
             miniBoss.Properties.RemoveProperty(PropertyEnum.ImmuneToPower);
             miniBoss.Properties.RemoveProperty(PropertyEnum.TutorialInvulnerable);
 
-            Logger.Info($"[OmegaTrialTrace] stage=banish-miniboss-damageable playerDbId=0x{state?.PlayerDbId ?? 0:X} miniboss={label} entityId=0x{miniBoss.Id:X} wasInvulnerable={wasInvulnerable} wasUntargetable={wasUntargetable} wasImmuneToPower={wasImmuneToPower} wasTutorialInvulnerable={wasTutorialInvulnerable}");
         }
 
         private static void ApplySurturBanishMiniBossHealthMultiplier(OmegaTrialState state, Agent miniBoss, string label)
@@ -1119,9 +901,7 @@ namespace MHServerEmu.Games.MythicRifts
                 return;
 
             float multiplier = GetSurturBanishMiniBossHealthMultiplier(label);
-            long oldHealth = miniBoss.Properties[PropertyEnum.Health];
             long oldHealthMax = miniBoss.Properties[PropertyEnum.HealthMax];
-            long oldHealthMaxOther = miniBoss.Properties[PropertyEnum.HealthMaxOther];
             float oldHealthPctBonus = miniBoss.Properties[PropertyEnum.HealthPctBonus];
             if (oldHealthMax <= 0)
                 return;
@@ -1136,7 +916,6 @@ namespace MHServerEmu.Games.MythicRifts
                 miniBoss.Properties[PropertyEnum.Health] = miniBoss.Properties[PropertyEnum.HealthMax];
             }
 
-            Logger.Info($"[OmegaTrialTrace] stage=banish-miniboss-health-tuned playerDbId=0x{state?.PlayerDbId ?? 0:X} miniboss={label} entityId=0x{miniBoss.Id:X} multiplier={multiplier} targetHealth={targetHealth} oldHealth={oldHealth} oldHealthMax={oldHealthMax} oldHealthMaxOther={oldHealthMaxOther} oldHealthPctBonus={oldHealthPctBonus} newHealthPctBonus={(float)miniBoss.Properties[PropertyEnum.HealthPctBonus]} newHealth={(long)miniBoss.Properties[PropertyEnum.Health]} newHealthMax={(long)miniBoss.Properties[PropertyEnum.HealthMax]} newHealthMaxOther={(long)miniBoss.Properties[PropertyEnum.HealthMaxOther]}");
         }
 
         private static float GetSurturBanishMiniBossHealthMultiplier(string label)
@@ -1149,35 +928,12 @@ namespace MHServerEmu.Games.MythicRifts
             return label == "Mistress" ? MistressOfMagmaTargetHealth : 0L;
         }
 
-        private static bool TryTeleportPlayerToSurturBanish(Player player, Region region, OmegaTrialState state)
-        {
-            if (player?.CurrentAvatar == null || region == null || state == null || state.BanishPortalDestination == Vector3.Zero)
-                return false;
-
-            Cell destinationCell = region.GetCellAtPosition(state.BanishPortalDestination);
-            if (destinationCell == null)
-            {
-                Logger.Info($"[OmegaTrialTrace] stage=banish-auto-teleport-failed playerDbId=0x{state.PlayerDbId:X} reason=no-cell destination={state.BanishPortalDestination}");
-                return false;
-            }
-
-            Vector3 resolvedPosition = RegionLocation.ProjectToFloor(region, destinationCell, state.BanishPortalDestination);
-            resolvedPosition.Z = state.BanishPortalDestination.Z;
-            ChangePositionResult result = player.CurrentAvatar.ChangeRegionPosition(resolvedPosition, state.BanishPortalDestinationOrientation, ChangePositionFlags.Teleport);
-            DestroyPortalIfPresent(region, state.BanishPortalEntityId);
-            state.BanishPortalEntityId = Entity.InvalidId;
-            Logger.Info($"[OmegaTrialTrace] stage=banish-auto-teleport playerDbId=0x{state.PlayerDbId:X} result={result} destination={resolvedPosition}");
-            return result != ChangePositionResult.InvalidPosition;
-        }
-
         private static void ApplySurturHealthMultiplier(OmegaTrialState state, Agent surtur)
         {
             if (surtur == null)
                 return;
 
-            long oldHealth = surtur.Properties[PropertyEnum.Health];
             long oldHealthMax = surtur.Properties[PropertyEnum.HealthMax];
-            long oldHealthMaxOther = surtur.Properties[PropertyEnum.HealthMaxOther];
             float oldHealthPctBonus = surtur.Properties[PropertyEnum.HealthPctBonus];
             if (oldHealthMax <= 0)
                 return;
@@ -1186,7 +942,6 @@ namespace MHServerEmu.Games.MythicRifts
             surtur.Properties[PropertyEnum.HealthPctBonus] = Math.Max(-0.995f, oldHealthPctBonus + healthMultiplier - 1f);
             surtur.Properties[PropertyEnum.Health] = surtur.Properties[PropertyEnum.HealthMax];
 
-            Logger.Info($"[OmegaTrialTrace] stage=surtur-health-tuned playerDbId=0x{state?.PlayerDbId ?? 0:X} entityId=0x{surtur.Id:X} targetHealth={SurturTargetHealth} multiplier={healthMultiplier} oldHealth={oldHealth} oldHealthMax={oldHealthMax} oldHealthMaxOther={oldHealthMaxOther} oldHealthPctBonus={oldHealthPctBonus} newHealthPctBonus={(float)surtur.Properties[PropertyEnum.HealthPctBonus]} newHealth={(long)surtur.Properties[PropertyEnum.Health]} newHealthMax={(long)surtur.Properties[PropertyEnum.HealthMax]} newHealthMaxOther={(long)surtur.Properties[PropertyEnum.HealthMaxOther]}");
         }
 
         private static void SendStartTrialTimer(Player player, OmegaTrialState state, TimeSpan duration)
@@ -1206,11 +961,9 @@ namespace MHServerEmu.Games.MythicRifts
                     .Build();
 
                 player.SendMessage(message);
-                // Logger.Info($"[OmegaTrialTrace] stage=timer-start playerDbId=0x{state.PlayerDbId:X} trialStage={state.Stage} timerId=0x{state.TimerMetaGameId:X} durationMs={(long)duration.TotalMilliseconds}");
             }
             catch (Exception)
             {
-                // Logger.Info($"[OmegaTrialTrace] stage=timer-start-failed playerDbId=0x{state.PlayerDbId:X} reason={e.Message}");
             }
         }
 
@@ -1231,7 +984,6 @@ namespace MHServerEmu.Games.MythicRifts
             }
             catch (Exception)
             {
-                // Logger.Info($"[OmegaTrialTrace] stage=timer-stop-failed playerDbId=0x{state.PlayerDbId:X} reason={e.Message}");
             }
         }
 
@@ -1247,13 +999,11 @@ namespace MHServerEmu.Games.MythicRifts
             PrototypeId targetRef = GetPrototypeRefByName(HelicarrierEntryTargetPrototypeName);
             if (portalRef == PrototypeId.Invalid || targetRef == PrototypeId.Invalid)
             {
-                // Logger.Info($"[OmegaTrialTrace] stage=return-portal-failed playerDbId=0x{state.PlayerDbId:X} reason=missing-prototype portal={portalRef.GetNameFormatted()} target={targetRef.GetNameFormatted()}");
                 return false;
             }
 
             if (TryResolveReturnPortalLocation(player.CurrentAvatar, region, state, out Vector3 position, out Orientation orientation, out Cell cell) == false)
             {
-                // Logger.Info($"[OmegaTrialTrace] stage=return-portal-failed playerDbId=0x{state.PlayerDbId:X} reason=no-location regionId=0x{region.Id:X}");
                 return false;
             }
 
@@ -1275,19 +1025,16 @@ namespace MHServerEmu.Games.MythicRifts
             Transition portal = region.Game.EntityManager.CreateEntity(settings) as Transition;
             if (portal == null)
             {
-                // Logger.Info($"[OmegaTrialTrace] stage=return-portal-failed playerDbId=0x{state.PlayerDbId:X} reason=create-failed");
                 return false;
             }
 
             if (portal.ConfigureDirectTarget(targetRef) == false)
             {
                 portal.Destroy();
-                // Logger.Info($"[OmegaTrialTrace] stage=return-portal-failed playerDbId=0x{state.PlayerDbId:X} reason=target-failed target={targetRef.GetNameFormatted()}");
                 return false;
             }
 
             state.ReturnPortalEntityId = portal.Id;
-            // Logger.Info($"[OmegaTrialTrace] stage=return-portal-spawned playerDbId=0x{state.PlayerDbId:X} entityId=0x{portal.Id:X} position={position} target={targetRef.GetNameFormatted()}");
             return true;
         }
 
@@ -1318,26 +1065,6 @@ namespace MHServerEmu.Games.MythicRifts
             return cell != null && cell.IntersectsXY(position);
         }
 
-        private static bool TryResolvePortalLocationNearAvatar(Avatar avatar, Region region, out Vector3 position, out Orientation orientation, out Cell cell)
-        {
-            position = Vector3.Zero;
-            orientation = Orientation.Zero;
-            cell = null;
-
-            if (avatar == null || region == null)
-                return false;
-
-            position = avatar.RegionLocation.Position + (avatar.Forward * 250f);
-            orientation = avatar.RegionLocation.Orientation;
-            cell = avatar.Cell ?? region.GetCellAtPosition(position);
-            if (cell == null)
-                return false;
-
-            position = RegionLocation.ProjectToFloor(region, cell, position);
-            cell = region.GetCellAtPosition(position) ?? cell;
-            return cell != null && cell.IntersectsXY(position);
-        }
-
         private static void SuppressNativeTrialContent(Player player, Region region, OmegaTrialState state)
         {
             if (region == null || state == null)
@@ -1348,7 +1075,6 @@ namespace MHServerEmu.Games.MythicRifts
             (int spawnEventsDestroyed, int agentsDestroyed) = ClearNativeTrialPopulation(region, state);
             int widgetsRemoved = RemoveNativeTrialWidgets(region.UIDataProvider);
             int dialogsRemoved = player?.Game?.GameDialogManager?.RemoveDialogsFromClient(state.PlayerDbId) ?? 0;
-            // Logger.Info($"[OmegaTrialTrace] stage=suppress-native playerDbId=0x{state.PlayerDbId:X} regionId=0x{region.Id:X} metagamesRemoved={metagamesRemoved} missionsSuppressed={missionsSuppressed} spawnEventsDestroyed={spawnEventsDestroyed} agentsDestroyed={agentsDestroyed} widgetsRemoved={widgetsRemoved} dialogsRemoved={dialogsRemoved}");
         }
 
         private static int SuppressNativeTrialMetaGames(Region region)
@@ -1649,7 +1375,6 @@ namespace MHServerEmu.Games.MythicRifts
             WorldEntity hotspot = FindEntityByPrototype(region, hotspotRef);
             if (hotspot == null)
             {
-                // Logger.Info($"[OmegaTrialTrace] stage=arena-marker-missing playerDbId=0x{player.DatabaseUniqueId:X} marker={SurturFinalEncounterHotspotPrototypeName} regionId=0x{region.Id:X}");
                 return false;
             }
 
@@ -1657,14 +1382,12 @@ namespace MHServerEmu.Games.MythicRifts
             Orientation hotspotOrientation = hotspot.RegionLocation.Orientation;
             Cell hotspotCell = hotspot.Cell ?? region.GetCellAtPosition(hotspotPosition);
             hotspot.Destroy();
-            // Logger.Info($"[OmegaTrialTrace] stage=arena-marker-found playerDbId=0x{player.DatabaseUniqueId:X} markerId=0x{hotspot.Id:X} markerPosition={hotspotPosition}");
 
             state.FinalEncounterMarkerPosition = hotspotPosition;
             state.HasFinalEncounterMarker = true;
 
             if (hotspotCell == null)
             {
-                // Logger.Info($"[OmegaTrialTrace] stage=arena-marker-invalid-cell playerDbId=0x{player.DatabaseUniqueId:X} markerPosition={hotspotPosition}");
                 return false;
             }
 
@@ -1691,7 +1414,6 @@ namespace MHServerEmu.Games.MythicRifts
             state.ArenaAnchorOrientation = hotspotOrientation;
             state.ArenaAnchorCell = resolvedCell;
             state.HasArenaAnchor = result != ChangePositionResult.InvalidPosition;
-            // Logger.Info($"[OmegaTrialTrace] stage=arena-anchor playerDbId=0x{player.DatabaseUniqueId:X} result={result} anchor={state.ArenaAnchorPosition} cell={(state.ArenaAnchorCell?.Id.ToString("X") ?? "unknown")}");
             return state.HasArenaAnchor;
         }
 
@@ -1800,49 +1522,6 @@ namespace MHServerEmu.Games.MythicRifts
             return false;
         }
 
-        private static int TriggerSpawnerPrototype(Region region, string spawnerPrototypeName, EntityTriggerEnum trigger)
-        {
-            if (region == null || string.IsNullOrWhiteSpace(spawnerPrototypeName))
-                return 0;
-
-            PrototypeId spawnerRef = GetPrototypeRefByName(spawnerPrototypeName);
-            if (spawnerRef == PrototypeId.Invalid)
-            {
-                Logger.Info($"[OmegaTrialTrace] stage=spawner-trigger-missing-prototype spawner={spawnerPrototypeName} trigger={trigger}");
-                return 0;
-            }
-
-            List<Spawner> spawnersToTrigger = null;
-            foreach (Entity entity in region.Entities)
-            {
-                if (entity is not Spawner spawner || spawner.IsDestroyed || spawner.PrototypeDataRef != spawnerRef)
-                    continue;
-
-                spawnersToTrigger ??= new();
-                spawnersToTrigger.Add(spawner);
-            }
-
-            if (spawnersToTrigger == null)
-            {
-                Logger.Info($"[OmegaTrialTrace] stage=spawner-trigger-no-entities regionId=0x{region.Id:X} spawner={spawnerRef.GetNameFormatted()} trigger={trigger}");
-                return 0;
-            }
-
-            int triggered = 0;
-            foreach (Spawner spawner in spawnersToTrigger)
-            {
-                if (spawner.IsDestroyed)
-                    continue;
-
-                Logger.Info($"[OmegaTrialTrace] stage=spawner-trigger-before regionId=0x{region.Id:X} spawnerEntityId=0x{spawner.Id:X} spawner={spawnerRef.GetNameFormatted()} trigger={trigger} position={spawner.RegionLocation.Position}");
-                spawner.Trigger(trigger);
-                triggered++;
-            }
-
-            Logger.Info($"[OmegaTrialTrace] stage=spawner-trigger-after regionId=0x{region.Id:X} spawner={spawnerRef.GetNameFormatted()} trigger={trigger} triggered={triggered}");
-            return triggered;
-        }
-
         private static bool TrySpawnBossForTrial(Player player, Region region, OmegaTrialState state, PrototypeId bossRef, float spawnDistance, out Agent boss)
         {
             boss = null;
@@ -1869,21 +1548,18 @@ namespace MHServerEmu.Games.MythicRifts
             PrototypeId spawnerRef = GetPrototypeRefByName(spawnerPrototypeName);
             if (spawnerRef == PrototypeId.Invalid)
             {
-                // Logger.Info($"[OmegaTrialTrace] stage=native-spawner-missing playerDbId=0x{state.PlayerDbId:X} boss={bossProto.DataRef.GetNameFormatted()} spawner={spawnerPrototypeName} reason=prototype-invalid");
                 return false;
             }
 
             WorldEntity spawner = FindEntityByPrototype(region, spawnerRef);
             if (spawner == null || spawner.IsInWorld == false)
             {
-                // Logger.Info($"[OmegaTrialTrace] stage=native-spawner-missing playerDbId=0x{state.PlayerDbId:X} boss={bossProto.DataRef.GetNameFormatted()} spawner={spawnerRef.GetNameFormatted()} reason=entity-not-found");
                 return false;
             }
 
             Cell spawnCell = spawner.Cell ?? region.GetCellAtPosition(spawner.RegionLocation.Position);
             if (spawnCell == null)
             {
-                // Logger.Info($"[OmegaTrialTrace] stage=native-spawner-missing playerDbId=0x{state.PlayerDbId:X} boss={bossProto.DataRef.GetNameFormatted()} spawner={spawnerRef.GetNameFormatted()} reason=no-cell position={spawner.RegionLocation.Position}");
                 return false;
             }
 
@@ -1891,7 +1567,6 @@ namespace MHServerEmu.Games.MythicRifts
             if (bossProto.Bounds != null)
                 spawnPosition.Z += bossProto.Bounds.GetBoundHalfHeight();
 
-            // Logger.Info($"[OmegaTrialTrace] stage=native-spawner-found playerDbId=0x{state.PlayerDbId:X} boss={bossProto.DataRef.GetNameFormatted()} spawner={spawner} position={spawnPosition} cell={(spawnCell?.Id.ToString("X") ?? "unknown")}");
             return TryCreateTrialBoss(region, bossProto, spawnPosition, spawner.RegionLocation.Orientation, spawnCell, out boss);
         }
 
@@ -1908,7 +1583,6 @@ namespace MHServerEmu.Games.MythicRifts
             Cell spawnCell = region.GetCellAtPosition(markerPosition) ?? state.ArenaAnchorCell;
             if (spawnCell == null)
             {
-                // Logger.Info($"[OmegaTrialTrace] stage=native-final-marker-missing playerDbId=0x{state.PlayerDbId:X} boss={bossProto.DataRef.GetNameFormatted()} reason=no-cell markerPosition={markerPosition}");
                 return false;
             }
 
@@ -1918,7 +1592,6 @@ namespace MHServerEmu.Games.MythicRifts
 
             Vector3 facingTarget = state.HasArenaAnchor ? state.ArenaAnchorPosition : state.FinalEncounterMarkerPosition;
             Orientation orientation = Orientation.FromDeltaVector2D(facingTarget - spawnPosition);
-            // Logger.Info($"[OmegaTrialTrace] stage=native-final-marker playerDbId=0x{state.PlayerDbId:X} boss={bossProto.DataRef.GetNameFormatted()} markerPosition={markerPosition} resolved={spawnPosition} facingTarget={facingTarget} orientation={orientation} cell={(spawnCell?.Id.ToString("X") ?? "unknown")}");
             return TryCreateTrialBoss(region, bossProto, spawnPosition, orientation, spawnCell, out boss);
         }
 
@@ -1962,10 +1635,8 @@ namespace MHServerEmu.Games.MythicRifts
             if (region == null || state == null)
                 return;
 
-            int existingCount = RevealExistingSurturCover(region, state);
-            int spawnedCount = SpawnSurturCoverFromRaidMarkers(region, state);
-            int totalCount = existingCount + spawnedCount;
-            Logger.Info($"[OmegaTrialTrace] stage=surtur-cover-ready playerDbId=0x{state.PlayerDbId:X} existing={existingCount} spawned={spawnedCount} total={totalCount}");
+            RevealExistingSurturCover(region, state);
+            SpawnSurturCoverFromRaidMarkers(region, state);
         }
 
         private static int RevealExistingSurturCover(Region region, OmegaTrialState state)
@@ -1981,7 +1652,6 @@ namespace MHServerEmu.Games.MythicRifts
                 if (coverEntity.PrototypeDataRef == coverRockBRef &&
                     Vector3.DistanceSquared(coverEntity.RegionLocation.Position, ProblematicNativeSurturCoverPosition) <= ProblematicNativeSurturCoverPositionToleranceSquared)
                 {
-                    Logger.Info($"[OmegaTrialTrace] stage=surtur-cover-removed playerDbId=0x{state.PlayerDbId:X} entityId=0x{coverEntity.Id:X} position={coverEntity.RegionLocation.Position} prototype={coverEntity.PrototypeDataRef.GetNameFormatted()}");
                     coverEntity.Destroy();
                     continue;
                 }
@@ -1990,7 +1660,6 @@ namespace MHServerEmu.Games.MythicRifts
                 if (state.SurturCoverEntityIds.Contains(coverEntity.Id) == false)
                     state.SurturCoverEntityIds.Add(coverEntity.Id);
 
-                Logger.Info($"[OmegaTrialTrace] stage=surtur-cover-revealed playerDbId=0x{state.PlayerDbId:X} entityId=0x{coverEntity.Id:X} position={coverEntity.RegionLocation.Position} prototype={coverEntity.PrototypeDataRef.GetNameFormatted()}");
                 count++;
             }
 
@@ -2009,7 +1678,6 @@ namespace MHServerEmu.Games.MythicRifts
                 WorldEntityPrototype coverProto = coverRef.As<WorldEntityPrototype>();
                 if (coverProto == null)
                 {
-                    Logger.Info($"[OmegaTrialTrace] stage=surtur-cover-missing-prototype playerDbId=0x{state.PlayerDbId:X} prototype={prototypeName}");
                     continue;
                 }
 
@@ -2025,7 +1693,6 @@ namespace MHServerEmu.Games.MythicRifts
                 state.SurturCoverEntityIds.Add(coverEntity.Id);
                 state.SurturSpawnedCoverEntityIds.Add(coverEntity.Id);
                 TrySpawnSurturSafeZoneMarker(region, state, spawnPosition, spawnCell);
-                Logger.Info($"[OmegaTrialTrace] stage=surtur-cover-spawned playerDbId=0x{state.PlayerDbId:X} entityId=0x{coverEntity.Id:X} position={coverEntity.RegionLocation.Position} markerPosition={markerPosition} spawnPosition={spawnPosition} markerOrientation={markerOrientation} cell={(spawnCell?.Id.ToString("X") ?? "unknown")} prototype={coverEntity.PrototypeDataRef.GetNameFormatted()}");
                 spawned++;
             }
 
@@ -2059,7 +1726,6 @@ namespace MHServerEmu.Games.MythicRifts
                 return false;
 
             state.SurturSafeZoneMarkerEntityIds.Add(markerEntity.Id);
-            Logger.Info($"[OmegaTrialTrace] stage=surtur-safe-zone-marker-spawned playerDbId=0x{state.PlayerDbId:X} entityId=0x{markerEntity.Id:X} coverPosition={coverPosition} markerPosition={markerPosition} surturPosition={surtur.RegionLocation.Position}");
             return true;
         }
 
@@ -2108,7 +1774,6 @@ namespace MHServerEmu.Games.MythicRifts
                     coverEntity.SetVisible(false);
             }
 
-            Logger.Info($"[OmegaTrialTrace] stage=surtur-cover-cleared playerDbId=0x{state.PlayerDbId:X} tracked={state.SurturCoverEntityIds.Count} spawned={state.SurturSpawnedCoverEntityIds.Count}");
             state.SurturCoverEntityIds.Clear();
             state.SurturSpawnedCoverEntityIds.Clear();
 
@@ -2132,9 +1797,6 @@ namespace MHServerEmu.Games.MythicRifts
             Cell anchorCell = state.HasArenaAnchor ? state.ArenaAnchorCell : avatar.Cell ?? region.GetCellAtPosition(anchorPosition);
             if (anchorCell == null)
             {
-                Player owner = avatar.GetOwnerOfType<Player>();
-                string playerDbIdText = owner != null ? $"0x{owner.DatabaseUniqueId:X}" : "unknown";
-                // Logger.Info($"[OmegaTrialTrace] stage=spawn-location-failed playerDbId={playerDbIdText} boss={bossProto.DataRef.GetNameFormatted()} reason=no-anchor-cell anchor={anchorPosition}");
                 return false;
             }
 
@@ -2167,7 +1829,6 @@ namespace MHServerEmu.Games.MythicRifts
                 {
                     spawnPosition = RegionLocation.ProjectToFloor(region, spawnCell, spawnPosition);
                     spawnPosition.Z += bossProto.Bounds.GetBoundHalfHeight();
-                    // Logger.Info($"[OmegaTrialTrace] stage=spawn-location-resolved boss={bossProto.DataRef.GetNameFormatted()} anchor={anchorPosition} preferred={preferredPosition} resolved={spawnPosition} cell={(spawnCell?.Id.ToString("X") ?? "unknown")}");
                     return true;
                 }
             }
@@ -2176,7 +1837,6 @@ namespace MHServerEmu.Games.MythicRifts
             {
                 spawnPosition = RegionLocation.ProjectToFloor(region, spawnCell, spawnPosition);
                 spawnPosition.Z += bossProto.Bounds.GetBoundHalfHeight();
-                // Logger.Info($"[OmegaTrialTrace] stage=spawn-location-resolved boss={bossProto.DataRef.GetNameFormatted()} anchor={anchorPosition} preferred={anchorPosition} resolved={spawnPosition} cell={(spawnCell?.Id.ToString("X") ?? "unknown")}");
                 return true;
             }
 
@@ -2185,11 +1845,9 @@ namespace MHServerEmu.Games.MythicRifts
                 spawnPosition = RegionLocation.ProjectToFloor(region, anchorCell, anchorPosition);
                 spawnPosition.Z += bossProto.Bounds.GetBoundHalfHeight();
                 spawnCell = anchorCell;
-                // Logger.Info($"[OmegaTrialTrace] stage=spawn-location-forced boss={bossProto.DataRef.GetNameFormatted()} anchor={anchorPosition} resolved={spawnPosition} cell={(spawnCell?.Id.ToString("X") ?? "unknown")}");
                 return true;
             }
 
-            // Logger.Info($"[OmegaTrialTrace] stage=spawn-location-failed boss={bossProto.DataRef.GetNameFormatted()} reason=no-valid-position anchor={anchorPosition} spawnDistance={spawnDistance}");
             return false;
         }
 
@@ -2215,7 +1873,6 @@ namespace MHServerEmu.Games.MythicRifts
 
                 if (resolved == false)
                 {
-                    Logger.Info($"[OmegaTrialTrace] stage=banish-fallback-location-miss playerDbId=0x{state.PlayerDbId:X} miniboss={label} preferred={preferredPosition} reason=no-position");
                     continue;
                 }
 
@@ -2223,7 +1880,6 @@ namespace MHServerEmu.Games.MythicRifts
                 float arenaDistance = Vector3.Distance2D(anchorPosition, spawnPosition);
                 if (arenaDistance > SurturBanishArenaMaxSpawnDistance)
                 {
-                    Logger.Info($"[OmegaTrialTrace] stage=banish-arena-location-rejected playerDbId=0x{state.PlayerDbId:X} miniboss={label} preferred={preferredPosition} resolved={spawnPosition} arenaDistance={arenaDistance} maxDistance={SurturBanishArenaMaxSpawnDistance} reason=too-far-from-arena");
                     continue;
                 }
 
@@ -2231,7 +1887,6 @@ namespace MHServerEmu.Games.MythicRifts
                     spawnPosition.Z += miniBossProto.Bounds.GetBoundHalfHeight();
 
                 spawnOrientation = Orientation.FromDeltaVector2D(anchorPosition - spawnPosition);
-                Logger.Info($"[OmegaTrialTrace] stage=banish-arena-location-resolved playerDbId=0x{state.PlayerDbId:X} miniboss={label} preferred={preferredPosition} resolved={spawnPosition} arenaDistance={arenaDistance} cell={(spawnCell?.Id.ToString("X") ?? "unknown")}");
                 return true;
             }
 
@@ -2396,7 +2051,6 @@ namespace MHServerEmu.Games.MythicRifts
 
             region.Properties[PropertyEnum.DamageRegionPlayerToMob] = state.RegionPlayerToMobDamageBeforeScaling;
             region.Properties[PropertyEnum.DamageRegionMobToPlayer] = state.RegionMobToPlayerDamageBeforeScaling;
-            // Logger.Info($"[OmegaTrialTrace] stage=scaling-restored playerDbId=0x{state.PlayerDbId:X} regionId=0x{state.RegionId:X} playerToMob={state.RegionPlayerToMobDamageBeforeScaling} mobToPlayer={state.RegionMobToPlayerDamageBeforeScaling}");
         }
 
         private static void EndTrial(ulong playerDbId, bool clearWidgets = true)
@@ -2415,7 +2069,6 @@ namespace MHServerEmu.Games.MythicRifts
                 SetSurturBanishInvulnerable(state, state.CachedRegion?.Game?.EntityManager.GetEntity<Agent>(state.SurturEntityId), false);
 
             ClearSurturCover(state);
-            ClearSurturBanishPortals(state.CachedRegion, state);
             state.CachedRegion?.Game?.GameEventScheduler?.CancelEvent(state.PostEntryNativeSuppressionEvent);
             state.CachedRegion?.Game?.GameEventScheduler?.CancelEvent(state.LokiPhase1SpawnEvent);
             state.CachedRegion?.Game?.GameEventScheduler?.CancelEvent(state.PhaseTimeoutEvent);
@@ -2462,12 +2115,6 @@ namespace MHServerEmu.Games.MythicRifts
             public ulong SurturEntityId;
             public ulong TimerMetaGameId;
             public ulong ReturnPortalEntityId;
-            public ulong BanishPortalEntityId;
-            public ulong BanishReturnPortalEntityId;
-            public Vector3 BanishPortalDestination;
-            public Orientation BanishPortalDestinationOrientation;
-            public Vector3 BanishReturnPortalDestination;
-            public Orientation BanishReturnPortalDestinationOrientation;
             public TimeSpan PhaseStartedAt;
             public TimeSpan PhaseExpiresAt;
             public int PlayerDeaths;
@@ -2480,9 +2127,6 @@ namespace MHServerEmu.Games.MythicRifts
             public bool SurturHellfireDefeated;
             public bool SurturBrimstoneDefeated;
             public bool SurturMistressDefeated;
-            public bool SurturSlagReturnTriggered;
-            public bool SurturTwinsReturnTriggered;
-            public bool SurturMistressReturnTriggered;
             public bool SurturBanishInProgress;
             public bool SurturWasInvulnerableBeforeBanish;
             public readonly List<ulong> SurturCoverEntityIds = new();

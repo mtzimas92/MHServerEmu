@@ -9,7 +9,6 @@ namespace MHServerEmu.Games.MythicRifts
     {
         public const string RelativeConfigPath = "Game/MythicRift/OmegaContentRewards.json";
         public bool Enabled { get; set; } = true;
-        public bool EnableDiagnostics { get; set; }
         public List<OmegaContentActivityTuning> Activities { get; set; } = new();
         [JsonIgnore] public Dictionary<PrototypeId, List<OmegaContentActivityTuning>> ActivitiesByMission { get; } = new();
         public static string ConfigPath => Path.Combine(FileHelper.DataDirectory, RelativeConfigPath);

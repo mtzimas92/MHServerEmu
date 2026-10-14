@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Reflection;
-using MHServerEmu.Core.Logging;
 using MHServerEmu.Core.Memory;
 using MHServerEmu.Games.GameData;
 using MHServerEmu.Games.UI;
@@ -9,7 +8,6 @@ namespace MHServerEmu.Games.MythicRifts
 {
     internal static class MythicRiftUiController
     {
-        private static readonly Logger Logger = LogManager.CreateLogger();
         private static readonly FieldInfo WidgetDictionaryField = typeof(UIDataProvider).GetField("_dataDict", BindingFlags.Instance | BindingFlags.NonPublic);
         private static bool _reflectionWarningLogged;
 
@@ -29,7 +27,6 @@ namespace MHServerEmu.Games.MythicRifts
                 if (_reflectionWarningLogged == false)
                 {
                     _reflectionWarningLogged = true;
-                    // Logger.Warn("Mythic Rift UI controller could not inspect UIDataProvider widgets; native HUD cleanup is unavailable.");
                 }
 
                 return 0;

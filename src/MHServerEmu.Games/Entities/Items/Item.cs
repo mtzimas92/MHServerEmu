@@ -1086,10 +1086,7 @@ namespace MHServerEmu.Games.Entities.Items
                 changed = true;
 
                 if (itemOverride.ReplaceBuiltInPropertiesFromTemplate == false)
-                {
-                    // Logger.Trace($"Omega item override cleared built-in properties: override={itemOverride.Id} item={_itemSpec.ItemProtoRef.GetNameFormatted()} preserveProcProperties={itemOverride.PreserveProcBuiltInProperties}");
                     continue;
-                }
 
                 if (string.IsNullOrWhiteSpace(itemOverride.BuiltInPropertyTemplateItemPrototype))
                     continue;
@@ -1119,7 +1116,6 @@ namespace MHServerEmu.Games.Entities.Items
                     changed |= ApplyBuiltInPropertyEntry(randomMult, propPickEntryProto, propSetEntryProto);
                 }
 
-                Logger.Info($"Omega item override copied built-in template: override={itemOverride.Id} item={_itemSpec.ItemProtoRef.GetNameFormatted()} template={templateItemProto.DataRef.GetNameFormatted()} copyTemplateProcProperties={itemOverride.CopyTemplateProcProperties}");
             }
 
             return changed;
@@ -1211,7 +1207,6 @@ namespace MHServerEmu.Games.Entities.Items
                         if (replacementIndex < 0)
                             continue;
 
-                        AffixPrototype oldAffixProto = _affixProperties[replacementIndex].AffixProto;
                         if (RemoveOmegaTierRuntimeAffixPropertyEntryAt(replacementIndex) == false)
                             continue;
 
@@ -1227,7 +1222,6 @@ namespace MHServerEmu.Games.Entities.Items
                             OnAffixAdded(affixRandom, replacementAffixProto, PrototypeId.Invalid, _itemSpec.EquippableBy, 0);
                         }
 
-                        Logger.Info($"Omega item override replaced runtime affix: override={itemOverride.Id} item={_itemSpec.ItemProtoRef.GetNameFormatted()} old={oldAffixProto?.DataRef.GetNameFormatted()} new={replacementAffixProto.DataRef.GetNameFormatted()}");
                         changed = true;
                     }
                 }

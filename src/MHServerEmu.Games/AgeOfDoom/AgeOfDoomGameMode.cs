@@ -71,7 +71,6 @@ public sealed class AgeOfDoomGameMode : MetaGameMode
             Schedule(_timeoutEvent, duration);
         }
 
-        Logger.Info($"[AgeOfDoom] run-start gameId=0x{Game.Id:X} metaGameId=0x{MetaGame.Id:X} players={CountPlayers()}");
         ScheduleTick();
     }
 
@@ -141,7 +140,6 @@ public sealed class AgeOfDoomGameMode : MetaGameMode
                 break;
         }
 
-        Logger.Info($"[AgeOfDoom] stage-start gameId=0x{Game.Id:X} stage={_run.CurrentStage} required={_run.Required}");
         RefreshUI();
     }
 
@@ -180,9 +178,6 @@ public sealed class AgeOfDoomGameMode : MetaGameMode
         _run.DoomTargetSlots.Clear();
         _run.CompletedDoomSlots.Clear();
         SpawnCurrentDoomPhase();
-        Logger.Info(
-            $"[AgeOfDoom] doom-assault-start gameId=0x{Game.Id:X} assault={assault} count={_run.Required} " +
-            $"phases={Tuning.DoomPhasePrototypes.Count} nextStage={stageAfterDoom}");
     }
 
     private void BeginKillStage(int killsPerPlayer)
@@ -331,12 +326,6 @@ public sealed class AgeOfDoomGameMode : MetaGameMode
         if (_run.CurrentStage is Stage.DoomAssault or Stage.MidtownDooms or Stage.Council)
             AssignNearestAvatarTarget(agent);
         MetaGame.DiscoverEntity(agent);
-        if (_run.CurrentStage is Stage.Council or Stage.MidtownDooms or Stage.DoomAssault)
-        {
-            Logger.Info(
-                $"[AgeOfDoom] boss-spawned gameId=0x{Game.Id:X} stage={_run.CurrentStage} " +
-                $"prototype={name} entityId=0x{agent.Id:X} position={agent.RegionLocation.Position}");
-        }
         return true;
     }
 
@@ -388,7 +377,6 @@ public sealed class AgeOfDoomGameMode : MetaGameMode
             GrantCompletionRewards(player);
         }
         _run.RewardsGranted = true;
-        Logger.Info($"[AgeOfDoom] run-complete gameId=0x{Game.Id:X} metaGameId=0x{MetaGame.Id:X}");
     }
 
     private void GrantCompletionRewards(Player player)
@@ -500,7 +488,6 @@ public sealed class AgeOfDoomGameMode : MetaGameMode
         foreach (ulong id in _run.Entities) Game.EntityManager.GetEntity<WorldEntity>(id)?.Destroy();
         _run.Entities.Clear();
         RefreshUI();
-        Logger.Info($"[AgeOfDoom] run-failed gameId=0x{Game.Id:X} reason=timeout");
     }
 
     private Avatar GetRandomAvatar()

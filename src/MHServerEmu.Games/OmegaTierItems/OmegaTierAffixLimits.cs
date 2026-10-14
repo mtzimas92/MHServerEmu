@@ -1,7 +1,6 @@
 using System.Diagnostics;
 using System.Reflection;
 using MHServerEmu.Core.Extensions;
-using MHServerEmu.Core.Logging;
 using MHServerEmu.Games.Entities.Items;
 using MHServerEmu.Games.GameData;
 using MHServerEmu.Games.GameData.Prototypes;
@@ -13,7 +12,6 @@ namespace MHServerEmu.Games.OmegaTierItems
     /// </summary>
     public static class OmegaTierAffixLimits
     {
-        private static readonly Logger Logger = LogManager.CreateLogger();
 
         private const string CosmicRarityName = "Entity/Items/Rarity/R5Cosmic.prototype";
         private const string OmegaRarityName = "Entity/Items/Rarity/R6Omega.prototype";
@@ -69,7 +67,6 @@ namespace MHServerEmu.Games.OmegaTierItems
             PrototypeId omegaRarityRef = GameDatabase.GetPrototypeRefByName(OmegaRarityName);
             if (cosmicRarityRef == PrototypeId.Invalid || omegaRarityRef == PrototypeId.Invalid)
             {
-                // Logger.Warn("Apply(): R5Cosmic or R6Omega not found, skipping Omega item normalization");
                 return;
             }
 
@@ -94,12 +91,10 @@ namespace MHServerEmu.Games.OmegaTierItems
                 ringOffenseT3CategoryRef == PrototypeId.Invalid ||
                 ringDefenseT3CategoryRef == PrototypeId.Invalid)
             {
-                // Logger.Warn("Apply(): one or more Omega affix categories were not found, skipping Omega item normalization");
                 return;
             }
 
             int rowsChanged = 0;
-            int categoriesPromoted = 0;
             int entriesAdjusted = 0;
             int entriesAdded = 0;
 
@@ -148,7 +143,6 @@ namespace MHServerEmu.Games.OmegaTierItems
             OmegaTierItemFactory.ApplyConfiguredBuiltInPropertyPrototypeOverrides();
 
             stopwatch.Stop();
-            // Logger.Info($"Normalized R6Omega item affix limits on {rowsChanged} rows ({categoriesPromoted} T2 categories promoted, {entriesAdjusted} required category counts adjusted, {entriesAdded} required categories added) in {stopwatch.ElapsedMilliseconds} ms");
 #endif
         }
 
@@ -212,25 +206,6 @@ namespace MHServerEmu.Games.OmegaTierItems
             return false;
         }
 
-        private static bool PromoteCategory(AffixLimitsPrototype row, PrototypeId sourceCategoryRef, PrototypeId targetCategoryRef, ref int categoriesPromoted)
-        {
-            CategorizedAffixEntryPrototype source = FindEntry(row, sourceCategoryRef);
-            if (source == null)
-                return false;
-
-            CategorizedAffixEntryPrototype target = FindEntry(row, targetCategoryRef);
-            if (target != null)
-            {
-                MinAffixesProperty.SetValue(source, (short)0);
-                categoriesPromoted++;
-                return true;
-            }
-
-            CategoryProperty.SetValue(source, GameDatabase.GetPrototype<AffixCategoryPrototype>(targetCategoryRef));
-            categoriesPromoted++;
-            return true;
-        }
-
         private static bool ReplaceCategory(AffixLimitsPrototype row, PrototypeId sourceCategoryRef, PrototypeId targetCategoryRef)
         {
             CategorizedAffixEntryPrototype source = FindEntry(row, sourceCategoryRef);
@@ -266,28 +241,14 @@ namespace MHServerEmu.Games.OmegaTierItems
             return true;
         }
 
-        private static bool EnsureExistingCategoryCount(AffixLimitsPrototype row, PrototypeId categoryRef, short count, ref int entriesAdjusted)
-        {
-            CategorizedAffixEntryPrototype existing = FindEntry(row, categoryRef);
-            if (existing == null || existing.MinAffixes == count)
-                return false;
-
-            MinAffixesProperty.SetValue(existing, count);
-            entriesAdjusted++;
-            return true;
-        }
-
         private static void TryEnableOmegaOnRings(PrototypeId cosmicRarityRef, PrototypeId omegaRarityRef)
         {
             try
             {
-                int ringsEnabled = EnableOmegaOnRings(cosmicRarityRef, omegaRarityRef);
-                if (ringsEnabled > 0)
-                    { } // Logger.Info($"Permitted R6Omega on {ringsEnabled} ring drop restriction(s)");
+                EnableOmegaOnRings(cosmicRarityRef, omegaRarityRef);
             }
             catch (Exception)
             {
-                // Logger.Warn($"TryEnableOmegaOnRings(): failed, Omega rings will remain disabled - {e.Message}");
             }
         }
 
@@ -371,7 +332,6 @@ namespace MHServerEmu.Games.OmegaTierItems
             }
             catch (Exception)
             {
-                // Logger.Warn($"TryRepairInvertedAffixBands(): failed - {e.Message}");
             }
         }
 
@@ -396,7 +356,6 @@ namespace MHServerEmu.Games.OmegaTierItems
                     int high = min.Value;
                     LoadIntValueProperty.SetValue(min, low);
                     LoadIntValueProperty.SetValue(max, high);
-                    // Logger.Info($"Repaired inverted affix band on {GameDatabase.GetPrototypeName(affixRef)}: now {low}..{high}");
                 }
             }
         }

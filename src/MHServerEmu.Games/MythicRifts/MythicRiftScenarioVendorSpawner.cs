@@ -1,4 +1,3 @@
-using MHServerEmu.Core.Logging;
 using MHServerEmu.Core.Memory;
 using MHServerEmu.Core.VectorMath;
 using MHServerEmu.Games.Entities;
@@ -9,7 +8,6 @@ namespace MHServerEmu.Games.MythicRifts
 {
     public static class MythicRiftScenarioVendorSpawner
     {
-        private static readonly Logger Logger = LogManager.CreateLogger();
 
         // MoiraMacTaggertXMHealer.prototype is baked into the Danger Room hub cell, so the scenario vendor is
         // spawned beside her runtime position while patch data hides her.
@@ -38,7 +36,6 @@ namespace MHServerEmu.Games.MythicRifts
 
             if (moira == null)
             {
-                // Logger.Warn("SpawnDangerRoomScenarioVendor(): Failed to find Moira MacTaggert in the Danger Room hub");
                 return;
             }
 
@@ -55,7 +52,6 @@ namespace MHServerEmu.Games.MythicRifts
 
             if (region.Game.EntityManager.CreateEntity(entitySettings) == null)
             {
-                // Logger.Warn("SpawnDangerRoomScenarioVendor(): Failed to create the Danger Room Scenario Vendor entity");
             }
         }
     }
