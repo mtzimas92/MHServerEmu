@@ -1,0 +1,47 @@
+[
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Venom/SigFreakoutComboImpale.prototype",
+    "Path": "EvalPowerSynergies",
+    "Description": "Apply Venom's low-health signature talent damage bonus on the actual damaging Sig Freakout child power.",
+    "ValueType": "Prototype",
+    "Value": {
+      "ParentDataRef": "Eval/ControlFlow/IfElse.defaults",
+      "Op": "IfElse",
+      "Conditional": {
+        "ParentDataRef": "Eval/Other/EntityHasTalent.defaults",
+        "Op": "EntityHasTalent",
+        "Context": "Var2",
+        "Talent": "Powers/Player/Venom/Talents/BuffAtLowHealth.prototype"
+      },
+      "EvalIf": {
+        "ParentDataRef": "Eval/ControlFlow/Scope.defaults",
+        "Op": "Scope",
+        "Scope": [
+          {
+            "ParentDataRef": "Eval/Properties/AssignProp.defaults",
+            "Op": "AssignProp",
+            "Prop": {
+              "Property": "DamageMultOnPower"
+            },
+            "Eval": {
+              "ParentDataRef": "Eval/Constants/LoadFloat.defaults",
+              "Op": "LoadFloat",
+              "Value": 0.5
+            }
+          },
+          {
+            "ParentDataRef": "Eval/Constants/LoadBool.defaults",
+            "Op": "LoadBool",
+            "Value": true
+          }
+        ]
+      },
+      "EvalElse": {
+        "ParentDataRef": "Eval/Constants/LoadBool.defaults",
+        "Op": "LoadBool",
+        "Value": true
+      }
+    }
+  }
+]

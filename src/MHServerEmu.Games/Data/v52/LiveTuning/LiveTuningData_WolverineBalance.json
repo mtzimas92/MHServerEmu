@@ -1,0 +1,88 @@
+[
+  {
+    "Prototype": "Powers/Player/Wolverine/BasicRonin.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/Wolverine/BasicBleedDoT.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/Wolverine/PBAoEBleedDoT.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/Wolverine/RunThrough.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/Wolverine/Impale.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.0
+  },
+  {
+    "Prototype": "Powers/Player/Wolverine/Dunk.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/Wolverine/FlyingBleedDoT.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/Wolverine/BasicBleed.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/Wolverine/TornadoClaw.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/Wolverine/PBAoE.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/Wolverine/SliceNDice.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/Wolverine/SignatureDashSlashHitFXRight.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/Wolverine/SignatureDashSlashHitFXLeft.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/Wolverine/SignatureDashSlash.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/Wolverine/FlyingBleedEnd.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/Wolverine/Frenzy.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/Wolverine/LungeProcEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  }
+]
+

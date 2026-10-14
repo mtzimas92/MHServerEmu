@@ -1,0 +1,27 @@
+[
+  {
+    "Prototype": "Powers/Player/Thing/Rework/CallSuzieHotspotDoT.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/Thing/Rework/YancyStreetGangHomeRun.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/Thing/Rework/GuessWhatTimeItIs.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/Thing/Rework/CallStretchHotspotEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/Thing/Rework/DiscusTossMissileEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  }
+]

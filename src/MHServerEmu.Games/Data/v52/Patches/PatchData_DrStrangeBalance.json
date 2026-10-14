@@ -1,0 +1,12 @@
+[
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/DoctorStrange/VishantiSealHotspotEffect.prototype",
+    "Path": "TargetingReach",
+    "Description": "Allow Vishanti Seal's applied buff effect to target allies in sight, matching the tooltip's ally support behavior while leaving the seal summon/hotspot structure unchanged.",
+    "ValueType": "Prototype",
+    "Value": {
+      "ParentDataRef": 7393299885538023725
+    }
+  }
+]

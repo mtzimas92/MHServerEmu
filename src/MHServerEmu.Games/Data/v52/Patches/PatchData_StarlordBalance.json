@@ -1,0 +1,39 @@
+[
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Characters/Avatars/Shipping/Starlord.prototype",
+    "Path": "Properties",
+    "Description": "Apply Cluster Bomb's -4s cooldown adjustment as an owner property so the client can combine its local 8s base cooldown with the replicated modifier.",
+    "ValueType": "Properties",
+    "Value": {
+      "CooldownModifierMSForPower": [
+        "Powers/Player/Starlord/ClusterBomb.prototype",
+        -4000
+      ]
+    }
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Starlord/Talents/Talent4GrenadeDamageAndCDIncrease.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[0].Eval.Value",
+    "Description": "OpenCalligraphy export: EvalOnCreate[0].Eval.Value",
+    "ValueType": "Float",
+    "Value": 0.5
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Starlord/AmmoEarthCombo.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[4].EvalIf.Scope[0].Eval.Value",
+    "Description": "Buff Heavy Explosives from +50% to +75% for Earth ammo grenade damage.",
+    "ValueType": "Float",
+    "Value": 0.75
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Starlord/AmmoWaterCombo.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[4].EvalIf.Scope[0].Eval.Value",
+    "Description": "Buff Heavy Explosives from +50% to +75% for Water ammo grenade damage.",
+    "ValueType": "Float",
+    "Value": 0.75
+  }
+]

@@ -1,0 +1,142 @@
+[
+	{
+	  "Enabled": true,
+	  "Prototype": "Powers/Player/Wolverine/TornadoClawBuff.prototype",
+	  "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[]",
+	  "Description": "[Wolverine] Give the empowered third Tornado Claw activation +100% critical-hit chance.",
+	  "ValueType": "Prototype",
+	  "Value": {
+		"ParentDataRef": 1429542141982412459,
+		"Op": "AssignProp",
+		"Prop": "CritChancePctAdd",
+		"Eval": {
+		  "ParentDataRef": 5074715296837012907,
+		  "Op": "LoadFloat",
+		  "Value": 1.0
+		}
+	  }
+	},
+	{
+	  "Enabled": true,
+	  "Prototype": "Powers/Player/Wolverine/Impale.prototype",
+	  "Path": "ActionsTriggeredOnPowerEvent[]",
+	  "Description": "[Wolverine] Punishing Strike ends Impale's cooldown immediately after the hit is applied.",
+	  "ValueType": "Prototype",
+	  "Value": {
+		"ParentDataRef": "Powers/Blueprints/PowerEvents/PowerEventAction.defaults",
+		"EventAction": "CooldownEnd",
+		"Power": "Powers/Player/Wolverine/Impale.prototype",
+		"PowerEvent": "OnContactTime",
+		"EvalEventTriggerChance": {
+		  "ParentDataRef": "Eval/ControlFlow/IfElse.defaults",
+		  "Op": "IfElse",
+		  "EvalElse": {
+			"ParentDataRef": "Eval/Constants/LoadFloat.defaults",
+			"Op": "LoadFloat",
+			"Value": 0
+		  },
+		  "Conditional": {
+			"ParentDataRef": "Eval/Other/EntityHasTalent.defaults",
+			"Op": "EntityHasTalent",
+			"Talent": "Powers/Player/Wolverine/Talents/Talent2ImpaleBrut.prototype",
+			"Context": "Var1"
+		  },
+		  "EvalIf": {
+			"ParentDataRef": "Eval/Constants/LoadFloat.defaults",
+			"Op": "LoadFloat",
+			"Value": 1
+		  }
+		}
+	  }
+	},
+	{
+	  "Enabled": true,
+	  "Prototype": "Powers/Player/Wolverine/Impale.prototype",
+	  "Path": "EvalOnActivate[0].Eval.Scope[0].EvalIf.Value",
+	  "Description": "[Wolverine] Remove Punishing Strike's native +50% brutal strike damage bonus from Impale.",
+	  "ValueType": "Float",
+	  "Value": 0.0
+	},
+	{
+	  "Enabled": true,
+	  "Prototype": "Powers/Player/Wolverine/PBAoE.prototype",
+	  "Path": "ActionsTriggeredOnPowerEvent[]",
+	  "Description": "[Wolverine] Swath of Destruction invokes the native full-resource restore combo when PBAoE hits.",
+	  "ValueType": "Prototype",
+	  "Value": {
+		"ParentDataRef": "Powers/Blueprints/PowerEvents/PowerEventAction.defaults",
+		"EventAction": "UsePower",
+		"Power": "Powers/Player/RestoreEndurance100PctCombo.prototype",
+		"PowerEvent": "OnContactTime",
+		"EvalEventTriggerChance": {
+		  "ParentDataRef": "Eval/ControlFlow/IfElse.defaults",
+		  "Op": "IfElse",
+		  "EvalElse": {
+			"ParentDataRef": "Eval/Constants/LoadFloat.defaults",
+			"Op": "LoadFloat",
+			"Value": 0
+		  },
+		  "Conditional": {
+			"ParentDataRef": "Eval/Other/EntityHasTalent.defaults",
+			"Op": "EntityHasTalent",
+			"Talent": "Powers/Player/Wolverine/Talents/Talent4PBAoEDmgCDCrit.prototype",
+			"Context": "Var1"
+		  },
+		  "EvalIf": {
+			"ParentDataRef": "Eval/Constants/LoadFloat.defaults",
+			"Op": "LoadFloat",
+			"Value": 1.0
+		  }
+		}
+	  }
+	},
+	{
+	  "Enabled": true,
+	  "Prototype": "Powers/Player/Wolverine/RawrFuryGain.prototype",
+	  "Path": "EvalPowerSynergies.Eval",
+	  "Description": "[Wolverine] Feral Surge raises Feral Roar's Fury restoration from its normal formula to exactly 100% of maximum Fury.",
+	  "ValueType": "Prototype",
+	  "Value": {
+		"ParentDataRef": "Eval/ControlFlow/IfElse.defaults",
+		"Op": "IfElse",
+		"EvalElse": {
+		  "ParentDataRef": "Eval/Math/Mult.defaults",
+		  "Op": "Mult",
+		  "Arg1": {
+			"ParentDataRef": "Eval/Constants/LoadFloat.defaults",
+			"Op": "LoadFloat",
+			"Value": 0.5
+		  },
+		  "Arg2": {
+			"ParentDataRef": "Eval/Math/Add.defaults",
+			"Op": "Add",
+			"Arg1": {
+			  "ParentDataRef": "Eval/Constants/LoadFloat.defaults",
+			  "Op": "LoadFloat",
+			  "Value": 1.0
+			},
+			"Arg2": {
+			  "ParentDataRef": "Eval/Properties/LoadProp.defaults",
+			  "Op": "LoadProp",
+			  "Context": "Entity",
+			  "Prop": {
+				"ParentDataRef": "Property/Mixin/ItemRegisterFloatProp.defaults",
+				"Param0": 2
+			  }
+			}
+		  }
+		},
+		"Conditional": {
+		  "ParentDataRef": "Eval/Other/EntityHasTalent.defaults",
+		  "Op": "EntityHasTalent",
+		  "Talent": "Powers/Player/Wolverine/Talents/Talent5FeralRoarRapidRegen.prototype",
+		  "Context": "Var2"
+		},
+		"EvalIf": {
+		  "ParentDataRef": "Eval/Constants/LoadFloat.defaults",
+		  "Op": "LoadFloat",
+		  "Value": 1.0
+		}
+	  }
+	}
+]

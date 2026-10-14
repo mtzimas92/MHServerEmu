@@ -1,0 +1,78 @@
+[
+  {
+    "Prototype": "Powers/Player/Magneto/SignatureMaelstromHotspotEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.5
+  },
+  {
+    "Prototype": "Powers/Player/Magneto/BoomerangMetalMissileEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.5
+  },
+  {
+    "Prototype": "Powers/Player/Magneto/HomingBlastMissileEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.5
+  },
+  {
+    "Prototype": "Powers/Player/Magneto/ShrapnelHotspotEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.5
+  },
+  {
+    "Prototype": "Powers/Player/Magneto/MetalCage.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.5
+  },
+  {
+    "Prototype": "Powers/Player/Magneto/DebrisCrush.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.5
+  },
+  {
+    "Prototype": "Powers/Player/Magneto/RapidFireMissileEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.5
+  },
+  {
+    "Prototype": "Powers/Player/Magneto/ShrapnelCone.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.5
+  },
+  {
+    "Prototype": "Powers/Player/Magneto/ChanneledConeHotspotEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.5
+  },
+  {
+    "Prototype": "Powers/Player/Magneto/ElectromagneticBeam.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.5
+  },
+  {
+    "Prototype": "Powers/Player/Magneto/ElectromagneticShockwaveMissileEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.5
+  },
+  {
+    "Prototype": "Powers/Player/Magneto/AllIn.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.5
+  },
+  {
+    "Prototype": "Powers/Player/Magneto/LungeCollisionEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.5
+  },
+  {
+    "Prototype": "Powers/Player/Magneto/MetalObjectSmash.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.5
+  },
+  {
+    "Prototype": "Powers/Player/Magneto/Implosion.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.5
+  }
+]
+

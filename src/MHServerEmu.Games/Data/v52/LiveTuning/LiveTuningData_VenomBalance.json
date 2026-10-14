@@ -1,0 +1,87 @@
+[
+  {
+    "Prototype": "Powers/Player/Venom/PBAoEBlob.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.8
+  },
+  {
+    "Prototype": "Powers/Player/Venom/BigPunch.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.8
+  },
+  {
+    "Prototype": "Powers/Player/Venom/SigFreakoutComboImpale.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 2.0
+  },
+  {
+    "Prototype": "Powers/Player/Venom/MawFromAboveEnd.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.8
+  },
+  {
+    "Prototype": "Powers/Player/Venom/TentacleImpale.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.8
+  },
+  {
+    "Prototype": "Powers/Player/Venom/WrithingTendrilsMissileEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.8
+  },
+  {
+    "Prototype": "Powers/Player/Venom/IchorSpike.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.8
+  },
+  {
+    "Prototype": "Powers/Player/Venom/ConeDrain.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.8
+  },
+  {
+    "Prototype": "Powers/Player/Venom/DoubleSlash.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.8
+  },
+  {
+    "Prototype": "Powers/Player/Venom/BigWebShootMissileEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.8
+  },
+  {
+    "Prototype": "Powers/Player/Venom/Yank.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.8
+  },
+  {
+    "Prototype": "Powers/Player/Venom/SymbioteDrainPower1.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.8
+  },
+  {
+    "Prototype": "Powers/Player/Venom/SwingingAssaultKnockdownEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.8
+  },
+  {
+    "Prototype": "Powers/Player/Venom/WebSplat.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.8
+  },
+  {
+    "Prototype": "Powers/Player/Venom/MeleeBasic.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.8
+  },
+  {
+    "Prototype": "Powers/Player/Venom/RangedBasicMissileEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.8
+  },
+  {
+    "Prototype": "Powers/Player/Venom/FuriousLungeKnockdownEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.8
+  }
+]

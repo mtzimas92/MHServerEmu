@@ -1,0 +1,132 @@
+[
+  {
+    "Prototype": "Powers/Player/Cyclops/Rework/SignatureBeamEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.8
+  },
+  {
+    "Prototype": "Powers/Player/Cyclops/Rework/CallIcemanHotspotDamageEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.8
+  },
+  {
+    "Prototype": "Powers/Player/Cyclops/CallAngelMovementHotspotEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.8
+  },
+  {
+    "Prototype": "Powers/Player/Cyclops/Rework/CallJeanObjectExplosionBurn.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.8
+  },
+  {
+    "Prototype": "Powers/Player/Cyclops/Rework/CallBeastMelee3.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.8
+  },
+  {
+    "Prototype": "Powers/Player/Cyclops/Rework/CallBeastMelee.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.8
+  },
+  {
+    "Prototype": "Powers/Player/Cyclops/Rework/ConeBeam.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.8
+  },
+  {
+    "Prototype": "Powers/Player/Cyclops/ChanneledEnergyBeamEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.8
+  },
+  {
+    "Prototype": "Powers/Player/Cyclops/FocusBeamNew.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.8
+  },
+  {
+    "Prototype": "Powers/Player/Cyclops/Rework/PrismBeam.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.8
+  },
+  {
+    "Prototype": "Powers/Player/Cyclops/Rework/CallBeastBleedEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.8
+  },
+  {
+    "Prototype": "Powers/Player/Cyclops/Rework/BasicBeam.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.8
+  },
+  {
+    "Prototype": "Powers/Player/Cyclops/Rework/CallJeanObjectExplosion.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.8
+  },
+  {
+    "Prototype": "Powers/Player/Cyclops/Rework/ChargeCone.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.8
+  },
+  {
+    "Prototype": "Powers/Player/Cyclops/Rework/CloseCombat.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 2.3
+  },
+  {
+    "Prototype": "Powers/Player/Cyclops/DisengagingShotMissileEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.8
+  },
+  {
+    "Prototype": "Powers/Player/Cyclops/Rework/DisengagingShotMissileEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.8
+  },
+  {
+    "Prototype": "Powers/Player/Cyclops/Rework/Roundhouse.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 2.3
+  },
+  {
+    "Prototype": "Powers/Player/Cyclops/Rework/CallBeastMelee2.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.8
+  },
+  {
+    "Prototype": "Powers/Player/Cyclops/Rework/CallBeastMissileEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.8
+  },
+  {
+    "Prototype": "Powers/Player/Cyclops/Rework/BasicBouncingBeamChainEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.8
+  },
+  {
+    "Prototype": "Powers/Player/Cyclops/BasicPunch.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 2.3
+  },
+  {
+    "Prototype": "Powers/Player/Cyclops/Rework/AoEBeam.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.8
+  },
+  {
+    "Prototype": "Powers/Player/Cyclops/TumbleEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.8
+  },
+  {
+    "Prototype": "Powers/Player/Cyclops/Rework/ConeBeamMelee.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 2.3
+  },
+  {
+    "Prototype": "Powers/Player/Cyclops/Rework/CallMagnetoHotspotDamageEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.5
+  }
+]

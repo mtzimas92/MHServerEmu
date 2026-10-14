@@ -1,0 +1,90 @@
+[
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/WarMachine/OverheatEffect.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[1].Eval.Value",
+    "Description": "OpenCalligraphy export: EvalOnCreate[1].Eval.Value",
+    "ValueType": "Float",
+    "Value": 0.25
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/WarMachine/Traits/OffenseTraitStatConversionEffect.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[0].Eval.Arg1.EvalElse.Value",
+    "Description": "OpenCalligraphy export: EvalOnCreate[0].Eval.Arg1.EvalElse.Value",
+    "ValueType": "Float",
+    "Value": 0.0006
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/WarMachine/Traits/OffenseTraitStatConversionEffect.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[0].Eval.Arg1.EvalIf.Value",
+    "Description": "OpenCalligraphy export: EvalOnCreate[0].Eval.Arg1.EvalIf.Value",
+    "ValueType": "Float",
+    "Value": 0.0012
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/WarMachine/PlasmaRoundsCondition.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[1].EvalIf.Eval.Value",
+    "Description": "OpenCalligraphy export: EvalOnCreate[1].EvalIf.Eval.Value",
+    "ValueType": "Float",
+    "Value": 0.5
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/WarMachine/ThermalShot.prototype",
+    "Path": "AnimationTimeMS",
+    "Description": "OpenCalligraphy export: AnimationTimeMS",
+    "ValueType": "Integer",
+    "Value": 300
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/WarMachine/AntiTankRoundsCondition.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].StackingBehavior.StacksByKeyword[0]",
+    "Description": "Let Anti-Tank Rounds refresh its own Enhanced Ammo condition without replacing Plasma or Thermite Rounds.",
+    "ValueType": "PrototypeId",
+    "Value": 6305158899979262226
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/WarMachine/PlasmaRoundsCondition.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].StackingBehavior.StacksByKeyword[0]",
+    "Description": "Let Plasma Rounds refresh its own Enhanced Ammo condition without replacing Anti-Tank or Thermite Rounds.",
+    "ValueType": "PrototypeId",
+    "Value": 11235028795072190518
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/WarMachine/ThermiteRoundsCondition.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].StackingBehavior.StacksByKeyword[0]",
+    "Description": "Let Thermite Rounds refresh its own Enhanced Ammo condition without replacing Anti-Tank or Plasma Rounds.",
+    "ValueType": "PrototypeId",
+    "Value": 16864880057895295258
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/WarMachine/AntiTankRoundsCondition.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[0].Eval.Value",
+    "Description": "Increase Anti-Tank Rounds machinegun crit chance buff.",
+    "ValueType": "Float",
+    "Value": 0.2
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/WarMachine/PlasmaRoundsCondition.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[0].Eval.Value",
+    "Description": "Increase Plasma Rounds machinegun damage buff.",
+    "ValueType": "Float",
+    "Value": 0.25
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/WarMachine/ThermiteRoundsCondition.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[2].Eval.Value",
+    "Description": "Increase Thermite Rounds physical DoT buff scalar.",
+    "ValueType": "Float",
+    "Value": 0.25
+  }
+]

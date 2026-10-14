@@ -1,0 +1,26 @@
+[
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Elektra/BamfDiveBombEnd.prototype",
+    "Path": "Radius",
+    "Description": "OpenCalligraphy export: Radius",
+    "ValueType": "Float",
+    "Value": 150
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Elektra/BlowDartMissileEffect.prototype",
+    "Path": "Radius",
+    "Description": "OpenCalligraphy export: Radius",
+    "ValueType": "Float",
+    "Value": 400
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Elektra/BlowDartMissileEffect.prototype",
+    "Path": "Range.Value",
+    "Description": "OpenCalligraphy export: Range.Value",
+    "ValueType": "Float",
+    "Value": 1000
+  }
+]

@@ -1,0 +1,27 @@
+[
+	{
+	  "Enabled": true,
+	  "Prototype": "Powers/Player/Beast/GlueBombDoTEffect.prototype",
+	  "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[]",
+	  "Description": "[Beast] Apply Glue Bomb vulnerability for the duration of the ground DoT created by the Electro-Gadget interaction.",
+	  "ValueType": "Prototype",
+	  "Value": {
+		"ParentDataRef": 12394606670048857323,
+		"Op": "Scope",
+		"Scope": [
+		  {
+			"ParentDataRef": 1429542141982412459,
+			"Op": "AssignProp",
+			"Prop": {
+			  "Property": "DamagePctVulnerability"
+			},
+			"Eval": {
+			  "ParentDataRef": 5074715296837012907,
+			  "Op": "LoadFloat",
+			  "Value": 0.1
+			}
+		  }
+		]
+	  }
+	}
+]

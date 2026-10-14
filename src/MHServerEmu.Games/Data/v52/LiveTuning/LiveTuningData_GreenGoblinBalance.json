@@ -1,0 +1,72 @@
+[
+  {
+    "Prototype": "Powers/Player/GreenGoblin/BombingCircleBombDoTCombo.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/GreenGoblin/BombingCircleBomb.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/GreenGoblin/GasPumpkinHotspotEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/GreenGoblin/GhostBombMissileEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/GreenGoblin/TheBigOneDamageProc.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/GreenGoblin/ExplosivePumpkinDoTCombo.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/GreenGoblin/HallucinogenicPumpkin.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/GreenGoblin/SonicToads.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/GreenGoblin/SonicToadDeathEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/GreenGoblin/ExplosivePumpkinBase.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/GreenGoblin/RocketsMissileEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.25
+  },
+  {
+    "Prototype": "Powers/Player/GreenGoblin/PbAoESpin.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.25
+  },
+  {
+    "Prototype": "Powers/Player/GreenGoblin/PbAoESuperSpin.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.25
+  },
+  {
+    "Prototype": "Powers/Player/GreenGoblin/FlyingFlamethrowerCDHotspotEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.5
+  }
+]

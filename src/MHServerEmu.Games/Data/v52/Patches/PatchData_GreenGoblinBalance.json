@@ -1,0 +1,50 @@
+[
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/GreenGoblin/GoblinLaserBuff.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[0].Eval.Value",
+    "Description": "OpenCalligraphy export: EvalOnCreate[0].Eval.Value",
+    "ValueType": "Float",
+    "Value": 0.2
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/GreenGoblin/Talents/HallucinogenicPumpkinTalent.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[0].Eval.Value",
+    "Description": "OpenCalligraphy export: EvalOnCreate[0].Eval.Value",
+    "ValueType": "Float",
+    "Value": 2
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/GreenGoblin/Talents/TheBigOneBuffTalent.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[1].Eval.Value",
+    "Description": "OpenCalligraphy export: EvalOnCreate[1].Eval.Value",
+    "ValueType": "Float",
+    "Value": 2
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/GreenGoblin/Talents/TheBigOneBuffTalent.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[2].Eval.Value",
+    "Description": "OpenCalligraphy export: EvalOnCreate[2].Eval.Value",
+    "ValueType": "Float",
+    "Value": 2
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/GreenGoblin/Talents/MoreToadsTalent.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[0].Eval.Value",
+    "Description": "OpenCalligraphy export: EvalOnCreate[0].Eval.Value",
+    "ValueType": "Float",
+    "Value": 0.5
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/GreenGoblin/Talents/MoreToadsTalent.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[1].Eval.Value",
+    "Description": "OpenCalligraphy export: EvalOnCreate[1].Eval.Value",
+    "ValueType": "Float",
+    "Value": 0.5
+  }
+]

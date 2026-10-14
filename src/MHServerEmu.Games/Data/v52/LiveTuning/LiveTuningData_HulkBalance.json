@@ -1,0 +1,117 @@
+[
+	{
+		"Prototype": "Powers/Player/Hulk/Rework/LeapQuakeTremorsHotspotEffect.prototype",
+		"Setting": "ePTV_PowerDamagePVE",
+		"Value": 1.3
+	},
+	{
+		"Prototype": "Powers/Player/Hulk/Rework/Meteor.prototype",
+		"Setting": "ePTV_PowerDamagePVE",
+		"Value": 1.8
+	},
+	{
+		"Prototype": "Powers/Player/Hulk/Rework/ClapHandDamageCombo.prototype",
+		"Setting": "ePTV_PowerDamagePVE",
+		"Value": 1.8
+	},
+	{
+		"Prototype": "Powers/Player/Hulk/Rework/Clap.prototype",
+		"Setting": "ePTV_PowerDamagePVE",
+		"Value": 1.8
+	},
+	{
+		"Prototype": "Powers/Player/Hulk/Rework/LeapQuakeTremorsHotspotEffect.prototype",
+		"Setting": "ePTV_PowerDamagePVE",
+		"Value": 1.8
+	},
+	{
+		"Prototype": "Powers/Player/Hulk/Rework/LeapImplodeEnd.prototype",
+		"Setting": "ePTV_PowerDamagePVE",
+		"Value": 1.8
+	},
+	{
+		"Prototype": "Powers/Player/Hulk/Rework/GammaPunch.prototype",
+		"Setting": "ePTV_PowerDamagePVE",
+		"Value": 1.8
+	},
+	{
+		"Prototype": "Powers/Player/Hulk/Rework/ThrowRockCombo.prototype",
+		"Setting": "ePTV_PowerDamagePVE",
+		"Value": 1.8
+	},
+	{
+		"Prototype": "Powers/Player/Hulk/Rework/MeteorDebrisDamageCombo.prototype",
+		"Setting": "ePTV_PowerDamagePVE",
+		"Value": 1.8
+	},
+	{
+		"Prototype": "Powers/Player/Hulk/Rework/PBAoESlamImpactBase.prototype",
+		"Setting": "ePTV_PowerDamagePVE",
+		"Value": 1.8
+	},
+	{
+		"Prototype": "Powers/Player/Hulk/Rework/LeapQuakeEnd.prototype",
+		"Setting": "ePTV_PowerDamagePVE",
+		"Value": 1.8
+	},
+	{
+		"Prototype": "Powers/Player/Hulk/Rework/PBAoESlamImpactVeryAngry.prototype",
+		"Setting": "ePTV_PowerDamagePVE",
+		"Value": 1.8
+	},
+	{
+		"Prototype": "Powers/Player/Hulk/Rework/SmashFaceBleedCombo.prototype",
+		"Setting": "ePTV_PowerDamagePVE",
+		"Value": 1.8
+	},
+	{
+		"Prototype": "Powers/Player/Hulk/Rework/Tantrum1stAttack.prototype",
+		"Setting": "ePTV_PowerDamagePVE",
+		"Value": 1.8
+	},
+	{
+		"Prototype": "Powers/Player/Hulk/Rework/Tantrum2ndAttack.prototype",
+		"Setting": "ePTV_PowerDamagePVE",
+		"Value": 1.8
+	},
+	{
+		"Prototype": "Powers/Player/Hulk/Rework/Tantrum3rdAttack.prototype",
+		"Setting": "ePTV_PowerDamagePVE",
+		"Value": 1.8
+	},
+	{
+		"Prototype": "Powers/Player/Hulk/Rework/Tantrum4thAttack.prototype",
+		"Setting": "ePTV_PowerDamagePVE",
+		"Value": 1.8
+	},
+	{
+		"Prototype": "Powers/Player/Hulk/Rework/CarFistsExplosion.prototype",
+		"Setting": "ePTV_PowerDamagePVE",
+		"Value": 1.8
+	},
+	{
+		"Prototype": "Powers/Player/Hulk/Rework/SmashFace.prototype",
+		"Setting": "ePTV_PowerDamagePVE",
+		"Value": 1.8
+	},
+	{
+		"Prototype": "Powers/Player/Hulk/Rework/DashCrashOverlap.prototype",
+		"Setting": "ePTV_PowerDamagePVE",
+		"Value": 1.8
+	},
+	{
+		"Prototype": "Powers/Player/Hulk/Rework/BasicMeleeUtil.prototype",
+		"Setting": "ePTV_PowerDamagePVE",
+		"Value": 1.8
+	},
+	{
+		"Prototype": "Powers/Player/Hulk/Rework/CarFistsProcEffect.prototype",
+		"Setting": "ePTV_PowerDamagePVE",
+		"Value": 1.8
+	},
+	{
+		"Prototype": "Powers/Player/Hulk/Rework/ShockwaveMissileEffectSmall.prototype",
+		"Setting": "ePTV_PowerDamagePVE",
+		"Value": 1.8
+	}
+]

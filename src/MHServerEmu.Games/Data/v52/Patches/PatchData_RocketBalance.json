@@ -1,0 +1,51 @@
+[
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/RocketRaccoon/Rework/ChargeBeamDmgBuffCombo.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[0].Scope[0].Eval.Value",
+    "Description": "[TAHITI2] Rocket Heavy Gauss Rifle: gun-power damage bonus 10% -> 25%. Sets DamagePctBonusForPowerKeywordProp[RocketGun] on the combo's applied condition.",
+    "ValueType": "Float",
+    "OriginalValue": 0.1,
+    "Value": 0.25
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/RocketRaccoon/Talents/Talent2PlasmaCannonBuff.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[0].Eval.Value",
+    "Description": "OpenCalligraphy export: EvalOnCreate[0].Eval.Value",
+    "ValueType": "Float",
+    "Value": 6
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/RocketRaccoon/Talents/Talent5Grenades.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[1].Eval.Value",
+    "Description": "OpenCalligraphy export: EvalOnCreate[1].Eval.Value",
+    "ValueType": "Float",
+    "Value": 5
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/RocketRaccoon/Talents/Talent5Grenades.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[3].Eval.Value",
+    "Description": "OpenCalligraphy export: EvalOnCreate[3].Eval.Value",
+    "ValueType": "Float",
+    "Value": 5
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/RocketRaccoon/Rework/JetDash.prototype",
+    "Path": "ActionsTriggeredOnPowerEvent[0].EventParam",
+    "Description": "Increase Jet Dash cooldown reduction to Flash Grence for 2 seconds.",
+    "ValueType": "Float",
+    "Value": -2
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/RocketRaccoon/Rework/JetDash.prototype",
+    "Path": "ActionsTriggeredOnPowerEvent[1].EventParam",
+    "Description": "Increase Jet Dash cooldown reduction to Gravity Mine for 2 seconds.",
+    "ValueType": "Float",
+    "Value": -2
+  }
+]

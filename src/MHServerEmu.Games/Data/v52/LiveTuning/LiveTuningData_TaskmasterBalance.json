@@ -1,0 +1,7 @@
+[
+  {
+    "Prototype": "Powers/Player/Taskmaster/PoisonGasBombHotspotEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  }
+]

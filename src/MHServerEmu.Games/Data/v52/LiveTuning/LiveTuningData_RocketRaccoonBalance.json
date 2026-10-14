@@ -1,0 +1,12 @@
+[
+  {
+    "Prototype": "Powers/Player/RocketRaccoon/Rework/PlasmaCannonHotspotEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.15
+  },
+  {
+    "Prototype": "Powers/Player/RocketRaccoon/Rework/FlashGrenade.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.15
+  }
+]

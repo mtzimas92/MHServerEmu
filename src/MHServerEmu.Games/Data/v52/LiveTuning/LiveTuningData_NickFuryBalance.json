@@ -1,0 +1,67 @@
+[
+  {
+    "Prototype": "Powers/Player/NickFury/EyesEverywhereGrenade.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 2.0
+  },
+  {
+    "Prototype": "Powers/Player/NickFury/EyesEverywhereSniperShots.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 2.0
+  },
+  {
+    "Prototype": "Powers/Player/NickFury/HeadsDownRanged.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.8
+  },
+  {
+    "Prototype": "Powers/Player/NickFury/BulletSprayHotspotEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.8
+  },
+  {
+    "Prototype": "Powers/Player/NickFury/RocketLauncher.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.8
+  },
+  {
+    "Prototype": "Powers/Player/NickFury/MolecularGrenade.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.8
+  },
+  {
+    "Prototype": "Powers/Player/NickFury/SniperShot.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.8
+  },
+  {
+    "Prototype": "Powers/Player/NickFury/BasicPistolMissileEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.8
+  },
+  {
+    "Prototype": "Powers/Player/NickFury/RapidFireMissileEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.8
+  },
+  {
+    "Prototype": "Powers/Player/NickFury/ExecuteHit.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.8
+  },
+  {
+    "Prototype": "Powers/Player/NickFury/DangerCloseExplosion.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.8
+  },
+  {
+    "Prototype": "Powers/Player/NickFury/Microdrones.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.8
+  },
+  {
+    "Prototype": "Powers/Player/NickFury/DriveByMissileEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.8
+  }
+]

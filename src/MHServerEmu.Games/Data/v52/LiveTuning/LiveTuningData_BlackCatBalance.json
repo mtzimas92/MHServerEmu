@@ -1,0 +1,82 @@
+[
+  {
+    "Prototype": "Powers/Player/BlackCat/WhipLash.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.25
+  },
+  {
+    "Prototype": "Powers/Player/BlackCat/TaserTrapHotspotEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.25
+  },
+  {
+    "Prototype": "Powers/Player/BlackCat/Garrotte.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.25
+  },
+  {
+    "Prototype": "Powers/Player/BlackCat/GasTrapExplosionHotspotEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.25
+  },
+  {
+    "Prototype": "Powers/Player/BlackCat/ShrapnelTrapExplosion.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.25
+  },
+  {
+    "Prototype": "Powers/Player/BlackCat/BasicWhip.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.25
+  },
+  {
+    "Prototype": "Powers/Player/BlackCat/SignatureHotspotEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/BlackCat/DeathFromAboveBleed.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.15
+  },
+  {
+    "Prototype": "Powers/Player/BlackCat/AssassinateDamageCombo.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.15
+  },
+  {
+    "Prototype": "Powers/Player/BlackCat/DeathFromAboveEnd.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.15
+  },
+  {
+    "Prototype": "Powers/Player/BlackCat/ClawPummel2.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.15
+  },
+  {
+    "Prototype": "Powers/Player/BlackCat/ClawPummel3.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.15
+  },
+  {
+    "Prototype": "Powers/Player/BlackCat/ClawPummel4.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.15
+  },
+  {
+    "Prototype": "Powers/Player/BlackCat/ClawPummel5.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.15
+  },
+  {
+    "Prototype": "Powers/Player/BlackCat/ClawPummel.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.15
+  },
+  {
+    "Prototype": "Powers/Player/BlackCat/ClawPummel6.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.15
+  }
+]

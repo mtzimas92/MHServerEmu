@@ -1,0 +1,57 @@
+[
+  {
+    "Prototype": "Powers/Player/Hawkeye/TurretArrowHotspotEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.45
+  },
+  {
+    "Prototype": "Powers/Player/Hawkeye/PoisonGasBombHotspotEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.45
+  },
+  {
+    "Prototype": "Powers/Player/Hawkeye/FreezeArrowMissileEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.45
+  },
+  {
+    "Prototype": "Powers/Player/Hawkeye/ExplosiveArrowMissileEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.45
+  },
+  {
+    "Prototype": "Powers/Player/Hawkeye/ShriekingArrowExplosion.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.45
+  },
+  {
+    "Prototype": "Powers/Player/Hawkeye/ExplosiveArrowMissileEffectThreeRoundBurst.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.45
+  },
+  {
+    "Prototype": "Powers/Player/Hawkeye/FreezeArrowMissileEffectThreeRoundBurst.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.45
+  },
+  {
+    "Prototype": "Powers/Player/Hawkeye/TaserArrowMissileEffectThreeRoundBurst.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.45
+  },
+  {
+    "Prototype": "Powers/Player/Hawkeye/TaserArrowMissileEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.45
+  },
+  {
+    "Prototype": "Powers/Player/Hawkeye/Katana.prototype",
+    "Setting": "ePTV_PowerCost",
+    "Value": 0.0
+  },
+  { 
+    "Prototype": "Powers/Player/Hawkeye/Tumble.prototype",
+    "Setting": "ePTV_PowerCost",
+    "Value": 0.0
+  }
+]

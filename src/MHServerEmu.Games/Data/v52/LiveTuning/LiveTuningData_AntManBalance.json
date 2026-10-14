@@ -1,0 +1,113 @@
+[
+  {
+    "Prototype": "Powers/Player/AntMan/FireAntAttack.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 2.0
+  },
+  {
+    "Prototype": "Powers/Player/AntMan/AntPetDefaultAttack.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 2.0
+  },
+  {
+    "Prototype": "Powers/Player/AntMan/AntPunch.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 2.0
+  },
+  {
+    "Prototype": "Powers/Player/AntMan/RapidShrinkStrike.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 2.0
+  },
+  {
+    "Prototype": "Powers/Player/AntMan/GiantManFoot.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 2.0
+  },
+  {
+    "Prototype": "Powers/Player/AntMan/AntStampedeMissileEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 2.0
+  },
+  {
+    "Prototype": "Powers/Player/AntMan/FlyingAntSwarmDamageHotspotEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 2.0
+  },
+  {
+    "Prototype": "Powers/Player/AntMan/NotSoBigPunchDamageCombo.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 2.0
+  },
+  {
+    "Prototype": "Powers/Player/AntMan/AntWallDoTCombo.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 2.0
+  },
+  {
+    "Prototype": "Powers/Player/AntMan/DisruptorBlast.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 2.0
+  },
+  {
+    "Prototype": "Powers/Player/AntMan/RapidShrinkStrikeDoTCombo.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 2.0
+  },
+  {
+    "Prototype": "Powers/Player/AntMan/InsectDecoyExplode.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 2.0
+  },
+  {
+    "Prototype": "Powers/Player/AntMan/TankerThrowHotspotEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 2.0
+  },
+  {
+    "Prototype": "Powers/Player/AntMan/ThrowCar.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 2.0
+  },
+  {
+    "Prototype": "Powers/Player/AntMan/TankerThrow.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 2.0
+  },
+  {
+    "Prototype": "Powers/Player/AntMan/MultiStrikeBouncingBulletTalentPower.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 2.0
+  },
+  {
+    "Prototype": "Powers/Player/AntMan/ShrinkingStrike.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 2.0
+  },
+  {
+    "Prototype": "Powers/Player/AntMan/MultiStrikeChainPower.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 2.0
+  },
+  {
+    "Prototype": "Powers/Player/AntMan/BounceDashEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 2.0
+  },
+  {
+    "Prototype": "Powers/Player/AntMan/BioElectricBlast.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 2.0
+  },
+  {
+    "Prototype": "Powers/Player/AntMan/BioElectricBlastHit2.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 2.0
+  },
+  {
+    "Prototype": "Powers/Player/AntMan/BioElectricBlastHit3.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 2.0
+  }
+]
+

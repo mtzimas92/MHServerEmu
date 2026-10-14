@@ -1,0 +1,10 @@
+[
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Thing/Traits/ClobberinTimeBuff.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[4].Eval.Value",
+    "Description": "OpenCalligraphy export: EvalOnCreate[4].Eval.Value",
+    "ValueType": "Float",
+    "Value": 0.3
+  }
+]
