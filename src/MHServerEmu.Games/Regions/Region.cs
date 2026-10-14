@@ -120,7 +120,7 @@ namespace MHServerEmu.Games.Regions
 
         public Dictionary<uint, Area> Areas { get; } = new();
         public CellSpatialPartition.ElementIterator<Aabb> Cells { get => IterateCellsInVolume(Aabb); }
-        public IEnumerable<Entity> Entities { get => Game.EntityManager.IterateEntities(this); }
+        public EntityIterator Entities { get => new(Game.EntityManager, this); }
 
         // ArchiveData
         public ReplicatedPropertyCollection Properties { get; } = new();
@@ -697,16 +697,18 @@ namespace MHServerEmu.Games.Regions
         public Area GetStartArea()
         {
             if (_startArea == null && Areas.Count > 0)
-                _startArea = IterateAreas().First();
+            {
+                AreaIterator.Enumerator enumerator = IterateAreas().GetEnumerator();
+                enumerator.MoveNext();
+                _startArea = enumerator.Current;
+            }
 
             return _startArea;
         }
 
-        public IEnumerable<Area> IterateAreas(Aabb? bound = null)
+        public AreaIterator IterateAreas(Aabb? bounds = null)
         {
-            foreach (var area in Areas.Values.ToArray())
-                if (bound == null || area.RegionBounds.Intersects(bound.Value))
-                    yield return area;
+            return new(this, bounds);
         }
 
         public void RebuildBlackOutZone(BlackOutZone zone)
@@ -1007,13 +1009,12 @@ namespace MHServerEmu.Games.Regions
             if (difficultyTierProto == null)
                 return;
 
-#if GAME_VERSION_1_53
+#if GAME_VERSION_1_53 && PLATFORM_TYPE_PC
             DifficultyTierGameplaySettingsPrototype gameplaySettingsProto = null;
             
             foreach (DifficultyTierGameplaySettingsPrototype settings in difficultyTierProto.PlatformSpecificGameplaySettings)
             {
-                // V53_TODO: console settings
-                if (settings.Platform.HasFlag(Platforms.PC))
+                if (settings.Platform.HasFlag(Game.PlatformType))
                 {
                     gameplaySettingsProto = settings;
                     break;
@@ -1027,7 +1028,7 @@ namespace MHServerEmu.Games.Regions
             Properties.AdjustProperty(difficultyTierProto.ItemFindRarePct, PropertyEnum.LootBonusRarityPct);
             Properties.AdjustProperty(difficultyTierProto.ItemFindSpecialPct, PropertyEnum.LootBonusSpecialPct);
 
-#if GAME_VERSION_1_53
+#if GAME_VERSION_1_53 && PLATFORM_TYPE_PC
             Properties.AdjustProperty(gameplaySettingsProto.BonusExperiencePct, PropertyEnum.ExperienceBonusPct);
             Properties.AdjustProperty(gameplaySettingsProto.BonusExperiencePct, PropertyEnum.LootBonusXPPct);
 
