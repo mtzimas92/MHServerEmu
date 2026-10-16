@@ -1,0 +1,26 @@
+[
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Cable/ParticleAcceleratorBuffCombo.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[0].Eval.Value",
+    "Description": "OpenCalligraphy export: EvalOnCreate[0].Eval.Value",
+    "ValueType": "Float",
+    "Value": 0.5
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Cable/TKOverloadBuffCombo.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[0].Eval.Value",
+    "Description": "OpenCalligraphy export: EvalOnCreate[0].Eval.Value",
+    "ValueType": "Float",
+    "Value": 0.5
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Cable/TKSpearSlamBuffCombo.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[0].Eval.Value",
+    "Description": "OpenCalligraphy export: EvalOnCreate[0].Eval.Value",
+    "ValueType": "Float",
+    "Value": 0.5
+  }
+]

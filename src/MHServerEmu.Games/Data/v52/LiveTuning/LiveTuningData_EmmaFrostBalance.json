@@ -1,0 +1,67 @@
+[
+  {
+    "Prototype": "Powers/Player/EmmaFrost/Update/Drain.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/EmmaFrost/Update/RangedSplashShotMissileEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/EmmaFrost/Update/PsychicSpearMissileEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/EmmaFrost/Update/KneelBeforeMeComboExplosion.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/EmmaFrost/Update/AreaDoT.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.5
+  },
+  {
+    "Prototype": "Powers/Player/EmmaFrost/Update/DiamondSweepKickDoTVuln.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.20
+  },
+  {
+    "Prototype": "Powers/Player/EmmaFrost/Update/BigPunch.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.20
+  },
+  {
+    "Prototype": "Powers/Player/EmmaFrost/Update/AxeHeelDropEnd.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.20
+  },
+  {
+    "Prototype": "Powers/Player/EmmaFrost/Update/DiamondSweepKick.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.20
+  },
+  {
+    "Prototype": "Powers/Player/EmmaFrost/Update/MegaSlapDamageCombo.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.20
+  },
+  {
+    "Prototype": "Powers/Player/EmmaFrost/Update/DiamondStrike.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.20
+  },
+  {
+    "Prototype": "Powers/Player/EmmaFrost/Update/DiamondWhirlwindHotspotIntervalEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.20
+  },
+  {
+    "Prototype": "Powers/Player/EmmaFrost/Update/DiamondKneeProcEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.20
+  }
+]

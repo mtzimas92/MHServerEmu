@@ -1,0 +1,88 @@
+[
+  {
+    "Prototype": "Powers/Player/Thor/Rework/SignatureAntiforce.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.1
+  },
+  {
+    "Prototype": "Powers/Player/Thor/Rework/BasicMelee.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.1
+  },
+  {
+    "Prototype": "Powers/Player/Thor/Rework/ThunderSpotAreaDamageEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.1
+  },
+  {
+    "Prototype": "Powers/Player/Thor/Rework/RagnarokInnerCombo.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.1
+  },
+  {
+    "Prototype": "Powers/Player/Thor/Rework/KnockOutDamageCombo.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.1
+  },
+  {
+    "Prototype": "Powers/Player/Thor/Rework/HammerThrowNormalMissileEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.1
+  },
+  {
+    "Prototype": "Powers/Player/Thor/Rework/ShockwaveMissileEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.1
+  },
+  {
+    "Prototype": "Powers/Player/Thor/Rework/BoltSprayHotspotEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.1
+  },
+  {
+    "Prototype": "Powers/Player/Thor/Rework/LightningStrikeNoOF.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.1
+  },
+  {
+    "Prototype": "Powers/Player/Thor/DeathFromAboveComboEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.1
+  },
+  {
+    "Prototype": "Powers/Player/Thor/Rework/HammerDashOdinforceCombo.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.1
+  },
+  {
+    "Prototype": "Powers/Player/Thor/Rework/ImmortalCombatRestore.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.1
+  },
+  {
+    "Prototype": "Powers/Player/Thor/Rework/LightningStrikeOF.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.1
+  },
+  {
+    "Prototype": "Powers/Player/Thor/Rework/GroundSmash.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.1
+  },
+  {
+    "Prototype": "Powers/Player/Thor/Rework/PBAoEStormEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.1
+  },
+  {
+    "Prototype": "Powers/Player/Thor/ChargeEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.1
+  },
+  {
+    "Prototype": "Powers/Player/Thor/BasicMeleeChainLightningCombo.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.1
+  }
+]
+

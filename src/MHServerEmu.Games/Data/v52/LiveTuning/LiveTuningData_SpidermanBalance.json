@@ -1,0 +1,67 @@
+[
+  {
+    "Prototype": "Powers/Player/Spiderman/WebSwingEnd.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.5
+  },
+  {
+    "Prototype": "Powers/Player/Spiderman/Rework/SpiderBamfAoEHit.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.5
+  },
+  {
+    "Prototype": "Powers/Player/Spiderman/Rework/DiveKickEnd.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.5
+  },
+  {
+    "Prototype": "Powers/Player/Spiderman/Rework/SpiderCombo.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.5
+  },
+  {
+    "Prototype": "Powers/Player/Spiderman/Rework/FuriousLungeHitEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.5
+  },
+  {
+    "Prototype": "Powers/Player/Spiderman/Rework/WebWhirlwindIntervalHotspotEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.5
+  },
+  {
+    "Prototype": "Powers/Player/Spiderman/Rework/Uppercut.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.5
+  },
+  {
+    "Prototype": "Powers/Player/Spiderman/Rework/WebSprayHotspotEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.2
+  },
+  {
+    "Prototype": "Powers/Player/Spiderman/Rework/SlingshotMissileEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.4
+  },
+  {
+    "Prototype": "Powers/Player/Spiderman/Rework/RapidFireMissileEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.2
+  },
+  {
+    "Prototype": "Powers/Player/Spiderman/CorrosiveWebbingDoTEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 2.5
+  },
+  {
+    "Prototype": "Powers/Player/Spiderman/Rework/DisengagingShotCombo.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.5
+  },
+  {
+    "Prototype": "Powers/Player/Spiderman/Rework/Cocoon.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.2
+  }
+]

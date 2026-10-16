@@ -119,7 +119,6 @@ namespace MHServerEmu.Games.Entities
 
             // Game.ChatManager?.SendChatFromCustomSystem(
             //     this,
-            //     $"[Mythic Rift] Completion crafter upgraded {outputItem.PrototypeDataRef.GetNameFormatted()} from item level {sourceLevel} to {outputLevel}. This run's upgrade is complete.",
             //     showSender: false);
 
             craftingResult = CraftingResult.Success;

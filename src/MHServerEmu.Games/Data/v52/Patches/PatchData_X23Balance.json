@@ -1,0 +1,86 @@
+[
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/X23/Execute.prototype",
+    "Path": "Radius",
+    "Description": "OpenCalligraphy export: Radius",
+    "ValueType": "Float",
+    "Value": 200
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/X23/Execute.prototype",
+    "Path": "RangeMinimum",
+    "Description": "OpenCalligraphy export: RangeMinimum",
+    "ValueType": "Float",
+    "Value": 80
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/X23/Execute2ndHit.prototype",
+    "Path": "Radius",
+    "Description": "OpenCalligraphy export: Radius",
+    "ValueType": "Float",
+    "Value": 400
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/X23/Execute2ndHit.prototype",
+    "Path": "RangeMinimum",
+    "Description": "OpenCalligraphy export: RangeMinimum",
+    "ValueType": "Float",
+    "Value": 160
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/X23/Execute.prototype",
+    "Path": "ActionsTriggeredOnPowerEvent[1].EvalEventTriggerChance",
+    "Description": "Talent2 Pummel Execute CDR: disable the old bleed-gated cooldown helper so the flat -4s talent cooldown does not double-dip on bleeding targets.",
+    "ValueType": "Prototype",
+    "Value": {
+      "ParentDataRef": "Eval/Constants/LoadFloat.defaults",
+      "Op": "LoadFloat",
+      "Value": 0
+    }
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/X23/Talents/Talent2PummelExecuteDmgCDR.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[]",
+    "Description": "Talent2 Pummel Execute CDR: apply a persistent -4s cooldown modifier to Execute while the talent's avatar condition is active.",
+    "ValueType": "Prototype",
+    "Value": {
+      "ParentDataRef": "Eval/Properties/AssignProp.defaults",
+      "Op": "AssignProp",
+      "Prop": {
+        "ParentDataRef": "Property/Mixin/CooldownModifierMSForPowerProp.defaults",
+        "Param0": "Powers/Player/X23/Execute.prototype"
+      },
+      "Eval": {
+        "ParentDataRef": "Eval/Constants/LoadFloat.defaults",
+        "Op": "LoadFloat",
+        "Value": -4000
+      }
+    }
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/X23/Talents/Talent2PummelExecuteDmgCDR.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[]",
+    "Description": "Talent2 Pummel Execute CDR: also apply the -4s cooldown modifier to Execute2ndHit in case the mapped/visible cooldown follows the second-hit power.",
+    "ValueType": "Prototype",
+    "Value": {
+      "ParentDataRef": "Eval/Properties/AssignProp.defaults",
+      "Op": "AssignProp",
+      "Prop": {
+        "ParentDataRef": "Property/Mixin/CooldownModifierMSForPowerProp.defaults",
+        "Param0": "Powers/Player/X23/Execute2ndHit.prototype"
+      },
+      "Eval": {
+        "ParentDataRef": "Eval/Constants/LoadFloat.defaults",
+        "Op": "LoadFloat",
+        "Value": -4000
+      }
+    }
+  }
+]

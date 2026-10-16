@@ -1,0 +1,97 @@
+[
+  {
+    "Prototype": "Powers/Player/WarMachine/FlameThrowerHotSpotEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.4
+  },
+  {
+    "Prototype": "Powers/Player/WarMachine/ChainsawImpaleHit2.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.4
+  },
+  {
+    "Prototype": "Powers/Player/WarMachine/DeathFromAboveComboEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.4
+  },
+  {
+    "Prototype": "Powers/Player/WarMachine/Chainsaws.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.4
+  },
+  {
+    "Prototype": "Powers/Player/WarMachine/WarMachineArmorExplosion.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.4
+  },
+  {
+    "Prototype": "Powers/Player/WarMachine/EMPRobotDmg.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.4
+  },
+  {
+    "Prototype": "Powers/Player/WarMachine/ChainsawImpale.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.4
+  },
+  {
+    "Prototype": "Powers/Player/WarMachine/BasicLaserBlade.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.4
+  },
+  {
+    "Prototype": "Powers/Player/WarMachine/LaserBladeDashProcEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.4
+  },
+  {
+    "Prototype": "Powers/Player/WarMachine/AlphaStrikeHotspotEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/WarMachine/ChaingunBurstMissileEffectPlasma.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/WarMachine/ChaingunFullAutoMissileEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/WarMachine/ChaingunBulletSpray.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/WarMachine/AlphaStrikeMissileEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/WarMachine/WarheadHotspotEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/WarMachine/PlasmaCannonHotspotEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/WarMachine/BulletOneOffEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/WarMachine/Warhead.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/WarMachine/ThermalShot.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  }
+]

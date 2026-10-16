@@ -1,0 +1,47 @@
+[
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/BlackPanther/Talents/FanofKnivesBuffTalent.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[0].Eval.Value",
+    "Description": "[TAHITI2] Black Panther Reaping Fangs: ranged damage bonus 10% -> 25%. Sets DamageMultForPowerKeywordProp[Ranged].",
+    "ValueType": "Float",
+    "OriginalValue": 0.1,
+    "Value": 0.25
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/BlackPanther/Talents/JungleSnareRangedTalent.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[0].Eval.Value",
+    "Description": "[TAHITI2] Black Panther Patient Hunter: Jungle Snare damage 25% -> 50%. Sets DamageMultForPowerProp[SnareHotspotDamageRanged].",
+    "ValueType": "Float",
+    "OriginalValue": 0.25,
+    "Value": 0.75
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/BlackPanther/Talents/SweepBleedDamage.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[0].Eval.Value",
+    "Description": "[TAHITI2] Black Panther Blur of Blades: bleed damage bonus on Sweeping Kick 150% -> 100%. Sets DamageMultVsKeywordForPowerKwdProp[Bleed][BlackPantherSweepingKick].",
+    "ValueType": "Float",
+    "OriginalValue": 1.5,
+    "Value": 1.0
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/BlackPanther/Talents/MineFieldMeleeTalent.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[0].Eval.Value",
+    "Description": "[TAHITI2] Black Panther Close Combat Mines: melee mine explosion damage 250% -> 650%. Sets DamageMultForPowerProp[MineFieldExplosionMelee].",
+    "ValueType": "Float",
+    "OriginalValue": 2.5,
+    "Value": 7.5
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/BlackPanther/SweepingKick.prototype",
+    "Path": "ActionsTriggeredOnPowerEvent[0].EventParam",
+    "Description": "[TAHITI2] Black Panther Blur of Blades: drop the 4s cooldown the talent adds to Sweeping Kick. The cooldown is a CooldownStart power event gated on having the talent and hitting a bleeding target.",
+    "ValueType": "Float",
+    "OriginalValue": 4.0,
+    "Value": 0.0
+  }
+]

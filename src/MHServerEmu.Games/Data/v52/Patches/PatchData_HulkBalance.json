@@ -1,0 +1,28 @@
+[
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Characters/Avatars/Shipping/Hulk.prototype",
+    "Path": "Properties",
+    "Description": "Damage Multiplier",
+    "ValueType": "Properties",
+    "Value": {
+      "SuperCritChancePctAdd": 0.15
+    }
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Hulk/Traits/MechanicTraitAngerBuffEffectIncrease.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[0].Scope[1].Eval.Value",
+    "Description": "OpenCalligraphy export: EvalOnCreate[0].Scope[1].Eval.Value",
+    "ValueType": "Float",
+    "Value": 0.5
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Hulk/Talents/Talent3ThrowRockBonus.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[0].Prop.Param0",
+    "Description": "Point Throw Rock talent damage bonus at the actual damage power.",
+    "ValueType": "PrototypeId",
+    "Value": 839593216496047195
+  }
+]

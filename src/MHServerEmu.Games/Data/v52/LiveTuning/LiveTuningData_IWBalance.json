@@ -1,0 +1,83 @@
+[
+  {
+    "Prototype": "Powers/Player/InvisibleWoman/SpikedBallChanneledHotspotEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.65
+  },
+  {
+    "Prototype": "Powers/Player/InvisibleWoman/CrusherHotspotEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.65
+  },
+  {
+    "Prototype": "Powers/Player/InvisibleWoman/SeekerOrbsMissileEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.65
+  },
+  {
+    "Prototype": "Powers/Player/InvisibleWoman/SpikedBallSkillshotMissileEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.65
+  },
+  {
+    "Prototype": "Powers/Player/InvisibleWoman/ShockwavePBAoE.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.65
+  },
+  {
+    "Prototype": "Powers/Player/InvisibleWoman/OrbStormHotspotEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.65
+  },
+  {
+    "Prototype": "Powers/Player/InvisibleWoman/BoomerangBubbleMissileEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.65
+  },
+  {
+    "Prototype": "Powers/Player/InvisibleWoman/ShieldedFistMissileEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.65
+  },
+  {
+    "Prototype": "Powers/Player/InvisibleWoman/ForcePillar.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.65
+  },
+  {
+    "Prototype": "Powers/Player/InvisibleWoman/Suffocate.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.65
+  },
+  {
+    "Prototype": "Powers/Player/InvisibleWoman/ImplodeExplodeInCombo.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.65
+  },
+  {
+    "Prototype": "Powers/Player/InvisibleWoman/ImplodeExplodeOutCombo.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.65
+  },
+  {
+    "Prototype": "Powers/Player/InvisibleWoman/Pancake.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.65
+  },
+  {
+    "Prototype": "Powers/Player/InvisibleWoman/BouncingBubbleChainEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.65
+  },
+  {
+    "Prototype": "Powers/Player/InvisibleWoman/ForceDashEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.65
+  },
+  {
+    "Prototype": "Powers/Player/InvisibleWoman/BouncingBubbleTalentChainEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.65
+  }
+]
+

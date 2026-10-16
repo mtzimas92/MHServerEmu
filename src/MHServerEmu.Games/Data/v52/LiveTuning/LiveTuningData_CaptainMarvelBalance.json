@@ -1,0 +1,53 @@
+[
+  {
+    "Prototype": "Powers/Player/CaptainMarvel/EnergyEchoesEndExplosion.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/CaptainMarvel/PhotonicWaveDoT.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.5
+  },
+  {
+    "Prototype": "Powers/Player/CaptainMarvel/PhotonicBlastBomb.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/CaptainMarvel/PhotonicWave.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/CaptainMarvel/PhotonDoubleBeam.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/CaptainMarvel/PhotonRayMissileEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/CaptainMarvel/PhotonicBlastMissileEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/CaptainMarvel/PhotonicBurstsEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/CaptainMarvel/ChanneledPhotonBeamHotspotEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/CaptainMarvel/DisengagingShotCombo.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  }
+]
+

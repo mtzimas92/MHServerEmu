@@ -1,0 +1,123 @@
+[
+  {
+    "Prototype": "Powers/Player/BlackPanther/DoraMilajeDefaultAttackCombo.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.2
+  },
+  {
+    "Prototype": "Powers/Player/BlackPanther/DoraMiliajeDefaultAttackCombo2.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.2
+  },
+  {
+    "Prototype": "Powers/Player/BlackPanther/DoraMilajeDefaultAttack.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.2
+  },
+  {
+    "Prototype": "Powers/Player/BlackPanther/MineFieldExplosionRanged.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.2
+  },
+  {
+    "Prototype": "Powers/Player/BlackPanther/PantherBomb.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.2
+  },
+  {
+    "Prototype": "Powers/Player/BlackPanther/SweepingKick.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.2
+  },
+  {
+    "Prototype": "Powers/Player/BlackPanther/EnergyTrapOnDeath.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.2
+  },
+  {
+    "Prototype": "Powers/Player/BlackPanther/MineFieldExplosionMelee.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.2
+  },
+  {
+    "Prototype": "Powers/Player/BlackPanther/SnareHotspotDamageRanged.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.2
+  },
+  {
+    "Prototype": "Powers/Player/BlackPanther/BasicDaggerThrowEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.2
+  },
+  {
+    "Prototype": "Powers/Player/BlackPanther/QuickSlash.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.2
+  },
+  {
+    "Prototype": "Powers/Player/BlackPanther/SnareHotspotDamage.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.2
+  },
+  {
+    "Prototype": "Powers/Player/BlackPanther/ClawUppercutBleedCombo.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.2
+  },
+  {
+    "Prototype": "Powers/Player/BlackPanther/TripleShotConeDamage.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.2
+  },
+  {
+    "Prototype": "Powers/Player/BlackPanther/DoublePunchSecondHit.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.2
+  },
+  {
+    "Prototype": "Powers/Player/BlackPanther/DoublePunch.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.2
+  },
+  {
+    "Prototype": "Powers/Player/BlackPanther/EnergyDaggers.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.2
+  },
+  {
+    "Prototype": "Powers/Player/BlackPanther/FreezingDaggersSplashDamageBuffed.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.2
+  },
+  {
+    "Prototype": "Powers/Player/BlackPanther/EnervationDaggers.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.2
+  },
+  {
+    "Prototype": "Powers/Player/BlackPanther/AcrobaticAttackComboDamageCombo.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.2
+  },
+  {
+    "Prototype": "Powers/Player/BlackPanther/FreezingDaggersMissileEffectBuffed.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.2
+  },
+  {
+    "Prototype": "Powers/Player/BlackPanther/ClawUppercut.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.2
+  },
+  {
+    "Prototype": "Powers/Player/BlackPanther/EnervationDaggersDoTStackSingle.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.2
+  },
+  {
+    "Prototype": "Powers/Player/BlackPanther/DaggerChargeEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.2
+  }
+]
+

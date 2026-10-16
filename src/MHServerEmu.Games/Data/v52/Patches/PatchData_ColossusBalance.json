@@ -1,0 +1,294 @@
+[
+  {
+    "Enabled": true,
+    "Prototype": "Eval/Prototypes/ColossusDamagePctPer100Armor.prototype",
+    "Path": "Scope[0].Value",
+    "Description": "Ten Ton Punches: increase Colossus' shared damage-per-100-armor eval from 1% to 2%.",
+    "ValueType": "Float",
+    "Value": 0.02
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Colossus/GroundStompCooldown.prototype",
+    "Path": "CooldownTimeMS.Value",
+    "Description": "Seismic Stomp: reduce Demolition Stomp's mapped cooldown from 8s to 6s.",
+    "ValueType": "Integer",
+    "Value": 6000
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Colossus/Shockwave.prototype",
+    "Path": "ActionsTriggeredOnPowerEvent[0].EvalEventTriggerChance.Scope[0].EvalElse.Value",
+    "Description": "Seismic Stomp: bake the Fissure trigger into baseline Shockwave behavior.",
+    "ValueType": "Float",
+    "Value": 1
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Colossus/Talents/Talent1DamageMultWithNoArmor.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[0].Eval.Value",
+    "Description": "OpenCalligraphy export: EvalOnCreate[0].Eval.Value",
+    "ValueType": "Float",
+    "Value": 0.05,
+    "OriginialValue": 0.03
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Colossus/Talents/Talent1DamageMultWithNoArmorBuffEffect.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[0].Eval.Value",
+    "Description": "OpenCalligraphy export: EvalOnCreate[0].Eval.Value",
+    "ValueType": "Float",
+    "Value": 0.1,
+    "OriginalValue": 0.06
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Colossus/Talents/Talent3GroundStompFissureLayers.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[0].Eval.Value",
+    "Description": "Seismic Stomp: increase Demolition Stomp's damage bonus from 150% to 200%.",
+    "ValueType": "Float",
+    "Value": 2
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Colossus/CallKittyAoE.prototype",
+    "Path": "EvalPowerSynergies",
+    "Description": "Solitary Pillar: directly add +100% damage to Call Kitty while the call-in damage talent is selected.",
+    "ValueType": "Prototype",
+    "Value": {
+      "ParentDataRef": "Eval/ControlFlow/IfElse.defaults",
+      "Op": "IfElse",
+      "Conditional": {
+        "ParentDataRef": "Eval/Other/EntityHasTalent.defaults",
+        "Op": "EntityHasTalent",
+        "Context": "Var2",
+        "Talent": "Powers/Player/Colossus/Talents/Talent4CallInBuffs.prototype"
+      },
+      "EvalIf": {
+        "ParentDataRef": "Eval/Properties/AssignProp.defaults",
+        "Op": "AssignProp",
+        "Prop": {
+          "ParentDataRef": "Property/Mixin/DamageMultOnPowerProp.defaults"
+        },
+        "Eval": {
+          "ParentDataRef": "Eval/Constants/LoadFloat.defaults",
+          "Op": "LoadFloat",
+          "Value": 1.0
+        }
+      },
+      "EvalElse": {
+        "ParentDataRef": "Eval/Constants/LoadBool.defaults",
+        "Op": "LoadBool",
+        "Value": true
+      }
+    }
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Colossus/CallNightcrawler.prototype",
+    "Path": "EvalPowerSynergies",
+    "Description": "Solitary Pillar: directly add +100% damage to Call Nightcrawler while the call-in damage talent is selected.",
+    "ValueType": "Prototype",
+    "Value": {
+      "ParentDataRef": "Eval/ControlFlow/IfElse.defaults",
+      "Op": "IfElse",
+      "Conditional": {
+        "ParentDataRef": "Eval/Other/EntityHasTalent.defaults",
+        "Op": "EntityHasTalent",
+        "Context": "Var2",
+        "Talent": "Powers/Player/Colossus/Talents/Talent4CallInBuffs.prototype"
+      },
+      "EvalIf": {
+        "ParentDataRef": "Eval/Properties/AssignProp.defaults",
+        "Op": "AssignProp",
+        "Prop": {
+          "ParentDataRef": "Property/Mixin/DamageMultOnPowerProp.defaults"
+        },
+        "Eval": {
+          "ParentDataRef": "Eval/Constants/LoadFloat.defaults",
+          "Op": "LoadFloat",
+          "Value": 1.0
+        }
+      },
+      "EvalElse": {
+        "ParentDataRef": "Eval/Constants/LoadBool.defaults",
+        "Op": "LoadBool",
+        "Value": true
+      }
+    }
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Colossus/FastballSpecial.prototype",
+    "Path": "EvalPowerSynergies",
+    "Description": "Solitary Pillar: directly add +100% damage to Fastball Special while the call-in damage talent is selected.",
+    "ValueType": "Prototype",
+    "Value": {
+      "ParentDataRef": "Eval/ControlFlow/IfElse.defaults",
+      "Op": "IfElse",
+      "Conditional": {
+        "ParentDataRef": "Eval/Other/EntityHasTalent.defaults",
+        "Op": "EntityHasTalent",
+        "Context": "Var2",
+        "Talent": "Powers/Player/Colossus/Talents/Talent4CallInBuffs.prototype"
+      },
+      "EvalIf": {
+        "ParentDataRef": "Eval/Properties/AssignProp.defaults",
+        "Op": "AssignProp",
+        "Prop": {
+          "ParentDataRef": "Property/Mixin/DamageMultOnPowerProp.defaults"
+        },
+        "Eval": {
+          "ParentDataRef": "Eval/Constants/LoadFloat.defaults",
+          "Op": "LoadFloat",
+          "Value": 1.0
+        }
+      },
+      "EvalElse": {
+        "ParentDataRef": "Eval/Constants/LoadBool.defaults",
+        "Op": "LoadBool",
+        "Value": true
+      }
+    }
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Colossus/MagikEldritchArmor.prototype",
+    "Path": "EvalPowerSynergies",
+    "Description": "Solitary Pillar: directly add +100% damage to Magik Eldritch Armor while the call-in damage talent is selected.",
+    "ValueType": "Prototype",
+    "Value": {
+      "ParentDataRef": "Eval/ControlFlow/IfElse.defaults",
+      "Op": "IfElse",
+      "Conditional": {
+        "ParentDataRef": "Eval/Other/EntityHasTalent.defaults",
+        "Op": "EntityHasTalent",
+        "Context": "Var2",
+        "Talent": "Powers/Player/Colossus/Talents/Talent4CallInBuffs.prototype"
+      },
+      "EvalIf": {
+        "ParentDataRef": "Eval/Properties/AssignProp.defaults",
+        "Op": "AssignProp",
+        "Prop": {
+          "ParentDataRef": "Property/Mixin/DamageMultOnPowerProp.defaults"
+        },
+        "Eval": {
+          "ParentDataRef": "Eval/Constants/LoadFloat.defaults",
+          "Op": "LoadFloat",
+          "Value": 1.0
+        }
+      },
+      "EvalElse": {
+        "ParentDataRef": "Eval/Constants/LoadBool.defaults",
+        "Op": "LoadBool",
+        "Value": true
+      }
+    }
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Colossus/Talents/Talent2NoCallinSpec.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[]",
+    "Description": "[Balance] Colossus Solitary Pillar (Talent2NoCallinSpec): +100% damage to Call-In keyword powers. Appended to the same condition that already carries CooldownModifierMSForKeywordProp[CallIn], which is the placement proven to reach the player.",
+    "ValueType": "Prototype",
+    "Value": {
+      "ParentDataRef": 1429542141982412459,
+      "Op": "AssignProp",
+      "Prop": {
+        "ParentDataRef": "Property/Mixin/DamageMultForPowerKeywordProp.defaults",
+        "Param0": "Powers/Blueprints/Keywords/CallIn.defaults"
+      },
+      "Eval": {
+        "ParentDataRef": 5074715296837012907,
+        "Op": "LoadFloat",
+        "Value": 2.0
+      }
+    }
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Colossus/FastballSpecialThrownMissileEffect.prototype",
+    "Path": "Keywords[]",
+    "Description": "[Balance] Tag Fastball Special's damage-dealing missile effect with the CallIn keyword. The parent FastballSpecial has it but deals 0 damage; this child does the damage and was untagged, so Call-In keyword buffs skipped it.",
+    "ValueType": "PrototypeDataRefArray",
+    "Value": [
+      17434984565586465137
+    ]
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Colossus/FastballSpecialThrownMissileEffect.prototype",
+    "Path": "Keywords[]",
+    "Description": "[Balance] Tag Fastball Special's damage-dealing missile effect with the CallIn keyword. The parent FastballSpecial has it but deals 0 damage; this child does the damage and was untagged, so Call-In keyword buffs skipped it.",
+    "ValueType": "PrototypeDataRefArray",
+    "Value": [
+      17434984565586465137
+    ]
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Colossus/MetalRegeneration.prototype",
+    "Path": "ActionsTriggeredOnPowerEvent[]",
+    "Description": "Taunt Buff: auto-cast Group Taunt Cooldown after Metal Regeneration completes, only while Talent2TauntBuff is selected.",
+    "ValueType": "Prototype",
+    "Value": {
+      "ParentDataRef": "Powers/Blueprints/PowerEvents/PowerEventAction.defaults",
+      "EventAction": "UsePower",
+      "Power": "Powers/Player/Colossus/GroupTauntCooldown.prototype",
+      "EvalEventTriggerChance": {
+        "ParentDataRef": "Eval/ControlFlow/IfElse.defaults",
+        "Op": "IfElse",
+        "Conditional": {
+          "ParentDataRef": "Eval/Other/EntityHasTalent.defaults",
+          "Op": "EntityHasTalent",
+          "Context": "Var1",
+          "Talent": "Powers/Player/Colossus/Talents/Talent2TauntBuff.prototype"
+        },
+        "EvalIf": {
+          "ParentDataRef": "Eval/Constants/LoadFloat.defaults",
+          "Op": "LoadFloat",
+          "Value": 1
+        },
+        "EvalElse": {
+          "ParentDataRef": "Eval/Constants/LoadFloat.defaults",
+          "Op": "LoadFloat",
+          "Value": 0
+        }
+      },
+      "PowerEvent": "OnPowerEnd"
+    }
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Colossus/MetalRegeneration.prototype",
+    "Path": "ActionsTriggeredOnPowerEvent[]",
+    "Description": "Taunt Buff: directly apply Group Taunt's Talent2TauntBuff self buff after Metal Regeneration completes, avoiding the mapped taunt's missed contact event.",
+    "ValueType": "Prototype",
+    "Value": {
+      "ParentDataRef": "Powers/Blueprints/PowerEvents/PowerEventAction.defaults",
+      "EventAction": "UsePower",
+      "Power": "Powers/Player/Colossus/GroupTauntTalentBuff.prototype",
+      "EvalEventTriggerChance": {
+        "ParentDataRef": "Eval/ControlFlow/IfElse.defaults",
+        "Op": "IfElse",
+        "Conditional": {
+          "ParentDataRef": "Eval/Other/EntityHasTalent.defaults",
+          "Op": "EntityHasTalent",
+          "Context": "Var1",
+          "Talent": "Powers/Player/Colossus/Talents/Talent2TauntBuff.prototype"
+        },
+        "EvalIf": {
+          "ParentDataRef": "Eval/Constants/LoadFloat.defaults",
+          "Op": "LoadFloat",
+          "Value": 1
+        },
+        "EvalElse": {
+          "ParentDataRef": "Eval/Constants/LoadFloat.defaults",
+          "Op": "LoadFloat",
+          "Value": 0
+        }
+      },
+      "PowerEvent": "OnPowerEnd"
+    }
+  }
+]

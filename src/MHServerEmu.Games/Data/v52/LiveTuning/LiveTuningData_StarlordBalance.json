@@ -1,0 +1,143 @@
+[
+  {
+    "Prototype": "Powers/Player/Starlord/SigOrbitalStrikeExplosion.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.4
+  },
+  {
+    "Prototype": "Powers/Player/Starlord/CloseCombatCombo.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.4
+  },
+  {
+    "Prototype": "Powers/Player/Starlord/BulletsprayHotspotEffectDamage.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.4
+  },
+  {
+    "Prototype": "Powers/Player/Starlord/ClusterBombDoT.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.4
+  },
+  {
+    "Prototype": "Powers/Player/Starlord/StrafeMissileEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.4
+  },
+  {
+    "Prototype": "Powers/Player/Starlord/FreezeGrenade.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.4
+  },
+  {
+    "Prototype": "Powers/Player/Starlord/IncendiaryGrenadeHotspotEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.4
+  },
+  {
+    "Prototype": "Powers/Player/Starlord/IncendiaryGrenade.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.4
+  },
+  {
+    "Prototype": "Powers/Player/Starlord/GravityGrenade.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.4
+  },
+  {
+    "Prototype": "Powers/Player/Starlord/ClusterBombExplosion.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.4
+  },
+  {
+    "Prototype": "Powers/Player/Starlord/LungeHitEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.4
+  },
+  {
+    "Prototype": "Powers/Player/Starlord/ShockwaveGrenadeMissileEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.4
+  },
+  {
+    "Prototype": "Powers/Player/Starlord/EarthMissileEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/Starlord/FireMissileEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/Starlord/ChargedEGunEffectFire.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/Starlord/RapidEGunEffectWater.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/Starlord/Water.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/Starlord/ChargedEGunEffectEarth.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/Starlord/BasicEGunEffectWater.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/Starlord/RapidEGunEffectFire.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/Starlord/AirChainEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/Starlord/RapidEGunEffectEarth.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/Starlord/RapidEGunEffectAirChain.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/Starlord/ChargedEGunAirEffectChain.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/Starlord/BasicEGunEffectEarth.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/Starlord/ChargedEGunEffectWater.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/Starlord/BasicEGunEffectFire.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/Starlord/BasicEGunEffectAirChain.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  }
+]
+

@@ -1,0 +1,50 @@
+[
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Deadpool/Traits/MechanicTraitAwesomeProcEffect.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[0].Eval.Arg1.Value",
+    "Description": "OpenCalligraphy export: EvalOnCreate[0].Eval.Arg1.Value",
+    "ValueType": "Float",
+    "Value": 0.0010
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Deadpool/Rework/SelfDestructBurnCombo.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].StackingBehavior",
+    "Description": "Make Bleed Em Dry's Kaboom replacement DoT condition share the normal Deadpool bleed stacking family instead of stacking independently.",
+    "ValueType": "Prototype",
+    "Value": {
+      "ParentDataRef": "Powers/Blueprints/Stacking/StackingBehavior.defaults",
+      "StacksByKeyword": [
+        2040885218386187330
+      ]
+    }
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Deadpool/Rework/SelfDestructBurnCombo.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].Keywords",
+    "Description": "Tag Kaboom's actual DoT condition as part of Deadpool's shared bleed family.",
+    "ValueType": "PrototypeId[]",
+    "Value": [
+      18229282651542918344,
+      10418022762377580695,
+      2040885218386187330
+    ]
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Deadpool/Rework/SelfDestructBurnCombo.prototype",
+    "Path": "Keywords",
+    "Description": "Tag Kaboom's Bleed Em Dry DoT as part of Deadpool's shared bleed family for consistency with the normal Bleed Em Dry effects.",
+    "ValueType": "PrototypeId[]",
+    "Value": [
+      8923064322465404718,
+      18229282651542918344,
+      10418022762377580695,
+      12758986785542509147,
+      6929777554663280890,
+      2040885218386187330
+    ]
+  }
+]

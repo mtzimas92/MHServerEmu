@@ -1,10 +1,8 @@
 {
   "profileName": "omega-tier-items-v1",
   "enabled": true,
-  "enableRingDiagnostics": true,
-  "enableLootSourceDiagnostics": true,
   "omegaDifficultyPromotionChancePct": 50,
-  "omegaDifficultyRingPromotionChancePct": 75,
+  "omegaDifficultyRingPromotionChancePct": 100,
   "preferredAffixChancePct": 100,
   "maxPreferredAffixesPerItem": 1,
   "preferredAffixes": [
@@ -65,51 +63,20 @@
   ],
   "itemOverrides": [
     {
-      "id": "unique303-add-crit-and-brutal-strike",
+      "id": "unique400-omega-support-package",
       "enabled": true,
       "itemPrototypes": [
-        "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot1/Unique303.prototype"
-      ],
-      "rarities": [
-      ],
-      "clearExistingAffixes": false,
-      "disabledAffixes": [
-      ],
-      "affixReplacements": [
-        {
-          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/CritChance/CritChanceT3.prototype",
-          "count": 1,
-          "allowInvalidAttachment": true
-        },
-        {
-          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/BrutalStrike/BrutalStrikeT3.prototype",
-          "count": 1,
-          "allowInvalidAttachment": true
-        }
-      ],
-      "forcedAffixes": [
-      ],
-      "randomAffixes": [
-      ]
-    },
-    {
-      "id": "unique191-omega-support-package",
-      "enabled": true,
-      "itemPrototypes": [
-        "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot4/Unique191.prototype"
+        "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot3/Unique400.prototype"
       ],
       "rarities": [
         "Entity/Items/Rarity/R6Unique.prototype"
       ],
       "overrideItemLevel": 69,
       "maximizeAffixRolls": false,
-      "clearBuiltInProperties": true,
-      "preserveProcBuiltInProperties": false,
-      "preserveBuiltInPropertyIndexes": [ 0 ],
+      "clearBuiltInProperties": false,
+      "preserveProcBuiltInProperties": true,
+      "preserveBuiltInPropertyIndexes": [],
       "maximizeBuiltInPropertyRolls": false,
-      "replaceBuiltInPropertiesFromTemplate": true,
-      "builtInPropertyTemplateItemPrototype": "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot4/Unique191.prototype",
-      "builtInPropertyTemplateIndexes": [ 4, 5, 7 ],
       "clearExistingAffixes": true,
       "preserveProcAffixes": true,
       "builtInProperties": [],
@@ -150,7 +117,7 @@
       "randomAffixes": []
     },
     {
-      "id": "slot5-strength-visible-t3-affixes",
+      "id": "monument-of-ell",
       "enabled": true,
       "itemPrototypes": [
         "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot5/Unique238.prototype"
@@ -158,7 +125,6 @@
       "rarities": [
         "Entity/Items/Rarity/R6Unique.prototype"
       ],
-      "overrideItemLevel": 69,
       "maximizeAffixRolls": true,
       "clearBuiltInProperties": true,
       "disableTriggeredItemActions": true,
@@ -228,7 +194,7 @@
       ]
     },
     {
-      "id": "unique304-summon-flat-stat-package",
+      "id": "unique304-fire-giant-horns",
       "enabled": true,
       "itemPrototypes": [
         "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot5/Unique304.prototype"
@@ -303,7 +269,7 @@
       ]
     },
     {
-      "id": "unique298-energy-mental-duration-package",
+      "id": "unique298-fire-giant-greaves",
       "enabled": true,
       "itemPrototypes": [
         "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot4/Unique298.prototype"
@@ -378,7 +344,7 @@
       ]
     },
     {
-      "id": "unique294-burn-defense-supercrit-package",
+      "id": "unique294-fire-giant-aegis",
       "enabled": true,
       "itemPrototypes": [
         "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot2/Unique294.prototype"

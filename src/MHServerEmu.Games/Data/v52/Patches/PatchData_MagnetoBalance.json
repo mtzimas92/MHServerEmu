@@ -1,0 +1,10 @@
+[
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Orbs/Items/Magneto/MagnetoMetalOrb.prototype",
+    "Path": "SnapToFloorOnSpawn",
+    "Description": "Prevent Magneto debris from snapping onto inaccessible lower floors in vertically layered arenas.",
+    "ValueType": "Boolean",
+    "Value": false
+  }
+]

@@ -1,0 +1,73 @@
+[
+  {
+    "Prototype": "Powers/Player/SilverSurfer/BlackHoleHotspotEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.5
+  },
+  {
+    "Prototype": "Powers/Player/SilverSurfer/Deconstruction.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.5
+  },
+  {
+    "Prototype": "Powers/Player/SilverSurfer/BigBeamMissileEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.5
+  },
+  {
+    "Prototype": "Powers/Player/SilverSurfer/CosmicRiftHotspotEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.5
+  },
+  {
+    "Prototype": "Powers/Player/SilverSurfer/SingularityEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.5
+  },
+  {
+    "Prototype": "Powers/Player/SilverSurfer/ChanneledBeam.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.5
+  },
+  {
+    "Prototype": "Powers/Player/SilverSurfer/BasicBouncingBeamChainEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.5
+  },
+  {
+    "Prototype": "Powers/Player/SilverSurfer/BasicBeam.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.5
+  },
+  {
+    "Prototype": "Powers/Player/SilverSurfer/DeathFromBelowComboEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/SilverSurfer/BoardSweep.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/SilverSurfer/DisengageComboEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/SilverSurfer/TeleportDashComboEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/SilverSurfer/BoardDashEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/SilverSurfer/DisengageExtraBeamCDR.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  }
+]
+

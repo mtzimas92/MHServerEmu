@@ -1,0 +1,201 @@
+[
+  {
+    "Enabled": false,
+    "Prototype": "Powers/Player/EmmaFrost/Talents/MaxDiamondArmorBonus.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[1].Eval.Value",
+    "Description": "Increase Max Diamond Armor Bonus's defense-to-damage contribution from +50% to +1000% while preserving the existing Diamond Armor maximum bonus.",
+    "ValueType": "Float",
+    "Value": 0.003
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/EmmaFrost/Update/KneelBeforeMeComboExplosion.prototype",
+    "Path": "EvalOnCreate[]",
+    "Description": "Give Kneel Before Me's explosion damage +100% critical hit chance.",
+    "ValueType": "Prototype",
+    "Value": {
+      "ParentDataRef": 1429542141982412459,
+      "Op": "AssignProp",
+      "Prop": {
+        "Property": "CritChancePctAdd"
+      },
+      "Eval": {
+        "ParentDataRef": 5074715296837012907,
+        "Op": "LoadFloat",
+        "Value": 1.0
+      }
+    }
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/EmmaFrost/Update/MentalOverload.prototype",
+    "Path": "ActionsTriggeredOnPowerEvent[]",
+    "Description": "Reduce the direct-cast Mental Overload cooldown by 5 seconds only when Amp Controlled Mob CDR is selected.",
+    "ValueType": "Prototype",
+    "Value": {
+      "ParentDataRef": "Powers/Blueprints/PowerEvents/PowerEventAction.defaults",
+      "EventParam": -5,
+      "EventAction": "CooldownModifySecs",
+      "Power": "Powers/Player/EmmaFrost/Update/MentalOverload.prototype",
+      "EvalEventTriggerChance": {
+        "ParentDataRef": "Eval/ControlFlow/IfElse.defaults",
+        "Op": "IfElse",
+        "Conditional": {
+          "ParentDataRef": "Eval/Other/EntityHasTalent.defaults",
+          "Op": "EntityHasTalent",
+          "Context": "Var1",
+          "Talent": "Powers/Player/EmmaFrost/Talents/AmpControlledMobCDR.prototype"
+        },
+        "EvalIf": {
+          "ParentDataRef": "Eval/Constants/LoadFloat.defaults",
+          "Op": "LoadFloat",
+          "Value": 1
+        },
+        "EvalElse": {
+          "ParentDataRef": "Eval/Constants/LoadFloat.defaults",
+          "Op": "LoadFloat",
+          "Value": 0
+        }
+      },
+      "PowerEvent": "OnContactTime"
+    }
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/EmmaFrost/Update/UnlockPotential.prototype",
+    "Path": "ActionsTriggeredOnPowerEvent[]",
+    "Description": "Reduce the direct-cast Unlock Potential cooldown by 5 seconds only when Amp Controlled Mob CDR is selected.",
+    "ValueType": "Prototype",
+    "Value": {
+      "ParentDataRef": "Powers/Blueprints/PowerEvents/PowerEventAction.defaults",
+      "EventParam": -5,
+      "EventAction": "CooldownModifySecs",
+      "Power": "Powers/Player/EmmaFrost/Update/UnlockPotential.prototype",
+      "EvalEventTriggerChance": {
+        "ParentDataRef": "Eval/ControlFlow/IfElse.defaults",
+        "Op": "IfElse",
+        "Conditional": {
+          "ParentDataRef": "Eval/Other/EntityHasTalent.defaults",
+          "Op": "EntityHasTalent",
+          "Context": "Var1",
+          "Talent": "Powers/Player/EmmaFrost/Talents/AmpControlledMobCDR.prototype"
+        },
+        "EvalIf": {
+          "ParentDataRef": "Eval/Constants/LoadFloat.defaults",
+          "Op": "LoadFloat",
+          "Value": 1
+        },
+        "EvalElse": {
+          "ParentDataRef": "Eval/Constants/LoadFloat.defaults",
+          "Op": "LoadFloat",
+          "Value": 0
+        }
+      },
+      "PowerEvent": "OnContactTime"
+    }
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/EmmaFrost/Update/UnlockPotentialAsCombo.prototype",
+    "Path": "ActionsTriggeredOnPowerEvent[]",
+    "Description": "Reduce the signature-triggered Unlock Potential cooldown by 5 seconds after the auto-cast resolves; CooldownStart actions are skipped for auto-activated powers.",
+    "ValueType": "Prototype",
+    "Value": {
+      "ParentDataRef": "Powers/Blueprints/PowerEvents/PowerEventAction.defaults",
+      "EventParam": -5,
+      "EventAction": "CooldownModifySecs",
+      "Power": "Powers/Player/EmmaFrost/Update/UnlockPotential.prototype",
+      "EvalEventTriggerChance": {
+        "ParentDataRef": "Eval/ControlFlow/IfElse.defaults",
+        "Op": "IfElse",
+        "Conditional": {
+          "ParentDataRef": "Eval/Other/EntityHasTalent.defaults",
+          "Op": "EntityHasTalent",
+          "Context": "Var1",
+          "Talent": "Powers/Player/EmmaFrost/Talents/AmpControlledMobCDR.prototype"
+        },
+        "EvalIf": {
+          "ParentDataRef": "Eval/Constants/LoadFloat.defaults",
+          "Op": "LoadFloat",
+          "Value": 1
+        },
+        "EvalElse": {
+          "ParentDataRef": "Eval/Constants/LoadFloat.defaults",
+          "Op": "LoadFloat",
+          "Value": 0
+        }
+      },
+      "PowerEvent": "OnPowerEnd"
+    }
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/EmmaFrost/Update/UnlockPotentialAsCombo.prototype",
+    "Path": "ActionsTriggeredOnPowerEvent[]",
+    "Description": "Reduce the signature-triggered Unlock Potential combo gate by 5 seconds so repeated signatures can auto-cast it again after Amp Controlled Mob CDR.",
+    "ValueType": "Prototype",
+    "Value": {
+      "ParentDataRef": "Powers/Blueprints/PowerEvents/PowerEventAction.defaults",
+      "EventParam": -5,
+      "EventAction": "CooldownModifySecs",
+      "Power": "Powers/Player/EmmaFrost/Update/UnlockPotentialAsCombo.prototype",
+      "EvalEventTriggerChance": {
+        "ParentDataRef": "Eval/ControlFlow/IfElse.defaults",
+        "Op": "IfElse",
+        "Conditional": {
+          "ParentDataRef": "Eval/Other/EntityHasTalent.defaults",
+          "Op": "EntityHasTalent",
+          "Context": "Var1",
+          "Talent": "Powers/Player/EmmaFrost/Talents/AmpControlledMobCDR.prototype"
+        },
+        "EvalIf": {
+          "ParentDataRef": "Eval/Constants/LoadFloat.defaults",
+          "Op": "LoadFloat",
+          "Value": 1
+        },
+        "EvalElse": {
+          "ParentDataRef": "Eval/Constants/LoadFloat.defaults",
+          "Op": "LoadFloat",
+          "Value": 0
+        }
+      },
+      "PowerEvent": "OnPowerEnd"
+    }
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/EmmaFrost/Update/UnlockPotentialAsCombo.prototype",
+    "Path": "ActionsTriggeredOnPowerEvent[]",
+    "Description": "Let the signature-triggered Unlock Potential combo reset non-signature cooldowns when Amp Controlled Mob CDR is selected.",
+    "ValueType": "Prototype",
+    "Value": {
+      "ParentDataRef": "Powers/Blueprints/PowerEvents/PowerEventAction.defaults",
+      "EventAction": "CooldownEnd",
+      "EvalEventTriggerChance": {
+        "ParentDataRef": "Eval/ControlFlow/IfElse.defaults",
+        "Op": "IfElse",
+        "Conditional": {
+          "ParentDataRef": "Eval/Other/EntityHasTalent.defaults",
+          "Op": "EntityHasTalent",
+          "Context": "Var1",
+          "Talent": "Powers/Player/EmmaFrost/Talents/AmpControlledMobCDR.prototype"
+        },
+        "EvalIf": {
+          "ParentDataRef": "Eval/Constants/LoadFloat.defaults",
+          "Op": "LoadFloat",
+          "Value": 1
+        },
+        "EvalElse": {
+          "ParentDataRef": "Eval/Constants/LoadFloat.defaults",
+          "Op": "LoadFloat",
+          "Value": 0
+        }
+      },
+      "PowerEvent": "OnPowerStart",
+      "Keywords": [
+        "Powers/Blueprints/Keywords/Cooldown.defaults"
+      ]
+    }
+  }
+]
+

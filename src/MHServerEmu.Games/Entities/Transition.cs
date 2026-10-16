@@ -8,6 +8,7 @@ using MHServerEmu.Games.Entities.Avatars;
 using MHServerEmu.Games.Entities.Inventories;
 using MHServerEmu.Games.GameData;
 using MHServerEmu.Games.GameData.Prototypes;
+using MHServerEmu.Games.MythicRifts;
 using MHServerEmu.Games.Properties;
 using MHServerEmu.Games.Regions;
 using MHServerEmu.Games.UI;
@@ -337,6 +338,15 @@ namespace MHServerEmu.Games.Entities
             if (!Verify.IsTrue(_destinationList.Count == 1)) return false;
 
             TransitionDestination destination = _destinationList[0];
+            Region destinationRegion = Game.RegionManager.GetRegion(destination.RegionId);
+            bool canEnterDestination = destinationRegion != null
+                ? RiftAccessTeleportService.CanEnterOmegaPatrol(player, destinationRegion)
+                : RiftAccessTeleportService.CanEnterOmegaPatrol(player, destination.RegionRef, Region?.DifficultyTierRef ?? PrototypeId.Invalid);
+            if (canEnterDestination == false)
+            {
+                player.SendBannerMessage(GameDatabase.UIGlobalsPrototype.MessageRegionRestricted);
+                return false;
+            }
 
             using var teleporterHandle = TeleporterPool.Get(out Teleporter teleporter);
             teleporter.Initialize(player, TeleportContextEnum.TeleportContext_Transition);

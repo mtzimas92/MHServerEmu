@@ -161,14 +161,18 @@ namespace MHServerEmu.Games.Entities
         public bool IsSwitchingAvatar { get; private set; }
 
         public PlayerConnection PlayerConnection { get; private set; }
-        public AreaOfInterest AOI { get => PlayerConnection.AOI; }
+        public AreaOfInterest AOI { get => PlayerConnection?.AOI; }
 
         public Avatar CurrentAvatar { get; private set; }
         public HUDTutorialPrototype CurrentHUDTutorial { get; private set; }
 
-        // Console stuff - not implemented
+#if PLATFORM_TYPE_PS4 || PLATFORM_TYPE_XBOXONE
+        public bool IsConsolePlayer { get => true; }
+        public bool IsConsoleUI { get => true; }
+#else
         public bool IsConsolePlayer { get => false; }
         public bool IsConsoleUI { get => false; }
+#endif
         public bool IsUsingUnifiedStash { get => IsConsolePlayer || IsConsoleUI; }
 
         public Avatar PrimaryAvatar { get => CurrentAvatar; } // Fix for PC
@@ -646,8 +650,7 @@ namespace MHServerEmu.Games.Entities
 
         public Region GetRegion()
         {
-            // This shouldn't need any null checks, at least for now
-            return AOI.Region;
+            return AOI?.Region;
         }
 
 #if GAME_VERSION_1_52 || GAME_VERSION_1_53
@@ -1782,6 +1785,9 @@ namespace MHServerEmu.Games.Entities
             avatar.ResetResources(false);
             avatar.GiveStartingCostume();
 
+            // This is where we would potentially make use of AvatarPrototype.StartingLootTable,
+            // but it appears to use dummy tables for all heroes in all versions of the game.
+
             return avatar;
         }
 
@@ -2276,11 +2282,13 @@ namespace MHServerEmu.Games.Entities
 
         public AvatarUnlockType GetAvatarUnlockType(PrototypeId avatarRef)
         {
-            var avatarProto = GameDatabase.GetPrototype<AvatarPrototype>(avatarRef);
-            if (avatarProto == null) return AvatarUnlockType.None;
+            AvatarPrototype avatarProto = avatarRef.As<AvatarPrototype>();
+            if (!Verify.IsNotNull(avatarProto)) return AvatarUnlockType.None;
+
             AvatarUnlockType unlockType = (AvatarUnlockType)(int)Properties[PropertyEnum.AvatarUnlock, avatarRef];
             if (unlockType == AvatarUnlockType.None && avatarProto.IsStarterAvatar)
                 return AvatarUnlockType.Starter;
+
             return unlockType;
         }
 
@@ -4117,7 +4125,12 @@ namespace MHServerEmu.Games.Entities
                 // HACK: Unlock avatars here too
                 foreach (PrototypeId avatarRef in GameDatabase.DataDirectory.IteratePrototypesInHierarchy<AvatarPrototype>(PrototypeIterateFlags.NoAbstractApprovedOnly))
                 {
-                    if (avatarRef == (PrototypeId)6044485448390219466) continue;   //zzzBrevikOLD.prototype
+                    if (avatarRef == (PrototypeId)6044485448390219466)  //zzzBrevikOLD.prototype
+                        continue;
+
+                    if (GetAvatarUnlockType(avatarRef) != AvatarUnlockType.Starter)
+                        continue;
+
                     UnlockAvatar(avatarRef, AvatarUnlockType.Default, false);
                 }
             }
@@ -4125,11 +4138,12 @@ namespace MHServerEmu.Games.Entities
             if (Game.GameOptions.TeamUpSystemEnabled && Game.CustomGameOptions.AutoUnlockTeamUps)
             {
                 // HACK: And team-ups as well
-                Inventory teamUpLibrary = GetInventory(InventoryConvenienceLabel.TeamUpLibrary);
-                if (teamUpLibrary.Count == 0)
+                foreach (PrototypeId teamUpRef in GameDatabase.DataDirectory.IteratePrototypesInHierarchy<AgentTeamUpPrototype>(PrototypeIterateFlags.NoAbstractApprovedOnly))
                 {
-                    foreach (PrototypeId teamUpRef in GameDatabase.DataDirectory.IteratePrototypesInHierarchy<AgentTeamUpPrototype>(PrototypeIterateFlags.NoAbstractApprovedOnly))
-                        UnlockTeamUpAgent(teamUpRef, false);
+                    if (IsTeamUpAgentUnlocked(teamUpRef))
+                        continue;
+
+                    UnlockTeamUpAgent(teamUpRef, false);
                 }
             }
 

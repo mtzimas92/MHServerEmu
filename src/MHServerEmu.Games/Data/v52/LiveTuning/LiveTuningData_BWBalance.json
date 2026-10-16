@@ -1,0 +1,87 @@
+[
+  {
+    "Prototype": "Powers/Player/BlackWidow/RoundhouseKick.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.7
+  },
+  {
+    "Prototype": "Powers/Player/BlackWidow/FlipKickComboEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.7
+  },
+  {
+    "Prototype": "Powers/Player/BlackWidow/SniperShot.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.7
+  },
+  {
+    "Prototype": "Powers/Player/BlackWidow/CoupDeGrace.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.7
+  },
+  {
+    "Prototype": "Powers/Player/BlackWidow/SweepingKick.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.7
+  },
+  {
+    "Prototype": "Powers/Player/BlackWidow/PistolShotMEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.7
+  },
+  {
+    "Prototype": "Powers/Player/BlackWidow/RapidShotMissileEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.7
+  },
+  {
+    "Prototype": "Powers/Player/BlackWidow/Punch.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.7
+  },
+  {
+    "Prototype": "Powers/Player/BlackWidow/TwilightInitiativeDoTStunCombo.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.7
+  },
+  {
+    "Prototype": "Powers/Player/BlackWidow/WidowsKiss.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.7
+  },
+  {
+    "Prototype": "Powers/Player/BlackWidow/MicrodronesRandomPositionQuickerHit.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.7
+  },
+  {
+    "Prototype": "Powers/Player/BlackWidow/RollingGrenadesDoT.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.7
+  },
+  {
+    "Prototype": "Powers/Player/BlackWidow/PBAoETaser.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.7
+  },
+  {
+    "Prototype": "Powers/Player/BlackWidow/PlastiqueExplosion.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.7
+  },
+  {
+    "Prototype": "Powers/Player/BlackWidow/WidowsBiteChainEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.7
+  },
+  {
+    "Prototype": "Powers/Player/BlackWidow/FlashGrenade.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.7
+  },
+  {
+    "Prototype": "Powers/Player/BlackWidow/RollingGrenadesMissileEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.7
+  }
+]

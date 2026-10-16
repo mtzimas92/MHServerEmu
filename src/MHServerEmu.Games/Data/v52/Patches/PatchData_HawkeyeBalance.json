@@ -1,0 +1,48 @@
+[
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Hawkeye/Traits/DefenseTrait.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[]",
+    "Description": "[TAHITI2] Hawkeye Combat Training: add Close Quarters - on a melee hit, +8% damage reduction for 3s. Clones the same HybridDamageReduction trait eval Iron Man's Adaptive Armor uses.",
+    "ValueType": "Prototype",
+    "Value": {
+      "ParentDataRef": 11019157593542761691,
+      "Op": "Scope"
+    }
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Hawkeye/Katana.prototype",
+    "Path": "Keywords[]",
+    "Description": "[TAHITI2] Hawkeye Ronin Lunge: add the Dash keyword. Acrobatic Roll already has it; its talented replacement did not.",
+    "ValueType": "PrototypeDataRefArray",
+    "Value": [
+      9624916300525801630
+    ]
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Hawkeye/FreezeArrowMissileEffect.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=1].EvalOnCreate[]",
+    "Description": "Append a local 20% Freeze arrow vulnerability eval to the actual target condition.",
+    "ValueType": "Prototype",
+    "Value": {
+      "ParentDataRef": 12394606670048857323,
+      "Op": "Scope",
+      "Scope": [
+        {
+          "ParentDataRef": 1429542141982412459,
+          "Op": "AssignProp",
+          "Prop": {
+            "Property": "DamagePctVulnerability"
+          },
+          "Eval": {
+            "ParentDataRef": 5074715296837012907,
+            "Op": "LoadFloat",
+            "Value": 0.2
+          }
+        }
+      ]
+    }
+  }
+]

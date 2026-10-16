@@ -1,0 +1,130 @@
+[
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Loki/Talents/FourRealmsColdFront.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[0].Eval.Value",
+    "Description": "OpenCalligraphy export: EvalOnCreate[0].Eval.Value",
+    "ValueType": "Float",
+    "Value": 0.20
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Loki/Talents/FourRealmsDarkBolt.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[0].Eval.Value",
+    "Description": "OpenCalligraphy export: EvalOnCreate[0].Eval.Value",
+    "ValueType": "Float",
+    "Value": 0.20
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Loki/Talents/FourRealmSearingEmbers.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[0].Eval.Value",
+    "Description": "OpenCalligraphy export: EvalOnCreate[0].Eval.Value",
+    "ValueType": "Float",
+    "Value": 0.20
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Loki/Talents/FourRealmsEternalDarkness.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[0].Eval.Value",
+    "Description": "OpenCalligraphy export: EvalOnCreate[0].Eval.Value",
+    "ValueType": "Float",
+    "Value": 0.20
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Loki/Talents/FourRealmsFrostNova.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[0].Eval.Value",
+    "Description": "OpenCalligraphy export: EvalOnCreate[0].Eval.Value",
+    "ValueType": "Float",
+    "Value": 0.20
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Loki/Talents/FourRealmsIceShards.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[0].Eval.Value",
+    "Description": "OpenCalligraphy export: EvalOnCreate[0].Eval.Value",
+    "ValueType": "Float",
+    "Value": 0.20
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Loki/Talents/FourRealmsIncinerate.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[0].Eval.Value",
+    "Description": "OpenCalligraphy export: EvalOnCreate[0].Eval.Value",
+    "ValueType": "Float",
+    "Value": 0.20
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Loki/Talents/FourRealmsInfernalBinding.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[1].Eval.Value",
+    "Description": "OpenCalligraphy export: EvalOnCreate[1].Eval.Value",
+    "ValueType": "Float",
+    "Value": 0.20
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Loki/Talents/FourRealmsLightBeam.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[0].Eval.Value",
+    "Description": "OpenCalligraphy export: EvalOnCreate[0].Eval.Value",
+    "ValueType": "Float",
+    "Value": 0.20
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Loki/Talents/FourRealmsLightColumn.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[0].Eval.Value",
+    "Description": "OpenCalligraphy export: EvalOnCreate[0].Eval.Value",
+    "ValueType": "Float",
+    "Value": 0.20
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Loki/Talents/FourRealmsRefractingBurst.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[0].Eval.Value",
+    "Description": "OpenCalligraphy export: EvalOnCreate[0].Eval.Value",
+    "ValueType": "Float",
+    "Value": 0.20
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Loki/Talents/FourRealmsSoulCrush.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[0].Eval.Value",
+    "Description": "OpenCalligraphy export: EvalOnCreate[0].Eval.Value",
+    "ValueType": "Float",
+    "Value": 0.20
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Loki/Talents/FourRealmSearingEmbers.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[0].Eval.Value",
+    "Description": "OpenCalligraphy export: EvalOnCreate[0].Eval.Value",
+    "ValueType": "Float",
+    "Value": 0.20
+  },
+  {
+	  "Enabled": true,
+	  "Prototype": "Powers/Player/Loki/SearingEmbersAttackCombo.prototype",
+	  "Path": "Keywords[]",
+	  "Description": "Add keyword to Searing Embers Attack Combo.",
+	  "ValueType": "PrototypeId",
+	  "Value": 7767415171601209536
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Loki/SearingEmbersAttack.prototype",
+    "Path": "Keywords[]",
+    "Description": "Allow Searing Embers' actual repeated damage power to receive Otherworldly Blast's LokiEnchanterStartPower damage buff.",
+    "ValueType": "PrototypeId",
+    "Value": 7767415171601209536
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Loki/Talents/MainSpecIllusions.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[1].Eval.Value",
+    "Description": "OpenCalligraphy export: EvalOnCreate[1].Eval.Value",
+    "ValueType": "Float",
+    "Value": 0.5
+  }
+]

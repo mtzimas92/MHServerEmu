@@ -754,8 +754,6 @@ namespace MHServerEmu.Games.Entities
             if (interceptedItemUse == false)
                 return false;
 
-            Logger.Info($"[MythicRiftLauncher] Item power activation intercepted at Agent.ActivatePower playerDbId=0x{player.DatabaseUniqueId:X} itemId={sourceItem.Id} prototype={sourceItem.PrototypeDataRef.GetNameFormatted()} power={power.PrototypeDataRef.GetNameFormatted()} success={launcherUseResult?.Success == true} teleportAttempted={launcherUseResult?.TeleportAttempted == true} teleportSucceeded={launcherUseResult?.TeleportSucceeded == true} teleportError={launcherUseResult?.TeleportErrorMessage ?? string.Empty}");
-
             result = launcherUseResult?.Success == true
                 ? PowerUseResult.Success
                 : PowerUseResult.ItemUseRestricted;
@@ -3044,6 +3042,7 @@ namespace MHServerEmu.Games.Entities
                 var avatar = Game.EntityManager.GetEntityByDbGuid<Avatar>(masterGuid);
                 if (avatar == null) return;
 
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
                 if (avatar.HasControlPowerEquipped())
                 {
                     SetAsPersistent(avatar, false);
@@ -3053,6 +3052,9 @@ namespace MHServerEmu.Games.Entities
                     KillSummonedOnOwnerDeath();
                     ExitWorld();
                 }
+#else
+                SetAsPersistent(avatar, false);
+#endif
             }
             else
             {

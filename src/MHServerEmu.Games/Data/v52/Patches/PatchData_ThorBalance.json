@@ -1,0 +1,46 @@
+[
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Thor/Talents/OdinforceSpendingTalent.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[0].Eval.Value",
+    "Description": "OpenCalligraphy export: EvalOnCreate[0].Eval.Value",
+    "ValueType": "Float",
+    "Value": 3
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Thor/Rework/OdinforceGainCombo60.prototype",
+    "Path": "EvalOnCreate[]",
+    "Description": "Increase Mjolnir Throw talent's Odinforce generation from 60 to 180.",
+    "ValueType": "Prototype",
+    "Value": {
+      "ParentDataRef": "Eval/Properties/AssignProp.defaults",
+      "Op": "AssignProp",
+      "Prop": {
+        "Property": "SecondaryResourceChangeBase"
+      },
+      "Eval": {
+        "ParentDataRef": "Eval/Constants/LoadFloat.defaults",
+        "Op": "LoadFloat",
+        "Value": 180
+      }
+    }
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Thor/Rework/RagnarokInnerCombo.prototype",
+    "Path": "EvalOnCreate[]",
+    "Description": "[TAHITI2] Thor Ragnarok: +100% crit chance.",
+    "ValueType": "Prototype",
+    "Value": {
+      "ParentDataRef": 1429542141982412459,
+      "Op": "AssignProp",
+      "Prop": "CritChancePctAdd",
+      "Eval": {
+        "ParentDataRef": 5074715296837012907,
+        "Op": "LoadFloat",
+        "Value": 1.0
+      }
+    }
+  }
+]

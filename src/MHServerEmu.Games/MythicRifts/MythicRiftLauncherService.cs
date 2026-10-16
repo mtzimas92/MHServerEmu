@@ -1,5 +1,4 @@
 using Gazillion;
-using MHServerEmu.Core.Logging;
 using MHServerEmu.Core.Memory;
 using MHServerEmu.Games.Entities;
 using MHServerEmu.Games.Entities.Inventories;
@@ -19,7 +18,6 @@ namespace MHServerEmu.Games.MythicRifts
     /// </summary>
     public sealed class MythicRiftLauncherService
     {
-        private static readonly Logger Logger = LogManager.CreateLogger();
 
         public const string CosmicRiftBeaconDisplayName = "Mythic Rift Beacon";
         public const string PreferredCosmicRiftBeaconPrototypeName = "PortalToRandomMaxAffixDungeon";
@@ -616,7 +614,6 @@ namespace MHServerEmu.Games.MythicRifts
                     _lastArmedLaunchResultsByPlayerDbId[player.DatabaseUniqueId] = rejectedResult;
 
                 NotifyLauncherUse(player, rejectedResult);
-                // Logger.Info($"[MythicRiftLauncher] Rejected beacon use outside allowed Mythic Rift launch regions playerDbId=0x{player?.DatabaseUniqueId ?? 0UL:X} itemId={item?.Id ?? 0UL} prototype={item?.PrototypeDataRef.GetNameFormatted() ?? "unknown"} currentRegion={player?.GetRegion()?.PrototypeDataRef.GetNameFormatted() ?? "none"}");
                 return rejectedResult;
             }
 
@@ -737,8 +734,6 @@ namespace MHServerEmu.Games.MythicRifts
                     _armedLaunchesByPlayerDbId.Remove(player.DatabaseUniqueId);
             }
 
-            // Logger.Info($"[MythicRiftLauncher] Intercepted beacon use playerDbId=0x{player.DatabaseUniqueId:X} itemId={item.Id} prototype={item.PrototypeDataRef.GetNameFormatted()} trackedCharges={availableCharges} directChosenFallback={usingDirectChosenBeaconFallback} success={result.Success} teleportAttempted={result.TeleportAttempted} teleportSucceeded={result.TeleportSucceeded} teleportError={result.TeleportErrorMessage ?? string.Empty}");
-
             NotifyLauncherUse(player, result);
 
             return result;
@@ -757,7 +752,6 @@ namespace MHServerEmu.Games.MythicRifts
 
             if (item.DecrementStack() == false)
             {
-                // Logger.Warn($"[MythicRiftLauncher] Failed to consume launcher item stack itemId={item.Id} prototype={item.PrototypeDataRef.GetNameFormatted()} stack={item.CurrentStackSize}");
             }
         }
 
@@ -874,7 +868,9 @@ namespace MHServerEmu.Games.MythicRifts
                 usePartyTeleportContext ? TeleportContextEnum.TeleportContext_Party : TeleportContextEnum.TeleportContext_Debug);
             teleporter.BypassQueueRegionForRift = true;
             teleporter.DifficultyTierRef = difficultyTierRef;
-            if (runState?.Config?.RegionAffixes != null)
+            RegionPrototype regionProto = regionProtoRef.As<RegionPrototype>();
+            bool supportsRegionAffixes = regionProto?.AffixTable.As<RegionAffixTablePrototype>() != null;
+            if (supportsRegionAffixes && runState?.Config?.RegionAffixes != null)
             {
                 foreach (PrototypeId affix in runState.Config.RegionAffixes)
                 {
@@ -950,7 +946,16 @@ namespace MHServerEmu.Games.MythicRifts
                 Player member = Game.EntityManager.GetEntityByDbGuid<Player>(memberDbId);
                 if (member == null)
                 {
-                    runState.RemoveParticipantBeforeAdmission(memberDbId);
+                    if (Game.GameManager.TryGetGameForPlayerDbId(memberDbId, out _))
+                    {
+                        MythicRiftPartyTeleportQueue.Enqueue(memberDbId, leader.DatabaseUniqueId);
+                        runState.MarkParticipantAdmitted(memberDbId);
+                    }
+                    else
+                    {
+                        runState.RemoveParticipantBeforeAdmission(memberDbId);
+                    }
+
                     continue;
                 }
 
@@ -965,7 +970,6 @@ namespace MHServerEmu.Games.MythicRifts
                     member,
                     $"[Mythic Rift] You were not admitted to run {runState.Config.RunId} because the Rift teleport failed.",
                     showSender: false);
-                // Logger.Warn($"[MythicRiftLauncher] Failed to teleport party member playerDbId=0x{memberDbId:X} into run {runState.Config.RunId}: {errorMessage}");
             }
         }
 

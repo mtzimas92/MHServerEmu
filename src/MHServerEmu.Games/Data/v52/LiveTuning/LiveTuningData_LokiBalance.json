@@ -1,0 +1,138 @@
+[
+  {
+    "Prototype": "Powers/Player/Loki/UnveiledHotspotEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.65
+  },
+  {
+    "Prototype": "Powers/Player/Loki/SearingEmbersAttack.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.65
+  },
+  {
+    "Prototype": "Powers/Player/Loki/AsgardianLight.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.65
+  },
+  {
+    "Prototype": "Powers/Player/Loki/EternalDarknessHotspotEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.65
+  },
+  {
+    "Prototype": "Powers/Player/Loki/SpiritsOfTheDeadAttack.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.65
+  },
+  {
+    "Prototype": "Powers/Player/Loki/FrostNova.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.65
+  },
+  {
+    "Prototype": "Powers/Player/Loki/EternalFlameHotspotEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.65
+  },
+  {
+    "Prototype": "Powers/Player/Loki/MeddlingStrike.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.65
+  },
+  {
+    "Prototype": "Powers/Player/Loki/GlacialSpike.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.65
+  },
+  {
+    "Prototype": "Powers/Player/Loki/LightColumn.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.65
+  },
+  {
+    "Prototype": "Powers/Player/Loki/ConeOfMagic.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.65
+  },
+  {
+    "Prototype": "Powers/Player/Loki/SwordSlice.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.55
+  },
+  {
+    "Prototype": "Powers/Player/Loki/SoulCrush.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.8
+  },
+  {
+    "Prototype": "Powers/Player/Loki/MindControlDoT.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.8
+  },
+  {
+    "Prototype": "Powers/Player/Loki/InfernalBindingMissileEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.8
+  },
+  {
+    "Prototype": "Powers/Player/Loki/MagicChainsMissileEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.8
+  },
+  {
+    "Prototype": "Powers/Player/Loki/MagicCrush.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.8
+  },
+  {
+    "Prototype": "Powers/Player/Loki/DarkBoltChainCombo.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.8
+  },
+  {
+    "Prototype": "Powers/Player/Loki/IceShardMissileEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.8
+  },
+  {
+    "Prototype": "Powers/Player/Loki/DarkBoltMissileEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.8
+  },
+  {
+    "Prototype": "Powers/Player/Loki/Incinerate.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.8
+  },
+  {
+    "Prototype": "Powers/Player/Loki/ChainBoltChainCombo.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.8
+  },
+  {
+    "Prototype": "Powers/Player/Loki/SorcerousBlastMissileEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.8
+  },
+  {
+    "Prototype": "Powers/Player/Loki/IllusionFromAboveDecoyPowerEnd.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.8
+  },
+  {
+    "Prototype": "Powers/Player/Loki/LightBeam.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.8
+  },
+  {
+    "Prototype": "Powers/Player/Loki/RefractingBurst.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.8
+  },
+  {
+    "Prototype": "Powers/Player/Loki/IllusionRushDecoyPowerCollide.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.8
+  }
+]
+

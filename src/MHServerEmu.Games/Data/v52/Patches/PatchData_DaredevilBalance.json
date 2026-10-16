@@ -1,0 +1,80 @@
+[
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Daredevil/Update/BrutalStrikeEffect.prototype",
+    "Path": "Radius",
+    "Description": "OpenCalligraphy export: Radius",
+    "ValueType": "Float",
+    "Value": 200
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Daredevil/Update/BrutalStrikeEffect.prototype",
+    "Path": "Range.Value",
+    "Description": "OpenCalligraphy export: Range.Value",
+    "ValueType": "Float",
+    "Value": 180
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Daredevil/Update/RoundhouseKick.prototype",
+    "Path": "Radius",
+    "Description": "OpenCalligraphy export: Radius",
+    "ValueType": "Float",
+    "Value": 240
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Daredevil/Talents/NoComboPointsTalent.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[6].Eval.Value",
+    "Description": "OpenCalligraphy export: EvalOnCreate[6].Eval.Value",
+    "ValueType": "Float",
+    "Value": 0
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/ItemPowers/UniquesPowers/Unique089HasteProc.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].DurationMS",
+    "Description": "Increase Unique089 haste stack duration from 5 seconds to 15 seconds.",
+    "ValueType": "Integer",
+    "Value": 15000
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/ItemPowers/UniquesPowers/Unique089HasteProcStacking.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].DurationMS",
+    "Description": "Extend Unique089's stacking child buff duration to match the parent haste proc.",
+    "ValueType": "Integer",
+    "Value": 15000
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/ItemPowers/UniquesPowers/Unique089FightingSpeedProc.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].DurationMS",
+    "Description": "Extend Unique089's four-stack Fighting/Speed proc duration to match the parent haste proc.",
+    "ValueType": "Integer",
+    "Value": 5000
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/ItemPowers/UniquesPowers/Unique089HasteProc.prototype",
+    "Path": "CooldownTimeMS.Value",
+    "Description": "Reduce Unique089's melee-crit haste proc throttle from 1 second to 0.2 seconds.",
+    "ValueType": "Integer",
+    "Value": 50
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Characters/Avatars/Shipping/Daredevil.prototype",
+    "Path": "Properties",
+    "Description": "Force Unique089's melee critical hit haste proc to use 100% proc chance before cooldown checks.",
+    "ValueType": "Properties",
+    "Value": {
+      "ProcChanceOverride": [
+        "Powers/ItemPowers/UniquesPowers/Unique089HasteProc.prototype",
+        1.0
+      ]
+    }
+  }
+]
+

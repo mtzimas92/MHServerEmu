@@ -1,0 +1,276 @@
+[
+  {
+    "Enabled": false,
+    "Prototype": "Powers/Player/SilverSurfer/Talents/MovementPowerCDR.prototype",
+    "Path": "UsableByAll",
+    "Description": "Movement Power CDR: match Spider-Man's movement passive availability.",
+    "ValueType": "Boolean",
+    "Value": true
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/SilverSurfer/Talents/MovementPowerCDR.prototype",
+    "Path": "EvalOnCreate",
+    "Description": "Movement Power CDR: replace EvalOnCreate with a full movement keyword damage multiplier eval, matching Spider-Man's native movement talent pattern.",
+    "ValueType": "PrototypeArray",
+    "Value": [
+      {
+        "ParentDataRef": 1429542141982412459,
+        "Op": "AssignProp",
+        "Prop": {
+          "Property": "DamageMultForPowerKeyword",
+          "Params": [
+            8867921813249659497
+          ]
+        },
+        "Eval": {
+          "ParentDataRef": 5074715296837012907,
+          "Op": "LoadFloat",
+          "Value": 1.5
+        }
+      }
+    ]
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/SilverSurfer/Talents/MovementPowerCDR.prototype",
+    "Path": "RefreshDependentPassivePowers[]",
+    "Description": "Movement Power CDR: refresh Board Dash, the parent of Board Dash Effect, when the talent is selected or removed.",
+    "ValueType": "PrototypeId",
+    "Value": 11016206073484022464
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/SilverSurfer/Talents/MovementPowerCDR.prototype",
+    "Path": "RefreshDependentPassivePowers[]",
+    "Description": "Movement Power CDR: refresh Disengage, the parent of Disengage Combo Effect and its extra beams, when the talent is selected or removed.",
+    "ValueType": "PrototypeId",
+    "Value": 871119426251854527
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/SilverSurfer/Talents/MovementPowerCDR.prototype",
+    "Path": "RefreshDependentPassivePowers[]",
+    "Description": "Movement Power CDR: refresh Teleport Dash, the parent of Teleport Dash Combo Effect, when the talent is selected or removed.",
+    "ValueType": "PrototypeId",
+    "Value": 13294279208173442087
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/SilverSurfer/Talents/MovementPowerCDR.prototype",
+    "Path": "RefreshDependentPassivePowers[]",
+    "Description": "Movement Power CDR: refresh Board Dash Effect so its conditional local DamageMult reruns when the talent is selected or removed.",
+    "ValueType": "PrototypeId",
+    "Value": 10892556183247918381
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/SilverSurfer/Talents/MovementPowerCDR.prototype",
+    "Path": "RefreshDependentPassivePowers[]",
+    "Description": "Movement Power CDR: refresh Disengage Combo Effect so its conditional local DamageMult reruns when the talent is selected or removed.",
+    "ValueType": "PrototypeId",
+    "Value": 3450366008579790652
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/SilverSurfer/Talents/MovementPowerCDR.prototype",
+    "Path": "RefreshDependentPassivePowers[]",
+    "Description": "Movement Power CDR: refresh Disengage Extra Beam so its conditional local DamageMult reruns when the talent is selected or removed.",
+    "ValueType": "PrototypeId",
+    "Value": 7068627924643681912
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/SilverSurfer/Talents/MovementPowerCDR.prototype",
+    "Path": "RefreshDependentPassivePowers[]",
+    "Description": "Movement Power CDR: refresh Disengage Extra Beam CDR so its conditional local DamageMult reruns when the talent is selected or removed.",
+    "ValueType": "PrototypeId",
+    "Value": 8791565399607220145
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/SilverSurfer/Talents/MovementPowerCDR.prototype",
+    "Path": "RefreshDependentPassivePowers[]",
+    "Description": "Movement Power CDR: refresh Teleport Dash Combo Effect so its conditional local DamageMult reruns when the talent is selected or removed.",
+    "ValueType": "PrototypeId",
+    "Value": 13384279929887004836
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/SilverSurfer/BoardDashEffect.prototype",
+    "Path": "EvalOnCreate[]",
+    "Description": "Movement Power CDR fallback test: while the talent is selected, directly multiply Board Dash Effect's local payload damage.",
+    "ValueType": "Prototype",
+    "Value": {
+      "ParentDataRef": 1429542141982412459,
+      "Op": "AssignProp",
+      "Prop": "DamageMult",
+      "Eval": {
+        "ParentDataRef": 12224016857095933257,
+        "Op": "IfElse",
+        "Conditional": {
+          "ParentDataRef": 12787312504554524315,
+          "Op": "EntityHasTalent",
+          "Context": "Var1",
+          "Talent": "Powers/Player/SilverSurfer/Talents/MovementPowerCDR.prototype"
+        },
+        "EvalIf": {
+          "ParentDataRef": 5074715296837012907,
+          "Op": "LoadFloat",
+          "Value": 1.5
+        },
+        "EvalElse": {
+          "ParentDataRef": 5074715296837012907,
+          "Op": "LoadFloat",
+          "Value": 0.0
+        }
+      }
+    }
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/SilverSurfer/DisengageComboEffect.prototype",
+    "Path": "EvalOnCreate[]",
+    "Description": "Movement Power CDR fallback test: while the talent is selected, directly multiply Disengage Combo Effect's local payload damage.",
+    "ValueType": "Prototype",
+    "Value": {
+      "ParentDataRef": 1429542141982412459,
+      "Op": "AssignProp",
+      "Prop": "DamageMult",
+      "Eval": {
+        "ParentDataRef": 12224016857095933257,
+        "Op": "IfElse",
+        "Conditional": {
+          "ParentDataRef": 12787312504554524315,
+          "Op": "EntityHasTalent",
+          "Context": "Var1",
+          "Talent": "Powers/Player/SilverSurfer/Talents/MovementPowerCDR.prototype"
+        },
+        "EvalIf": {
+          "ParentDataRef": 5074715296837012907,
+          "Op": "LoadFloat",
+          "Value": 1.5
+        },
+        "EvalElse": {
+          "ParentDataRef": 5074715296837012907,
+          "Op": "LoadFloat",
+          "Value": 0.0
+        }
+      }
+    }
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/SilverSurfer/DisengageExtraBeam.prototype",
+    "Path": "EvalOnCreate[]",
+    "Description": "Movement Power CDR fallback test: while the talent is selected, directly multiply Disengage Extra Beam's local payload damage.",
+    "ValueType": "Prototype",
+    "Value": {
+      "ParentDataRef": 1429542141982412459,
+      "Op": "AssignProp",
+      "Prop": "DamageMult",
+      "Eval": {
+        "ParentDataRef": 12224016857095933257,
+        "Op": "IfElse",
+        "Conditional": {
+          "ParentDataRef": 12787312504554524315,
+          "Op": "EntityHasTalent",
+          "Context": "Var1",
+          "Talent": "Powers/Player/SilverSurfer/Talents/MovementPowerCDR.prototype"
+        },
+        "EvalIf": {
+          "ParentDataRef": 5074715296837012907,
+          "Op": "LoadFloat",
+          "Value": 1.5
+        },
+        "EvalElse": {
+          "ParentDataRef": 5074715296837012907,
+          "Op": "LoadFloat",
+          "Value": 0.0
+        }
+      }
+    }
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/SilverSurfer/DisengageExtraBeamCDR.prototype",
+    "Path": "EvalOnCreate[]",
+    "Description": "Movement Power CDR fallback test: while the talent is selected, directly multiply Disengage Extra Beam CDR's local payload damage.",
+    "ValueType": "Prototype",
+    "Value": {
+      "ParentDataRef": 1429542141982412459,
+      "Op": "AssignProp",
+      "Prop": "DamageMult",
+      "Eval": {
+        "ParentDataRef": 12224016857095933257,
+        "Op": "IfElse",
+        "Conditional": {
+          "ParentDataRef": 12787312504554524315,
+          "Op": "EntityHasTalent",
+          "Context": "Var1",
+          "Talent": "Powers/Player/SilverSurfer/Talents/MovementPowerCDR.prototype"
+        },
+        "EvalIf": {
+          "ParentDataRef": 5074715296837012907,
+          "Op": "LoadFloat",
+          "Value": 1.5
+        },
+        "EvalElse": {
+          "ParentDataRef": 5074715296837012907,
+          "Op": "LoadFloat",
+          "Value": 0.0
+        }
+      }
+    }
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/SilverSurfer/TeleportDashComboEffect.prototype",
+    "Path": "EvalOnCreate[]",
+    "Description": "Movement Power CDR fallback test: while the talent is selected, directly multiply Teleport Dash Combo Effect's local payload damage.",
+    "ValueType": "Prototype",
+    "Value": {
+      "ParentDataRef": 1429542141982412459,
+      "Op": "AssignProp",
+      "Prop": "DamageMult",
+      "Eval": {
+        "ParentDataRef": 12224016857095933257,
+        "Op": "IfElse",
+        "Conditional": {
+          "ParentDataRef": 12787312504554524315,
+          "Op": "EntityHasTalent",
+          "Context": "Var1",
+          "Talent": "Powers/Player/SilverSurfer/Talents/MovementPowerCDR.prototype"
+        },
+        "EvalIf": {
+          "ParentDataRef": 5074715296837012907,
+          "Op": "LoadFloat",
+          "Value": 1.5
+        },
+        "EvalElse": {
+          "ParentDataRef": 5074715296837012907,
+          "Op": "LoadFloat",
+          "Value": 0.0
+        }
+      }
+    }
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/SilverSurfer/ChanneledBeam.prototype",
+    "Path": "EvalCanTrigger",
+    "Description": "Movement Power CDR: Electromagnetic Flux cannot be used while the talent is selected.",
+    "ValueType": "Prototype",
+    "Value": {
+      "ParentDataRef": "Eval/Conditionals/Not.defaults",
+      "Op": "Not",
+      "Arg": {
+        "ParentDataRef": "Eval/Other/EntityHasTalent.defaults",
+        "Op": "EntityHasTalent",
+        "Context": "Var2",
+        "Talent": "Powers/Player/SilverSurfer/Talents/MovementPowerCDR.prototype"
+      }
+    }
+  }
+]
+

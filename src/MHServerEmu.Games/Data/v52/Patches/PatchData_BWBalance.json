@@ -1,0 +1,35 @@
+[
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/BlackWidow/Traits/ChargeRegen.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[1].Eval.Value",
+    "Description": "OpenCalligraphy export: EvalOnCreate[1].Eval.Value",
+    "ValueType": "Float",
+    "Value": 0.33
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/BlackWidow/CoupDeGraceCombo.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[0].Eval.Value",
+    "Description": "OpenCalligraphy export: EvalOnCreate[0].Eval.Value",
+    "ValueType": "Float",
+    "Value": 0.10
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/BlackWidow/RoundhouseKickCombo.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[0].Eval.Value",
+    "Description": "OpenCalligraphy export: EvalOnCreate[0].Eval.Value",
+    "ValueType": "Float",
+    "Value": 0.10
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/BlackWidow/Talents/NeverKnowWhatHitThem.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[0].Eval.Value",
+    "Description": "OpenCalligraphy export: EvalOnCreate[0].Eval.Value",
+    "ValueType": "Float",
+    "Value": 0.4,
+    "OriginalValue": 0.2
+  }
+]

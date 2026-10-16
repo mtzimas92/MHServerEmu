@@ -24,6 +24,8 @@ namespace MHServerEmu.Games.Powers
 {
     public partial class Power
     {
+        private static readonly Logger Logger = LogManager.CreateLogger();
+
         #region Event Handlers
 
         // Please keep these sorted by PowerEventType enum value
@@ -393,7 +395,20 @@ namespace MHServerEmu.Games.Powers
 
                 // Run trigger chance check
                 float eventTriggerChance = triggeredPowerEvent.GetEventTriggerChance(Properties, Owner, target);
-                if (random.NextFloat() >= eventTriggerChance)
+                float eventTriggerRoll = random.NextFloat();
+                string sourcePowerName = PrototypeDataRef.GetName();
+                string triggeredPowerName = triggeredPowerEvent.Power.GetName();
+                if (sourcePowerName.Contains("WarSkrull", StringComparison.OrdinalIgnoreCase)
+                    || triggeredPowerName.Contains("WarSkrull", StringComparison.OrdinalIgnoreCase))
+                {
+                    Logger.Info(
+                        $"[WarSkrullMedallionTrace] stage=event-roll owner={Owner} " +
+                        $"sourcePower={sourcePowerName} event={eventType} triggeredPower={triggeredPowerName} " +
+                        $"chance={eventTriggerChance:F4} roll={eventTriggerRoll:F4} " +
+                        $"passed={eventTriggerRoll < eventTriggerChance}");
+                }
+
+                if (eventTriggerRoll >= eventTriggerChance)
                     continue;
 
                 // Run param comparison if needed
@@ -1277,7 +1292,6 @@ namespace MHServerEmu.Games.Powers
             if (!Verify.IsTrue(stolenPowerRef != PrototypeId.Invalid)) return;
 
 #if GAME_VERSION_1_52 || GAME_VERSION_1_53
-            // V48_FIXME
             BannerMessagePrototype bannerMessageProto;
 
             if (avatar.IsStolenPowerAvailable(stealablePowerInfoProto.Power) == false)
@@ -1293,6 +1307,26 @@ namespace MHServerEmu.Games.Powers
             if (!Verify.IsNotNull(bannerMessageProto)) return;
 
             player.SendBannerMessage(bannerMessageProto);
+#else
+            PrototypeId currentStolenPowerRef = avatar.GetMappedPowerFromOriginalPower(PrototypeDataRef);
+            if (currentStolenPowerRef != PrototypeId.Invalid)
+            {
+                player.SendBannerMessage(GameDatabase.UIGlobalsPrototype.MessageStealablePowerOccupied);
+                return;
+            }
+
+            PrototypeId originalPowerRef = avatar.GetOriginalPowerFromMappedPower(stolenPowerRef);
+            if (originalPowerRef != PrototypeId.Invalid)
+            {
+                player.SendBannerMessage(GameDatabase.UIGlobalsPrototype.MessageStolenPowerDuplicate);
+                return;
+            }
+
+            if (avatar.CanAssignStolenPower(stolenPowerRef, PrototypeId.Invalid) == false)
+                return;
+
+            if (avatar.MapPower(PrototypeDataRef, stolenPowerRef) == false)
+                player.SendBannerMessage(GameDatabase.UIGlobalsPrototype.MessageStolenPowerGenericFailed);
 #endif
         }
 

@@ -1,0 +1,148 @@
+[
+  {
+    "Prototype": "Powers/Player/Gambit/CardPickupMissileEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/Gambit/CardPickupFinalExplosion.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/Gambit/ChargeUpCardMissileEffectStage3.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/Gambit/BatterUp.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/Gambit/AceOfSpadesMissileEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/Gambit/StreetSweepHotspotEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/Gambit/BoWhirlwindHotspotEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/Gambit/JacksOrBetterMissileEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/Gambit/BasicKineticCardMissileEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/Gambit/RaininPainHotspotEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/Gambit/AceOfSpadesDeathEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/Gambit/BoBeatdown.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/Gambit/ChargeUpCardMissileEffectStage4.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/Gambit/BasicBoStrike.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/Gambit/ChargeUpCardMissileEffectStage1.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/Gambit/GrandSlamEnd.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/Gambit/BoWhirlwindRandomCardMissileEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/Gambit/JacksOrBetterAoEExplosion.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/Gambit/ChargeUpCardMeleeStage1Damage.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/Gambit/FoldEmCombo.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/Gambit/GrandSlam1stHit.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/Gambit/GrandSlam2ndHit.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/Gambit/StreetSweepMissileEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/Gambit/RaininPainExplosion.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/Gambit/RainInPainAsCombo.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/Gambit/RoyalFlushConeDamage.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/Gambit/BoVaultEndEnhanced.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/Gambit/RaininPain.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/Gambit/Talents/RaginCajunProcEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  }
+]
+

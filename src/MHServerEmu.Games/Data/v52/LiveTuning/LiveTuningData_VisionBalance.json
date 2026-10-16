@@ -1,0 +1,17 @@
+[
+  {
+    "Prototype": "Powers/Player/Vision/HeavySprintProcEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.2
+  },
+  {
+    "Prototype": "Powers/Player/Vision/BigPunch.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.25
+  },
+    {
+    "Prototype": "Powers/Player/Vision/PhasePunch.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.2
+  }
+]

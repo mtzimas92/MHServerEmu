@@ -1,0 +1,326 @@
+[
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/CaptainAmerica/DeathFromAbove.prototype",
+    "Path": "AnimationTimeMS",
+    "Description": "OpenCalligraphy export: AnimationTimeMS",
+    "ValueType": "Integer",
+    "Value": 350
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/CaptainAmerica/FinestHour.prototype",
+    "Path": "AnimationTimeMS",
+    "Description": "OpenCalligraphy export: AnimationTimeMS",
+    "ValueType": "Integer",
+    "Value": 250
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/CaptainAmerica/FinestHourEnd.prototype",
+    "Path": "AnimationTimeMS",
+    "Description": "OpenCalligraphy export: AnimationTimeMS",
+    "ValueType": "Integer",
+    "Value": 400
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/CaptainAmerica/PBAoEDamageMultCondition.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[0].Eval.Value",
+    "Description": "OpenCalligraphy export: EvalOnCreate[0].Eval.Value",
+    "ValueType": "Float",
+    "Value": 1
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/CaptainAmerica/PBAoEDamageMultCondition.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[1].Eval.Value",
+    "Description": "OpenCalligraphy export: EvalOnCreate[1].Eval.Value",
+    "ValueType": "Float",
+    "Value": 1
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/CaptainAmerica/ShieldThrowPBAoE.prototype",
+    "Path": "AnimationTimeMS",
+    "Description": "OpenCalligraphy export: AnimationTimeMS",
+    "ValueType": "Integer",
+    "Value": 500
+  },
+  {
+        "Enabled": true,
+        "Prototype": "Powers/Player/CaptainAmerica/BrutalStrikeEffect.prototype",
+        "Path": "ActionsTriggeredOnPowerEvent[1].EvalEventTriggerChance",
+        "Description": "Prevent Brutal Strike / Meteor Kick from gaining hidden serum while Captain America's No Serum talent is selected.",
+        "ValueType": "Prototype",
+        "Value": {
+            "ParentDataRef": 12224016857095933257,
+            "Op": "IfElse",
+            "Conditional": {
+                "ParentDataRef": 12787312504554524315,
+                "Op": "EntityHasTalent",
+                "Context": "Var1",
+                "Talent": 2147412672280860539
+            },
+            "EvalIf": {
+                "ParentDataRef": 5074715296837012907,
+                "Op": "LoadFloat",
+                "Value": 0
+            },
+            "EvalElse": {
+                "ParentDataRef": 5074715296837012907,
+                "Op": "LoadFloat",
+                "Value": 1
+            }
+        }
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/CaptainAmerica/Talents/NoSerumSpec.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[2].Eval.Value",
+    "Description": "OpenCalligraphy export: EvalOnCreate[2].Eval.Value",
+    "ValueType": "Float",
+    "Value": -4000
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Eval/Prototypes/CaptainAmericaSerum100PctDamageMult.prototype",
+    "Path": "Scope[0].Value",
+    "Description": "OpenCalligraphy export: Scope[0].Value",
+    "ValueType": "Float",
+    "Value": 0.15
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/CaptainAmerica/Talents/NoSerumSpec.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[3].Eval.Value",
+    "Description": "OpenCalligraphy export: EvalOnCreate[3].Eval.Value",
+    "ValueType": "Float",
+    "Value": 0.6
+  },
+  {
+        "Enabled": false,
+        "Prototype": "Powers/Player/CaptainAmerica/DeathFromAboveEnd.prototype",
+        "Path": "EvalPowerSynergies",
+        "Description": "Preserve Death From Above serum synergies, but make the high-serum 50% damage branch fall back to the normal one-serum spender while No Serum is selected.",
+        "ValueType": "Prototype",
+        "Value": {
+            "ParentDataRef": 12394606670048857323,
+            "Op": "Scope",
+            "Scope": [
+                {
+                    "ParentDataRef": 12224016857095933257,
+                    "Op": "IfElse",
+                    "Conditional": {
+                        "ParentDataRef": 10498893285051731892,
+                        "Op": "GreaterThan",
+                        "Arg1": {
+                            "ParentDataRef": 18275251312095530438,
+                            "Op": "LoadProp",
+                            "Context": "Entity",
+                            "Prop": "SecondaryResourcePips"
+                        },
+                        "Arg2": {
+                            "ParentDataRef": 5074715296837012907,
+                            "Op": "LoadFloat",
+                            "Value": 0
+                        }
+                    },
+                    "EvalIf": {
+                        "ParentDataRef": 12394606670048857323,
+                        "Op": "Scope",
+                        "Scope": [
+                            {
+                                "ParentDataRef": 12224016857095933257,
+                                "Op": "IfElse",
+                                "Conditional": {
+                                    "ParentDataRef": 12787312504554524315,
+                                    "Op": "EntityHasTalent",
+                                    "Context": "Var2",
+                                    "Talent": 8096779084317006695
+                                },
+                                "EvalIf": {
+                                    "ParentDataRef": 12394606670048857323,
+                                    "Op": "Scope",
+                                    "Scope": [
+                                        {
+                                            "ParentDataRef": 1429542141982412459,
+                                            "Op": "AssignProp",
+                                            "Prop": "DamageMultOnPower",
+                                            "Eval": {
+                                                "ParentDataRef": 12695023962771556740,
+                                                "Op": "Mult",
+                                                "Arg1": 15644147968616306809,
+                                                "Arg2": {
+                                                    "ParentDataRef": 18275251312095530438,
+                                                    "Op": "LoadProp",
+                                                    "Context": "Entity",
+                                                    "Prop": "SecondaryResourcePips"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "ParentDataRef": 1429542141982412459,
+                                            "Op": "AssignProp",
+                                            "Prop": "SecondaryResourceCostPips",
+                                            "Eval": {
+                                                "ParentDataRef": 18275251312095530438,
+                                                "Op": "LoadProp",
+                                                "Context": "Entity",
+                                                "Prop": "SecondaryResourcePips"
+                                            }
+                                        }
+                                    ]
+                                },
+                                "EvalElse": {
+                                    "ParentDataRef": 12224016857095933257,
+                                    "Op": "IfElse",
+                                    "Conditional": {
+                                        "ParentDataRef": 10498893285051731892,
+                                        "Op": "GreaterThan",
+                                        "Arg1": {
+                                            "ParentDataRef": 18275251312095530438,
+                                            "Op": "LoadProp",
+                                            "Context": "Entity",
+                                            "Prop": "SecondaryResourcePips"
+                                        },
+                                        "Arg2": {
+                                            "ParentDataRef": 5074715296837012907,
+                                            "Op": "LoadFloat",
+                                            "Value": 3
+                                        }
+                                    },
+                                    "EvalIf": {
+                                        "ParentDataRef": 12224016857095933257,
+                                        "Op": "IfElse",
+                                        "Conditional": {
+                                            "ParentDataRef": 12787312504554524315,
+                                            "Op": "EntityHasTalent",
+                                            "Context": "Var2",
+                                            "Talent": 2147412672280860539
+                                        },
+                                        "EvalIf": {
+                                            "ParentDataRef": 12394606670048857323,
+                                            "Op": "Scope",
+                                            "Scope": [
+                                                {
+                                                    "ParentDataRef": 1429542141982412459,
+                                                    "Op": "AssignProp",
+                                                    "Prop": "DamageMultOnPower",
+                                                    "Eval": {
+                                                        "ParentDataRef": 5074715296837012907,
+                                                        "Op": "LoadFloat",
+                                                        "Value": 0
+                                                    }
+                                                },
+                                                {
+                                                    "ParentDataRef": 1429542141982412459,
+                                                    "Op": "AssignProp",
+                                                    "Prop": "SecondaryResourceCostPips",
+                                                    "Eval": {
+                                                        "ParentDataRef": 5074715296837012907,
+                                                        "Op": "LoadFloat",
+                                                        "Value": 1
+                                                    }
+                                                }
+                                            ]
+                                        },
+                                        "EvalElse": {
+                                            "ParentDataRef": 12394606670048857323,
+                                            "Op": "Scope",
+                                            "Scope": [
+                                                {
+                                                    "ParentDataRef": 1429542141982412459,
+                                                    "Op": "AssignProp",
+                                                    "Prop": "DamageMultOnPower",
+                                                    "Eval": {
+                                                        "ParentDataRef": 5074715296837012907,
+                                                        "Op": "LoadFloat",
+                                                        "Value": 0.5
+                                                    }
+                                                },
+                                                {
+                                                    "ParentDataRef": 1429542141982412459,
+                                                    "Op": "AssignProp",
+                                                    "Prop": "SecondaryResourceCostPips",
+                                                    "Eval": {
+                                                        "ParentDataRef": 5074715296837012907,
+                                                        "Op": "LoadFloat",
+                                                        "Value": 4
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "EvalElse": {
+                                        "ParentDataRef": 12394606670048857323,
+                                        "Op": "Scope",
+                                        "Scope": [
+                                            {
+                                                "ParentDataRef": 1429542141982412459,
+                                                "Op": "AssignProp",
+                                                "Prop": "DamageMultOnPower",
+                                                "Eval": {
+                                                    "ParentDataRef": 5074715296837012907,
+                                                    "Op": "LoadFloat",
+                                                    "Value": 0
+                                                }
+                                            },
+                                            {
+                                                "ParentDataRef": 1429542141982412459,
+                                                "Op": "AssignProp",
+                                                "Prop": "SecondaryResourceCostPips",
+                                                "Eval": {
+                                                    "ParentDataRef": 5074715296837012907,
+                                                    "Op": "LoadFloat",
+                                                    "Value": 1
+                                                }
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    "EvalElse": {
+                        "ParentDataRef": 12394606670048857323,
+                        "Op": "Scope",
+                        "Scope": [
+                            {
+                                "ParentDataRef": 1429542141982412459,
+                                "Op": "AssignProp",
+                                "Prop": "DamageMultOnPower",
+                                "Eval": {
+                                    "ParentDataRef": 5074715296837012907,
+                                    "Op": "LoadFloat",
+                                    "Value": 0
+                                }
+                            },
+                            {
+                                "ParentDataRef": 1429542141982412459,
+                                "Op": "AssignProp",
+                                "Prop": "SecondaryResourceCostPips",
+                                "Eval": {
+                                    "ParentDataRef": 5074715296837012907,
+                                    "Op": "LoadFloat",
+                                    "Value": 0
+                                }
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/CaptainAmerica/ShieldBash.prototype",
+    "Path": "EvalPowerSynergies.Scope[0].Prop",
+    "Description": "Fix Shield Bash's block-rating damage scaling by storing the calculated block bonus in EvalRegisterFloat[1] before the serum-spender branch reads it.",
+    "ValueType": "PropertyId",
+    "Value": {
+      "Property": "EvalRegisterFloat",
+      "Params": [1]
+    }
+  }
+]

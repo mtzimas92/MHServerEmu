@@ -1,0 +1,7 @@
+[
+  {
+    "Prototype": "Powers/Player/Colossus/MetalRegenerationCombo.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  }
+]

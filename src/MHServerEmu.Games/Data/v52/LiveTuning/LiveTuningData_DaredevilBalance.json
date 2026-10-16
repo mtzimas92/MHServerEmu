@@ -1,0 +1,32 @@
+[
+  {
+    "Prototype": "Powers/Player/Daredevil/Update/BrutalStrikeEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 2.0
+  },
+  {
+    "Prototype": "Powers/Player/Daredevil/Update/RoundhouseKick.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.8
+  },
+  {
+    "Prototype": "Powers/Player/Daredevil/ShadowStrikeDrop.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/Daredevil/ShadowStrikeInnerHit.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/Daredevil/Update/WhirlingClub.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 2.0
+  },
+  {
+    "Prototype": "Powers/Player/Daredevil/Update/BouncingStrikeChainPower.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 2.0
+  }
+]

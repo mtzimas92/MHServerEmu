@@ -1,0 +1,203 @@
+[
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/JeanGrey/Rework/DarkPhoenixSpecHybridJeanBuff.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[0].Eval.Value",
+    "Description": "OpenCalligraphy export: EvalOnCreate[0].Eval.Value",
+    "ValueType": "Float",
+    "Value": 0.4
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/JeanGrey/Talents/JeanFormSpec.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[2].Eval.Value",
+    "Description": "OpenCalligraphy export: EvalOnCreate[2].Eval.Value",
+    "ValueType": "Float",
+    "Value": 0.45
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/JeanGrey/Talents/PhoenixFormSpec.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[2].Eval.Value",
+    "Description": "OpenCalligraphy export: EvalOnCreate[2].Eval.Value",
+    "ValueType": "Float",
+    "Value": 0.45
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/JeanGrey/CarThrow.prototype",
+    "Path": "Keywords[]",
+    "Description": "OpenCalligraphy export: Keywords",
+    "ValueType": "PrototypeId",
+    "Value": 720980541349630335
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/JeanGrey/Rework/DamageMaelstromJeanHotspotEffect.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate",
+    "Description": "Remove the inherited slow eval from Jean Maelstrom's DoT condition so raid bosses can receive the damage portion.",
+    "ValueType": "PrototypeArray",
+    "Value": []
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/JeanGrey/Rework/DamageMaelstromJeanHotspotEffect.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].Keywords",
+    "Description": "Keep Jean Maelstrom's condition as a pure mutually-exclusive DoT condition after removing the slow.",
+    "ValueType": "PrototypeId[]",
+    "Value": [
+      "Powers/Blueprints/Keywords/DamageOverTime.defaults",
+      "Powers/Blueprints/Keywords/JeanGreyMaelstromHotspotEffect.defaults",
+      "Powers/Blueprints/Keywords/JeanGreyMutallyExclusiveDoT.defaults"
+    ]
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/JeanGrey/Rework/DamageMaelstromPhoenixHotspotEffect.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate",
+    "Description": "Remove the slow eval from Phoenix Maelstrom's DoT condition so raid bosses can receive the damage portion.",
+    "ValueType": "PrototypeArray",
+    "Value": []
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/JeanGrey/Rework/DamageMaelstromPhoenixHotspotEffect.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].Keywords",
+    "Description": "Keep Phoenix Maelstrom's condition as a pure mutually-exclusive DoT condition after removing the slow.",
+    "ValueType": "PrototypeId[]",
+    "Value": [
+      "Powers/Blueprints/Keywords/DamageOverTime.defaults",
+      "Powers/Blueprints/Keywords/JeanGreyMaelstromHotspotEffect.defaults",
+      "Powers/Blueprints/Keywords/JeanGreyMutallyExclusiveDoT.defaults"
+    ]
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/JeanGrey/Rework/Drain.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=1].EvalOnCreate",
+    "Description": "Remove Drain's slow eval from its target condition so raid bosses can receive the DoT damage.",
+    "ValueType": "PrototypeArray",
+    "Value": []
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/JeanGrey/Rework/Drain.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=1].Keywords",
+    "Description": "Keep Drain's target condition as DoT-only after removing the slow.",
+    "ValueType": "PrototypeId[]",
+    "Value": [
+      "Powers/Blueprints/Keywords/DamageOverTime.defaults"
+    ]
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/JeanGrey/Rework/DamageMaelstromJeanHotspotEffect.prototype",
+    "Path": "AppliesConditions[]",
+    "Description": "Add Jean Maelstrom's slow back as a separate condition so raid-boss resistance can reject only the slow without blocking the DoT.",
+    "ValueType": "Prototype",
+    "Value": {
+      "ParentDataRef": "Powers/Blueprints/Condition.defaults",
+      "DurationMS": 1000,
+      "StackingBehavior": {
+        "ParentDataRef": "Powers/Blueprints/Stacking/StackingBehavior.defaults",
+        "ApplicationStyle": "Refresh",
+        "MaxNumStacks": 1,
+        "StacksByKeyword": [
+          "Powers/Blueprints/Keywords/Slow.defaults"
+        ]
+      },
+      "EvalOnCreate": [
+        {
+          "ParentDataRef": "Eval/Prototypes/Slow.prototype"
+        }
+      ],
+      "Keywords": [
+        "Powers/Blueprints/Keywords/Slow.defaults"
+      ]
+    }
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/JeanGrey/Rework/DamageMaelstromPhoenixHotspotEffect.prototype",
+    "Path": "AppliesConditions[]",
+    "Description": "Add Phoenix Maelstrom's slow back as a separate condition so raid-boss resistance can reject only the slow without blocking the DoT.",
+    "ValueType": "Prototype",
+    "Value": {
+      "ParentDataRef": "Powers/Blueprints/Condition.defaults",
+      "DurationMS": 1000,
+      "StackingBehavior": {
+        "ParentDataRef": "Powers/Blueprints/Stacking/StackingBehavior.defaults",
+        "ApplicationStyle": "Refresh",
+        "MaxNumStacks": 1,
+        "StacksByKeyword": [
+          "Powers/Blueprints/Keywords/Slow.defaults"
+        ]
+      },
+      "EvalOnCreate": [
+        {
+          "ParentDataRef": "Eval/Prototypes/Slow.prototype"
+        }
+      ],
+      "Keywords": [
+        "Powers/Blueprints/Keywords/Slow.defaults"
+      ]
+    }
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/JeanGrey/Rework/Drain.prototype",
+    "Path": "AppliesConditions[]",
+    "Description": "Add Drain's 90% movement slow back as a separate condition so raid-boss resistance can reject only the slow without blocking the DoT.",
+    "ValueType": "Prototype",
+    "Value": {
+      "ParentDataRef": "Powers/Blueprints/Condition.defaults",
+      "DurationMS": 1000,
+      "StackingBehavior": {
+        "ParentDataRef": "Powers/Blueprints/Stacking/StackingBehavior.defaults",
+        "ApplicationStyle": "Refresh",
+        "MaxNumStacks": 1,
+        "StacksByKeyword": [
+          "Powers/Blueprints/Keywords/Slow.defaults"
+        ]
+      },
+      "EvalOnCreate": [
+        {
+          "Op": "Scope",
+          "ParentDataRef": "Eval/Prototypes/Slow.prototype",
+          "Scope": [
+            {
+              "Op": "Scope",
+              "ParentDataRef": "Eval/Prototypes/NewNonRatingBonusPowerDEPRECATED.prototype",
+              "Scope": [
+                {
+                  "Op": "AssignProp",
+                  "ParentDataRef": "Eval/Properties/AssignProp.defaults",
+                  "Context": "Default",
+                  "Prop": {
+                    "Property": "MovementSpeedDecrPct"
+                  },
+                  "Eval": {
+                    "Op": "LoadFloat",
+                    "ParentDataRef": "Eval/Constants/LoadFloat.defaults",
+                    "Value": 0.9
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "Keywords": [
+        "Powers/Blueprints/Keywords/Slow.defaults"
+      ]
+    }
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/JeanGrey/Rework/DamageMaelstromPhoenix.prototype",
+    "Path": "ActionsTriggeredOnPowerEvent",
+    "Description": "Flaming Maelstrom (Phoenix/Energy form) inherits Jean's unconditional Mental-form stun trigger from the shared DamageMaelstrom parent prototype; clear the whole inherited trigger list here (it only ever held that one stun action) so Phoenix only applies its own intended slow, not both.",
+    "ValueType": "PrototypeArray",
+    "Value": []
+  }
+]
