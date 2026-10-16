@@ -1,185 +1,246 @@
 {
   "16317499825292051727": {
-    "en_us": "Your ribbons reach out to trip up nearby enemies, making them #emphasis#vulnerable#/emphasis#. Vulnerability effects apply double the damage stated."
+    "en_us": "Your ribbons reach out to trip up nearby enemies, making them #emphasis#vulnerable#/emphasis#. Vulnerability effects apply double the damage stated.",
+    "ru_ru": "Ваши ленты тянутся, чтобы опутать ближайших врагов, делая их #emphasis#уязвимыми#/emphasis#. Эффекты уязвимости наносят удвоенный урон от указанного."
   },
   "14137443518970791169": {
-    "en_us": "It's time for the right ant for the right job. Select a specific area and unleash the scourge of fire ants on those enemies to damage targets over a prolonged period of time. Vulnerability effects apply double the damage stated."
+    "en_us": "It's time for the right ant for the right job. Select a specific area and unleash the scourge of fire ants on those enemies to damage targets over a prolonged period of time. Vulnerability effects apply double the damage stated.",
+    "ru_ru": "Муравей берётся за дело! Указать зону для атаки и направить туда огненных муравьёв, наносящих врагам длительный урон. Эффекты уязвимости наносят удвоенный урон от указанного."
   },
   "1895836554058138890": {
-    "en_us": "Send explosive traps flying in all directions, clearing the room of all would-be bad guys. This attack has +100% Critical Strike Chance."
+    "en_us": "Send explosive traps flying in all directions, clearing the room of all would-be bad guys. This attack has +100% Critical Strike Chance.",
+    "ru_ru": "Раскидать взрывающиеся ловушки во все стороны, чтобы разом разобраться со всеми плохими парнями. У этой атаки +100% Шанс критического удара."
   },
   "2875267927173563727": {
-    "en_us": "#powername#$powername$#/powername# allows you to pepper the area with explosive traps before cleverly escaping the blast. #powername#$powername$#/powername# gains +100% Critical Strike Chance."
+    "en_us": "#powername#$powername$#/powername# allows you to pepper the area with explosive traps before cleverly escaping the blast. #powername#$powername$#/powername# gains +100% Critical Strike Chance.",
+    "ru_ru": "#powername#$powername$#/powername# позволяет вам засеять территорию взрывными ловушками, прежде чем хитро ускользнуть от взрыва. #powername#$powername$#/powername# дает +100% Шанс критического удара."
   },
   "17460248343378986260": {
-    "en_us": "When you use #emphasis#$powerReference0.powerName$#/emphasis#, your next #emphasis#$powerReference1.powerName$#/emphasis# within $powerReference0.onContactTimePower1.condition0.duration$ will Brutally StrikeFan of Knives gains the updated ranged damage bonus. Ranged damage bonus is set to +25%."
+    "en_us": "When you use #emphasis#$powerReference0.powerName$#/emphasis#, your next #emphasis#$powerReference1.powerName$#/emphasis# within $powerReference0.onContactTimePower1.condition0.duration$ will Brutally Strike. Fan of Knives gains the updated ranged damage bonus. Ranged damage bonus is set to +25%.",
+    "ru_ru": "При использовании #emphasis#$powerReference0.powerName$#/emphasis#, ваш следующий #emphasis#$powerReference1.powerName$#/emphasis# в течение $powerReference0.onContactTimePower1.condition0.duration$ будет Наносить Сокрушительный удар. Веер клинков получает обновлённый бонус Дальнего урона на +25%."
   },
   "7862589156790043983": {
-    "en_us": "#emphasis#$powername$#/emphasis# becomes #powerkeyword#Ranged#/powerkeyword#. Bonus damage is +50%."
+    "en_us": "#emphasis#$powername$#/emphasis# becomes #powerkeyword#Ranged#/powerkeyword#. Bonus damage is +50%.",
+    "ru_ru": "#emphasis#$powername$#/emphasis# становится #powerkeyword#Дальней#/powerkeyword#. Бонус урона +50%."
   },
-    "3526835425420445011": {
-    "en_us": "#powername#$powerreference0.powername$#/powername# deals 100% more damage to #emphasis#Bleeding#/emphasis# enemies."
+  "3526835425420445011": {
+    "en_us": "#powername#$powerreference0.powername$#/powername# deals 100% more damage to #emphasis#Bleeding#/emphasis# enemies.",
+    "ru_ru": "#powername#$powerreference0.powername$#/powername# наносит на 100% больше урона #emphasis#Кровоточащим#/emphasis# врагам."
   },
   "15456804635698922835": {
-    "en_us": "#emphasis#$powerreference0.powername$#/emphasis# becomes #powerkeyword#Melee#/powerkeyword# and deals 650% more damage over a 1 second duration"
+    "en_us": "#emphasis#$powerreference0.powername$#/emphasis# becomes #powerkeyword#Melee#/powerkeyword# and deals 650% more damage over a 1 second duration",
+    "ru_ru": "#emphasis#$powerreference0.powername$#/emphasis# становится #powerkeyword#Ближняя#/powerkeyword# и наносит 650% больше урона в течение 1 сек"
   },
   "13976696061514351929": {
-    "en_us": "While recharging, #powerkeyword#Gauntlet#/powerkeyword# Powers cannot be activated. Recharge rate is 33% instead of the 25% stated."
+    "en_us": "While recharging, #powerkeyword#Gauntlet#/powerkeyword# Powers cannot be activated. Recharge rate is 33% instead of the 25% stated.",
+    "ru_ru": "При перезарядке #powerkeyword#Перчатки#/powerkeyword# нельзя активировать. Перезарядка 33% вместо указанных 25%."
   },
   "4571615696514516283": {
-    "en_us": "#powername#$powername$#/powername# is now considered an #powerkeyword#Arsenal#/powerkeyword# Power. Buffed power damage is set at +50% instead of the stated."
+    "en_us": "#powername#$powername$#/powername# is now considered an #powerkeyword#Arsenal#/powerkeyword# Power. Buffed power damage is set at +50% instead of the stated.",
+    "ru_ru": "#powername#$powername$#/powername# теперь считается #powerkeyword#Арсеналом#/powerkeyword#. Урон способности увеличен на +50% вместо указанного."
   },
   "7771947531250042130": {
-    "en_us": "#powername#$powername$#/powername# is now considered a #powerkeyword#Psion#/powerkeyword# Power. Buffed power damage is set at +50% instead of the stated."
-  },  
+    "en_us": "#powername#$powername$#/powername# is now considered a #powerkeyword#Psion#/powerkeyword# Power. Buffed power damage is set at +50% instead of the stated.",
+    "ru_ru": "#powername#$powername$#/powername# теперь считается #powerkeyword#Псионической#/powerkeyword#. Урон способности увеличен на +50% вместо указанного."
+  },
   "11752524243383878928": {
-    "en_us": "#powername#$powername$#/powername# is now considered a #powerkeyword#Psimitar#/powerkeyword# Power. Buffed power damage is set at +50% instead of the stated."
-  },  
+    "en_us": "#powername#$powername$#/powername# is now considered a #powerkeyword#Psimitar#/powerkeyword# Power. Buffed power damage is set at +50% instead of the stated.",
+    "ru_ru": "#powername#$powername$#/powername# теперь считается #powerkeyword#Псимитар#/powerkeyword# способностью. Урон способности увеличен на +50% вместо указанного."
+  },
   "9946587918218233152": {
-    "en_us": "-4s"
-  },  
+    "en_us": "-4s",
+    "ru_ru": "-4 сек"
+  },
   "1644222569467020613": {
-    "en_us": "#powerkeyword#Serum#/powerkeyword# Powers spend all available $secondarymanabehaviorname$, gaining +15% damage per point spent"
+    "en_us": "#powerkeyword#Serum#/powerkeyword# Powers spend all available $secondarymanabehaviorname$, gaining +15% damage per point spent",
+    "ru_ru": "#powerkeyword#Сыворотка#/powerkeyword# Способности тратят все доступные $secondarymanabehaviorname$, получая +15% урона за каждую потраченную единицу"
   },
   "1641178361067668800": {
-    "en_us": "#powername#$powerreference0.powername$#/powername# deals 100% more damage if used within $condition0.procEffect.condition0.duration$ of activating #emphasis#$powerreference1.powername$#/emphasis#, #emphasis#$powerreference2.powername$#/emphasis#, or #emphasis#$powerreference3.powername$#/emphasis#" 
+    "en_us": "#powername#$powerreference0.powername$#/powername# deals 100% more damage if used within $condition0.procEffect.condition0.duration$ of activating #emphasis#$powerreference1.powername$#/emphasis#, #emphasis#$powerreference2.powername$#/emphasis#, or #emphasis#$powerreference3.powername$#/emphasis#",
+    "ru_ru": "#powername#$powerreference0.powername$#/powername# наносит 100% больше урона, если используется в течение $condition0.procEffect.condition0.duration$ после активации #emphasis#$powerreference1.powername$#/emphasis#, #emphasis#$powerreference2.powername$#/emphasis#, или #emphasis#$powerreference3.powername$#/emphasis#"
   },
   "2348864799595103509": {
-    "en_us": "The effects of this talent are tripled when you have no $primarymanabehaviorname$. Total damage is +5% instead of the stated value."
-  },  
+    "en_us": "The effects of this talent are tripled when you have no $primarymanabehaviorname$. Total damage is +5% instead of the stated value.",
+    "ru_ru": "Эффекты этого таланта утрачиваются, когда у вас нет $primarymanabehaviorname$. Общий урон увеличен на +5% вместо указанного значения."
+  },
   "13945942416413689204": {
-    "en_us": "#powerkeyword#Call-In#/powerkeyword# Powers will no longer summon the X-Men as combatants after executing their initial attack. Total damage of #powerkeyword#Call-In#/powerkeyword# Powers in increased by +100% and their cooldowns are reduced by 20s"
+    "en_us": "#powerkeyword#Call-In#/powerkeyword# Powers will no longer summon the X-Men as combatants after executing their initial attack. Total damage of #powerkeyword#Call-In#/powerkeyword# Powers in increased by +100% and their cooldowns are reduced by 20s",
+    "ru_ru": "Способности #powerkeyword#Вызова#/powerkeyword# больше не будут призывать Людей Икс в качестве бойцов после выполнения их первоначальной атаки. Общий урон способностей #powerkeyword#Вызова#/powerkeyword# увеличен на +100%, а время их перезарядки сокращено на 20 сек"
   },
   "9290130780033910027": {
-    "en_us": "Deafen, damage, and knock down nearby enemies with a supersonic battlecry from your resonant Osmium body. The knockdown cannot be resisted by enemies. When #emphasis#Osmium Challenge#/emphasis# is selected this power auto-casts #emphasis#Heroic Challenge#/emphasis#."
+    "en_us": "Deafen, damage, and knock down nearby enemies with a supersonic battlecry from your resonant Osmium body. The knockdown cannot be resisted by enemies. When #emphasis#Osmium Challenge#/emphasis# is selected this power auto-casts #emphasis#Heroic Challenge#/emphasis#.",
+    "ru_ru": "Издайте сверхзвуковой боевой клич, резонирующий в вашем осмиевом теле, чтобы нанести урон и гарантировано сбить с ног ближайших врагов. Если выбран талант #emphasis#Осмиевое мужество#/emphasis#, эта способность автоматически применяет #emphasis#Героический вызов#/emphasis#."
   },
   "3568740905858041105": {
-    "en_us": "When you Critically Hit with a Melee Power, gain  +$param1.power.condition0.castspeedincrpct.pct$% Attack Speed for 15s. (Stacks up to 4 times) At 4 stacks gain +$param1.power.onPowerStartPower0.onStackCountPower0.condition0.statFightingSkillsModifier$ Fighting and +$param1.power.onPowerStartPower0.onStackCountPower0.condition0.statSpeedModifier$ Speed for 5s."
+    "en_us": "When you Critically Hit with a Melee Power, gain  +$param1.power.condition0.castspeedincrpct.pct$% Attack Speed for 15s. (Stacks up to 4 times) At 4 stacks gain +$param1.power.onPowerStartPower0.onStackCountPower0.condition0.statFightingSkillsModifier$ Fighting and +$param1.power.onPowerStartPower0.onStackCountPower0.condition0.statSpeedModifier$ Speed for 5s.",
+    "ru_ru": "При Критическом ударе Ближней способностью, получаете +$param1.power.condition0.castspeedincrpct.pct$% Скорость атаки на 15 сек. (Накапливается до 4 раз) При 4 накоплениях получаете +$param1.power.onPowerStartPower0.onStackCountPower0.condition0.statFightingSkillsModifier$ Битвы и +$param1.power.onPowerStartPower0.onStackCountPower0.condition0.statSpeedModifier$ Скорости на 5 сек."
   },
   "12607443750062916921": {
-    "en_us": "All Powers are free to use, and effects that increase your Maximum Spirit instead increase your $primarymanabehaviorname$ Level. Base Damage scales +10% with your $primarymanabehaviorname$ Level instead of the stated value."
+    "en_us": "All Powers are free to use, and effects that increase your Maximum Spirit instead increase your $primarymanabehaviorname$ Level. Base Damage scales +10% with your $primarymanabehaviorname$ Level instead of the stated value.",
+    "ru_ru": "Все способности свободны для использования, а эффекты, которые увеличивают ваш Максимальный Дух, вместо этого увеличивают ваш $primarymanabehaviorname$ Уровень. Базовый урон увеличивается на +10% за каждый уровень $primarymanabehaviorname$ вместо указанного значения."
   },
   "17433033549397558549": {
-    "en_us": "Resource-spending #powerkeyword#Sorcery#/powerkeyword# powers cannot be activated. #powerkeyword#Tech#/powerkeyword# powers deal 30% more damage."
+    "en_us": "Resource-spending #powerkeyword#Sorcery#/powerkeyword# powers cannot be activated. #powerkeyword#Tech#/powerkeyword# powers deal 30% more damage.",
+    "ru_ru": "Расходующие #powerkeyword#Магический#/powerkeyword# ресурс способности не могут быть активированы. Способности #powerkeyword#Технологии#/powerkeyword# наносят на 30% больше урона."
   },
   "12926617797862163722": {
-    "en_us": "Telepathically lure enemies to you, causing them to kneel in your presence. When the luring effect ends, unleash a psychic shockwave against enemies near you. This attack has +100% Critical Strike Chance."
-  },  
+    "en_us": "Telepathically lure enemies to you, causing them to kneel in your presence. When the luring effect ends, unleash a psychic shockwave against enemies near you. This attack has +100% Critical Strike Chance.",
+    "ru_ru": "Телепатически приманить врагов и заставить встать на колени перед вами. Когда эффект закончится, возникает ментальная ударная волна, которая поразит врагов рядом с вами. У этой атаки +100% Шанс критического удара."
+  },
   "16176219302745539854": {
-    "en_us": "Slam your bo staff into the ground to #emphasis#stun#/emphasis# swaths of enemies with a devastating shockwave, leaving behind a lethally hot wake of scorched earth. Vulnerability effects apply double the damage stated."
-  }, 
+    "en_us": "Slam your bo staff into the ground to #emphasis#stun#/emphasis# swaths of enemies with a devastating shockwave, leaving behind a lethally hot wake of scorched earth. Vulnerability effects apply double the damage stated.",
+    "ru_ru": "Ударьте посохом бо в землю, создав мощную ударную волну, которая #emphasis#оглушит#/emphasis# врагов и оставит раскалённую, выжженную землю у них под ногами. Эффекты уязвимости наносят удвоенный урон от указанного."
+  },
   "6760571166416700686": {
-    "en_us": "#emphasis#$powerReference0.powername$#/emphasis# deals +50% more damage, summons 9 extra toads, and gains a $powerReference0.actionsTriggeredOnPowerEvent2.eventParam$s cooldown"
-  }, 
+    "en_us": "#emphasis#$powerReference0.powername$#/emphasis# deals +50% more damage, summons 9 extra toads, and gains a $powerReference0.actionsTriggeredOnPowerEvent2.eventParam$s cooldown",
+    "ru_ru": "#emphasis#$powerReference0.powername$#/emphasis# наносит на +50% больше урона, вызывает 9 дополнительных жаб и получает перезарядку $powerReference0.actionsTriggeredOnPowerEvent2.eventParam$ сек"
+  },
   "14910183937415251221": {
-    "en_us": "$primarymanabehaviorname$ is generated whenever $displayname$ deals or is dealt damage, and when $primarymanabehaviorname$ reaches 100%, $displayname$ is considered #green#Very Angry#/green#. Base Damage scales up to +50% instead of the stated value."
-  }, 
+    "en_us": "$primarymanabehaviorname$ is generated whenever $displayname$ deals or is dealt damage, and when $primarymanabehaviorname$ reaches 100%, $displayname$ is considered #green#Very Angry#/green#. Base Damage scales up to +50% instead of the stated value.",
+    "ru_ru": "$primarymanabehaviorname$ генерируется всякий раз, когда $displayname$ наносит или получает урон, и когда $primarymanabehaviorname$ достигает 100%, $displayname$ считается #green#Очень зол#/green#. Базовый урон увеличивается на +50% вместо указанного значения."
+  },
   "6125567853789512967": {
-    "en_us": "Create a system of swirling force-spheres that pummel enemies caught in their path. Vulnerability effects apply double the damage stated."
+    "en_us": "Create a system of swirling force-spheres that pummel enemies caught in their path. Vulnerability effects apply double the damage stated.",
+    "ru_ru": "Создайте систему вращающихся силовых сфер, которые беспощадно бьют вставших на пути врагов. Эффекты уязвимости наносят удвоенный урон от указанного."
   },
   "13657199556114974023": {
-    "en_us": "#powername#$powername$#/powername# does not apply Stealth, but grants a damage absorption effect, and deals damage to nearby enemies. #powerkeyword#Ice#/powerkeyword# Power Damage is double than stated."
-  }, 
+    "en_us": "#powername#$powername$#/powername# does not apply Stealth, but grants a damage absorption effect, and deals damage to nearby enemies. #powerkeyword#Ice#/powerkeyword# Power Damage is double than stated.",
+    "ru_ru": "#powername#$powername$#/powername# не дает Маскировку, но поглощает урон и наносит урон ближайшим врагам. Урон #powerkeyword#Льда#/powerkeyword# удвоен от указанного."
+  },
   "3186269399516120330": {
-    "en_us": "#powername#$powername$#/powername# deals more damage to the first target hit and heals Loki, but bounces fewer times. #powerkeyword#Darkness#/powerkeyword# Power Damage is double than stated."
-  }, 
+    "en_us": "#powername#$powername$#/powername# deals more damage to the first target hit and heals Loki, but bounces fewer times. #powerkeyword#Darkness#/powerkeyword# Power Damage is double than stated.",
+    "ru_ru": "#powername#$powername$#/powername# наносит больше урона первой цели и исцеляет Локи, но отскакивает меньше раз. Урон #powerkeyword#Тьмы#/powerkeyword# удвоен относительно указанного."
+  },
   "14584827215473083715": {
-    "en_us": "#powername#$powerreference1.powername$#/powername# fires three projectiles per shot, and enchants #powername#$powerreference2.powername$#/powername# with #heat#Muspelheim#/heat# magic. #powerkeyword#Fire/powerkeyword# Power Damage is double than stated."
+    "en_us": "#powername#$powerreference1.powername$#/powername# fires three projectiles per shot, and enchants #powername#$powerreference2.powername$#/powername# with #heat#Muspelheim#/heat# magic. #powerkeyword#Fire/powerkeyword# Power Damage is double than stated.",
+    "ru_ru": "#powername#$powerreference1.powername$#/powername# выпускает три снаряда за выстрел и наделяет #powername#$powerreference2.powername$#/powername# магией #heat#Муспельхейм#/heat#. Урон #powerkeyword#Огня#/powerkeyword# удвоен относительно указанного."
   },
   "6869121766192645446": {
-    "en_us": "#powername#$powerreference1.powername$#/powername# terrifies enemies when activated, and enchants #powername#$powerreference2.powername$#/powername# with #darkness#Hel#/darkness# magic. #powerkeyword#Darkness#/powerkeyword# Power Damage is double than stated."
-  }, 
+    "en_us": "#powername#$powerreference1.powername$#/powername# terrifies enemies when activated, and enchants #powername#$powerreference2.powername$#/powername# with #darkness#Hel#/darkness# magic. #powerkeyword#Darkness#/powerkeyword# Power Damage is double than stated.",
+    "ru_ru": "#powername#$powerreference1.powername$#/powername# пугает врагов при активации и наделяет #powername#$powerreference2.powername$#/powername# магией #darkness#Хел#/darkness#. Урон #powerkeyword#Тьмы#/powerkeyword# удвоен относительно указанного."
+  },
   "16169136175887877443": {
-    "en_us": "#powername#$powerreference1.powername$#/powername# always critically hits, and enchants #powername#$powerreference2.powername$#/powername# with #ice#Jotunheim#/ice# magic. #powerkeyword#Ice#/powerkeyword# Power Damage is double than stated."
-  }, 
+    "en_us": "#powername#$powerreference1.powername$#/powername# always critically hits, and enchants #powername#$powerreference2.powername$#/powername# with #ice#Jotunheim#/ice# magic. #powerkeyword#Ice#/powerkeyword# Power Damage is double than stated.",
+    "ru_ru": "#powername#$powerreference1.powername$#/powername# всегда наносит Критический удар и наделяет #powername#$powerreference2.powername$#/powername# магией #ice#Йотунхейм#/ice#. Урон #powerkeyword#Льда#/powerkeyword# удвоен от указанного."
+  },
   "10627991703866901829": {
-    "en_us": "#powername#$powername$#/powername# has a higher critical hit chance and rate of fire, but does not pierce enemies. #powerkeyword#Ice#/powerkeyword# Power Damage is double than stated."
-  }, 
+    "en_us": "#powername#$powername$#/powername# has a higher critical hit chance and rate of fire, but does not pierce enemies. #powerkeyword#Ice#/powerkeyword# Power Damage is double than stated.",
+    "ru_ru": "#powername#$powername$#/powername# имеет более высокий Шанс критического удара и скорость стрельбы, но не пробивает врагов. Урон #powerkeyword#Льда#/powerkeyword# удвоен от указанного."
+  },
   "5929681177243092296": {
-    "en_us": "#powername#$powername$#/powername# deals additional damage to #powermechanic#Burning#/powermechanic# enemies. #powerkeyword#Fire#/powerkeyword# Power Damage is double than stated."
-  }, 
+    "en_us": "#powername#$powername$#/powername# deals additional damage to #powermechanic#Burning#/powermechanic# enemies. #powerkeyword#Fire#/powerkeyword# Power Damage is double than stated.",
+    "ru_ru": "#powername#$powername$#/powername# наносит дополнительный урон врагам с #powermechanic#Горением#/powermechanic#. Урон #powerkeyword#Огня#/powerkeyword# удвоен относительно указанного."
+  },
   "11135341458808571210": {
-    "en_us": "#powername#$powername$#/powername# deals more damage over time, but has a reduced immobilize duration. #powerkeyword#Fire#/powerkeyword# Power Damage is double than stated."
-  }, 
+    "en_us": "#powername#$powername$#/powername# deals more damage over time, but has a reduced immobilize duration. #powerkeyword#Fire#/powerkeyword# Power Damage is double than stated.",
+    "ru_ru": "#powername#$powername$#/powername# наносит больше длительного урона, но длительность обездвиживания уменьшена. Урон #powerkeyword#Огня#/powerkeyword# удвоен относительно указанного."
+  },
   "10920074712929076551": {
-    "en_us": "#powername#$powername$#/powername# is a ranged attack, and its summoned Illusions fight with ranged staff blasts. #powerkeyword#Light#/powerkeyword# Power Damage is double than stated."
-  }, 
+    "en_us": "#powername#$powername$#/powername# is a ranged attack, and its summoned Illusions fight with ranged staff blasts. #powerkeyword#Light#/powerkeyword# Power Damage is double than stated.",
+    "ru_ru": "#powername#$powername$#/powername# — это дальняя атака, и её призванные Иллюзии сражаются с помощью дальних атак посоха. Урон #powerkeyword#Света#/powerkeyword# удвоен относительно указанного."
+  },
   "13366066447792407881": {
-    "en_us": "#powername#$powerreference1.powername$#/powername# makes enemies more vulnerable to Loki's Illusions, and enchants #powername#$powerreference2.powername$#/powername# with #light#Asgardian#/light# magic. #powerkeyword#Light#/powerkeyword# Power Damage is double than stated."
-  }, 
+    "en_us": "#powername#$powerreference1.powername$#/powername# makes enemies more vulnerable to Loki's Illusions, and enchants #powername#$powerreference2.powername$#/powername# with #light#Asgardian#/light# magic. #powerkeyword#Light#/powerkeyword# Power Damage is double than stated.",
+    "ru_ru": "#powername#$powerreference1.powername$#/powername# делает врагов более уязвимыми к Иллюзиям Локи и заколдовывает #powername#$powerreference2.powername$#/powername# магией #light#Асгардской#/light#. Урон #powerkeyword#Света#/powerkeyword# удвоен относительно указанного."
+  },
   "8196292988809315659": {
-    "en_us": "#powername#$powername$#/powername# does not relocate or cause the destruction of Illusions. #powerkeyword#Light#/powerkeyword# Power Damage is double than stated."
-  }, 
+    "en_us": "#powername#$powername$#/powername# does not relocate or cause the destruction of Illusions. #powerkeyword#Light#/powerkeyword# Power Damage is double than stated.",
+    "ru_ru": "#powername#$powername$#/powername# не перемещает и не разрушает Иллюзии. Урон #powerkeyword#Света#/powerkeyword# удвоен относительно указанного."
+  },
   "15345737747776668990": {
-    "en_us": "#powername#$powername$#/powername# does not confuse enemies, but the effect spreads when the target is defeated. #powerkeyword#Darkness#/powerkeyword# Power Damage is double than stated."
-  }, 
-  "4243680121483691287": {
-    "en_us": "#powername#$powername$#/powername# also creates one Illusion at your departure location. Creating an illusion in this manner can only be performed once every 2 seconds. Base Damage for #powerkeyword#Summon#/powerkeyword# Powers is double than stated."
+    "en_us": "#powername#$powername$#/powername# does not confuse enemies, but the effect spreads when the target is defeated. #powerkeyword#Darkness#/powerkeyword# Power Damage is double than stated.",
+    "ru_ru": "#powername#$powername$#/powername# не накладывает замешательство на врагов, но эффект распространяется при поражении цели. Урон #powerkeyword#Тьмы#/powerkeyword# удвоен относительно указанного."
   },
   "4243680121483691287": {
-    "en_us": "When they don't go down after the first salvo you unleash another before they can recover. Maximum ammo threshold effect is set to 50%, and base damage buff is set to +100%."
+    "en_us": "#powername#$powername$#/powername# also creates one Illusion at your departure location. Creating an illusion in this manner can only be performed once every 2 seconds. Base Damage for #powerkeyword#Summon#/powerkeyword# Powers is double than stated.",
+    "ru_ru": "#powername#$powername$#/powername# также создаёт одну Иллюзию в месте вашего ухода. Создание иллюзии таким образом может выполняться только раз каждые 2 сек. Базовый урон способностей #powerkeyword#Призыва#/powerkeyword# удвоен относительно указанного."
+  },
+  "8822984427111687": {
+    "en_us": "When they don't go down after the first salvo you unleash another before they can recover. Maximum ammo threshold effect is set to 50%, and base damage buff is set to +100%.",
+    "ru_ru": "Если враг ещё жив после первого залпа — тут же выпусти второй, пока он не опомнился. Порог срабатывания эффекта от максимального запаса патронов - 50%, а базовый урон увеличен на +100%."
   },
   "11660265554182800689": {
-    "en_us": "Toss a live grenade high above you before engaging your personal shield—leaving you safe and secure inside from the explosion overhead. Vulnerability effects apply double the damage stated."
+    "en_us": "Toss a live grenade high above you before engaging your personal shield—leaving you safe and secure inside from the explosion overhead. Vulnerability effects apply double the damage stated.",
+    "ru_ru": "Бросьте живую гранату высоко над собой, прежде чем активировать свой личный щит — оставляя вас в безопасности и защищённости от взрыва сверху. Эффекты уязвимости наносят удвоенный урон от указанного."
   },
   "4537406058608330001": {
-    "en_us": "Lob a fragmentation grenade towards your foes to catch them in a devastating explosion of shrapnel. Vulnerability effects apply double the damage stated."
+    "en_us": "Lob a fragmentation grenade towards your foes to catch them in a devastating explosion of shrapnel. Vulnerability effects apply double the damage stated.",
+    "ru_ru": "Метните осколочную гранату прямо во врага, чтобы накрыть всех в области поражения осколками шрапнели. Эффекты уязвимости наносят удвоенный урон от указанного."
   },
   "2516030411480040763": {
-    "en_us": "When you use a #powerkeyword#Pulsar#/powerkeyword# Power, fire a second #powermechanic#Pulsar#/powermechanic# of the same type at a nearby random location, which deals 65% less damage."
-  },  
+    "en_us": "When you use a #powerkeyword#Pulsar#/powerkeyword# Power, fire a second #powermechanic#Pulsar#/powermechanic# of the same type at a nearby random location, which deals 65% less damage.",
+    "ru_ru": "При использовании способности #powerkeyword#Пульсара#/powerkeyword#, выстреливает второй #powermechanic#Пульсар#/powermechanic# того же типа в ближайшую случайную зону, наносящий на 65% меньше урона."
+  },
   "9634322376792606013": {
-    "en_us": "Project a sphere of energy that damages enemies and heals you. Repeat uses of this power increase its effectiveness, while the cost remains the same."
+    "en_us": "Project a sphere of energy that damages enemies and heals you. Repeat uses of this power increase its effectiveness, while the cost remains the same.",
+    "ru_ru": "Создайте энергетическую сферу, которая нанесёт урон врагам и вылечит вас. Повторное применение этой способности увеличит её эффективность, при этом стоимость остаётся прежней."
   },
   "13458865499752695104": {
-    "en_us": "When you hit with a non-#powerkeyword#$ProcNotKeyword.Param2.PowerKeyword$#/powerkeyword# Power, you have a $ProcValuePercent$% chance to attach a #powername#$PowerReference0.PowerName$#/powername# to the target, which detonates after $condition0.ProcEffect.Lifespan$ for $EvalRegisterFloat0.pct.abs$% less damage (1s cooldown)"
+    "en_us": "When you hit with a non-#powerkeyword#$ProcNotKeyword.Param2.PowerKeyword$#/powerkeyword# Power, you have a $ProcValuePercent$% chance to attach a #powername#$PowerReference0.PowerName$#/powername# to the target, which detonates after $condition0.ProcEffect.Lifespan$ for $EvalRegisterFloat0.pct.abs$% less damage (1s cooldown)",
+    "ru_ru": "При попадании не-#powerkeyword#$ProcNotKeyword.Param2.PowerKeyword$#/powerkeyword# способностью, у вас есть $ProcValuePercent$% шанс прикрепить #powername#$PowerReference0.PowerName$#/powername# к цели, который взрывается через $condition0.ProcEffect.Lifespan$ на $EvalRegisterFloat0.pct.abs$% меньше урона (перезарядка 1 сек)"
   },
   "13892119827450103040": {
-    "en_us": "Charge up a high-energy slug and fire it at supersonic speeds, piercing through enemies. This gun's effect overclocks your weapon batteries for a short time, giving them an extra kick. Base damage is set to +25% for #powerkeyword#Gun#/powerkeyword# Powers."
+    "en_us": "Charge up a high-energy slug and fire it at supersonic speeds, piercing through enemies. This gun's effect overclocks your weapon batteries for a short time, giving them an extra kick. Base damage is set to +25% for #powerkeyword#Gun#/powerkeyword# Powers.",
+    "ru_ru": "Зарядите высокоэнергетический снаряд и выпустите его на сверхзвуковой скорости, пробивая врагов насквозь. Эффект этого оружия ненадолго разгоняет аккумуляторы, увеличивая их мощность. Базовый урон способностей #powerkeyword#Огнестрела#/powerkeyword# увеличен на +25%."
   },
   "6430778709572977939": {
-    "en_us": "Get the leg drop on enemies to soften them up, because winning battles and cases alike requires preparation. Vulnerability effects apply double the damage stated."
-  },  
+    "en_us": "Get the leg drop on enemies to soften them up, because winning battles and cases alike requires preparation. Vulnerability effects apply double the damage stated.",
+    "ru_ru": "Пните врага, чтобы сломить его защиту, потому что для побед как на поле боя, так и в суде, нужна подготовка. Эффекты уязвимости наносят удвоенный урон от указанного."
+  },
   "17143266068866663689": {
-    "en_us": "Reduce the cooldown of #powername#$powerreference0.powername$#/powername# and #powername#$powerreference1.powername$#/powername# by 1s when you hit with a #powerkeyword#Movement#/powerkeyword# Power. #powerkeyword#Movement#/powerkeyword# Powers gain +50% more damage. #powername#Electromagnetic Flux#/powername# cannot deal damage while this talent is selected."
+    "en_us": "Reduce the cooldown of #powername#$powerreference0.powername$#/powername# and #powername#$powerreference1.powername$#/powername# by 1s when you hit with a #powerkeyword#Movement#/powerkeyword# Power. #powerkeyword#Movement#/powerkeyword# Powers gain +50% more damage. #powername#Electromagnetic Flux#/powername# cannot deal damage while this talent is selected.",
+    "ru_ru": "Уменьшите перезарядку #powername#$powerreference0.powername$#/powername# и #powername#$powerreference1.powername$#/powername# на 1 сек, при попадании способностью #powerkeyword#Передвижения#/powerkeyword#. Способности #powerkeyword#Передвижения#/powerkeyword# наносят на 50% больше урона, но #powername#Электромагнитный поток#/powername# больше не наносит урон, пока выбран этот талант."
   },
   "10107956878923728146": {
-    "en_us": "Fill an area with sticky webbing that briefly #emphasis#slows#/emphasis# down enemies. Vulnerability effects apply double the damage stated."
-  }, 
+    "en_us": "Fill an area with sticky webbing that briefly #emphasis#slows#/emphasis# down enemies. Vulnerability effects apply double the damage stated.",
+    "ru_ru": "Заполните область липкой паутиной, которая на короткое время #emphasis#замедляет#/emphasis# врагов. Эффекты уязвимости наносят удвоенный урон от указанного."
+  },
   "7025069692230108464": {
-    "en_us": "Leap into the air, spinning a mighty ball of webbing, then smash it into your enemies to #emphasis#immobilize#/emphasis# them. This attack has +100% Critical Strike Chance."
+    "en_us": "Leap into the air, spinning a mighty ball of webbing, then smash it into your enemies to #emphasis#immobilize#/emphasis# them. This attack has +100% Critical Strike Chance.",
+    "ru_ru": "Подпрыгните, раскручивая мощный шар из паутины, и швырните его во врагов, чтобы #emphasis#обездвижить#/emphasis# их. У этой атаки +100% Шанс критического удара."
   },
   "9713135490522875187": {
-    "en_us": "Summon a powerful lightning strike that damages and #emphasis#stuns#/emphasis# enemies, then creates a lingering field of electricity which continues to damage enemies in its area. Vulnerability effects apply double the damage stated."
-  },    
+    "en_us": "Summon a powerful lightning strike that damages and #emphasis#stuns#/emphasis# enemies, then creates a lingering field of electricity which continues to damage enemies in its area. Vulnerability effects apply double the damage stated.",
+    "ru_ru": "Призовите мощную молнию, которая нанесёт врагам урон и #emphasis#оглушит#/emphasis# их, затем образует медленно рассеивающееся электрическое поле, которое продолжит наносить урон врагам в области действия. Эффекты уязвимости наносят удвоенный урон от указанного."
+  },
   "1484377596237317434": {
-    "en_us": "When you reach 100 $SecondaryManaBehaviorName$, it becomes $secondaryresourceoverride.manabehaviorname$. Critical damage boost is double than stated."
-  },    
+    "en_us": "When you reach 100 $SecondaryManaBehaviorName$, it becomes $secondaryresourceoverride.manabehaviorname$. Critical damage boost is double than stated.",
+    "ru_ru": "Когда вы достигнете 100 $SecondaryManaBehaviorName$, он становится $secondaryresourceoverride.manabehaviorname$. Критический урон удвоен от указанного."
+  },
   "11554315780512679223": {
-    "en_us": "Hurl Mjolnir with all your might, sending it careening through waves of enemies. #emphasis#Generates full Odinforce#/emphasis#."
-  },    
+    "en_us": "Hurl Mjolnir with all your might, sending it careening through waves of enemies. #emphasis#Generates full Odinforce#/emphasis#.",
+    "ru_ru": "Метнуть Мьельнир изо всех сил, проделав им широкую просеку в рядах врагов. #emphasis#Полностью восстанавливает Силу Одина#/emphasis#."
+  },
   "16255815848645297476": {
-    "en_us": "Swiftly ascend and then smash down into groups of enemies, #emphasis#knocking  down#/emphasis# and #emphasis#weakening#/emphasis# them. #emphasis#Generates full Odinforce#/emphasis#."
-  },   
+    "en_us": "Swiftly ascend and then smash down into groups of enemies, #emphasis#knocking  down#/emphasis# and #emphasis#weakening#/emphasis# them. #emphasis#Generates full Odinforce#/emphasis#.",
+    "ru_ru": "Быстро поднимитесь в воздух, а затем обрушьтесь на группу врагов, #emphasis#сбивая их с ног#/emphasis# и #emphasis#ослабляя#/emphasis# их. #emphasis#Полностью восстанавливает Силу Одина#/emphasis#."
+  },
   "17992484624890463508": {
-    "en_us": "Bring to bear the full power of your lightning and the unfathomable might of Mjolnir, #emphasis#knocking down#/emphasis# anything near you when you unleash your godly fury. This attack has +100% Critical Strike Chance."
+    "en_us": "Bring to bear the full power of your lightning and the unfathomable might of Mjolnir, #emphasis#knocking down#/emphasis# anything near you when you unleash your godly fury. This attack has +100% Critical Strike Chance.",
+    "ru_ru": "Обрушьте всю мощь своих молний и непостижимую силу Мьёльнира, #emphasis#сбивая врагов с ног#/emphasis# впав в по-настоящему божественную ярость. У этой атаки +100% Шанс критического удара."
   },
   "16448877441801848127": {
-    "en_us": "#powername#$powerreference0.powername$#/powername# launches two additional projectiles, and increases #powerkeyword#$DamageMultForPowerKeyword.param0.Keyword$#/powerkeyword# Power Damage by 20% for $Duration$."
+    "en_us": "#powername#$powerreference0.powername$#/powername# launches two additional projectiles, and increases #powerkeyword#$DamageMultForPowerKeyword.param0.Keyword$#/powerkeyword# Power Damage by 20% for $Duration$.",
+    "ru_ru": "#powername#$powerreference0.powername$#/powername# запускает два дополнительных снаряда и увеличивает #powerkeyword#$DamageMultForPowerKeyword.param0.Keyword$#/powerkeyword# урон на 20% на $Duration$"
   },
   "4027498375827162434": {
-    "en_us": "Reduces the cooldown of #emphasis#$powerreference1.PowerName$#/emphasis# and #emphasis#$powerreference2.PowerName$#/emphasis# by 4s."
-  },    
+    "en_us": "Reduces the cooldown of #emphasis#$powerreference1.PowerName$#/emphasis# and #emphasis#$powerreference2.PowerName$#/emphasis# by 4s.",
+    "ru_ru": "Снижает перезарядку #emphasis#$powerreference1.PowerName$#/emphasis# и #emphasis#$powerreference2.PowerName$#/emphasis# на 4 сек"
+  },
   "9979374521737872707": {
-    "en_us": "War Machine's weaponry can't be used while #heat#Overheated#/heat# but his #powerkeyword#Melee#/powerkeyword# Powers are greatly enhanced by +25% more damage. "
-  },  
+    "en_us": "War Machine's weaponry can't be used while #heat#Overheated#/heat# but his #powerkeyword#Melee#/powerkeyword# Powers are greatly enhanced by +25% more damage. ",
+    "ru_ru": "Оружие Военной Машины не может быть использовано, пока #heat#Перегрев#/heat#, но его #powerkeyword#Ближние#/powerkeyword# способности значительно усиливаются на 25% урона."
+  },
   "4193770226435622203": {
-    "en_us": "$primarymanabehaviorname1$ to Damage conversion rate +300%. "
-  },        
+    "en_us": "$primarymanabehaviorname1$ to Damage conversion rate +300%. ",
+    "ru_ru": "$primarymanabehaviorname1$ к коэффициенту преобразования урона увеличен на +300%."
+  },
   "2759352098490680645": {
-    "en_us": "Cooldown reduced by $actionsTriggeredOnPowerEvent.eventParam.abs$s."
+    "en_us": "Cooldown reduced by $actionsTriggeredOnPowerEvent.eventParam.abs$s.",
+    "ru_ru": "Перезарядка сокращается на $actionsTriggeredOnPowerEvent.eventParam.abs$ сек."
   },
   "7476905319785628944": {
-    "en_us": "(Current Bonus: $evalRegisterFloat1.pct$%)"
+    "en_us": "(Current Bonus: $evalRegisterFloat1.pct$%)",
+    "ru_ru": "(Текущий бонус: $evalRegisterFloat1.pct$%)"
   }
 }

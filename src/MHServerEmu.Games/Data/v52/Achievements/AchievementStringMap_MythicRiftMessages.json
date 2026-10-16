@@ -1,125 +1,166 @@
 {
   "18000000000000030001": {
-    "en_us": "RIFT CLEARED"
+    "en_us": "RIFT CLEARED",
+    "ru_ru": "РАЗЛОМ ПРОЙДЕН"
   },
   "18000000000000030002": {
-    "en_us": "RIFT CLEARED"
+    "en_us": "RIFT CLEARED",
+    "ru_ru": "РАЗЛОМ ПРОЙДЕН"
   },
   "18000000000000030003": {
-    "en_us": "RIFT CLEARED"
+    "en_us": "RIFT CLEARED",
+    "ru_ru": "РАЗЛОМ ПРОЙДЕН"
   },
   "18000000000000030004": {
-    "en_us": "RIFT CLEARED"
+    "en_us": "RIFT CLEARED",
+    "ru_ru": "РАЗЛОМ ПРОЙДЕН"
   },
   "18000000000000030005": {
-    "en_us": "RIFT CLEARED"
+    "en_us": "RIFT CLEARED",
+    "ru_ru": "РАЗЛОМ ПРОЙДЕН"
   },
   "18000000000000030006": {
-    "en_us": "RIFT CLEARED"
+    "en_us": "RIFT CLEARED",
+    "ru_ru": "РАЗЛОМ ПРОЙДЕН"
   },
   "18000000000000030007": {
-    "en_us": "RIFT CLEARED"
+    "en_us": "RIFT CLEARED",
+    "ru_ru": "РАЗЛОМ ПРОЙДЕН"
   },
   "18000000000000030008": {
-    "en_us": "RIFT CLEARED"
+    "en_us": "RIFT CLEARED",
+    "ru_ru": "РАЗЛОМ ПРОЙДЕН"
   },
   "18000000000000030009": {
-    "en_us": "RIFT CLEARED"
+    "en_us": "RIFT CLEARED",
+    "ru_ru": "РАЗЛОМ ПРОЙДЕН"
   },
   "18000000000000030010": {
-    "en_us": "RIFT CLEARED"
+    "en_us": "RIFT CLEARED",
+    "ru_ru": "РАЗЛОМ ПРОЙДЕН"
   },
   "18000000000000030011": {
-    "en_us": "RIFT CLEARED"
+    "en_us": "RIFT CLEARED",
+    "ru_ru": "РАЗЛОМ ПРОЙДЕН"
   },
   "18000000000000030012": {
-    "en_us": "RIFT CLEARED"
+    "en_us": "RIFT CLEARED",
+    "ru_ru": "РАЗЛОМ ПРОЙДЕН"
   },
   "18000000000000030013": {
-    "en_us": "RIFT CLEARED"
+    "en_us": "RIFT CLEARED",
+    "ru_ru": "РАЗЛОМ ПРОЙДЕН"
   },
   "18000000000000030014": {
-    "en_us": "RIFT CLEARED"
+    "en_us": "RIFT CLEARED",
+    "ru_ru": "РАЗЛОМ ПРОЙДЕН"
   },
   "18000000000000030015": {
-    "en_us": "RIFT CLEARED"
+    "en_us": "RIFT CLEARED",
+    "ru_ru": "РАЗЛОМ ПРОЙДЕН"
   },
   "18000000000000030016": {
-    "en_us": "RIFT CLEARED"
+    "en_us": "RIFT CLEARED",
+    "ru_ru": "РАЗЛОМ ПРОЙДЕН"
   },
   "18000000000000030017": {
-    "en_us": "RIFT CLEARED"
+    "en_us": "RIFT CLEARED",
+    "ru_ru": "РАЗЛОМ ПРОЙДЕН"
   },
   "18000000000000030018": {
-    "en_us": "RIFT CLEARED"
+    "en_us": "RIFT CLEARED",
+    "ru_ru": "РАЗЛОМ ПРОЙДЕН"
   },
   "18000000000000030019": {
-    "en_us": "RIFT CLEARED"
+    "en_us": "RIFT CLEARED",
+    "ru_ru": "РАЗЛОМ ПРОЙДЕН"
   },
   "18000000000000030020": {
-    "en_us": "RIFT CLEARED"
+    "en_us": "RIFT CLEARED",
+    "ru_ru": "РАЗЛОМ ПРОЙДЕН"
   },
   "18000000000000040001": {
-    "en_us": "Rift Ready Check"
+    "en_us": "Rift Ready Check",
+    "ru_ru": "Готовность к разлому"
   },
   "18000000000000040002": {
-    "en_us": "Rift Modifiers Active"
+    "en_us": "Rift Modifiers Active",
+    "ru_ru": "Модификаторы разлома активны"
   },
   "18000000000000040003": {
-    "en_us": "Boss Modifiers Active"
+    "en_us": "Boss Modifiers Active",
+    "ru_ru": "Модификаторы босса активны"
   },
   "18000000000000040004": {
-    "en_us": "Boss Wave Active"
+    "en_us": "Boss Wave Active",
+    "ru_ru": "Волна босса активна"
   },
   "18000000000000040005": {
-    "en_us": "Rift Hazards Active"
+    "en_us": "Rift Hazards Active",
+    "ru_ru": "Угрозы разлома активны"
   },
   "18000000000000040006": {
-    "en_us": "The next Rift wave is ready. Start now?"
+    "en_us": "The next Rift wave is ready. Start now?",
+    "ru_ru": "Следующая волна разлома готова. Начать сейчас?"
   },
   "18000000000000040007": {
-    "en_us": "Ready"
+    "en_us": "Ready",
+    "ru_ru": "Готов"
   },
   "18000000000000040008": {
-    "en_us": "Wait"
+    "en_us": "Wait",
+    "ru_ru": "Ожидание"
   },
   "18000000000000040009": {
-    "en_us": "Rift modifiers are active. Details were sent to chat."
+    "en_us": "Rift modifiers are active. Details were sent to chat.",
+    "ru_ru": "Модификаторы разлома активны. Подробности отправлены в чат."
   },
   "18000000000000040010": {
-    "en_us": "Modifiers"
+    "en_us": "Modifiers",
+    "ru_ru": "Модификаторы"
   },
   "18000000000000040011": {
-    "en_us": "Reward tier rises with Rift level"
+    "en_us": "Reward tier rises with Rift level",
+    "ru_ru": "Ранг наград растёт с уровнем разлома"
   },
   "18000000000000040012": {
-    "en_us": "Reward milestones advance each wave"
+    "en_us": "Reward milestones advance each wave",
+    "ru_ru": "Этапы наград продвигаются с каждой волной"
   },
   "18000000000000040013": {
-    "en_us": "Rewards bank until the gauntlet ends"
+    "en_us": "Rewards bank until the gauntlet ends",
+    "ru_ru": "Награды копятся до окончания испытания"
   },
   "18000000000000040014": {
-    "en_us": "The run has ended. Travel to the reward room to collect your loot."
+    "en_us": "The run has ended. Travel to the reward room to collect your loot.",
+    "ru_ru": "Забег завершён. Отправляйтесь в комнату наград, чтобы забрать добычу."
   },
   "18000000000000040015": {
-    "en_us": "Travel to Rift Reward"
+    "en_us": "Travel to Rift Reward",
+    "ru_ru": "Перейти к награде разлома"
   },
   "18000000000000040016": {
-    "en_us": "Omega Training Reward Room"
+    "en_us": "Omega Training Reward Room",
+    "ru_ru": "Комната наград Омега испытания"
   },
   "18000000000000040017": {
-    "en_us": "Infinite Rift Reward Room"
+    "en_us": "Infinite Rift Reward Room",
+    "ru_ru": "Комната наград Бесконечного разлома"
   },
   "18000000000000040200": {
-    "en_us": "Travel to the Omega Trial?"
+    "en_us": "Travel to the Omega Trial?",
+    "ru_ru": "Перейти к Омега испытанию?"
   },
   "18000000000000040201": {
-    "en_us": "Omega Trial"
+    "en_us": "Omega Trial",
+    "ru_ru": "Омега испытание"
   },
   "18000000000000040202": {
-    "en_us": "Defeat Loki"
+    "en_us": "Defeat Loki",
+    "ru_ru": "Победите Локи"
   },
   "18000000000000040203": {
-    "en_us": "Defeat Surtur"
+    "en_us": "Defeat Surtur",
+    "ru_ru": "Победите Суртура"
   }
 }
