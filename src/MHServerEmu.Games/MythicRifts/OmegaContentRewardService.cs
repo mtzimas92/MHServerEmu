@@ -145,7 +145,7 @@ namespace MHServerEmu.Games.MythicRifts
                         continue;
                 }
 
-                if (GiveStackedItem(player, itemRef, quantity, reward.ItemLevel, rewardSource) == false)
+                if (GiveStackedItem(player, itemRef, reward.ItemRarityPrototypeRef, quantity, reward.ItemLevel, rewardSource) == false)
                 {
                     Logger.Warn($"Failed to deliver Omega content reward: playerDbId=0x{player.DatabaseUniqueId:X} activity={activity.Id} reward={reward.Id} item={itemRef.GetNameFormatted()} quantity={quantity} itemLevel={reward.ItemLevel}");
                     continue;
@@ -160,7 +160,7 @@ namespace MHServerEmu.Games.MythicRifts
             }
         }
 
-        private static bool GiveStackedItem(Player player, PrototypeId itemRef, int quantity, int itemLevel, WorldEntity rewardSource)
+        private static bool GiveStackedItem(Player player, PrototypeId itemRef, PrototypeId rarityRef, int quantity, int itemLevel, WorldEntity rewardSource)
         {
             ItemPrototype itemProto = GameDatabase.GetPrototype<ItemPrototype>(itemRef);
             if (itemProto == null)
@@ -171,8 +171,8 @@ namespace MHServerEmu.Games.MythicRifts
             int remaining = quantity;
             while (remaining > 0)
             {
-                ItemSpec itemSpec = OmegaTierItemFactory.ShouldUseFactory(itemRef, PrototypeId.Invalid)
-                    ? OmegaTierItemFactory.CreateItemSpec(player.Game, itemRef, PrototypeId.Invalid, LootContext.Drop, player, itemLevel)
+                ItemSpec itemSpec = OmegaTierItemFactory.ShouldUseFactory(itemRef, rarityRef)
+                    ? OmegaTierItemFactory.CreateItemSpec(player.Game, itemRef, rarityRef, LootContext.Drop, player, itemLevel)
                     : player.Game.LootManager.CreateItemSpec(itemRef, LootContext.Drop, player, itemLevel);
                 if (itemSpec == null)
                     return false;

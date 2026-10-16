@@ -1,0 +1,67 @@
+[
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Medals/MedalBlueprints/Endgame/WarSkrullEGM.prototype",
+    "Path": "PropertiesBuiltIn[]",
+    "Description": "Add a hidden OnAnyHit runtime copy of the Energy proc while preserving the native OnPowerHit property and its client tooltip row.",
+    "ValueType": "Prototype",
+    "Value": {
+      "ParentDataRef": "Property/PropertyPickInRangeEntry.defaults",
+      "Prop": {
+        "Property": "ProcKeyword",
+        "Params": [
+          1,
+          "Powers/ItemPowers/MedalPowers/WarSkrullPhysicalDamageProc.prototype",
+          "Powers/Blueprints/Keywords/Energy.defaults"
+        ]
+      },
+      "ValueMin": {
+        "ParentDataRef": "Eval/Constants/LoadFloat.defaults",
+        "Op": "LoadFloat",
+        "Value": 1.0
+      },
+      "ValueMax": {
+        "ParentDataRef": "Eval/Constants/LoadFloat.defaults",
+        "Op": "LoadFloat",
+        "Value": 1.0
+      }
+    }
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/ItemPowers/MedalPowers/WarSkrullPhysicalDamageProc.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[0].Prop",
+    "Description": "Make the Energy-hit proc grant displayed Physical Damage Rating, mirroring the native Physical-hit to Ranged Damage Rating effect.",
+    "ValueType": "PropertyId",
+    "Value": {
+      "Property": "DamageRatingBonusByType",
+      "Params": [
+        0
+      ]
+    }
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/ItemPowers/MedalPowers/WarSkrullPhysicalDamageProc.prototype",
+    "Path": "ActionsTriggeredOnPowerEvent[0].EvalEventTriggerChance.Conditional.Keyword",
+    "Description": "Require the Ranged Damage effect to be active before the Energy-hit effect grants the combined +2 Fighting bonus.",
+    "ValueType": "PrototypeId",
+    "Value": "Powers/Blueprints/Keywords/InfernalWarSkrullRangedProc.defaults"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/ItemPowers/MedalPowers/InfernalWarSkrullRangedProc.prototype",
+    "Path": "ActionsTriggeredOnPowerEvent[0].EvalEventTriggerChance.Conditional.Keyword",
+    "Description": "Require the Physical Damage effect to be active before the Physical-hit effect grants the combined +2 Fighting bonus.",
+    "ValueType": "PrototypeId",
+    "Value": "Powers/Blueprints/Keywords/WarSkrullPhysicalDamageProc.defaults"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/ItemPowers/MedalPowers/InfernalWarSkrullRangedProc.prototype",
+    "Path": "ActionsTriggeredOnPowerEvent[0].Power",
+    "Description": "Replace the inherited Infernal War Skrull +2 Intelligence follow-up with the War Skrull medallion's intended +2 Fighting effect.",
+    "ValueType": "PrototypeId",
+    "Value": "Powers/ItemPowers/MedalPowers/WarSkrullEGMFightingProc.prototype"
+  }
+]

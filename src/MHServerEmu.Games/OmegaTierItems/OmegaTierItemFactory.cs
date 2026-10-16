@@ -480,17 +480,33 @@ namespace MHServerEmu.Games.OmegaTierItems
                 omegaFilterArgs,
                 filterArgs.ItemProto,
                 filterArgs.RollFor,
-                filterArgs.Level,
+                itemSpec.ItemLevel,
                 omegaRarityRef,
                 filterArgs.Rank,
                 filterArgs.Slot,
                 filterArgs.LootContext);
 
-            List<AffixSpec> rebuiltAffixes = itemSpec.AffixSpecs
-                .Where(spec => spec?.AffixProto?.Position == AffixPosition.Ultimate)
-                .ToList();
-            if (rebuiltAffixes.Count == 0)
+            ItemSpec omegaImplicitSpec = new(
+                itemSpec.ItemProtoRef,
+                omegaRarityRef,
+                itemSpec.ItemLevel,
+                affixSpecs: Array.Empty<AffixSpec>(),
+                seed: resolver.Random.Next(1, int.MaxValue));
+            MutationResults omegaImplicitResult = LootUtilities.UpdateAffixes(
+                resolver,
+                omegaFilterArgs,
+                AffixCountBehavior.Roll,
+                omegaImplicitSpec,
+                null);
+            if (omegaImplicitResult.HasFlag(MutationResults.Error))
                 return;
+
+            AffixSpec omegaImplicitAffix = omegaImplicitSpec.AffixSpecs
+                .FirstOrDefault(spec => spec?.AffixProto?.Position == AffixPosition.Ultimate);
+            if (omegaImplicitAffix == null)
+                return;
+
+            List<AffixSpec> rebuiltAffixes = [new(omegaImplicitAffix)];
 
             for (int i = 0; i < 2; i++)
             {

@@ -80,12 +80,14 @@ namespace MHServerEmu.Games.MythicRifts
         public bool Enabled { get; set; } = true;
         public string ItemPrototype { get; set; }
         public ulong ItemPrototypeRuntimeId { get; set; }
+        public string ItemRarityPrototype { get; set; }
         public int Quantity { get; set; } = 1;
         public float ChancePercent { get; set; } = 100f;
         public string Period { get; set; }
         public int PeriodLimit { get; set; }
         public int ItemLevel { get; set; } = 1;
         [JsonIgnore] public PrototypeId ItemPrototypeRef { get; private set; }
+        [JsonIgnore] public PrototypeId ItemRarityPrototypeRef { get; private set; }
 
         public void Normalize(string activityId)
         {
@@ -95,6 +97,10 @@ namespace MHServerEmu.Games.MythicRifts
                 : string.IsNullOrWhiteSpace(ItemPrototype)
                     ? PrototypeId.Invalid
                     : GameDatabase.GetPrototypeRefByName(ItemPrototype);
+            ItemRarityPrototype = ItemRarityPrototype?.Trim();
+            ItemRarityPrototypeRef = string.IsNullOrWhiteSpace(ItemRarityPrototype)
+                ? PrototypeId.Invalid
+                : GameDatabase.GetPrototypeRefByName(ItemRarityPrototype);
             Id = string.IsNullOrWhiteSpace(Id) ? $"{activityId}:{ItemPrototypeRuntimeId}:{ItemPrototype}" : Id.Trim();
             Quantity = Math.Max(Quantity, 0);
             ChancePercent = Math.Clamp(ChancePercent, 0f, 100f);

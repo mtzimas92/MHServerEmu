@@ -1102,6 +1102,18 @@ namespace MHServerEmu.Games.MythicRifts
                 : null;
         }
 
+        public bool ShouldBlockBossGauntletBodyslide(Player player)
+        {
+            Region region = player?.GetRegion();
+            if (region == null ||
+                _runByRegionId.TryGetValue(region.Id, out MythicRiftRunState runState) == false)
+            {
+                return false;
+            }
+
+            return runState.IsInProgress && runState.Config?.UseBossGauntletMode == true;
+        }
+
         public bool CanLaunchFromCompletedRiftRegion(Player player)
         {
             if (player == null || player.DatabaseUniqueId == 0)
@@ -1708,10 +1720,16 @@ namespace MHServerEmu.Games.MythicRifts
                 return false;
 
             if (runState.IsRewardEligible(player.DatabaseUniqueId) == false)
+            {
+                TraceBossGauntletParticipation(runState, "reward-skipped-not-eligible", player.DatabaseUniqueId);
                 return false;
+            }
 
             if (runState.HasRewardForPlayer(player.DatabaseUniqueId))
+            {
+                TraceBossGauntletParticipation(runState, "reward-skipped-already-granted", player.DatabaseUniqueId);
                 return false;
+            }
 
             MythicRiftRewardOutcome rewardOutcome = runState.RewardOutcome ?? ResolveRewardOutcome(runState);
             if (rewardOutcome == null || rewardOutcome.HasAnyLoot == false)
@@ -1878,6 +1896,7 @@ namespace MHServerEmu.Games.MythicRifts
                 }
 
                 runState.MarkRewardGrantedToPlayer(player.DatabaseUniqueId);
+                TraceBossGauntletParticipation(runState, "reward-granted", player.DatabaseUniqueId);
                 return true;
             }
             finally
@@ -2650,12 +2669,22 @@ namespace MHServerEmu.Games.MythicRifts
             if (player == null)
                 return false;
 
-            MythicRiftRunState runState = GetInProgressRunForPlayer(player.DatabaseUniqueId);
-            if (runState == null || runState.Status != MythicRiftRunStatus.Active || runState.RegionId == 0)
+            if (_runByPlayerDbId.TryGetValue(player.DatabaseUniqueId, out MythicRiftRunState runState) == false ||
+                runState?.Config == null ||
+                runState.RegionId == 0)
                 return false;
 
             Region region = avatar.Region;
             if (region == null || region.Id != runState.RegionId)
+                return false;
+
+            // The avatar has already been resurrected by Avatar.DoDeathRelease(). Once the shared
+            // Boss Gauntlet death limit ends the run, consume the release here so the native
+            // checkpoint path cannot move this player out before failure rewards are finalized.
+            if (runState.Config.UseBossGauntletMode && runState.Status == MythicRiftRunStatus.Failed)
+                return true;
+
+            if (runState.Status != MythicRiftRunStatus.Active)
                 return false;
 
             RegionConnectionTargetPrototype startTargetProto = runState.Config.StartTargetProtoRef.As<RegionConnectionTargetPrototype>();
@@ -2720,6 +2749,7 @@ namespace MHServerEmu.Games.MythicRifts
 
         public void Update(TimeSpan currentTime)
         {
+            MythicRiftPartyTeleportQueue.Process(Game);
 
             List<ulong> runsToRemove = null;
 
@@ -3032,7 +3062,7 @@ namespace MHServerEmu.Games.MythicRifts
                 return null;
             }
 
-            HashSet<ulong> launchRoster = BuildEligibleLaunchRoster(player, party);
+            HashSet<ulong> launchRoster = BuildEligibleLaunchRoster(player, party, mode);
             if (CanAccessRiftLevel(player.DatabaseUniqueId, riftLevel, mode) == false)
             {
                 int unlockedLevel = GetHighestUnlockedRiftLevel(player.DatabaseUniqueId, mode);
@@ -3065,6 +3095,7 @@ namespace MHServerEmu.Games.MythicRifts
             }
 
             RegisterInitialParticipants(runState, launchRoster);
+            TraceBossGauntletParticipation(runState, "launch-roster");
             if (useRandomContent)
                 TrackRecentlySelectedMapContent(runState);
             TrackRecentlySelectedBossFamilies(runState);
@@ -4997,7 +5028,10 @@ namespace MHServerEmu.Games.MythicRifts
                 if (runState.IsParticipant(player.DatabaseUniqueId) == false)
                 {
                     if (runState.AdmissionFinalized)
+                    {
+                        TraceBossGauntletParticipation(runState, "late-region-player-rejected", player.DatabaseUniqueId);
                         continue;
+                    }
 
                     newlyRegistered = RegisterRunParticipant(runState, player.DatabaseUniqueId, runState.Config.WaveNumber);
                 }
@@ -5041,7 +5075,7 @@ namespace MHServerEmu.Games.MythicRifts
                 showImmediately: true);
         }
 
-        private HashSet<ulong> BuildEligibleLaunchRoster(Player requester, Party party)
+        private HashSet<ulong> BuildEligibleLaunchRoster(Player requester, Party party, MythicRiftMode mode)
         {
             HashSet<ulong> launchRoster = new();
             if (requester?.DatabaseUniqueId == 0)
@@ -5061,8 +5095,22 @@ namespace MHServerEmu.Games.MythicRifts
                 if (memberDbId == 0 || memberDbId == requester.DatabaseUniqueId)
                     continue;
 
+                // Party members commonly occupy separate private games before launch. Boss
+                // Gauntlet admits the complete online party and moves remote members through the
+                // normal teleport-to-party-member path after the leader starts transferring.
+                if (mode == MythicRiftMode.BossGauntlet)
+                {
+                    if (Game.GameManager.TryGetGameForPlayerDbId(memberDbId, out _))
+                        launchRoster.Add(memberDbId);
+
+                    continue;
+                }
+
                 Player member = Game.EntityManager.GetEntityByDbGuid<Player>(memberDbId);
-                if (member?.GetRegion()?.Id == requesterRegion.Id)
+                if (member == null)
+                    continue;
+
+                if (member.GetRegion()?.Id == requesterRegion.Id)
                     launchRoster.Add(memberDbId);
             }
 
@@ -7974,7 +8022,10 @@ namespace MHServerEmu.Games.MythicRifts
                 return false;
 
             CaptureSuccessfulCompletionEligibility(runState);
-            runState.SnapshotRewardEligiblePlayers(GetCurrentRunRegionPlayerDbIds(runState));
+            List<ulong> currentRegionPlayerDbIds = GetCurrentRunRegionPlayerDbIds(runState).ToList();
+            TraceBossGauntletParticipation(runState, "completion-before-reward-snapshot", currentRegionPlayerDbIds: currentRegionPlayerDbIds);
+            runState.SnapshotRewardEligiblePlayers(currentRegionPlayerDbIds);
+            TraceBossGauntletParticipation(runState, "completion-after-reward-snapshot", currentRegionPlayerDbIds: currentRegionPlayerDbIds);
             runState.MarkSuccess(currentTime);
             if (runState.Status != MythicRiftRunStatus.Success)
                 return false;
@@ -8016,7 +8067,10 @@ namespace MHServerEmu.Games.MythicRifts
             if (runState == null)
                 return false;
 
-            runState.SnapshotRewardEligiblePlayers(GetCurrentRunRegionPlayerDbIds(runState));
+            List<ulong> currentRegionPlayerDbIds = GetCurrentRunRegionPlayerDbIds(runState).ToList();
+            TraceBossGauntletParticipation(runState, "failure-before-reward-snapshot", currentRegionPlayerDbIds: currentRegionPlayerDbIds);
+            runState.SnapshotRewardEligiblePlayers(currentRegionPlayerDbIds);
+            TraceBossGauntletParticipation(runState, "failure-after-reward-snapshot", currentRegionPlayerDbIds: currentRegionPlayerDbIds);
             runState.MarkFailed(currentTime);
             if (runState.Status != MythicRiftRunStatus.Failed)
                 return false;
@@ -9233,6 +9287,39 @@ namespace MHServerEmu.Games.MythicRifts
                 .Select(prototypeRef => prototypeRef.GetNameFormatted())
                 .ToList();
             return names.Count > 0 ? string.Join(", ", names) : "none";
+        }
+
+        private void TraceBossGauntletParticipation(
+            MythicRiftRunState runState,
+            string stage,
+            ulong focusPlayerDbId = 0,
+            IEnumerable<ulong> currentRegionPlayerDbIds = null)
+        {
+            if (runState?.Config?.UseBossGauntletMode != true)
+                return;
+
+            IEnumerable<ulong> currentPlayers = currentRegionPlayerDbIds;
+            if (currentPlayers == null)
+                currentPlayers = GetCurrentRunRegionPlayerDbIds(runState);
+
+            Logger.Info(
+                $"[BossGauntletParticipationTrace] stage={stage} runId={runState.Config.RunId} " +
+                $"wave={runState.Config.WaveNumber} status={runState.Status} admissionFinalized={runState.AdmissionFinalized} " +
+                $"focusPlayerDbId=0x{focusPlayerDbId:X} participants=[{FormatPlayerDbIds(runState.ParticipantPlayerDbIds)}] " +
+                $"admitted=[{FormatPlayerDbIds(runState.AdmittedPlayerDbIds)}] " +
+                $"seen=[{FormatPlayerDbIds(runState.ParticipantsSeenInRunRegionPlayerDbIds)}] " +
+                $"currentRegion=[{FormatPlayerDbIds(currentPlayers)}] " +
+                $"rewardEligible=[{FormatPlayerDbIds(runState.RewardEligiblePlayerDbIds)}] " +
+                $"rewarded=[{FormatPlayerDbIds(runState.RewardedPlayerDbIds)}]");
+        }
+
+        private static string FormatPlayerDbIds(IEnumerable<ulong> playerDbIds)
+        {
+            if (playerDbIds == null)
+                return "none";
+
+            List<ulong> ids = playerDbIds.Where(id => id != 0).Distinct().OrderBy(id => id).ToList();
+            return ids.Count == 0 ? "none" : string.Join(",", ids.Select(id => $"0x{id:X}"));
         }
 
         private void SendMessageToRunPlayers(MythicRiftRunState runState, Google.ProtocolBuffers.IMessage message)
