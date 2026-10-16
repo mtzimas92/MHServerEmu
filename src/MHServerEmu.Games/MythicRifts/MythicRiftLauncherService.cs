@@ -946,7 +946,16 @@ namespace MHServerEmu.Games.MythicRifts
                 Player member = Game.EntityManager.GetEntityByDbGuid<Player>(memberDbId);
                 if (member == null)
                 {
-                    runState.RemoveParticipantBeforeAdmission(memberDbId);
+                    if (Game.GameManager.TryGetGameForPlayerDbId(memberDbId, out _))
+                    {
+                        MythicRiftPartyTeleportQueue.Enqueue(memberDbId, leader.DatabaseUniqueId);
+                        runState.MarkParticipantAdmitted(memberDbId);
+                    }
+                    else
+                    {
+                        runState.RemoveParticipantBeforeAdmission(memberDbId);
+                    }
+
                     continue;
                 }
 

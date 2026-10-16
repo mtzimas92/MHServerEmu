@@ -797,6 +797,12 @@ namespace MHServerEmu.Games.Entities.Avatars
             RegionPrototype regionProto = region.Prototype;
             if (!Verify.IsNotNull(regionProto)) return false;
 
+            if (Game.MythicRiftManager.ShouldBlockBossGauntletBodyslide(player))
+            {
+                player.SendBannerMessage(GameDatabase.UIGlobalsPrototype.MessageRegionRestricted);
+                return false;
+            }
+
             if (regionProto.Behavior != RegionBehavior.Town)    // -> To Town
             {
                 if (regionProto.BodySliderOneWay == false)

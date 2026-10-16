@@ -339,7 +339,10 @@ namespace MHServerEmu.Games.Entities
 
             TransitionDestination destination = _destinationList[0];
             Region destinationRegion = Game.RegionManager.GetRegion(destination.RegionId);
-            if (RiftAccessTeleportService.CanEnterOmegaPatrol(player, destinationRegion) == false)
+            bool canEnterDestination = destinationRegion != null
+                ? RiftAccessTeleportService.CanEnterOmegaPatrol(player, destinationRegion)
+                : RiftAccessTeleportService.CanEnterOmegaPatrol(player, destination.RegionRef, Region?.DifficultyTierRef ?? PrototypeId.Invalid);
+            if (canEnterDestination == false)
             {
                 player.SendBannerMessage(GameDatabase.UIGlobalsPrototype.MessageRegionRestricted);
                 return false;

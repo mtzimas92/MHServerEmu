@@ -1551,11 +1551,11 @@
       "vendor": "omegaRaid",
       "id": "omega-raid-nans-cane",
       "displayName": "Nan's Cane",
-      "description": "Omega Raid Vendor support unique slot 4 offer based on Aunt May's Cane.",
+      "description": "Omega Raid Vendor support unique slot 3 offer based on Unique400.",
       "enabled": true,
       "sigilCost": 500,
       "itemPrototypePaths": [
-        "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot4/Unique191.prototype"
+        "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot3/Unique400.prototype"
       ],
       "itemRarityPrototype": "Entity/Items/Rarity/R6Unique.prototype",
       "itemRolls": 1,

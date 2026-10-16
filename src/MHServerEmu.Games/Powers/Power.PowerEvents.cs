@@ -24,6 +24,8 @@ namespace MHServerEmu.Games.Powers
 {
     public partial class Power
     {
+        private static readonly Logger Logger = LogManager.CreateLogger();
+
         #region Event Handlers
 
         // Please keep these sorted by PowerEventType enum value
@@ -393,7 +395,20 @@ namespace MHServerEmu.Games.Powers
 
                 // Run trigger chance check
                 float eventTriggerChance = triggeredPowerEvent.GetEventTriggerChance(Properties, Owner, target);
-                if (random.NextFloat() >= eventTriggerChance)
+                float eventTriggerRoll = random.NextFloat();
+                string sourcePowerName = PrototypeDataRef.GetName();
+                string triggeredPowerName = triggeredPowerEvent.Power.GetName();
+                if (sourcePowerName.Contains("WarSkrull", StringComparison.OrdinalIgnoreCase)
+                    || triggeredPowerName.Contains("WarSkrull", StringComparison.OrdinalIgnoreCase))
+                {
+                    Logger.Info(
+                        $"[WarSkrullMedallionTrace] stage=event-roll owner={Owner} " +
+                        $"sourcePower={sourcePowerName} event={eventType} triggeredPower={triggeredPowerName} " +
+                        $"chance={eventTriggerChance:F4} roll={eventTriggerRoll:F4} " +
+                        $"passed={eventTriggerRoll < eventTriggerChance}");
+                }
+
+                if (eventTriggerRoll >= eventTriggerChance)
                     continue;
 
                 // Run param comparison if needed

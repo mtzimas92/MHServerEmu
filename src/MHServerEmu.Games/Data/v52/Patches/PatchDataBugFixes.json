@@ -198,5 +198,13 @@
             "Value": 1500,
 			"Op": "LoadFloat"
         }
+    },
+	{
+        "Enabled": true,
+        "Prototype": "Powers/Player/ScarletWitch/Rework/HexSphereSummonBox.prototype",
+        "Path": "SummonEntityContexts[0].EvalOnSummon[0].Eval.Value",
+        "Description": "Change HexSphereSummonBox alliance to Vacuumables",
+        "ValueType": "PrototypeId",
+        "Value": 8872392721780117362
     }
 ]

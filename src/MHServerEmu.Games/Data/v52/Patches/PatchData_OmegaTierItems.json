@@ -185,5 +185,41 @@
       "Entity/Items/Rarity/R5Cosmic.prototype",
       "Entity/Items/Rarity/R6Omega.prototype"
     ]
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/ItemPowers/UniquesPowers/Unique400HealthOnHitCondition.prototype",
+    "Path": "EvalOnCreate",
+    "Description": "Retain Unique400's native client-visible final proc row as the Ultimate-heal tooltip carrier without also granting its old hidden health-on-hit proc.",
+    "ValueType": "PrototypeArray",
+    "Value": []
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot3/Unique400.prototype",
+    "Path": "PropertiesBuiltIn[]",
+    "Description": "Nan's Cane: append a guaranteed Ultimate-use proc that activates Unique435's health restoration power.",
+    "ValueType": "Prototype",
+    "Value": {
+      "ParentDataRef": "Property/PropertyPickInRangeEntry.defaults",
+      "Prop": {
+        "Property": "ProcKeyword",
+        "Params": [
+          61,
+          "Powers/ItemPowers/UniquesPowers/Unique435HealthOnUlt.prototype",
+          "Powers/Blueprints/Keywords/Ultimate.defaults"
+        ]
+      },
+      "ValueMin": {
+        "ParentDataRef": "Eval/Constants/LoadFloat.defaults",
+        "Op": "LoadFloat",
+        "Value": 1.0
+      },
+      "ValueMax": {
+        "ParentDataRef": "Eval/Constants/LoadFloat.defaults",
+        "Op": "LoadFloat",
+        "Value": 1.0
+      }
+    }
   }
 ]

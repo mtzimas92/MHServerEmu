@@ -17,9 +17,10 @@
           "periodLimit": 300
         },
         {
-          "id": "omega-muspelheim-unique238",
+          "id": "omega-muspelheim-unique304",
           "enabled": true,
-          "itemPrototype": "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot5/Unique238.prototype",
+          "itemPrototype": "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot5/Unique304.prototype",
+          "itemRarityPrototype": "Entity/Items/Rarity/R6Unique.prototype",
           "quantity": 1,
           "chancePercent": 2,
           "itemLevel": 69
@@ -28,6 +29,7 @@
           "id": "omega-muspelheim-unique298",
           "enabled": true,
           "itemPrototype": "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot4/Unique298.prototype",
+          "itemRarityPrototype": "Entity/Items/Rarity/R6Unique.prototype",
           "quantity": 1,
           "chancePercent": 2,
           "itemLevel": 69
@@ -36,14 +38,7 @@
           "id": "omega-muspelheim-unique294",
           "enabled": true,
           "itemPrototype": "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot2/Unique294.prototype",
-          "quantity": 1,
-          "chancePercent": 2,
-          "itemLevel": 69
-        },
-        {
-          "id": "omega-muspelheim-unique191",
-          "enabled": true,
-          "itemPrototype": "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot4/Unique191.prototype",
+          "itemRarityPrototype": "Entity/Items/Rarity/R6Unique.prototype",
           "quantity": 1,
           "chancePercent": 2,
           "itemLevel": 69
@@ -75,41 +70,19 @@
           "periodLimit": 100
         },
         {
-          "id": "cosmic-axis-unique238",
-          "enabled": true,
-          "itemPrototype": "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot5/Unique238.prototype",
-          "quantity": 1,
-          "chancePercent": 2,
-          "itemLevel": 69
-        },
-        {
           "id": "cosmic-axis-monument-of-ell",
           "enabled": true,
-          "itemPrototype": "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot5/Unique304.prototype",
+          "itemPrototype": "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot5/Unique238.prototype",
+          "itemRarityPrototype": "Entity/Items/Rarity/R6Unique.prototype",
           "quantity": 1,
           "chancePercent": 2,
           "itemLevel": 72
         },
         {
-          "id": "cosmic-axis-unique298",
+          "id": "cosmic-axis-unique400",
           "enabled": true,
-          "itemPrototype": "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot4/Unique298.prototype",
-          "quantity": 1,
-          "chancePercent": 2,
-          "itemLevel": 69
-        },
-        {
-          "id": "cosmic-axis-unique294",
-          "enabled": true,
-          "itemPrototype": "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot2/Unique294.prototype",
-          "quantity": 1,
-          "chancePercent": 2,
-          "itemLevel": 69
-        },
-        {
-          "id": "cosmic-axis-unique191",
-          "enabled": true,
-          "itemPrototype": "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot4/Unique191.prototype",
+          "itemPrototype": "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot3/Unique400.prototype",
+          "itemRarityPrototype": "Entity/Items/Rarity/R6Unique.prototype",
           "quantity": 1,
           "chancePercent": 2,
           "itemLevel": 69
