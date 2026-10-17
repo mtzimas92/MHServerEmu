@@ -5018,6 +5018,7 @@ namespace MHServerEmu.Games.MythicRifts
             if (runState == null || region == null)
                 return;
 
+            List<Player> avatarMismatchPlayers = null;
             foreach (Player player in new PlayerIterator(region))
             {
                 bool newlyRegistered = false;
@@ -5029,6 +5030,13 @@ namespace MHServerEmu.Games.MythicRifts
                     }
 
                     newlyRegistered = RegisterRunParticipant(runState, player.DatabaseUniqueId, runState.Config.WaveNumber);
+                }
+
+                if (runState.Config.UseBossGauntletMode && TryBindParticipantAvatar(runState, player) == false)
+                {
+                    avatarMismatchPlayers ??= new();
+                    avatarMismatchPlayers.Add(player);
+                    continue;
                 }
 
                 runState.MarkParticipantSeenInRunRegion(player.DatabaseUniqueId);
@@ -5045,6 +5053,43 @@ namespace MHServerEmu.Games.MythicRifts
                     //     showSender: false);
                 }
             }
+
+            if (avatarMismatchPlayers != null)
+            {
+                foreach (Player player in avatarMismatchPlayers)
+                    RemoveBossGauntletAvatarMismatch(runState, player);
+            }
+        }
+
+        private static bool TryBindParticipantAvatar(MythicRiftRunState runState, Player player)
+        {
+            Avatar avatar = player?.CurrentAvatar;
+            return avatar != null && runState.TryBindParticipantAvatar(
+                player.DatabaseUniqueId,
+                player.Id,
+                avatar.DatabaseUniqueId,
+                avatar.PrototypeDataRef);
+        }
+
+        private void RemoveBossGauntletAvatarMismatch(MythicRiftRunState runState, Player player)
+        {
+            if (runState?.Config?.UseBossGauntletMode != true || player == null)
+                return;
+
+            ulong playerDbId = player.DatabaseUniqueId;
+            if (runState.MarkParticipantLeftEarly(playerDbId))
+                RemoveIndexedRun(_runByPlayerDbId, playerDbId, runState);
+
+            Game.ChatManager.SendChatFromCustomSystem(
+                player,
+                "[Mythic Rift] Re-entering this Boss Gauntlet from another session or hero is not allowed. You are no longer eligible for this run's rewards.",
+                showSender: false);
+
+            if (TryResolveDangerRoomHubStartTarget(out PrototypeId dangerRoomHubStartTarget) == false)
+                return;
+
+            EnsurePlayerAvatarAliveForRiftExit(player, runState, "boss-gauntlet-avatar-mismatch");
+            TryTeleportPlayerToDangerRoomHub(player, dangerRoomHubStartTarget, TeleportContextEnum.TeleportContext_Debug);
         }
 
         private void TrySendRiftEntryBanner(MythicRiftRunState runState, Player player)
@@ -6092,11 +6137,25 @@ namespace MHServerEmu.Games.MythicRifts
             {
                 if (player?.DatabaseUniqueId != 0 &&
                     runState.IsParticipant(player.DatabaseUniqueId) &&
-                    runState.HasParticipantLeftEarly(player.DatabaseUniqueId) == false)
+                    runState.HasParticipantLeftEarly(player.DatabaseUniqueId) == false &&
+                    IsParticipantAvatarEligible(runState, player))
                     playerDbIds.Add(player.DatabaseUniqueId);
             }
 
             return playerDbIds;
+        }
+
+        private static bool IsParticipantAvatarEligible(MythicRiftRunState runState, Player player)
+        {
+            if (runState?.Config?.UseBossGauntletMode != true)
+                return true;
+
+            Avatar avatar = player?.CurrentAvatar;
+            return avatar != null && runState.TryBindParticipantAvatar(
+                player.DatabaseUniqueId,
+                player.Id,
+                avatar.DatabaseUniqueId,
+                avatar.PrototypeDataRef);
         }
 
         private static bool ShouldCountKill(in EntityDeadGameEvent evt)

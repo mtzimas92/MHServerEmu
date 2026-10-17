@@ -1,3 +1,4 @@
+using MHServerEmu.Games.GameData;
 using MHServerEmu.Games.UI.Widgets;
 
 namespace MHServerEmu.Games.MythicRifts
@@ -23,6 +24,7 @@ namespace MHServerEmu.Games.MythicRifts
         private readonly HashSet<ulong> _earlyExitPlayerDbIds = new();
         private readonly HashSet<ulong> _riftEntryBannerSentPlayerDbIds = new();
         private readonly Dictionary<ulong, int> _participantRewardFloorWaveByPlayerDbId = new();
+        private readonly Dictionary<ulong, ParticipantAvatarIdentity> _participantAvatarByPlayerDbId = new();
         private readonly HashSet<ulong> _customPopulationEntityIds = new();
         private readonly HashSet<ulong> _hazardEntityIds = new();
         private readonly HashSet<ulong> _activeBossEntityIds = new();
@@ -313,6 +315,19 @@ namespace MHServerEmu.Games.MythicRifts
             return playerDbId != 0 && _participantPlayerDbIds.Contains(playerDbId);
         }
 
+        public bool TryBindParticipantAvatar(ulong playerDbId, ulong playerEntityId, ulong avatarDbId, PrototypeId avatarRef)
+        {
+            if (IsParticipant(playerDbId) == false || playerEntityId == 0 || avatarRef == PrototypeId.Invalid)
+                return false;
+
+            ParticipantAvatarIdentity currentIdentity = new(playerEntityId, avatarDbId, avatarRef);
+            if (_participantAvatarByPlayerDbId.TryGetValue(playerDbId, out ParticipantAvatarIdentity admittedIdentity))
+                return admittedIdentity.Matches(currentIdentity);
+
+            _participantAvatarByPlayerDbId[playerDbId] = currentIdentity;
+            return true;
+        }
+
         public bool MarkParticipantAdmitted(ulong playerDbId)
         {
             if (AdmissionTrackingEnabled == false || AdmissionFinalized || IsParticipant(playerDbId) == false || _earlyExitPlayerDbIds.Contains(playerDbId))
@@ -328,7 +343,10 @@ namespace MHServerEmu.Games.MythicRifts
 
             bool removed = _participantPlayerDbIds.Remove(playerDbId);
             if (removed)
+            {
                 _participantRewardFloorWaveByPlayerDbId.Remove(playerDbId);
+                _participantAvatarByPlayerDbId.Remove(playerDbId);
+            }
 
             return removed;
         }
@@ -362,6 +380,7 @@ namespace MHServerEmu.Games.MythicRifts
             _rewardEligiblePlayerDbIds.Remove(playerDbId);
             _riftEntryBannerSentPlayerDbIds.Remove(playerDbId);
             _participantRewardFloorWaveByPlayerDbId.Remove(playerDbId);
+            _participantAvatarByPlayerDbId.Remove(playerDbId);
             _earlyExitPlayerDbIds.Add(playerDbId);
             return wasParticipant;
         }
@@ -469,6 +488,20 @@ namespace MHServerEmu.Games.MythicRifts
         public bool MarkKillProgressMilestoneSent(int milestonePercent)
         {
             return milestonePercent > 0 && _sentKillProgressMilestones.Add(milestonePercent);
+        }
+
+        private readonly record struct ParticipantAvatarIdentity(ulong PlayerEntityId, ulong AvatarDbId, PrototypeId AvatarRef)
+        {
+            public bool Matches(ParticipantAvatarIdentity other)
+            {
+                if (PlayerEntityId != other.PlayerEntityId)
+                    return false;
+
+                if (AvatarDbId != 0 && other.AvatarDbId != 0)
+                    return AvatarDbId == other.AvatarDbId;
+
+                return AvatarRef == other.AvatarRef;
+            }
         }
 
         public bool HasSpawnedMilestoneEncounter(int milestonePercent)

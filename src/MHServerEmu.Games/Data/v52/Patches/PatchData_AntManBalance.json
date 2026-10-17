@@ -55,5 +55,21 @@
     "Description": "Spawn Rapid Shrink Strike ants close to Ant-Man to reduce cases where a far spawned ant remains stuck and keeps the ant resource at 9/10.",
     "ValueType": "Float",
     "Value": 100
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/AntMan/AntWall.prototype",
+    "Path": "SummonEntityContexts[0].CopyOwnerProperties",
+    "Description": "OpenCalligraphy export: SummonEntityContexts[0].CopyOwnerProperties",
+    "ValueType": "Boolean",
+    "Value": true
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/AntMan/AntWall.prototype",
+    "Path": "SummonEntityContexts[1].CopyOwnerProperties",
+    "Description": "OpenCalligraphy export: SummonEntityContexts[1].CopyOwnerProperties",
+    "ValueType": "Boolean",
+    "Value": true
   }
 ]
