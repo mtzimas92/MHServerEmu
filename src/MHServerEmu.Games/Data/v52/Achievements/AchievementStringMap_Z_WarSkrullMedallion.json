@@ -1,0 +1,5 @@
+{
+  "3625867136349177160": {
+    "en_us": "When you hit with a Physical Power, gain $param1.power.condition0.DamageRatingBonusForPowerKeyword.nofraction$ Energy Damage Rating for $param1.power.condition0.duration$. (15 second cooldown)"
+  }
+}

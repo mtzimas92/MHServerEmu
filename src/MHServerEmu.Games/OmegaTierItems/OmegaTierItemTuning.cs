@@ -375,6 +375,7 @@ namespace MHServerEmu.Games.OmegaTierItems
         public List<string> ItemPrototypes { get; set; } = new();
         public List<string> Rarities { get; set; } = new();
         public bool ClearExistingAffixes { get; set; } = false;
+        public bool RerollForcedAffixesWithBuiltInSeed { get; set; }
         public bool PreserveProcAffixes { get; set; } = false;
         public List<string> PreserveExistingAffixes { get; set; } = new();
         public List<string> DisabledAffixes { get; set; } = new();
