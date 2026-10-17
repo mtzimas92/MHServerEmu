@@ -396,18 +396,6 @@ namespace MHServerEmu.Games.Powers
                 // Run trigger chance check
                 float eventTriggerChance = triggeredPowerEvent.GetEventTriggerChance(Properties, Owner, target);
                 float eventTriggerRoll = random.NextFloat();
-                string sourcePowerName = PrototypeDataRef.GetName();
-                string triggeredPowerName = triggeredPowerEvent.Power.GetName();
-                if (sourcePowerName.Contains("WarSkrull", StringComparison.OrdinalIgnoreCase)
-                    || triggeredPowerName.Contains("WarSkrull", StringComparison.OrdinalIgnoreCase))
-                {
-                    Logger.Info(
-                        $"[WarSkrullMedallionTrace] stage=event-roll owner={Owner} " +
-                        $"sourcePower={sourcePowerName} event={eventType} triggeredPower={triggeredPowerName} " +
-                        $"chance={eventTriggerChance:F4} roll={eventTriggerRoll:F4} " +
-                        $"passed={eventTriggerRoll < eventTriggerChance}");
-                }
-
                 if (eventTriggerRoll >= eventTriggerChance)
                     continue;
 

@@ -30,119 +30,16 @@
   {
     "Enabled": true,
     "Prototype": "Entity/Items/Medals/MedalBlueprints/Endgame/WarSkrullEGM.prototype",
-    "Path": "PropertiesBuiltIn[]",
-    "Description": "Add a dedicated Physical-hit Energy Damage proc without changing the shared Infernal proc power.",
-    "ValueType": "Prototype",
+    "Path": "PropertiesBuiltIn[4].Prop",
+    "Description": "Redirect the native Physical-hit tooltip row to the dedicated Energy Damage proc without replacing its tooltip metadata.",
+    "ValueType": "PropertyId",
     "Value": {
-      "ParentDataRef": "Property/PropertyPickInRangeEntry.defaults",
-      "Prop": {
-        "Property": "ProcKeyword",
-        "Params": [
-          1,
-          "Powers/ItemPowers/MedalPowers/WarSkrullEGMEnergyProc.prototype",
-          "Powers/Blueprints/Keywords/Physical.defaults"
-        ]
-      },
-      "ValueMin": {
-        "ParentDataRef": "Eval/Constants/LoadFloat.defaults",
-        "Op": "LoadFloat",
-        "Value": 1.0
-      },
-      "ValueMax": {
-        "ParentDataRef": "Eval/Constants/LoadFloat.defaults",
-        "Op": "LoadFloat",
-        "Value": 1.0
-      }
-    }
-  },
-  {
-    "Enabled": true,
-    "Prototype": "Entity/Items/Medals/MedalBlueprints/Endgame/WarSkrullEGM.prototype",
-    "Path": "PropertiesBuiltIn[]",
-    "Description": "Mark the War Skrull wearer so the shared Infernal proc can skip only its Ranged and Intelligence effects; its chance remains unchanged.",
-    "ValueType": "Prototype",
-    "Value": {
-      "ParentDataRef": "Property/PropertyPickInRangeEntry.defaults",
-      "Prop": {
-        "Property": "ProcChanceOverride",
-        "Params": ["Powers/ItemPowers/MedalPowers/InfernalWarSkrullRangedProc.prototype"]
-      },
-      "ValueMin": {
-        "ParentDataRef": "Eval/Constants/LoadFloat.defaults",
-        "Op": "LoadFloat",
-        "Value": 1.0
-      },
-      "ValueMax": {
-        "ParentDataRef": "Eval/Constants/LoadFloat.defaults",
-        "Op": "LoadFloat",
-        "Value": 1.0
-      }
-    }
-  },
-  {
-    "Enabled": true,
-    "Prototype": "Powers/ItemPowers/MedalPowers/InfernalWarSkrullRangedProc.prototype",
-    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[0].Eval",
-    "Description": "Preserve the native Ranged curve on Infernal medals but give no Ranged bonus on marked War Skrull wearers.",
-    "ValueType": "Prototype",
-    "Value": {
-      "ParentDataRef": "Eval/ControlFlow/IfElse.defaults",
-      "Op": "IfElse",
-      "Conditional": {
-        "ParentDataRef": "Eval/Properties/HasProp.defaults",
-        "Op": "HasProp",
-        "Context": "Entity",
-        "Prop": {
-          "Property": "ProcChanceOverride",
-          "Params": ["Powers/ItemPowers/MedalPowers/InfernalWarSkrullRangedProc.prototype"]
-        }
-      },
-      "EvalIf": {
-        "ParentDataRef": "Eval/Constants/LoadFloat.defaults",
-        "Op": "LoadFloat",
-        "Value": 0.0
-      },
-      "EvalElse": {
-        "ParentDataRef": "Eval/Curves/LoadCurveBasePropertyCurve.defaults",
-        "Op": "LoadCurve",
-        "Curve": "Difficulty/Curves/Items/SpecificItems/InfernalWarSkrullAreaDamageCurve.curve",
-        "Index": {
-          "ParentDataRef": "Eval/Properties/LoadProp.defaults",
-          "Op": "LoadProp",
-          "Prop": { "ParentDataRef": "Property/Mixin/ItemLevelProp.defaults" }
-        }
-      }
-    }
-  },
-  {
-    "Enabled": true,
-    "Prototype": "Powers/ItemPowers/MedalPowers/InfernalWarSkrullRangedProc.prototype",
-    "Path": "ActionsTriggeredOnPowerEvent[0].EvalEventTriggerChance.Conditional",
-    "Description": "Keep the Infernal Intelligence follow-up except when the War Skrull medallion supplies the Fighting follow-up.",
-    "ValueType": "Prototype",
-    "Value": {
-      "ParentDataRef": "Eval/Conditionals/And.defaults",
-      "Op": "And",
-      "Arg1": {
-        "ParentDataRef": "Eval/Other/EntityHasKeyword.defaults",
-        "Op": "EntityHasKeyword",
-        "Context": "Var1",
-        "Keyword": 374835004378126937,
-        "ConditionKeywordOnly": true
-      },
-      "Arg2": {
-        "ParentDataRef": "Eval/Conditionals/Not.defaults",
-        "Op": "Not",
-        "Arg": {
-          "ParentDataRef": "Eval/Properties/HasProp.defaults",
-          "Op": "HasProp",
-          "Context": "Entity",
-          "Prop": {
-            "Property": "ProcChanceOverride",
-            "Params": ["Powers/ItemPowers/MedalPowers/InfernalWarSkrullRangedProc.prototype"]
-          }
-        }
-      }
+      "Property": "ProcKeyword",
+      "Params": [
+        1,
+        "Powers/ItemPowers/MedalPowers/WarSkrullEGMEnergyProc.prototype",
+        "Powers/Blueprints/Keywords/Physical.defaults"
+      ]
     }
   },
   {
@@ -186,5 +83,37 @@
     "Description": "Require the Physical Damage effect to be active before the Physical-hit effect grants the combined +2 Fighting bonus.",
     "ValueType": "PrototypeId",
     "Value": "Powers/Blueprints/Keywords/WarSkrullPhysicalDamageProc.defaults"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/ItemPowers/MedalPowers/InfernalWarSkrullRangedProc.prototype",
+    "Path": "ActionsTriggeredOnPowerEvent[0].EvalEventTriggerChance.Conditional.Keyword",
+    "Description": "Require the Infernal Area Damage effect before the Ranged Damage effect grants the combined +2 Intelligence bonus.",
+    "ValueType": "PrototypeId",
+    "Value": "Powers/Blueprints/Keywords/InfernalWarSkrullEGMAreaProc.defaults"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/ItemPowers/MedalPowers/InfernalWarSkrullAreaProc.prototype",
+    "Path": "ActionsTriggeredOnPowerEvent[0].EvalEventTriggerChance.Conditional.Keyword",
+    "Description": "Require the Infernal Ranged Damage effect before the Area Damage effect grants the combined +2 Intelligence bonus.",
+    "ValueType": "PrototypeId",
+    "Value": "Powers/Blueprints/Keywords/InfernalWarSkrullRangedProc.defaults"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/ItemPowers/MedalPowers/SkrullXMenEGMAreaDamage.prototype",
+    "Path": "ActionsTriggeredOnPowerEvent[0].EvalEventTriggerChance.Conditional.Keyword",
+    "Description": "Require the Skrull X-Men Mental Damage effect before the Area Damage effect grants the combined +2 Fighting bonus.",
+    "ValueType": "PrototypeId",
+    "Value": "Powers/Blueprints/Keywords/SkrullXMenEGMMentalProc.defaults"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/ItemPowers/MedalPowers/SkrullXMenEGMMentalDamage.prototype",
+    "Path": "ActionsTriggeredOnPowerEvent[0].EvalEventTriggerChance.Conditional.Keyword",
+    "Description": "Require the Skrull X-Men Area Damage effect before the Mental Damage effect grants the combined +2 Fighting bonus.",
+    "ValueType": "PrototypeId",
+    "Value": "Powers/Blueprints/Keywords/SkrullXMenEGMAreaProc.defaults"
   }
 ]
