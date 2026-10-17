@@ -20,9 +20,34 @@
   {
     "Enabled": true,
     "Prototype": "Powers/Player/Hulk/Talents/Talent3ThrowRockBonus.prototype",
-    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[0].Prop.Param0",
-    "Description": "Point Throw Rock talent damage bonus at the actual damage power.",
-    "ValueType": "PrototypeId",
-    "Value": 839593216496047195
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[0].Prop",
+    "Description": "Point Rumble Toss's +50% talent damage multiplier at the normal Throw Rock combo damage power.",
+    "ValueType": "PropertyId",
+    "Value": {
+      "Property": "DamageMultForPower",
+      "Params": [
+        "Powers/Player/Hulk/Rework/ThrowRockCombo.prototype"
+      ]
+    }
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Hulk/Talents/Talent3ThrowRockBonus.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[]",
+    "Description": "Apply Rumble Toss's +50% talent damage multiplier to the larger full-Spirit Throw Rock combo damage power as well.",
+    "ValueType": "Prototype",
+    "Value": {
+      "ParentDataRef": 1429542141982412459,
+      "Op": "AssignProp",
+      "Prop": {
+        "ParentDataRef": "Property/Mixin/DamageMultForPowerProp.defaults",
+        "Param0": "Powers/Player/Hulk/Rework/ThrowRockComboBigger.prototype"
+      },
+      "Eval": {
+        "ParentDataRef": 5074715296837012907,
+        "Op": "LoadFloat",
+        "Value": 0.5
+      }
+    }
   }
 ]
