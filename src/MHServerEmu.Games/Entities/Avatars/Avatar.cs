@@ -2034,28 +2034,7 @@ namespace MHServerEmu.Games.Entities.Avatars
         protected override int ComputePowerRankBase(ref PowerProgressionInfo powerInfo, int powerSpecIndexActive, bool includePending = false)
         {
             // Check avatar-specific overrides
-#if GAME_VERSION_1_52 || GAME_VERSION_1_53
-            if (powerInfo.IsInPowerProgression)
-            {
-#if GAME_VERSION_1_53
-                if (powerInfo.PassesCostumeRequirement(GetCurrentCostumePrototypeRef()) == false)
-                    return PowerProgressionInfo.RankLocked;
-
-                if (powerInfo.IsOmegaTrait() && (IsOmegaPrestigeEnabled() == false || OmegaPrestigeLevel <= 0))
-                    return PowerProgressionInfo.RankLocked;
-#endif
-
-                // Talents
-                if (powerInfo.IsTalent)
-                {
-                    if (powerInfo.GetRequiredLevel() > CharacterLevel)
-                        return PowerProgressionInfo.RankLocked;
-
-                    return IsTalentPowerEnabledForSpec(powerInfo.PowerRef, powerSpecIndexActive) ? 1 : 0;
-                }
-            }
-            else
-#endif
+            if (powerInfo.IsInPowerProgression == false)
             {
                 // Mapped powers
                 PrototypeId originalPowerProtoRef = GetOriginalPowerFromMappedPower(powerInfo.PowerRef);
@@ -2070,6 +2049,26 @@ namespace MHServerEmu.Games.Entities.Avatars
                 if (transformModeProto != null && transformModeProto.UseRankOfPower != PrototypeId.Invalid)
                     return GetPowerRank(transformModeProto.UseRankOfPower);
             }
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
+            else
+            {
+    #if GAME_VERSION_1_53
+                if (powerInfo.PassesCostumeRequirement(GetCurrentCostumePrototypeRef()) == false)
+                    return PowerProgressionInfo.RankLocked;
+
+                if (powerInfo.IsOmegaTrait() && (IsOmegaPrestigeEnabled() == false || OmegaPrestigeLevel <= 0))
+                    return PowerProgressionInfo.RankLocked;
+    #endif
+                // 1.48 doesn't seem to be doing anything specialization power specific in Avatar::CalcPowerRankBase()
+                if (powerInfo.IsTalent)
+                {
+                    if (powerInfo.GetRequiredLevel() > CharacterLevel)
+                        return PowerProgressionInfo.RankLocked;
+
+                    return IsTalentPowerEnabledForSpec(powerInfo.PowerRef, powerSpecIndexActive) ? 1 : 0;
+                }
+            }
+#endif
 
             // Fall back to base implementation if we didn't find any avatar-specific overrides 
             return base.ComputePowerRankBase(ref powerInfo, powerSpecIndexActive);
@@ -2176,6 +2175,7 @@ namespace MHServerEmu.Games.Entities.Avatars
 
 #if GAME_VERSION_1_52 || GAME_VERSION_1_53
             // Case 2 - Talent
+            // 1.48 doesn't have anything for specialization powers specifically here.
             var talentEntryPair = powerOwnerTable.GetTalentEntryPair(avatarProto.DataRef, progressionInfoPower);
             var talentGroupPair = powerOwnerTable.GetTalentGroupPair(avatarProto.DataRef, progressionInfoPower);
             if (talentEntryPair.Item1 != null && talentGroupPair.Item1 != null)
@@ -2183,8 +2183,6 @@ namespace MHServerEmu.Games.Entities.Avatars
                 powerInfo.InitForAvatar(talentEntryPair.Item1, talentGroupPair.Item1, talentEntryPair.Item2, talentGroupPair.Item2);
                 return powerInfo.IsValid;
             }
-#else
-            // V48_TODO?: Do we need to do anything for specialization powers here?
 #endif
 
             // Case 3 - Non-Progression Power
@@ -2250,21 +2248,27 @@ namespace MHServerEmu.Games.Entities.Avatars
                 return false;
 
 #if GAME_VERSION_1_52 || GAME_VERSION_1_53
-            // Unassign talents
-            using var talentPowerListHandle = ListPool<PrototypeId>.Get(out List<PrototypeId> talentPowerList);
-            GetTalentPowersForSpec(currentSpecIndex, talentPowerList);
+            using var talentPowersHandle = ListPool<PrototypeId>.Get(out List<PrototypeId> talentPowers);
+            GetTalentPowersForSpec(currentSpecIndex, talentPowers);
 
-            foreach (PrototypeId talentPowerRef in talentPowerList)
+            foreach (PrototypeId talentPowerRef in talentPowers)
                 UnassignTalentPower(talentPowerRef, currentSpecIndex, true);
+#else
+            using var specializationPowersHandle = ListPool<PrototypeId>.Get(out List<PrototypeId> specializationPowers);
+            GetSpecializationPowersForSpec(currentSpecIndex, specializationPowers);
+
+            foreach (PrototypeId specializationPowerRef in specializationPowers)
+                UnassignSpecializationPower(specializationPowerRef, currentSpecIndex, true);
 #endif
 
             // Clear mapped powers
             if (CanStealPowers() == false)
                 UnassignAllMappedPowers();
 
-            // "Unequip" powers for the spec we are disabling
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
             if (IsInWorld)
                 UnequipPowersForCurrentSpec();
+#endif
 
             // Change spec
             Properties[PropertyEnum.PowerSpecIndexActive] = newSpecIndex;
@@ -2274,6 +2278,8 @@ namespace MHServerEmu.Games.Entities.Avatars
             {
 #if GAME_VERSION_1_52 || GAME_VERSION_1_53
                 UpdateTalentPowers();
+#else
+                UpdateSpecializationPowers();
 #endif
                 UpdatePowerProgressionPowers(true);
             }
@@ -2285,9 +2291,10 @@ namespace MHServerEmu.Games.Entities.Avatars
             SelectAbilityKeyMapping(0, false);
 #endif
 
-            // "Equip" powers for the spec we enabled
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
             if (IsInWorld)
                 EquipPowersForCurrentSpec();
+#endif
 
             return false;
         }
@@ -2299,27 +2306,29 @@ namespace MHServerEmu.Games.Entities.Avatars
             ScheduleEntityEvent(_unassignMappedPowersForRespec, TimeSpan.FromMilliseconds(500));
 
 #if GAME_VERSION_1_52 || GAME_VERSION_1_53
-            // Unassign talents
-            using var talentPowerListHandle = ListPool<PrototypeId>.Get(out List<PrototypeId> talentPowerList);
-            GetTalentPowersForSpec(specIndex, talentPowerList);
+            using var talentPowersHandle = ListPool<PrototypeId>.Get(out List<PrototypeId> talentPowers);
+            GetTalentPowersForSpec(specIndex, talentPowers);
 
-            foreach (PrototypeId talentPowerRef in talentPowerList)
+            foreach (PrototypeId talentPowerRef in talentPowers)
                 UnassignTalentPower(talentPowerRef, specIndex);
 
-            if (talentPowerList.Count > 0)
+            if (talentPowers.Count > 0)
             {
                 // Set the new respec
                 if (powerProtoRef == PrototypeId.Invalid)
                     powerProtoRef = GameDatabase.GlobalsPrototype.PowerPrototype;
 
                 Properties[PropertyEnum.PowersRespecResult, specIndex, (int)reason, powerProtoRef] = true;
-
-                // Early return (V48_TODO: this probably shouldn't happen for pre-BUE?)
                 return true;
             }
+#else
+            using var specializationPowersHandle = ListPool<PrototypeId>.Get(out List<PrototypeId> specializationPowers);
+            GetSpecializationPowersForSpec(specIndex, specializationPowers);
+
+            foreach (PrototypeId specializationPowerRef in specializationPowers)
+                UnassignSpecializationPower(specializationPowerRef, specIndex);
 #endif
 
-            // Fall back to base implementation if no talents were unassigned
             if (base.RespecPowerSpec(specIndex, reason, skipValidation, powerProtoRef) == false)
                 return false;
 
@@ -2333,17 +2342,24 @@ namespace MHServerEmu.Games.Entities.Avatars
 
         #endregion
 
-        #region Talents (Specialization Powers)
-
-// V48_TODO: specialization powers
+        #region Specialization Powers / Talents
 
 #if GAME_VERSION_1_52 || GAME_VERSION_1_53
-        public void GetTalentPowersForSpec(int specIndex, List<PrototypeId> talentPowerList)
+        public void GetTalentPowersForSpec(int specIndex, List<PrototypeId> talentPowers)
         {
             foreach (var kvp in Properties.IteratePropertyRange(PropertyEnum.AvatarSpecializationPower, specIndex))
             {
                 Property.FromParam(kvp.Key, 1, out PrototypeId talentPowerRef);
-                talentPowerList.Add(talentPowerRef);
+                talentPowers.Add(talentPowerRef);
+            }
+        }
+#else
+        public void GetSpecializationPowersForSpec(int specIndex, List<PrototypeId> specializationPowers)
+        {
+            foreach (var kvp in Properties.IteratePropertyRange(PropertyEnum.AvatarSpecializationPower, specIndex))
+            {
+                Property.FromParam(kvp.Key, 1, out PrototypeId specializationPowerRef);
+                specializationPowers.Add(specializationPowerRef);
             }
         }
 #endif
@@ -2352,6 +2368,11 @@ namespace MHServerEmu.Games.Entities.Avatars
         public bool IsTalentPowerEnabledForSpec(PrototypeId talentPowerRef, int specIndex)
         {
             return Properties[PropertyEnum.AvatarSpecializationPower, specIndex, talentPowerRef];
+        }
+#else
+        public bool IsSpecializationPowerEnabledForSpec(PrototypeId specializationPowerRef, int specIndex)
+        {
+            return Properties[PropertyEnum.AvatarSpecializationPower, specIndex, specializationPowerRef];
         }
 #endif
 
@@ -2373,10 +2394,10 @@ namespace MHServerEmu.Games.Entities.Avatars
                     uint talentGroupIndex = powerOwnerTable.GetTalentGroupIndex(PrototypeDataRef, talentPowerRef);
                     if (!Verify.IsTrue(talentGroupIndex != TalentGroupIndexInvalid)) return false;
 
-                    using var talentPowerListHandle = ListPool<PrototypeId>.Get(out List<PrototypeId> talentPowerList);
-                    GetTalentPowersForSpec(specIndex, talentPowerList);
+                    using var talentPowersHandle = ListPool<PrototypeId>.Get(out List<PrototypeId> talentPowers);
+                    GetTalentPowersForSpec(specIndex, talentPowers);
 
-                    foreach (PrototypeId talentPowerRefToCheck in talentPowerList)
+                    foreach (PrototypeId talentPowerRefToCheck in talentPowers)
                     {
                         uint talentGroupIndexToCheck = powerOwnerTable.GetTalentGroupIndex(PrototypeDataRef, talentPowerRefToCheck);
                         if (talentGroupIndexToCheck == talentGroupIndex)
@@ -2391,6 +2412,46 @@ namespace MHServerEmu.Games.Entities.Avatars
             {
                 // Disable
                 UnassignTalentPower(talentPowerRef, specIndex);
+            }
+
+            return true;
+        }
+#else
+        public bool EnableSpecializationPower(PrototypeId specializationPowerRef, int specIndex, bool enable)
+        {
+            if (!Verify.IsTrue(specializationPowerRef != PrototypeId.Invalid)) return false;
+
+            SpecializationPowerPrototype specializationPowerProto = specializationPowerRef.As<SpecializationPowerPrototype>();
+            if (!Verify.IsNotNull(specializationPowerProto)) return false;
+
+            if (enable)
+            {
+                if (Game.CustomGameOptions.AllowSameGroupTalents == false)
+                {
+                    // Turn off mutually exclusive specialization powers (belonging to the same master power)
+                    PrototypeId masterPowerRef = specializationPowerProto.MasterPower;
+
+                    using var specializationPowersHandle = ListPool<PrototypeId>.Get(out List<PrototypeId> specializationPowers);
+                    GetSpecializationPowersForSpec(specIndex, specializationPowers);
+
+                    foreach (PrototypeId specializationPowerRefToCheck in specializationPowers)
+                    {
+                        SpecializationPowerPrototype specializationPowerProtoToCheck = specializationPowerRefToCheck.As<SpecializationPowerPrototype>();
+                        if (!Verify.IsNotNull(specializationPowerProtoToCheck))
+                            continue;
+
+                        if (specializationPowerProtoToCheck.MasterPower == masterPowerRef)
+                            UnassignSpecializationPower(specializationPowerRefToCheck, specIndex);
+                    }
+                }
+
+                // Enable
+                AssignSpecializationPower(specializationPowerRef, specIndex);
+            }
+            else
+            {
+                // Disable
+                UnassignSpecializationPower(specializationPowerRef, specIndex);
             }
 
             return true;
@@ -2437,6 +2498,48 @@ namespace MHServerEmu.Games.Entities.Avatars
 
             return CanToggleTalentResult.Success;
         }
+#else
+        public CanToggleSpecializationPowerResult CanToggleSpecializationPower(PrototypeId specializationPowerRef, int specIndex, bool enteringWorld, bool enable)
+        {
+            SpecializationPowerPrototype specializationPowerProto = specializationPowerRef.As<SpecializationPowerPrototype>();
+            if (specializationPowerProto == null)
+                return CanToggleSpecializationPowerResult.GenericError;
+
+            // Skip combat check if this avatar is entering the world
+            if (enteringWorld == false && Properties.HasProperty(PropertyEnum.IsInCombat))
+                return CanToggleSpecializationPowerResult.InCombat;
+
+            int specIndexUnlocked = GetPowerSpecIndexUnlocked();
+            if (!Verify.IsTrue(specIndexUnlocked >= specIndex)) return CanToggleSpecializationPowerResult.GenericError;
+
+            GetPowerProgressionInfo(specializationPowerRef, out PowerProgressionInfo specializationPowerInfo);
+
+            if (CharacterLevel < specializationPowerInfo.GetRequiredLevel())
+                return CanToggleSpecializationPowerResult.GenericError;
+
+            if (!Verify.IsTrue(specializationPowerProto.MasterPower != PrototypeId.Invalid)) return CanToggleSpecializationPowerResult.GenericError;
+
+            Power masterPower = GetPower(specializationPowerProto.MasterPower);
+            if (masterPower == null || masterPower.Rank <= 0)
+                return CanToggleSpecializationPowerResult.GenericError;
+
+            // Skip eval check if this avatar is entering the world
+            if (enable && enteringWorld == false && specializationPowerProto.EvalCanEnable.HasValue())
+            {
+                foreach (EvalPrototype evalProto in specializationPowerProto.EvalCanEnable)
+                {
+                    using var evalContextHandle = EvalContextDataPool.Get(out EvalContextData evalContext);
+                    evalContext.SetReadOnlyVar_PropertyCollectionPtr(EvalContext.Default, null);
+                    evalContext.SetReadOnlyVar_EntityPtr(EvalContext.Entity, this);
+                    evalContext.SetReadOnlyVar_ConditionCollectionPtr(EvalContext.Var1, ConditionCollection);
+
+                    if (Eval.RunBool(evalProto, evalContext) == false)
+                        return CanToggleSpecializationPowerResult.RestrictiveCondition;
+                }
+            }
+
+            return CanToggleSpecializationPowerResult.Success;
+        }
 #endif
 
 #if GAME_VERSION_1_52 || GAME_VERSION_1_53
@@ -2460,6 +2563,29 @@ namespace MHServerEmu.Games.Entities.Avatars
             }
 
             Properties[PropertyEnum.AvatarSpecializationPower, specIndex, talentPowerRef] = true;
+            return true;
+        }
+#else
+        private bool AssignSpecializationPower(PrototypeId specializationPowerRef, int specIndex)
+        {
+            if (!Verify.IsTrue(specializationPowerRef != PrototypeId.Invalid)) return false;
+
+            SpecializationPowerPrototype specializationPowerProto = specializationPowerRef.As<SpecializationPowerPrototype>();
+            if (!Verify.IsNotNull(specializationPowerProto)) return false;
+
+            if (IsInWorld && specIndex == GetPowerSpecIndexActive())
+            {
+                // Assign the specialization power if the spec is currently active
+                // Specialization powers always have a rank of 1
+                PowerIndexProperties indexProps = new(1, CharacterLevel, CombatLevel);
+                Power specializationPower = AssignPower(specializationPowerRef, indexProps);
+                if (!Verify.IsNotNull(specializationPower)) return false;
+
+                specializationPower.HandleTriggerPowerEventOnSpecializationPowerAssigned();
+                RefreshDependentPassivePowers(specializationPowerProto, 1);
+            }
+
+            Properties[PropertyEnum.AvatarSpecializationPower, specIndex, specializationPowerRef] = true;
             return true;
         }
 #endif
@@ -2489,6 +2615,31 @@ namespace MHServerEmu.Games.Entities.Avatars
 
             return true;
         }
+#else
+        private bool UnassignSpecializationPower(PrototypeId specializationPowerRef, int specIndex, bool isSwitchingSpec = false)
+        {
+            if (!Verify.IsTrue(specializationPowerRef != PrototypeId.Invalid)) return false;
+
+            Power specializationPower = GetPower(specializationPowerRef);
+            if (specializationPower != null && IsInWorld && specIndex == GetPowerSpecIndexActive())
+            {
+                // Unassign the specialization power if the spec is currently active
+                PowerPrototype specializationPowerProto = specializationPower.Prototype;
+                if (!Verify.IsNotNull(specializationPowerProto)) return false;
+
+                if (!Verify.IsTrue(UnassignPower(specializationPowerRef), $"Failed to unassign specialization power {specializationPowerProto} for owner [{this}]"))
+                    return false;
+
+                specializationPower.HandleTriggerPowerEventOnSpecializationPowerUnassigned();
+                RefreshDependentPassivePowers(specializationPowerProto, 0);
+            }
+
+            // Do not remove the property if we are simply switching specs
+            if (isSwitchingSpec == false)
+                Properties.RemoveProperty(new(PropertyEnum.AvatarSpecializationPower, specIndex, specializationPowerRef));
+
+            return true;
+        }
 #endif
 
 #if GAME_VERSION_1_52 || GAME_VERSION_1_53
@@ -2496,10 +2647,10 @@ namespace MHServerEmu.Games.Entities.Avatars
         {
             int specIndex = GetPowerSpecIndexActive();
 
-            using var talentPowerListHandle = ListPool<PrototypeId>.Get(out List<PrototypeId> talentPowerList);
-            GetTalentPowersForSpec(specIndex, talentPowerList);
+            using var talentPowersHandle = ListPool<PrototypeId>.Get(out List<PrototypeId> talentPowers);
+            GetTalentPowersForSpec(specIndex, talentPowers);
 
-            foreach (PrototypeId talentPowerRef in talentPowerList)
+            foreach (PrototypeId talentPowerRef in talentPowers)
             {
                 bool enabled = Properties[PropertyEnum.AvatarSpecializationPower, specIndex, talentPowerRef];
                 if (CanToggleTalentPower(talentPowerRef, specIndex, true, enabled) == CanToggleTalentResult.Success)
@@ -2510,6 +2661,28 @@ namespace MHServerEmu.Games.Entities.Avatars
                 else
                 {
                     UnassignTalentPower(talentPowerRef, specIndex);
+                }
+            }
+        }
+#else
+        private void UpdateSpecializationPowers()
+        {
+            int specIndex = GetPowerSpecIndexActive();
+
+            using var specializationPowersHandle = ListPool<PrototypeId>.Get(out List<PrototypeId> specializationPowers);
+            GetSpecializationPowersForSpec(specIndex, specializationPowers);
+
+            foreach (PrototypeId specializationPowerRef in specializationPowers)
+            {
+                bool enabled = Properties[PropertyEnum.AvatarSpecializationPower, specIndex, specializationPowerRef];
+                if (CanToggleSpecializationPower(specializationPowerRef, specIndex, true, enabled) == CanToggleSpecializationPowerResult.Success)
+                {
+                    if (GetPower(specializationPowerRef) == null)
+                        AssignSpecializationPower(specializationPowerRef, specIndex);
+                }
+                else
+                {
+                    UnassignSpecializationPower(specializationPowerRef, specIndex);
                 }
             }
         }
@@ -2677,7 +2850,6 @@ namespace MHServerEmu.Games.Entities.Avatars
         }
 #endif
 
-#if GAME_VERSION_1_52 || GAME_VERSION_1_53
         public bool CanAssignStolenPower(PrototypeId stolenPowerRefToAssign, PrototypeId currentStolenPowerRef)
         {
             if (!Verify.IsTrue(stolenPowerRefToAssign != PrototypeId.Invalid)) return false;
@@ -2744,7 +2916,6 @@ namespace MHServerEmu.Games.Entities.Avatars
 
             return true;
         }
-#endif
 
         public bool CanStealPowers()
         {
@@ -3255,6 +3426,7 @@ namespace MHServerEmu.Games.Entities.Avatars
             };
         }
 
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
         public bool HasPowerEquipped(PrototypeId powerProtoRef)
         {
             AbilityKeyMapping keyMapping = _currentAbilityKeyMapping;
@@ -3263,7 +3435,9 @@ namespace MHServerEmu.Games.Entities.Avatars
 
             return keyMapping.ContainsAbilityInActiveSlot(powerProtoRef);
         }
+#endif
 
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
         public bool HasControlPowerEquipped()
         {
             AbilityKeyMapping keyMapping = _currentAbilityKeyMapping;
@@ -3278,6 +3452,7 @@ namespace MHServerEmu.Games.Entities.Avatars
 
             return false;
         }
+#endif
 
 #if GAME_VERSION_1_52 || GAME_VERSION_1_53
         public bool SlotAbility(PrototypeId abilityProtoRef, AbilitySlot slot, bool skipEquipValidation, bool sendToClient)
@@ -3295,7 +3470,9 @@ namespace MHServerEmu.Games.Entities.Avatars
 #endif
             if (!Verify.IsNotNull(keyMapping)) return false;
 
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
             bool wasEquipped = HasPowerEquipped(abilityProtoRef);
+#endif
 
             // Unslot the currently slotted ability if it's something else to trigger unequip
             PrototypeId slottedAbilityProtoRef = keyMapping.GetAbilityInAbilitySlot(slot);
@@ -3313,12 +3490,13 @@ namespace MHServerEmu.Games.Entities.Avatars
             // Set
             keyMapping.SetAbilityInAbilitySlot(abilityProtoRef, slot);
 
-            // Trigger equip
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
             if (wasEquipped == false)
             {
                 Power power = GetPower(abilityProtoRef);
                 power?.OnEquipped();
             }
+#endif
 
             // Notify the client if needed
             if (sendToClient)
@@ -3363,12 +3541,13 @@ namespace MHServerEmu.Games.Entities.Avatars
             // Remove by assigning invalid id
             keyMapping.SetAbilityInAbilitySlot(PrototypeId.Invalid, slot);
 
-            // Trigger unequip
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
             if (HasPowerEquipped(abilityProtoRef) == false)
             {
                 Power power = GetPower(abilityProtoRef);
                 power?.OnUnequipped();
             }
+#endif
 
             // Notify the client if needed
             if (sendToClient)
@@ -3526,6 +3705,7 @@ namespace MHServerEmu.Games.Entities.Avatars
             return true;
         }
 
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
         private void UnequipPowersForCurrentSpec()
         {
             AbilityKeyMapping keyMapping = _currentAbilityKeyMapping;
@@ -3537,7 +3717,9 @@ namespace MHServerEmu.Games.Entities.Avatars
                 power?.OnUnequipped();
             }
         }
+#endif
 
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
         private void EquipPowersForCurrentSpec()
         {
             AbilityKeyMapping keyMapping = _currentAbilityKeyMapping;
@@ -3549,6 +3731,7 @@ namespace MHServerEmu.Games.Entities.Avatars
                 power?.OnEquipped();
             }
         }
+#endif
 
 #if GAME_VERSION_1_52 || GAME_VERSION_1_53
         private AbilityKeyMapping GetOrCreateAbilityKeyMapping(int powerSpecIndex, PrototypeId transformModeProtoRef)
@@ -4210,8 +4393,7 @@ namespace MHServerEmu.Games.Entities.Avatars
 
             AdvancementGlobalsPrototype advancementProto = GameDatabase.AdvancementGlobalsPrototype;
 
-#if GAME_VERSION_1_53
-            // V53_TODO: LevelingDataConsole
+#if GAME_VERSION_1_53 && PLATFORM_TYPE_PC
             Curve pctXPFromPrestigeLevelCurve = advancementProto.LevelingDataPC.PctXPFromPrestigeLevelCurve.AsCurve();
 #else
             Curve pctXPFromPrestigeLevelCurve = advancementProto.PctXPFromPrestigeLevelCurve.AsCurve();
@@ -4342,6 +4524,8 @@ namespace MHServerEmu.Games.Entities.Avatars
             {
 #if GAME_VERSION_1_52 || GAME_VERSION_1_53
                 UpdateTalentPowers();
+#else
+                UpdateSpecializationPowers();
 #endif
                 UpdatePowerProgressionPowers(false);
 #if GAME_VERSION_1_52 || GAME_VERSION_1_53
@@ -4855,7 +5039,7 @@ namespace MHServerEmu.Games.Entities.Avatars
             if (equippedCostumeRef != PrototypeId.Invalid)
                 return equippedCostumeRef;
 
-            return AvatarPrototype.GetStartingCostumeForPlatform(Platforms.PC);
+            return AvatarPrototype.GetStartingCostumeForPlatform(Game.PlatformType);
         }
 
         public AssetId GetCurrentCostumeAssetRef()
@@ -4872,7 +5056,7 @@ namespace MHServerEmu.Games.Entities.Avatars
         {
             AvatarPrototype avatarProto = AvatarPrototype;
             if (!Verify.IsNotNull(avatarProto)) return AssetId.Invalid;
-            return avatarProto.GetStartingCostumeAssetRef(Platforms.PC);
+            return avatarProto.GetStartingCostumeAssetRef(Game.PlatformType);
         }
 
         public bool ChangeCostume(PrototypeId costumeProtoRef, bool validate = false)
@@ -4903,7 +5087,8 @@ namespace MHServerEmu.Games.Entities.Avatars
             owner.Properties[PropertyEnum.AvatarLibraryCostume, 0, PrototypeDataRef] = costumeProtoRef;
 
 #if GAME_VERSION_1_53
-            UpdatePowerProgressionPowers(false);
+            if (IsInWorld)
+                UpdatePowerProgressionPowers(false);
 #endif
 
             return true;
@@ -4918,8 +5103,7 @@ namespace MHServerEmu.Games.Entities.Avatars
             if (!Verify.IsNotNull(player)) return false;
 
 #if GAME_VERSION_1_53
-            // V53_TODO: consoles?
-            PrototypeId costumeProtoRef = avatarProto.GetStartingCostumeForPlatform(Platforms.PC);
+            PrototypeId costumeProtoRef = avatarProto.GetStartingCostumeForPlatform(Game.PlatformType);
             player.UnlockCostume(costumeProtoRef);
             return player.HasCostumeUnlocked(costumeProtoRef);
 #else
@@ -4935,7 +5119,7 @@ namespace MHServerEmu.Games.Entities.Avatars
             Inventory errorRecovery = player.GetInventory(InventoryConvenienceLabel.ErrorRecovery);
             if (!Verify.IsNotNull(errorRecovery)) return false;
 
-            PrototypeId startingCostumeProtoRef = avatarProto.GetStartingCostumeForPlatform(Platforms.PC);
+            PrototypeId startingCostumeProtoRef = avatarProto.GetStartingCostumeForPlatform(Game.PlatformType);
             if (startingCostumeProtoRef == PrototypeId.Invalid)
                 return true;
 
@@ -5798,7 +5982,9 @@ namespace MHServerEmu.Games.Entities.Avatars
 
         public void SummonControlledAgentWithDuration()
         {
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
             if (HasControlPowerEquipped() == false) return;
+#endif
 
             var scheduler = Game.GameEventScheduler;
             if (scheduler == null) return;
@@ -6123,8 +6309,7 @@ namespace MHServerEmu.Games.Entities.Avatars
 
             // Get requirements from advancement globals
             AdvancementGlobalsPrototype advancementGlobals = GameDatabase.AdvancementGlobalsPrototype;
-#if GAME_VERSION_1_53
-            // V53_TODO: LevelingDataConsole
+#if GAME_VERSION_1_53 && PLATFORM_TYPE_PC
             Curve normalBonusCurve = advancementGlobals.LevelingDataPC.ExperienceBonusAvatarSynergy.AsCurve();
             Curve cappedBonusMaxCurve = advancementGlobals.LevelingDataPC.ExperienceBonusLevel60Synergy.AsCurve();
 #else
@@ -6152,8 +6337,7 @@ namespace MHServerEmu.Games.Entities.Avatars
             }
 
             experienceBonus += cappedBonusMaxCurve.GetAt(numLevelCappedAvatars);
-#if GAME_VERSION_1_53
-            // V53_TODO: LevelingDataConsole
+#if GAME_VERSION_1_53 && PLATFORM_TYPE_PC
             experienceBonus = Math.Min(experienceBonus, advancementGlobals.LevelingDataPC.ExperienceBonusAvatarSynergyMax);
 #else
             experienceBonus = Math.Min(experienceBonus, advancementGlobals.ExperienceBonusAvatarSynergyMax);
@@ -7432,6 +7616,8 @@ namespace MHServerEmu.Games.Entities.Avatars
 
 #if GAME_VERSION_1_52 || GAME_VERSION_1_53
             UpdateTalentPowers();
+#else
+            UpdateSpecializationPowers();
 #endif
 
             var missionManager = player.MissionManager;
