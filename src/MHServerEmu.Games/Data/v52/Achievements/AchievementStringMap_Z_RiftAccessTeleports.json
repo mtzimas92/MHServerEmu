@@ -1,47 +1,62 @@
 {
   "18000000000000080200": {
-    "en_us": "Choose a raid destination:"
+    "en_us": "Choose a raid destination:",
+    "ru_ru": "Выберите назначение рейда:"
   },
   "18000000000000080201": {
-    "en_us": "Choose an Omega patrol destination:"
+    "en_us": "Choose an Omega patrol destination:",
+    "ru_ru": "Выберите назначение Омега патруля:"
   },
   "18000000000000080202": {
-    "en_us": "Complete the Omega Trial with Silver Sable to unlock Omega Patrols."
+    "en_us": "Complete the Omega Trial with Silver Sable to unlock Omega Patrols.",
+    "ru_ru": "Пройдите Омега испытание у Серебряного Соболя, чтобы открыть Омега патрули."
   },
   "18000000000000080203": {
-    "en_us": "Omega Patrols unlocked."
+    "en_us": "Omega Patrols unlocked.",
+    "ru_ru": "Омега патрули разблокированы."
   },
   "18000000000000080210": {
-    "en_us": "Cosmic Axis Raid"
+    "en_us": "Cosmic Axis Raid",
+    "ru_ru": "Космический рейд на Ось"
   },
   "18000000000000080211": {
-    "en_us": "Omega Muspelheim Raid"
+    "en_us": "Omega Muspelheim Raid",
+    "ru_ru": "Омега рейд на Муспельхейм"
   },
   "18000000000000080212": {
-    "en_us": "Omega Limbo"
+    "en_us": "Omega Limbo",
+    "ru_ru": "Омега Лимбо"
   },
   "18000000000000080213": {
-    "en_us": "More Raid Options"
+    "en_us": "More Raid Options",
+    "ru_ru": "Другие рейды"
   },
   "18000000000000080220": {
-    "en_us": "Omega Midtown Patrol"
+    "en_us": "Omega Midtown Patrol",
+    "ru_ru": "Омега патруль Мидтауна"
   },
   "18000000000000080221": {
-    "en_us": "Omega Industry City Patrol"
+    "en_us": "Omega Industry City Patrol",
+    "ru_ru": "Омега патруль Промышленного района"
   },
   "18000000000000080222": {
-    "en_us": "Omega Hightown Patrol"
+    "en_us": "Omega Hightown Patrol",
+    "ru_ru": "Омега патруль Хайтауна"
   },
   "18000000000000080223": {
-    "en_us": "More Patrol Options"
+    "en_us": "More Patrol Options",
+    "ru_ru": "Другие патрули"
   },
   "5671656193676936508": {
-    "en_us": "Well, look what the cat dragged in. You got trouble, or you just missed my company?"
+    "en_us": "Well, look what the cat dragged in. You got trouble, or you just missed my company?",
+    "ru_ru": "Ого, кого это кошка приволокла. У тебя проблемы или просто соскучился по моей компании?"
   },
   "9689247002687178042": {
-    "en_us": "Relax, I don't bite. Unless you're lying to me. Then all bets are off."
+    "en_us": "Relax, I don't bite. Unless you're lying to me. Then all bets are off.",
+    "ru_ru": "Расслабься, я не кусаюсь. Если только ты мне не врёшь. А если врёшь - не обижайся."
   },
   "1707282224187180341": {
-    "en_us": "Don't just stand there gawking - either you're here to talk, or you're here to waste my afternoon."
+    "en_us": "Don't just stand there gawking - either you're here to talk, or you're here to waste my afternoon.",
+    "ru_ru": "Хватит глазеть. Говори, с чем пришёл, или проваливай."
   }
 }

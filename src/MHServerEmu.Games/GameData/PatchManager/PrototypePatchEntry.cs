@@ -1,5 +1,6 @@
 ﻿using MHServerEmu.Core.Logging;
 using MHServerEmu.Core.VectorMath;
+using MHServerEmu.Games.GameData.Prototypes;
 using MHServerEmu.Games.Properties;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -152,6 +153,7 @@ namespace MHServerEmu.Games.GameData.PatchManager
                 ValueType.PrototypeDataRef => new SimpleValue<PrototypeId>(ParsePrototypeRef(jsonElement), valueType),
                 ValueType.LocaleStringId => new SimpleValue<LocaleStringId>((LocaleStringId)jsonElement.GetUInt64(), valueType),
                 ValueType.Vector3 => new SimpleValue<Vector3>(ParseJsonVector3(jsonElement), valueType),
+                ValueType.Orientation => new SimpleValue<Orientation>(ParseJsonOrientation(jsonElement), valueType),
                 ValueType.PropertyId => new SimpleValue<PropertyId>(ParseJsonPropertyIdSingle(jsonElement), valueType),
                 // Kept as a detached copy: the JsonDocument this element belongs to is disposed once parsing
                 // finishes, and reading a JsonElement after that throws.
@@ -190,10 +192,22 @@ namespace MHServerEmu.Games.GameData.PatchManager
                 throw new InvalidOperationException("Json element is not array");
 
             var jsonArray = jsonElement.EnumerateArray().ToArray();
-            if (jsonArray.Length != 3) 
+            if (jsonArray.Length != 3)
                 throw new InvalidOperationException("Json element is not Vector3");
 
             return new Vector3(jsonArray[0].GetSingle(), jsonArray[1].GetSingle(), jsonArray[2].GetSingle());
+        }
+
+        private static Orientation ParseJsonOrientation(JsonElement jsonElement)
+        {
+            if (jsonElement.ValueKind != JsonValueKind.Array)
+                throw new InvalidOperationException("Json element is not array");
+
+            var jsonArray = jsonElement.EnumerateArray().ToArray();
+            if (jsonArray.Length != 3)
+                throw new InvalidOperationException("Json element is not Orientation");
+
+            return new Orientation(jsonArray[0].GetSingle(), jsonArray[1].GetSingle(), jsonArray[2].GetSingle());
         }
 
         public static PropertyCollection ParseJsonProperties(JsonElement jsonElement)
@@ -633,6 +647,24 @@ namespace MHServerEmu.Games.GameData.PatchManager
                     return (LocaleStringId)ulongValue;
             }
 
+            if (fieldType == typeof(Vector3))
+            {
+                return ParseJsonVector3(value);
+            }
+
+            if (fieldType == typeof(Orientation))
+            {
+                return ParseJsonOrientation(value);
+            }
+
+            if (value.ValueKind == JsonValueKind.Array)
+            {
+                if (fieldType == typeof(Prototype) || fieldType.IsArray)
+                {
+                    return new JsonPrototypeArray(value);
+                }
+            }
+
             switch (value.ValueKind)
             {
                 case JsonValueKind.String:
@@ -681,6 +713,7 @@ namespace MHServerEmu.Games.GameData.PatchManager
         LocaleStringId,
         PrototypeDataRef,
         Vector3,
+        Orientation,
         PropertyId,
         RawJson,
 
@@ -775,4 +808,3 @@ namespace MHServerEmu.Games.GameData.PatchManager
         }
     }
 }
-
