@@ -29,9 +29,24 @@
   },
   {
     "Enabled": true,
+    "Prototype": "Entity/Items/Medals/MedalBlueprints/Endgame/WarSkrullEGM.prototype",
+    "Path": "PropertiesBuiltIn[4].Prop",
+    "Description": "Redirect the native Physical-hit tooltip row to the dedicated Energy Damage proc without replacing its tooltip metadata.",
+    "ValueType": "PropertyId",
+    "Value": {
+      "Property": "ProcKeyword",
+      "Params": [
+        1,
+        "Powers/ItemPowers/MedalPowers/WarSkrullEGMEnergyProc.prototype",
+        "Powers/Blueprints/Keywords/Physical.defaults"
+      ]
+    }
+  },
+  {
+    "Enabled": true,
     "Prototype": "Powers/ItemPowers/MedalPowers/WarSkrullPhysicalDamageProc.prototype",
     "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[0].Prop",
-    "Description": "Make the Energy-hit proc grant displayed Physical Damage Rating, mirroring the native Physical-hit to Ranged Damage Rating effect.",
+    "Description": "Make the Energy-hit proc grant displayed Physical Damage Rating.",
     "ValueType": "PropertyId",
     "Value": {
       "Property": "DamageRatingBonusByType",
@@ -42,15 +57,28 @@
   },
   {
     "Enabled": true,
-    "Prototype": "Powers/ItemPowers/MedalPowers/WarSkrullPhysicalDamageProc.prototype",
-    "Path": "ActionsTriggeredOnPowerEvent[0].EvalEventTriggerChance.Conditional.Keyword",
-    "Description": "Require the Ranged Damage effect to be active before the Energy-hit effect grants the combined +2 Fighting bonus.",
-    "ValueType": "PrototypeId",
-    "Value": "Powers/Blueprints/Keywords/InfernalWarSkrullRangedProc.defaults"
+    "Prototype": "Powers/ItemPowers/MedalPowers/WarSkrullEGMEnergyProc.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[0].Prop",
+    "Description": "Make the Physical-hit proc grant Energy Damage Rating using its native item-level curve.",
+    "ValueType": "PropertyId",
+    "Value": {
+      "Property": "DamageRatingBonusByType",
+      "Params": [
+        1
+      ]
+    }
   },
   {
     "Enabled": true,
-    "Prototype": "Powers/ItemPowers/MedalPowers/InfernalWarSkrullRangedProc.prototype",
+    "Prototype": "Powers/ItemPowers/MedalPowers/WarSkrullPhysicalDamageProc.prototype",
+    "Path": "ActionsTriggeredOnPowerEvent[0].EvalEventTriggerChance.Conditional.Keyword",
+    "Description": "Require the Energy Damage effect to be active before the Energy-hit effect grants the combined +2 Fighting bonus.",
+    "ValueType": "PrototypeId",
+    "Value": "Powers/Blueprints/Keywords/WarSkrullEGMEnergyProc.defaults"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/ItemPowers/MedalPowers/WarSkrullEGMEnergyProc.prototype",
     "Path": "ActionsTriggeredOnPowerEvent[0].EvalEventTriggerChance.Conditional.Keyword",
     "Description": "Require the Physical Damage effect to be active before the Physical-hit effect grants the combined +2 Fighting bonus.",
     "ValueType": "PrototypeId",
@@ -59,9 +87,33 @@
   {
     "Enabled": true,
     "Prototype": "Powers/ItemPowers/MedalPowers/InfernalWarSkrullRangedProc.prototype",
-    "Path": "ActionsTriggeredOnPowerEvent[0].Power",
-    "Description": "Replace the inherited Infernal War Skrull +2 Intelligence follow-up with the War Skrull medallion's intended +2 Fighting effect.",
+    "Path": "ActionsTriggeredOnPowerEvent[0].EvalEventTriggerChance.Conditional.Keyword",
+    "Description": "Require the Infernal Area Damage effect before the Ranged Damage effect grants the combined +2 Intelligence bonus.",
     "ValueType": "PrototypeId",
-    "Value": "Powers/ItemPowers/MedalPowers/WarSkrullEGMFightingProc.prototype"
+    "Value": "Powers/Blueprints/Keywords/InfernalWarSkrullEGMAreaProc.defaults"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/ItemPowers/MedalPowers/InfernalWarSkrullAreaProc.prototype",
+    "Path": "ActionsTriggeredOnPowerEvent[0].EvalEventTriggerChance.Conditional.Keyword",
+    "Description": "Require the Infernal Ranged Damage effect before the Area Damage effect grants the combined +2 Intelligence bonus.",
+    "ValueType": "PrototypeId",
+    "Value": "Powers/Blueprints/Keywords/InfernalWarSkrullRangedProc.defaults"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/ItemPowers/MedalPowers/SkrullXMenEGMAreaDamage.prototype",
+    "Path": "ActionsTriggeredOnPowerEvent[0].EvalEventTriggerChance.Conditional.Keyword",
+    "Description": "Require the Skrull X-Men Mental Damage effect before the Area Damage effect grants the combined +2 Fighting bonus.",
+    "ValueType": "PrototypeId",
+    "Value": "Powers/Blueprints/Keywords/SkrullXMenEGMMentalProc.defaults"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/ItemPowers/MedalPowers/SkrullXMenEGMMentalDamage.prototype",
+    "Path": "ActionsTriggeredOnPowerEvent[0].EvalEventTriggerChance.Conditional.Keyword",
+    "Description": "Require the Skrull X-Men Area Damage effect before the Mental Damage effect grants the combined +2 Fighting bonus.",
+    "ValueType": "PrototypeId",
+    "Value": "Powers/Blueprints/Keywords/SkrullXMenEGMAreaProc.defaults"
   }
 ]

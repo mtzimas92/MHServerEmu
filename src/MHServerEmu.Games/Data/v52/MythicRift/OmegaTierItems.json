@@ -65,6 +65,7 @@
     {
       "id": "unique400-omega-support-package",
       "enabled": true,
+      "rerollForcedAffixesWithBuiltInSeed": true,
       "itemPrototypes": [
         "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot3/Unique400.prototype"
       ],
@@ -127,6 +128,7 @@
       ],
       "maximizeAffixRolls": true,
       "clearBuiltInProperties": true,
+      "preserveBuiltInPropertyIndexes": [ 0 ],
       "disableTriggeredItemActions": true,
       "clearExistingAffixes": true,
       "preserveProcAffixes": true,
@@ -196,6 +198,7 @@
     {
       "id": "unique304-fire-giant-horns",
       "enabled": true,
+      "rerollForcedAffixesWithBuiltInSeed": true,
       "itemPrototypes": [
         "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot5/Unique304.prototype"
       ],
@@ -205,6 +208,7 @@
       "overrideItemLevel": 69,
       "maximizeAffixRolls": false,
       "clearBuiltInProperties": true,
+      "preserveBuiltInPropertyIndexes": [ 0 ],
       "clearExistingAffixes": true,
       "preserveProcAffixes": true,
       "disabledAffixes": [
@@ -271,6 +275,7 @@
     {
       "id": "unique298-fire-giant-greaves",
       "enabled": true,
+      "rerollForcedAffixesWithBuiltInSeed": true,
       "itemPrototypes": [
         "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot4/Unique298.prototype"
       ],
@@ -280,6 +285,7 @@
       "overrideItemLevel": 69,
       "maximizeAffixRolls": false,
       "clearBuiltInProperties": true,
+      "preserveBuiltInPropertyIndexes": [ 0 ],
       "clearExistingAffixes": true,
       "preserveProcAffixes": true,
       "disabledAffixes": [
@@ -346,6 +352,7 @@
     {
       "id": "unique294-fire-giant-aegis",
       "enabled": true,
+      "rerollForcedAffixesWithBuiltInSeed": true,
       "itemPrototypes": [
         "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot2/Unique294.prototype"
       ],
@@ -355,7 +362,7 @@
       "overrideItemLevel": 69,
       "maximizeAffixRolls": false,
       "clearBuiltInProperties": true,
-      "preserveBuiltInPropertyIndexes": [ 2, 4 ],
+      "preserveBuiltInPropertyIndexes": [ 0, 2, 4 ],
       "clearExistingAffixes": true,
       "preserveProcAffixes": true,
       "disabledAffixes": [

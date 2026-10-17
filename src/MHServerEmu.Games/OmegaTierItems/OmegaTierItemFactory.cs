@@ -1370,6 +1370,28 @@ namespace MHServerEmu.Games.OmegaTierItems
             return affixRef != PrototypeId.Invalid && tuning?.PreferredAffixRefs.Contains(affixRef) == true;
         }
 
+        public static void RerollConfiguredForcedAffixSeeds(LootCloneRecord item, GRandom random)
+        {
+            OmegaTierItemTuning tuning = OmegaTierItemTuning.Load();
+            if (tuning?.Enabled != true || item == null || random == null)
+                return;
+
+            foreach (OmegaTierItemOverrideTuning itemOverride in tuning.ItemOverrides)
+            {
+                if (itemOverride?.RerollForcedAffixesWithBuiltInSeed != true ||
+                    itemOverride.Matches(item.ItemProto.DataRef, item.Rarity) == false)
+                    continue;
+
+                for (int i = 0; i < item.AffixRecords.Count; i++)
+                {
+                    AffixRecord affix = item.AffixRecords[i];
+                    if (itemOverride.ForcedAffixes.Any(configured =>
+                        configured?.ResolvedAffixPrototype?.DataRef == affix.AffixProtoRef))
+                        item.AffixRecords[i] = affix.SetSeed(random.Next() | 1);
+                }
+            }
+        }
+
         private static bool ContainsAffix(IEnumerable<AffixSpec> affixSpecs, PrototypeId affixRef)
         {
             foreach (AffixSpec affixSpec in affixSpecs)

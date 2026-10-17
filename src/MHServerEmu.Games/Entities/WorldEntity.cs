@@ -2121,54 +2121,7 @@ namespace MHServerEmu.Games.Entities
                 if (condition.Duration == TimeSpan.Zero && powerOwner == null)
                     continue;
 
-                string creatorPowerName = condition.CreatorPowerPrototypeRef.GetName();
-                bool traceWarSkrull = creatorPowerName.Contains("WarSkrull", StringComparison.OrdinalIgnoreCase);
-                float physicalTypeBefore = 0f;
-                float physicalKeywordBefore = 0f;
-                PropertyId physicalKeywordPropertyId = PropertyId.Invalid;
-                if (traceWarSkrull)
-                {
-                    physicalTypeBefore = Properties[PropertyEnum.DamageRatingBonusByType, DamageType.Physical];
-                    foreach (var kvp in condition.Properties.IteratePropertyRange(PropertyEnum.DamageRatingBonusForPowerKeyword))
-                    {
-                        Property.FromParam(kvp.Key, 0, out PrototypeId keywordRef);
-                        if (keywordRef.GetName().Contains("Physical.defaults", StringComparison.OrdinalIgnoreCase) == false)
-                            continue;
-
-                        physicalKeywordPropertyId = kvp.Key;
-                        physicalKeywordBefore = Properties[kvp.Key];
-                        break;
-                    }
-                }
-
-                bool conditionAdded = conditionCollection.AddCondition(condition);
-
-                if (traceWarSkrull)
-                {
-                    StringBuilder bonuses = new();
-                    foreach (var kvp in condition.Properties.IteratePropertyRange(PropertyEnum.DamageRatingBonusForPowerKeyword))
-                    {
-                        Property.FromParam(kvp.Key, 0, out PrototypeId keywordRef);
-                        if (bonuses.Length > 0)
-                            bonuses.Append(',');
-
-                        bonuses.Append(keywordRef.GetName())
-                            .Append(":condition=")
-                            .Append(((float)kvp.Value).ToString("F2"))
-                            .Append(":aggregate=")
-                            .Append(((float)Properties[kvp.Key]).ToString("F2"));
-                    }
-
-                    Logger.Info(
-                        $"[WarSkrullMedallionTrace] stage=condition-applied target={this} " +
-                        $"creatorPower={creatorPowerName} durationMs={condition.Duration.TotalMilliseconds:F0} " +
-                        $"added={conditionAdded} " +
-                        $"physicalTypeRatingBefore={physicalTypeBefore:F2} " +
-                        $"physicalTypeRatingAfter={(float)Properties[PropertyEnum.DamageRatingBonusByType, DamageType.Physical]:F2} " +
-                        $"physicalKeywordRatingBefore={physicalKeywordBefore:F2} " +
-                        $"physicalKeywordRatingAfter={(physicalKeywordPropertyId != PropertyId.Invalid ? (float)Properties[physicalKeywordPropertyId] : 0f):F2} " +
-                        $"damageRatingBonuses=[{(bonuses.Length > 0 ? bonuses.ToString() : "none")}]");
-                }
+                conditionCollection.AddCondition(condition);
             }
 
             // Remove existing conditions
@@ -2237,18 +2190,6 @@ namespace MHServerEmu.Games.Entities
                 healthDelta += MathHelper.RoundToInt64(powerResults.Properties[PropertyEnum.Healing]);
             }
 
-            bool traceUnique400Heal = powerResults.PowerPrototype?.DataRef.GetName()
-                .Contains("Unique435HealthOnUlt", StringComparison.OrdinalIgnoreCase) == true;
-            if (traceUnique400Heal)
-            {
-                Logger.Info(
-                    $"[OmegaUnique400HealTrace] stage=calculated target={this} " +
-                    $"powerOwnerId=0x{powerResults.PowerOwnerId:X} ultimateOwnerId=0x{powerResults.UltimateOwnerId:X} " +
-                    $"requestedHealing={(float)powerResults.Properties[PropertyEnum.Healing]:F2} " +
-                    $"startHealth={startHealth} rawHealthDelta={healthDelta} " +
-                    $"maxHealth={(long)Properties[PropertyEnum.HealthMax]}");
-            }
-
             // Check for invulnerability
             if (powerResults.TestFlag(PowerResultFlags.Hostile) && Properties[PropertyEnum.Invulnerable])
                 healthDelta = 0;
@@ -2286,16 +2227,6 @@ namespace MHServerEmu.Games.Entities
             WorldEntity powerUser = Game.EntityManager.GetEntity<WorldEntity>(powerResults.PowerOwnerId);
 
             long adjustHealth = health - startHealth;
-
-            if (traceUnique400Heal)
-            {
-                Logger.Info(
-                    $"[OmegaUnique400HealTrace] stage=applied target={this} powerOwnerId=0x{powerResults.PowerOwnerId:X} " +
-                    $"ultimateOwnerId=0x{powerResults.UltimateOwnerId:X} requestedHealing=" +
-                    $"{(float)powerResults.Properties[PropertyEnum.Healing]:F2} startHealth={startHealth} " +
-                    $"rawHealthDelta={healthDelta} appliedHealing={adjustHealth} finalHealth={health} " +
-                    $"maxHealth={(long)Properties[PropertyEnum.HealthMax]}");
-            }
 
             var avatar = ultimateOwner?.GetMostResponsiblePowerUser<Avatar>();
 
