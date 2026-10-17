@@ -489,16 +489,7 @@ namespace MHServerEmu.Games.GameData.PatchManager
 
                     return proto;
                 }
-            }
-
-            // MarkerPrototype.Rotation is an Orientation (Yaw/Pitch/Roll), not a Vector3, but there's no
-            // dedicated "Orientation" ValueType in patch data - JSON authors reuse ValueType:Vector3 for it
-            // (same 3-float array shape), which used to fail here since Vector3 doesn't implement
-            // IConvertible and there's no TypeConverter between the two distinct structs.
-
-            // TODO: Remove this absolute bio-hazard once all district JSONs use ValueType.Orientation
-            if (targetType == typeof(Orientation) && rawValue is Vector3 vec)
-                return new Orientation(vec.X, vec.Y, vec.Z);
+            }                   
 
             TypeConverter converter = TypeDescriptor.GetConverter(targetType);
             if (converter != null && converter.CanConvertFrom(rawValue.GetType()))

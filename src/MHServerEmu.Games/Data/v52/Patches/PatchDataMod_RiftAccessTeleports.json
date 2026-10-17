@@ -52,7 +52,7 @@
     "Prototype": "Resource/Cells/DistrictCells/Helicarrier/Helicarrier_HUB.cell",
     "Path": "MarkerSet.Markers[2].Rotation",
     "Description": "[Rift Access] Misty Knight Helicarrier rotation.",
-    "ValueType": "Vector3",
+    "ValueType": "Orientation",
     "Value": [-1.5707963267948966, 0, 0]
   },
   {
@@ -68,7 +68,7 @@
     "Prototype": "Resource/Cells/DistrictCells/Helicarrier/Helicarrier_HUB.cell",
     "Path": "MarkerSet.Markers[26].Rotation",
     "Description": "[Rift Access] Silver Sable Helicarrier rotation near Nick Fury.",
-    "ValueType": "Vector3",
+    "ValueType": "Orientation",
     "Value": [-1.5707963267948966, 0, 0]
   },
   {
@@ -92,7 +92,7 @@
     "Prototype": "Resource/Cells/DistrictCells/Helicarrier/Helicarrier_HUB.cell",
     "Path": "MarkerSet.Markers[3].Rotation",
     "Description": "[Rift Access] Doctor Strange Helicarrier rotation.",
-    "ValueType": "Vector3",
+    "ValueType": "Orientation",
     "Value": [-1.5707963267948966, 0, 0]
   },
   {
