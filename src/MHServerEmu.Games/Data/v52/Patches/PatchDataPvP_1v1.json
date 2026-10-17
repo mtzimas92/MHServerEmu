@@ -6,6 +6,14 @@
     "Description": "Change Mode to DefenderPvPTier1",
     "ValueType": "PrototypeId",
     "Value": 15802071050472854237
+  },  
+  {
+    "Enabled": true,
+    "Prototype": "Metagame/NexusPvP/Regions/NexusPvPRegion.prototype",
+    "Path": "Level",
+    "Description": "Change Level",
+    "ValueType": "Integer",
+    "Value": 60
   },
   {
     "Enabled": true,
