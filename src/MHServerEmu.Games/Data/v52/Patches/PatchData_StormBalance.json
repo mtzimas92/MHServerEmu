@@ -27,7 +27,7 @@
   {
     "Enabled": true,
     "Prototype": "Entity/Characters/PetsAndSummons/Storm/Tornado.prototype",
-    "Path": "Speed",
+    "Path": "Locomotion.Speed",
     "Description": "OpenCalligraphy export: Speed",
     "ValueType": "Float",
     "Value": 415
