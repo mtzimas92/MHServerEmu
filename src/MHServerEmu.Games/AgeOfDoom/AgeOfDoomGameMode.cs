@@ -23,21 +23,25 @@ namespace MHServerEmu.Games.AgeOfDoom;
 public sealed class AgeOfDoomGameMode : MetaGameMode
 {
     private static readonly PrototypeId FallbackObjectiveWidgetRef = (PrototypeId)1488507445230442250;
-    private enum Stage { Incursion, Council, MidtownDooms, DoomAssault, Complete, Failed }
+    private enum Stage { Cinematic, Incursion, Council, MidtownDooms, DoomAssault, Complete, Failed }
     private enum DoomAssault { Solo, Red, Blue }
+    private enum CinematicTransition { None, BeginIncursion, BeginCouncil, BeginMidtownDooms, Complete }
 
     private static readonly Logger Logger = LogManager.CreateLogger();
     private static readonly AgeOfDoomTuning Tuning = AgeOfDoomTuning.Load();
     private static readonly Dictionary<(ulong, ulong), RunState> Runs = new();
 
     private readonly Event<EntityDeadGameEvent>.Action _entityDeadAction;
+    private readonly Event<CinematicFinishedGameEvent>.Action _cinematicFinishedAction;
     private readonly EventPointer<TickEvent> _tickEvent = new();
     private readonly EventPointer<TimeoutEvent> _timeoutEvent = new();
+    private readonly EventPointer<CinematicTimeoutEvent> _cinematicTimeoutEvent = new();
     private RunState _run;
 
     public AgeOfDoomGameMode(MetaGame metaGame, MetaGameModePrototype proto) : base(metaGame, proto)
     {
         _entityDeadAction = OnEntityDead;
+        _cinematicFinishedAction = OnCinematicFinished;
     }
 
     public static bool ShouldReplace(MetaGame metaGame) =>
@@ -53,41 +57,47 @@ public sealed class AgeOfDoomGameMode : MetaGameMode
         {
             Region.EntityDeadEvent.RemoveAction(_entityDeadAction);
             Region.EntityDeadEvent.AddActionBack(_entityDeadAction);
+            Region.CinematicFinishedEvent.RemoveAction(_cinematicFinishedAction);
+            Region.CinematicFinishedEvent.AddActionBack(_cinematicFinishedAction);
             RefreshUI();
+            if (_run.CurrentStage == Stage.Cinematic)
+            {
+                if (_run.CinematicStarted)
+                    ScheduleCinematicTimeout();
+                else
+                    StartPendingCinematic();
+            }
             ScheduleTick();
             return;
         }
 
-        _run = new() { Started = true, CurrentStage = Stage.Incursion };
+        _run = new() { Started = true, CurrentStage = Stage.Cinematic };
         Runs[key] = _run;
         Region.EntityDeadEvent.AddActionBack(_entityDeadAction);
+        Region.CinematicFinishedEvent.AddActionBack(_cinematicFinishedAction);
         SetModeText(Prototype.Name);
-        BeginKillStage(Tuning.IncursionKillsPerPlayer);
-
-        if (Tuning.TimeLimitMinutes > 0)
-        {
-            TimeSpan duration = TimeSpan.FromMinutes(Tuning.TimeLimitMinutes);
-            SendStartPvPTimer(duration, TimeSpan.Zero, TimeSpan.Zero, TimeSpan.Zero);
-            Schedule(_timeoutEvent, duration);
-        }
-
+        BeginCinematicTransition(0, CinematicTransition.BeginIncursion);
         ScheduleTick();
     }
 
     public override void OnAddPlayer(Player player)
     {
+        if (_run?.CurrentStage == Stage.Cinematic && _run.CinematicStarted == false)
+            StartPendingCinematic();
         RefreshUI();
     }
 
     public override void OnDeactivate()
     {
         Region?.EntityDeadEvent.RemoveAction(_entityDeadAction);
+        Region?.CinematicFinishedEvent.RemoveAction(_cinematicFinishedAction);
         Game?.GameEventScheduler?.CancelAllEvents(_pendingEvents);
     }
 
     public override void OnDestroy()
     {
         Region?.EntityDeadEvent.RemoveAction(_entityDeadAction);
+        Region?.CinematicFinishedEvent.RemoveAction(_cinematicFinishedAction);
         Runs.Remove((Game.Id, MetaGame.Id));
         base.OnDestroy();
     }
@@ -120,7 +130,18 @@ public sealed class AgeOfDoomGameMode : MetaGameMode
             }
             else
             {
-                BeginStage(_run.StageAfterDoom);
+                switch (_run.StageAfterDoom)
+                {
+                    case Stage.Council:
+                        BeginCinematicTransition(1, CinematicTransition.BeginCouncil);
+                        break;
+                    case Stage.MidtownDooms:
+                        BeginCinematicTransition(2, CinematicTransition.BeginMidtownDooms);
+                        break;
+                    case Stage.Complete:
+                        BeginCinematicTransition(3, CinematicTransition.Complete);
+                        break;
+                }
             }
 
             RefreshUI();
@@ -182,9 +203,122 @@ public sealed class AgeOfDoomGameMode : MetaGameMode
 
     private void BeginKillStage(int killsPerPlayer)
     {
+        _run.CurrentStage = Stage.Incursion;
         _run.Required = Math.Max(1, killsPerPlayer * CountPlayers());
         SpawnWave();
         RefreshUI();
+    }
+
+    private void BeginCinematicTransition(int cinematicIndex, CinematicTransition transition)
+    {
+        _run.CurrentStage = Stage.Cinematic;
+        _run.PendingTransition = transition;
+        _run.PendingCinematicPlayers.Clear();
+        _run.PendingCinematicRef = PrototypeId.Invalid;
+        _run.CinematicStarted = false;
+        _run.Progress = 0;
+        _run.Required = 1;
+
+        if (cinematicIndex < 0 || cinematicIndex >= Tuning.CinematicPrototypes.Count)
+        {
+            CompleteCinematicTransition();
+            return;
+        }
+
+        string cinematicName = Tuning.CinematicPrototypes[cinematicIndex];
+        PrototypeId cinematicRef = GameDatabase.GetPrototypeRefByName(cinematicName);
+        if (cinematicRef.As<FullscreenMoviePrototype>() == null)
+        {
+            Logger.Warn($"[AgeOfDoom] invalid cinematic prototype '{cinematicName}'.");
+            CompleteCinematicTransition();
+            return;
+        }
+
+        _run.PendingCinematicRef = cinematicRef;
+        StartPendingCinematic();
+    }
+
+    private void StartPendingCinematic()
+    {
+        if (_run?.CurrentStage != Stage.Cinematic || _run.CinematicStarted ||
+            _run.PendingCinematicRef == PrototypeId.Invalid)
+            return;
+
+        foreach (Player player in MetaGame.Players)
+        {
+            if (player?.CurrentAvatar?.IsInWorld != true || player.CurrentAvatar.Region != Region)
+                continue;
+
+            _run.PendingCinematicPlayers.Add(player.Id);
+            player.QueueFullscreenMovie(_run.PendingCinematicRef);
+        }
+
+        if (_run.PendingCinematicPlayers.Count == 0)
+            return;
+
+        _run.CinematicStarted = true;
+        ScheduleCinematicTimeout();
+    }
+
+    private void OnCinematicFinished(in CinematicFinishedGameEvent evt)
+    {
+        if (_run?.CurrentStage != Stage.Cinematic || evt.MovieRef != _run.PendingCinematicRef || evt.Player == null)
+            return;
+
+        if (_run.PendingCinematicPlayers.Remove(evt.Player.Id) && _run.PendingCinematicPlayers.Count == 0)
+            CompleteCinematicTransition();
+    }
+
+    private void CompleteCinematicTransition()
+    {
+        if (_run == null || _run.CurrentStage != Stage.Cinematic)
+            return;
+
+        if (_cinematicTimeoutEvent.IsValid)
+            Game?.GameEventScheduler?.CancelEvent(_cinematicTimeoutEvent);
+
+        CinematicTransition transition = _run.PendingTransition;
+        _run.PendingTransition = CinematicTransition.None;
+        _run.PendingCinematicRef = PrototypeId.Invalid;
+        _run.CinematicStarted = false;
+        _run.PendingCinematicPlayers.Clear();
+
+        switch (transition)
+        {
+            case CinematicTransition.BeginIncursion:
+                StartRunTimer();
+                BeginKillStage(Tuning.IncursionKillsPerPlayer);
+                break;
+            case CinematicTransition.BeginCouncil:
+                BeginStage(Stage.Council);
+                break;
+            case CinematicTransition.BeginMidtownDooms:
+                BeginStage(Stage.MidtownDooms);
+                break;
+            case CinematicTransition.Complete:
+                CompleteRun();
+                break;
+        }
+    }
+
+    private void StartRunTimer()
+    {
+        if (_run.TimerStarted || Tuning.TimeLimitMinutes <= 0)
+            return;
+
+        _run.TimerStarted = true;
+        TimeSpan duration = TimeSpan.FromMinutes(Tuning.TimeLimitMinutes);
+        SendStartPvPTimer(duration, TimeSpan.Zero, TimeSpan.Zero, TimeSpan.Zero);
+        Schedule(_timeoutEvent, duration);
+    }
+
+    private void ScheduleCinematicTimeout() =>
+        Schedule(_cinematicTimeoutEvent, TimeSpan.FromSeconds(Math.Max(1, Tuning.CinematicTimeoutSeconds)));
+
+    private void ScheduledCinematicTimeout()
+    {
+        _cinematicTimeoutEvent.Set(null);
+        CompleteCinematicTransition();
     }
 
     private void ScheduledTick()
@@ -199,6 +333,23 @@ public sealed class AgeOfDoomGameMode : MetaGameMode
             _run.DoomTargetSlots.Remove(id);
             return true;
         });
+        if (_run.CurrentStage == Stage.Cinematic)
+        {
+            if (_run.CinematicStarted == false)
+                StartPendingCinematic();
+            _run.PendingCinematicPlayers.RemoveWhere(id =>
+            {
+                Player player = Game.EntityManager.GetEntity<Player>(id);
+                return player?.CurrentAvatar?.IsInWorld != true || player.CurrentAvatar.Region != Region;
+            });
+            if (_run.CinematicStarted && _run.PendingCinematicPlayers.Count == 0)
+                CompleteCinematicTransition();
+            if (_run.CurrentStage == Stage.Cinematic)
+            {
+                ScheduleTick();
+                return;
+            }
+        }
         if (_run.CurrentStage == Stage.DoomAssault)
         {
             SpawnCurrentDoomPhase();
@@ -527,12 +678,17 @@ public sealed class AgeOfDoomGameMode : MetaGameMode
     private sealed class RunState
     {
         public bool Started;
+        public bool TimerStarted;
         public Stage CurrentStage;
         public int Progress;
         public int Required;
         public int DoomPhaseIndex;
         public DoomAssault Assault;
         public Stage StageAfterDoom;
+        public CinematicTransition PendingTransition;
+        public PrototypeId PendingCinematicRef;
+        public bool CinematicStarted;
+        public readonly HashSet<ulong> PendingCinematicPlayers = new();
         public readonly HashSet<ulong> Entities = new();
         public readonly Dictionary<ulong, int> DoomTargetSlots = new();
         public readonly HashSet<int> CompletedDoomSlots = new();
@@ -548,5 +704,10 @@ public sealed class AgeOfDoomGameMode : MetaGameMode
     public sealed class TimeoutEvent : CallMethodEvent<AgeOfDoomGameMode>
     {
         protected override CallbackDelegate GetCallback() => mode => mode.FailRun();
+    }
+
+    public sealed class CinematicTimeoutEvent : CallMethodEvent<AgeOfDoomGameMode>
+    {
+        protected override CallbackDelegate GetCallback() => mode => mode.ScheduledCinematicTimeout();
     }
 }

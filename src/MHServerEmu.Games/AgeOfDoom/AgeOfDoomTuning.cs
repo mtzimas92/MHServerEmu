@@ -24,6 +24,8 @@ public sealed class AgeOfDoomTuning
     public int MidtownDoomBosses { get; set; } = 8;
     public string MidtownDoomPrototype { get; set; } = "Entity/Characters/Bosses/PatrolMidtown/MidtownEventDoctorDoom.prototype";
     public string ObjectiveWidgetPrototype { get; set; }
+    public int CinematicTimeoutSeconds { get; set; } = 180;
+    public List<string> CinematicPrototypes { get; set; } = new();
     public List<string> MinionPrototypes { get; set; } = new();
     public List<string> CouncilBossPrototypes { get; set; } = new();
     public List<string> DoomPhasePrototypes { get; set; } = new();
@@ -37,6 +39,7 @@ public sealed class AgeOfDoomTuning
             return new() { Enabled = false };
 
         AgeOfDoomTuning tuning = FileHelper.DeserializeJson<AgeOfDoomTuning>(ConfigPath, JsonOptions) ?? new() { Enabled = false };
+        tuning.CinematicPrototypes ??= new();
         tuning.CompletionRewards ??= new();
         foreach (AgeOfDoomCompletionRewardTuning reward in tuning.CompletionRewards)
             reward?.Normalize();
