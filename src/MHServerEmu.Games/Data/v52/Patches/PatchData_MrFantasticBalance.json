@@ -1,0 +1,57 @@
+[
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/MrFantastic/WhirlwindSummonCombo.prototype",
+    "Path": "EvalSelectSummonContextIndex",
+    "Description": "Use the Bouncy Whirlwind summon only while Mr. Fantastic has both Bouncy Ball Form and the Bouncy Whirlwind talent.",
+    "ValueType": "Prototype",
+    "Value": {
+      "ParentDataRef": 12224016857095933257,
+      "Op": "IfElse",
+      "Conditional": {
+        "ParentDataRef": 17241420316344585298,
+        "Op": "And",
+        "Arg1": {
+          "ParentDataRef": 5113521521126608664,
+          "Op": "EntityHasKeyword",
+          "Context": "Var2",
+          "Keyword": 1370849412712764637,
+          "ConditionKeywordOnly": true
+        },
+        "Arg2": {
+          "ParentDataRef": 12787312504554524315,
+          "Op": "EntityHasTalent",
+          "Context": "Var2",
+          "Talent": "Powers/Player/MrFantastic/Talents/BouncyWhirlwind.prototype"
+        }
+      },
+      "EvalIf": {
+        "ParentDataRef": 5074715296837012907,
+        "Op": "LoadFloat",
+        "Value": 1
+      },
+      "EvalElse": {
+        "ParentDataRef": 5074715296837012907,
+        "Op": "LoadFloat",
+        "Value": 0
+      }
+    }
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/MrFantastic/WhirlwindHotspotEffectBouncy.prototype",
+    "Path": "EvalOnCreate[]",
+    "Description": "Apply Bouncy Whirlwind's intended 25% damage bonus directly when its talent-exclusive hotspot damage power is instantiated.",
+    "ValueType": "Prototype",
+    "Value": {
+      "ParentDataRef": "Eval/Properties/AssignProp.defaults",
+      "Op": "AssignProp",
+      "Prop": "DamageMult",
+      "Eval": {
+        "ParentDataRef": "Eval/Constants/LoadFloat.defaults",
+        "Op": "LoadFloat",
+        "Value": 0.25
+      }
+    }
+  }
+]
