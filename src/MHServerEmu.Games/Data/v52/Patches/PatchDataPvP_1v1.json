@@ -167,7 +167,7 @@
         "ProtoNameHash": "EntityMarkerPrototype",
         "EntityGuid": 8643481409066765381,
         "LastKnownEntityName": "SpawnMarkers/Types/EncounterSmallV5.prototype",
-        "Position": [ 3961, 2428, 25 ]
+        "Position": [ 3993, 2414, 25 ]
       },
       {
         "ProtoNameHash": "EntityMarkerPrototype",
@@ -201,7 +201,7 @@
         "ProtoNameHash": "EntityMarkerPrototype",
         "EntityGuid": 3419739453557641865,
         "LastKnownEntityName": "SpawnMarkers/Types/EncounterTinyV2.prototype",
-        "Position": [ 4514, 3847, 22 ],
+        "Position": [ 4442, 3834, 22 ],
         "Rotation": [ 3.542705, 0, 0 ]
       },
       {
@@ -220,7 +220,7 @@
         "ProtoNameHash": "EntityMarkerPrototype",
         "EntityGuid": 15798735039559570142,
         "LastKnownEntityName": "SpawnMarkers/Types/EncounterSmallV6.prototype",
-        "Position": [ 2200, 4369, 7 ]
+        "Position": [ 2211, 4336, 7 ]
       },
       {
         "ProtoNameHash": "EntityMarkerPrototype",
@@ -252,7 +252,7 @@
         "ProtoNameHash": "EntityMarkerPrototype",
         "EntityGuid": 18302880709424854927,
         "LastKnownEntityName": "SpawnMarkers/Types/EncounterTinyV20.prototype",
-        "Position": [ 3643, 4605, 22 ],
+        "Position": [ 3661, 4676, 22 ],
         "Rotation": [ -1.570796, 0, 0 ]
       }
     ]
@@ -270,19 +270,19 @@
         "PathNodes": [
           {
             "ProtoNameHash": "PathNodePrototype",
-            "Position": [ 4061, 2478, 0 ]
+            "Position": [ 4015, 2551, 0 ]
           },
           {
             "ProtoNameHash": "PathNodePrototype",
-            "Position": [ 4120, 3631, 0 ]
+            "Position": [ 4037, 3710, 0 ]
           },
           {
             "ProtoNameHash": "PathNodePrototype",
-            "Position": [ 3580, 4193, 0 ]
+            "Position": [ 3507, 4282, 0 ]
           },
           {
             "ProtoNameHash": "PathNodePrototype",
-            "Position": [ 2419, 4297, 0 ]
+            "Position": [ 2350, 4348, 0 ]
           }
         ]
       }
