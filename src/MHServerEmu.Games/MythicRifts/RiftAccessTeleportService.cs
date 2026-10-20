@@ -5,6 +5,7 @@ using MHServerEmu.Games.Entities;
 using MHServerEmu.Games.Entities.Avatars;
 using MHServerEmu.Games.GameData;
 using MHServerEmu.Games.GameData.Prototypes;
+using MHServerEmu.Games.Properties;
 using MHServerEmu.Games.Regions;
 using MHServerEmu.Games.UI;
 
@@ -111,8 +112,7 @@ namespace MHServerEmu.Games.MythicRifts
             dialog.TargetId = npc.Id;
             dialog.InteractorId = player.CurrentAvatar?.Id ?? Entity.InvalidId;
             dialog.AddButton(GameDialogResultEnum.eGDR_Option1, OmegaMuspelheimButtonRef, ButtonStyle.SecondaryPositive, false);
-            dialog.AddButton(GameDialogResultEnum.eGDR_Option2, OmegaLimboButtonRef, ButtonStyle.SecondaryPositive, false);
-            dialog.AddButton(GameDialogResultEnum.eGDR_Option3, CosmicUltronButtonRef, ButtonStyle.SecondaryPositive, false);
+            dialog.AddButton(GameDialogResultEnum.eGDR_Option2, MoreRaidOptionsButtonRef, ButtonStyle.SecondaryPositive, false);
 
             game.GameDialogManager.PostDialogToClient(dialog);
 
@@ -125,10 +125,40 @@ namespace MHServerEmu.Games.MythicRifts
                         break;
 
                     case GameDialogResultEnum.eGDR_Option2:
+                    {
+                        Player responsePlayer = game.EntityManager.GetEntityByDbGuid<Player>(playerGuid);
+                        if (responsePlayer != null)
+                            ShowRaidAccessFinalTeleporter(responsePlayer, npc);
+                        break;
+                    }
+                }
+            }
+        }
+
+        private static void ShowRaidAccessFinalTeleporter(Player player, WorldEntity npc)
+        {
+            Game game = player.Game;
+
+            GameDialogInstance dialog = game.GameDialogManager.CreateInstance(player.DatabaseUniqueId);
+            dialog.OnResponse = OnRaidAccessFinalTeleporterDialogResponse;
+            dialog.Message.LocaleString = RaidAccessDialogTextRef;
+            dialog.Options = DialogOptionEnum.WorldClick;
+            dialog.TargetId = npc.Id;
+            dialog.InteractorId = player.CurrentAvatar?.Id ?? Entity.InvalidId;
+            dialog.AddButton(GameDialogResultEnum.eGDR_Option1, OmegaLimboButtonRef, ButtonStyle.SecondaryPositive, false);
+            dialog.AddButton(GameDialogResultEnum.eGDR_Option2, CosmicUltronButtonRef, ButtonStyle.SecondaryPositive, false);
+
+            game.GameDialogManager.PostDialogToClient(dialog);
+
+            void OnRaidAccessFinalTeleporterDialogResponse(ulong playerGuid, DialogResponse response)
+            {
+                switch (response.ButtonIndex)
+                {
+                    case GameDialogResultEnum.eGDR_Option1:
                         TeleportDialogPlayerToTarget(game, playerGuid, OmegaLimboEntryTargetPrototypeName, Tier5Omega1Ref);
                         break;
 
-                    case GameDialogResultEnum.eGDR_Option3:
+                    case GameDialogResultEnum.eGDR_Option2:
                         TeleportDialogPlayerToTarget(game, playerGuid, CosmicUltronTargetRef, Tier3SuperheroicRef);
                         break;
                 }
@@ -172,6 +202,13 @@ namespace MHServerEmu.Games.MythicRifts
             settings.Position = new Vector3(344f, 1872f, 48f);
             settings.Orientation = new Orientation(-MathF.PI / 2f, 0f, 0f);
             settings.RegionId = region.Id;
+
+            using var settingsPropertiesHandle = PropertyCollectionPool.Get(out PropertyCollection settingsProperties);
+            settingsProperties[PropertyEnum.Interactable] = (int)TriBool.True;
+            settingsProperties[PropertyEnum.InteractableUsesLeft] = -1;
+            settingsProperties[PropertyEnum.Visible] = true;
+            settings.Properties = settingsProperties;
+
             region.Game.EntityManager.CreateEntity(settings);
         }
 
