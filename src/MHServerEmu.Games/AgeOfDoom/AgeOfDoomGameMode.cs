@@ -37,6 +37,7 @@ public sealed class AgeOfDoomGameMode : MetaGameMode
     private readonly EventPointer<TimeoutEvent> _timeoutEvent = new();
     private readonly EventPointer<CinematicTimeoutEvent> _cinematicTimeoutEvent = new();
     private RunState _run;
+    private bool IsPlayableInstance => IsPlayableRegion(Region);
 
     public AgeOfDoomGameMode(MetaGame metaGame, MetaGameModePrototype proto) : base(metaGame, proto)
     {
@@ -44,11 +45,49 @@ public sealed class AgeOfDoomGameMode : MetaGameMode
         _cinematicFinishedAction = OnCinematicFinished;
     }
 
-    public static bool ShouldReplace(MetaGame metaGame) =>
-        Tuning.Enabled && metaGame?.PrototypeDataRef == (PrototypeId)Tuning.MetaGamePrototypeId;
+    public static void TryAttachToRegion(Region region)
+    {
+        if (IsPlayableRegion(region) == false)
+            return;
+
+        PrototypeId metaGameRef = (PrototypeId)Tuning.MetaGamePrototypeId;
+        foreach (ulong metaGameId in region.MetaGames)
+        {
+            MetaGame existing = region.Game.EntityManager.GetEntity<MetaGame>(metaGameId);
+            if (existing?.PrototypeDataRef == metaGameRef)
+                return;
+        }
+
+        using var settingsHandle = EntitySettingsPool.Get(out EntitySettings settings);
+        settings.RegionId = region.Id;
+        settings.EntityRef = metaGameRef;
+
+        if (region.Game.EntityManager.CreateEntity(settings) == null)
+            Logger.Warn($"[AgeOfDoom] Failed to attach the event shell to region 0x{region.Id:X}.");
+    }
+
+    public static bool ShouldReplace(MetaGame metaGame)
+    {
+        return metaGame != null &&
+            metaGame.PrototypeDataRef == (PrototypeId)Tuning.MetaGamePrototypeId &&
+            IsPlayableRegion(metaGame.Region);
+    }
+
+    private static bool IsPlayableRegion(Region region) =>
+        Tuning.Enabled &&
+        region != null &&
+        region.PrototypeDataRef == (PrototypeId)Tuning.RegionPrototypeId &&
+        region.DifficultyTierRef == (PrototypeId)Tuning.DifficultyTierPrototypeId &&
+        region.Settings.ParentRegionId == 0;
 
     public override void OnActivate()
     {
+        // The Loki region is also used for Rift reward rooms and story instances. Always
+        // intercept the attached AoU shell, but activate Doom only for its standalone
+        // Cosmic instance so native AoU logic cannot leak into those other uses.
+        if (IsPlayableInstance == false)
+            return;
+
         // Do not call the native mode activation. Its ApplyStates/EventHandler chain is the
         // Age of Ultron mission sequencer that this mode intentionally replaces.
         _startTime = Game.CurrentTime;
@@ -75,13 +114,19 @@ public sealed class AgeOfDoomGameMode : MetaGameMode
         Runs[key] = _run;
         Region.EntityDeadEvent.AddActionBack(_entityDeadAction);
         Region.CinematicFinishedEvent.AddActionBack(_cinematicFinishedAction);
-        SetModeText(Prototype.Name);
+        LocaleStringId modeName = Tuning.ModeNameLocaleStringId != 0
+            ? (LocaleStringId)Tuning.ModeNameLocaleStringId
+            : Prototype.Name;
+        SetModeText(modeName);
         BeginCinematicTransition(0, CinematicTransition.BeginIncursion);
         ScheduleTick();
     }
 
     public override void OnAddPlayer(Player player)
     {
+        if (IsPlayableInstance == false)
+            return;
+
         if (_run?.CurrentStage == Stage.Cinematic && _run.CinematicStarted == false)
             StartPendingCinematic();
         RefreshUI();

@@ -466,6 +466,10 @@ namespace MHServerEmu.Games.Regions
                 }
             }
 
+            // Age of Doom uses a dedicated Loki throne-room instance without changing the
+            // region prototype or replacing the native Age of Ultron event.
+            MHServerEmu.Games.AgeOfDoom.AgeOfDoomGameMode.TryAttachToRegion(this);
+
 #if GAME_VERSION_1_52 || GAME_VERSION_1_53
             ApplyDifficultyTierProperties(settings.DifficultyTierRef);
 #endif
@@ -482,6 +486,7 @@ namespace MHServerEmu.Games.Regions
                 MythicRiftScenarioVendorSpawner.SpawnDangerRoomScenarioVendor(this);
 
             OmegaRaidVendorService.SpawnInHelicarrier(this);
+            RiftAccessTeleportService.SpawnAgeOfDoomGuide(this);
 
             return true;
         }

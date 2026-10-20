@@ -15,6 +15,9 @@ public sealed class AgeOfDoomTuning
 
     public bool Enabled { get; set; } = true;
     public ulong MetaGamePrototypeId { get; set; } = 2140634644043404383;
+    public ulong RegionPrototypeId { get; set; } = 9322383157057886124;
+    public ulong DifficultyTierPrototypeId { get; set; } = 586640101754933627;
+    public ulong ModeNameLocaleStringId { get; set; } = 18000000000000080300;
     public int TimeLimitMinutes { get; set; } = 25;
     public int SpawnIntervalSeconds { get; set; } = 5;
     public int MaximumLivingEnemiesPerPlayer { get; set; } = 8;

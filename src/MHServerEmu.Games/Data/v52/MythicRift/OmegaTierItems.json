@@ -74,40 +74,25 @@
       ],
       "overrideItemLevel": 69,
       "maximizeAffixRolls": false,
-      "clearBuiltInProperties": false,
-      "preserveProcBuiltInProperties": true,
-      "preserveBuiltInPropertyIndexes": [],
+      "clearBuiltInProperties": true,
+      "preserveProcBuiltInProperties": false,
+      "preserveBuiltInPropertyIndexes": [ 0, 1, 4, 5, 6, 7, 8 ],
       "maximizeBuiltInPropertyRolls": false,
       "clearExistingAffixes": true,
       "preserveProcAffixes": true,
-      "builtInProperties": [],
+      "builtInProperties": [
+        {
+          "property": {
+            "Property": "StatAllModifier"
+          },
+          "valueMin": 2,
+          "valueMax": 2,
+          "rollAsInteger": true
+        }
+      ],
       "forcedAffixes": [
         {
-          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/BonusSpirit/BonusSpiritT1.prototype",
-          "count": 1,
-          "allowInvalidAttachment": true,
-          "replaceExistingSamePosition": false
-        },
-        {
-          "prototype": "Entity/Items/Affixes/ArmorAffixes/zzzDeprecated/zzzDeprecatedBoosts/SpiritRegen0Weight/SpiritRegen05.prototype",
-          "count": 1,
-          "allowInvalidAttachment": true,
-          "replaceExistingSamePosition": false
-        },
-        {
           "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/BonusHealth/BonusHealthT3.prototype",
-          "count": 1,
-          "allowInvalidAttachment": true,
-          "replaceExistingSamePosition": false
-        },
-        {
-          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/Attributes/StrengthT3.prototype",
-          "count": 1,
-          "allowInvalidAttachment": true,
-          "replaceExistingSamePosition": false
-        },
-        {
-          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/Attributes/FightingT3.prototype",
           "count": 1,
           "allowInvalidAttachment": true,
           "replaceExistingSamePosition": false

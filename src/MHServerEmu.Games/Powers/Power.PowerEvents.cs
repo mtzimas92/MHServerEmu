@@ -2,7 +2,6 @@
 using MHServerEmu.Core.Collisions;
 using MHServerEmu.Core.Extensions;
 using MHServerEmu.Core.Helpers;
-using MHServerEmu.Core.Logging;
 using MHServerEmu.Core.Memory;
 using MHServerEmu.Core.System.Random;
 using MHServerEmu.Core.VectorMath;
@@ -24,8 +23,6 @@ namespace MHServerEmu.Games.Powers
 {
     public partial class Power
     {
-        private static readonly Logger Logger = LogManager.CreateLogger();
-
         #region Event Handlers
 
         // Please keep these sorted by PowerEventType enum value

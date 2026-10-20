@@ -371,6 +371,17 @@ namespace MHServerEmu.Games.MythicRifts
                 : null;
         }
 
+        public void ClearPlayerSessionState(ulong playerDbId)
+        {
+            if (playerDbId == 0)
+                return;
+
+            _pendingIntentsByPlayerDbId.Remove(playerDbId);
+            _armedLaunchesByPlayerDbId.Remove(playerDbId);
+            _lastArmedLaunchResultsByPlayerDbId.Remove(playerDbId);
+            _trackedBeaconChargesByPlayerDbId.Remove(playerDbId);
+        }
+
         public int GetTrackedBeaconChargeCount(Player player, Item item)
         {
             if (player == null || item == null)

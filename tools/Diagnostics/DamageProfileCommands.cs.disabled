@@ -1,3 +1,7 @@
+// Archived production-disabled command wrapper for PowerDamageMetricsLogger.
+// To restore it for a test build, move this file into
+// src/MHServerEmu/Commands/Implementations and remove the .disabled suffix.
+
 using System.Linq;
 using MHServerEmu.Commands.Attributes;
 using MHServerEmu.Core.Network;

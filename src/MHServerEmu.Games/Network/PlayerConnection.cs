@@ -347,13 +347,20 @@ namespace MHServerEmu.Games.Network
             if (avatar != null && avatar.IsInWorld)
                 avatar.ExitWorld();
             
-            SaveToDBAccount(true);
+            bool accountSaved = SaveToDBAccount(true);
 
             AOI.SetRegion(0, true);
             if (Player != null)
             {
                 if (HasPendingRegionTransfer == false)
+                {
                     OmegaGearLootFilter.ClearSession(Player.DatabaseUniqueId);
+                    if (accountSaved)
+                    {
+                        Game.MythicRiftLauncherService.ClearPlayerSessionState(Player.DatabaseUniqueId);
+                        Game.MythicRiftManager.ClearPlayerSessionState(Player);
+                    }
+                }
 
                 // Do an AOI update here to remove from the fake "party" after exiting match regions,
                 // see AreaOfInterest.GetInventoryInterestPolicies() for more details.

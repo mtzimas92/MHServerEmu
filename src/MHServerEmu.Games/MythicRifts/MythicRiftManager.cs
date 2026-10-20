@@ -194,6 +194,7 @@ namespace MHServerEmu.Games.MythicRifts
         private readonly Dictionary<ulong, int> _highestUnlockedEndlessRiftLevelByPlayer = new();
         private readonly Dictionary<ulong, int> _preferredLaunchRiftLevelByPlayer = new();
         private readonly Dictionary<ulong, int> _preferredLaunchEndlessRiftLevelByPlayer = new();
+        private readonly Dictionary<ulong, HashSet<ulong>> _progressionCacheKeysByPlayer = new();
         private readonly int _affixShuffleSeed;
         private readonly Dictionary<ulong, int> _completedEndlessCyclesByPlayer = new();
         private readonly Dictionary<ulong, string> _lastCompletedMapContentIdByPlayer = new();
@@ -396,6 +397,32 @@ namespace MHServerEmu.Games.MythicRifts
                 return highestUnlockedLevel;
 
             return Math.Min(Math.Max(preferredLevel, 1), highestUnlockedLevel);
+        }
+
+        public void ClearPlayerSessionState(Player player)
+        {
+            ulong playerDbId = player?.DatabaseUniqueId ?? 0;
+            if (playerDbId == 0)
+                return;
+
+            using var cacheKeysHandle = HashSetPool<ulong>.Get(out HashSet<ulong> cacheKeys);
+            cacheKeys.Add(playerDbId);
+            if (_progressionCacheKeysByPlayer.Remove(playerDbId, out HashSet<ulong> trackedCacheKeys))
+                cacheKeys.UnionWith(trackedCacheKeys);
+
+            foreach (ulong cacheKey in cacheKeys)
+            {
+                _highestUnlockedRiftLevelByPlayer.Remove(cacheKey);
+                _highestUnlockedEndlessRiftLevelByPlayer.Remove(cacheKey);
+                _preferredLaunchRiftLevelByPlayer.Remove(cacheKey);
+                _preferredLaunchEndlessRiftLevelByPlayer.Remove(cacheKey);
+                _completedEndlessCyclesByPlayer.Remove(cacheKey);
+            }
+
+            _lastCompletedMapContentIdByPlayer.Remove(playerDbId);
+            _recentRandomMapContentIdsByPlayer.Remove(playerDbId);
+            _recentRandomBossFamiliesByPlayer.Remove(playerDbId);
+            _completionCrafterOpportunitiesByPlayer.Remove(playerDbId);
         }
 
         public bool TrySetPreferredLaunchRiftLevel(
@@ -781,7 +808,15 @@ namespace MHServerEmu.Games.MythicRifts
                 ulong hash = 1469598103934665603UL;
                 hash = (hash ^ playerDbId) * 1099511628211UL;
                 hash = (hash ^ (ulong)avatarRef) * 1099511628211UL;
-                return hash == 0 ? playerDbId : hash;
+                ulong cacheKey = hash == 0 ? playerDbId : hash;
+                if (_progressionCacheKeysByPlayer.TryGetValue(playerDbId, out HashSet<ulong> cacheKeys) == false)
+                {
+                    cacheKeys = new();
+                    _progressionCacheKeysByPlayer[playerDbId] = cacheKeys;
+                }
+
+                cacheKeys.Add(cacheKey);
+                return cacheKey;
             }
         }
 
@@ -4947,6 +4982,12 @@ namespace MHServerEmu.Games.MythicRifts
                 int deathsRemaining = Math.Max(BossGauntletPlayerDeathLimit - deathCount, 0);
                 if (deathsRemaining > 0)
                 {
+                    // Native Danger Room mission state can be resent after a player death, which
+                    // recreates its Continue UI. Allow the suppression messages to be sent again
+                    // and immediately restore the Rift HUD for every participant.
+                    _nativeMissionTrackerSuppressionsSent.RemoveWhere(key => key.RunId == runState.Config.RunId);
+                    RefreshRiftObjectiveWidgets(runState, Game.CurrentTime, force: true);
+
                     NotifyRunPlayers(
                         runState,
                         $"[Mythic Rift] {deadPlayer.GetName()} fell. Boss Gauntlet deaths remaining: {deathsRemaining}.");
