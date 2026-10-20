@@ -1,5 +1,6 @@
 using Gazillion;
 using MHServerEmu.Core.Memory;
+using MHServerEmu.Games.AgeOfDoom;
 using MHServerEmu.Games.Entities;
 using MHServerEmu.Games.Entities.Avatars;
 using MHServerEmu.Games.GameData;
@@ -12,7 +13,7 @@ namespace MHServerEmu.Games.MythicRifts
     public static class RiftAccessTeleportService
     {
         private const string OmegaLimboEntryTargetPrototypeName = "Regions/EndGame/TierX/Limbo/Targets/LimboEntryTarget.prototype";
-        private const string AgeOfDoomEntryTargetPrototypeName = "Regions/StoryRevamp/CH09Asgard/Transitions/LokiBossPhaseOneTarget.prototype";
+        private const string AgeOfDoomEntryTargetPrototypeName = "Regions/StoryRevamp/CH09Asgard/Transitions/LokiBossPhaseTwoTarget.prototype";
         // Hub NPCs for direct access to higher difficulty raid/patrol content.
         public static readonly PrototypeId OmegaPatrolTeleporterRef = (PrototypeId)1753661696525930987;
         public static readonly PrototypeId RaidAccessTeleporterRef = (PrototypeId)13792587214021661359;
@@ -31,6 +32,8 @@ namespace MHServerEmu.Games.MythicRifts
         private static readonly LocaleStringId MoreRaidOptionsButtonRef = (LocaleStringId)18000000000000080213;
         private static readonly LocaleStringId CosmicUltronButtonRef = (LocaleStringId)18000000000000080214;
         private static readonly LocaleStringId AgeOfDoomButtonRef = (LocaleStringId)18000000000000080300;
+        private static readonly LocaleStringId AgeOfDoomDisabledMessageRef = (LocaleStringId)18000000000000080302;
+        private static readonly LocaleStringId AgeOfDoomDisabledAcknowledgeRef = (LocaleStringId)18000000000000080303;
         private static readonly LocaleStringId OmegaMidtownButtonRef = (LocaleStringId)18000000000000080220;
         private static readonly LocaleStringId OmegaIndustryCityButtonRef = (LocaleStringId)18000000000000080221;
         private static readonly LocaleStringId OmegaHightownButtonRef = (LocaleStringId)18000000000000080222;
@@ -180,10 +183,31 @@ namespace MHServerEmu.Games.MythicRifts
                         break;
 
                     case GameDialogResultEnum.eGDR_Option2:
-                        TeleportDialogPlayerToTarget(game, playerGuid, AgeOfDoomEntryTargetPrototypeName, Tier3SuperheroicRef);
+                    {
+                        Player responsePlayer = game.EntityManager.GetEntityByDbGuid<Player>(playerGuid);
+                        if (responsePlayer == null)
+                            break;
+
+                        if (AgeOfDoomGameMode.IsEnabled)
+                            TeleportDialogPlayerToTarget(game, playerGuid, AgeOfDoomEntryTargetPrototypeName, Tier3SuperheroicRef);
+                        else
+                            ShowAgeOfDoomDisabledDialog(responsePlayer, npc);
                         break;
+                    }
                 }
             }
+        }
+
+        private static void ShowAgeOfDoomDisabledDialog(Player player, WorldEntity npc)
+        {
+            GameDialogInstance dialog = player.Game.GameDialogManager.CreateInstance(player.DatabaseUniqueId);
+            dialog.OnResponse = (_, _) => { };
+            dialog.Message.LocaleString = AgeOfDoomDisabledMessageRef;
+            dialog.Options = DialogOptionEnum.WorldClick;
+            dialog.TargetId = npc.Id;
+            dialog.InteractorId = player.CurrentAvatar?.Id ?? Entity.InvalidId;
+            dialog.AddButton(GameDialogResultEnum.eGDR_Option1, AgeOfDoomDisabledAcknowledgeRef, ButtonStyle.SecondaryPositive, false);
+            player.Game.GameDialogManager.PostDialogToClient(dialog);
         }
 
         private static void UseOmegaPatrolTeleporter(Player player, WorldEntity npc)

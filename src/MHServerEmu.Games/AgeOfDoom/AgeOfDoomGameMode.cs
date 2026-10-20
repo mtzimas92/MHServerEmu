@@ -12,6 +12,7 @@ using MHServerEmu.Games.GameData.Prototypes;
 using MHServerEmu.Games.Loot;
 using MHServerEmu.Games.MetaGames;
 using MHServerEmu.Games.MetaGames.GameModes;
+using MHServerEmu.Games.Missions;
 using MHServerEmu.Games.MythicRifts;
 using MHServerEmu.Games.OmegaTierItems;
 using MHServerEmu.Games.Properties;
@@ -23,6 +24,11 @@ namespace MHServerEmu.Games.AgeOfDoom;
 public sealed class AgeOfDoomGameMode : MetaGameMode
 {
     private static readonly PrototypeId FallbackObjectiveWidgetRef = (PrototypeId)1488507445230442250;
+    private static readonly HashSet<PrototypeId> NativeLokiMissionRefs = new()
+    {
+        (PrototypeId)7078023648787242956, // LokiPhase1Controller
+        (PrototypeId)1811770737411497933  // LokiPhase2Controller
+    };
     private enum Stage { Cinematic, Incursion, Council, MidtownDooms, DoomAssault, Complete, Failed }
     private enum DoomAssault { Solo, Red, Blue }
     private enum CinematicTransition { None, BeginIncursion, BeginCouncil, BeginMidtownDooms, Complete }
@@ -37,6 +43,7 @@ public sealed class AgeOfDoomGameMode : MetaGameMode
     private readonly EventPointer<TimeoutEvent> _timeoutEvent = new();
     private readonly EventPointer<CinematicTimeoutEvent> _cinematicTimeoutEvent = new();
     private RunState _run;
+    public static bool IsEnabled => Tuning.Enabled;
     private bool IsPlayableInstance => IsPlayableRegion(Region);
 
     public AgeOfDoomGameMode(MetaGame metaGame, MetaGameModePrototype proto) : base(metaGame, proto)
@@ -98,6 +105,8 @@ public sealed class AgeOfDoomGameMode : MetaGameMode
             Region.EntityDeadEvent.AddActionBack(_entityDeadAction);
             Region.CinematicFinishedEvent.RemoveAction(_cinematicFinishedAction);
             Region.CinematicFinishedEvent.AddActionBack(_cinematicFinishedAction);
+            foreach (Player player in MetaGame.Players)
+                SuppressNativeLokiMissions(player);
             RefreshUI();
             if (_run.CurrentStage == Stage.Cinematic)
             {
@@ -114,6 +123,8 @@ public sealed class AgeOfDoomGameMode : MetaGameMode
         Runs[key] = _run;
         Region.EntityDeadEvent.AddActionBack(_entityDeadAction);
         Region.CinematicFinishedEvent.AddActionBack(_cinematicFinishedAction);
+        foreach (Player player in MetaGame.Players)
+            SuppressNativeLokiMissions(player);
         LocaleStringId modeName = Tuning.ModeNameLocaleStringId != 0
             ? (LocaleStringId)Tuning.ModeNameLocaleStringId
             : Prototype.Name;
@@ -127,9 +138,58 @@ public sealed class AgeOfDoomGameMode : MetaGameMode
         if (IsPlayableInstance == false)
             return;
 
+        SuppressNativeLokiMissions(player);
         if (_run?.CurrentStage == Stage.Cinematic && _run.CinematicStarted == false)
             StartPendingCinematic();
         RefreshUI();
+    }
+
+    private void SuppressNativeLokiMissions(Player player)
+    {
+        if (player == null || IsPlayableInstance == false)
+            return;
+
+        SuppressNativeLokiMissions(player, Region?.MissionManager);
+    }
+
+    private static void SuppressNativeLokiMissions(Player player, MissionManager missionManager)
+    {
+        if (player == null || missionManager == null)
+            return;
+
+        foreach (PrototypeId missionRef in NativeLokiMissionRefs)
+        {
+            Mission mission = missionManager.FindMissionByDataRef(missionRef);
+            if (mission == null)
+                continue;
+
+            if (mission.IsSuspended == false)
+                mission.SetSuspendedState(true);
+
+            NetMessageMissionUpdate missionMessage = NetMessageMissionUpdate.CreateBuilder()
+                .SetMissionPrototypeId((ulong)missionRef)
+                .SetMissionState((uint)MissionState.Inactive)
+                .SetSuppressNotification(true)
+                .SetSuspendedState(true)
+                .Build();
+            player.SendMessage(missionMessage);
+
+            foreach (MissionObjective objective in mission.Objectives)
+            {
+                NetMessageMissionObjectiveUpdate objectiveMessage = NetMessageMissionObjectiveUpdate.CreateBuilder()
+                    .SetMissionPrototypeId((ulong)missionRef)
+                    .SetObjectiveIndex(objective.PrototypeIndex)
+                    .SetObjectiveState((uint)MissionObjectiveState.Invalid)
+                    .SetCurrentCount(0)
+                    .SetRequiredCount(0)
+                    .SetFailCurrentCount(0)
+                    .SetFailRequiredCount(0)
+                    .SetSuppressNotification(true)
+                    .SetSuspendedState(true)
+                    .Build();
+                player.SendMessage(objectiveMessage);
+            }
+        }
     }
 
     public override void OnDeactivate()
