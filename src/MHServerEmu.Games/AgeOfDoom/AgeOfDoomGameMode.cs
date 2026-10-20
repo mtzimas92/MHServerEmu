@@ -29,6 +29,11 @@ public sealed class AgeOfDoomGameMode : MetaGameMode
         (PrototypeId)7078023648787242956, // LokiPhase1Controller
         (PrototypeId)1811770737411497933  // LokiPhase2Controller
     };
+    private static readonly HashSet<PrototypeId> NativeLokiBossRefs = new()
+    {
+        (PrototypeId)9321313401906992235,  // LokiPhase1
+        (PrototypeId)1781616919301592172   // LokiPhase2
+    };
     private enum Stage { Cinematic, Incursion, Council, MidtownDooms, DoomAssault, Complete, Failed }
     private enum DoomAssault { Solo, Red, Blue }
     private enum CinematicTransition { None, BeginIncursion, BeginCouncil, BeginMidtownDooms, Complete }
@@ -38,6 +43,7 @@ public sealed class AgeOfDoomGameMode : MetaGameMode
     private static readonly Dictionary<(ulong, ulong), RunState> Runs = new();
 
     private readonly Event<EntityDeadGameEvent>.Action _entityDeadAction;
+    private readonly Event<EntityEnteredWorldGameEvent>.Action _entityEnteredWorldAction;
     private readonly Event<CinematicFinishedGameEvent>.Action _cinematicFinishedAction;
     private readonly EventPointer<TickEvent> _tickEvent = new();
     private readonly EventPointer<TimeoutEvent> _timeoutEvent = new();
@@ -49,6 +55,7 @@ public sealed class AgeOfDoomGameMode : MetaGameMode
     public AgeOfDoomGameMode(MetaGame metaGame, MetaGameModePrototype proto) : base(metaGame, proto)
     {
         _entityDeadAction = OnEntityDead;
+        _entityEnteredWorldAction = OnEntityEnteredWorld;
         _cinematicFinishedAction = OnCinematicFinished;
     }
 
@@ -95,6 +102,11 @@ public sealed class AgeOfDoomGameMode : MetaGameMode
         if (IsPlayableInstance == false)
             return;
 
+        SuspendNativeLokiMissions();
+        Region.EntityEnteredWorldEvent.RemoveAction(_entityEnteredWorldAction);
+        Region.EntityEnteredWorldEvent.AddActionBack(_entityEnteredWorldAction);
+        RemoveNativeLokiBosses();
+
         // Do not call the native mode activation. Its ApplyStates/EventHandler chain is the
         // Age of Ultron mission sequencer that this mode intentionally replaces.
         _startTime = Game.CurrentTime;
@@ -138,6 +150,8 @@ public sealed class AgeOfDoomGameMode : MetaGameMode
         if (IsPlayableInstance == false)
             return;
 
+        SuspendNativeLokiMissions();
+        RemoveNativeLokiBosses();
         SuppressNativeLokiMissions(player);
         if (_run?.CurrentStage == Stage.Cinematic && _run.CinematicStarted == false)
             StartPendingCinematic();
@@ -150,6 +164,40 @@ public sealed class AgeOfDoomGameMode : MetaGameMode
             return;
 
         SuppressNativeLokiMissions(player, Region?.MissionManager);
+    }
+
+    private void SuspendNativeLokiMissions()
+    {
+        MissionManager missionManager = Region?.MissionManager;
+        if (missionManager == null)
+            return;
+
+        foreach (PrototypeId missionRef in NativeLokiMissionRefs)
+        {
+            Mission mission = missionManager.FindMissionByDataRef(missionRef);
+            if (mission?.IsSuspended == false)
+                mission.SetSuspendedState(true);
+        }
+    }
+
+    private void RemoveNativeLokiBosses()
+    {
+        if (Region == null)
+            return;
+
+        Agent[] nativeLokiBosses = Region.Entities
+            .OfType<Agent>()
+            .Where(agent => NativeLokiBossRefs.Contains(agent.PrototypeDataRef))
+            .ToArray();
+
+        foreach (Agent nativeLoki in nativeLokiBosses)
+            nativeLoki.Destroy();
+    }
+
+    private void OnEntityEnteredWorld(in EntityEnteredWorldGameEvent evt)
+    {
+        if (evt.Entity is Agent agent && NativeLokiBossRefs.Contains(agent.PrototypeDataRef))
+            agent.Destroy();
     }
 
     private static void SuppressNativeLokiMissions(Player player, MissionManager missionManager)
@@ -195,6 +243,7 @@ public sealed class AgeOfDoomGameMode : MetaGameMode
     public override void OnDeactivate()
     {
         Region?.EntityDeadEvent.RemoveAction(_entityDeadAction);
+        Region?.EntityEnteredWorldEvent.RemoveAction(_entityEnteredWorldAction);
         Region?.CinematicFinishedEvent.RemoveAction(_cinematicFinishedAction);
         Game?.GameEventScheduler?.CancelAllEvents(_pendingEvents);
     }
@@ -202,6 +251,7 @@ public sealed class AgeOfDoomGameMode : MetaGameMode
     public override void OnDestroy()
     {
         Region?.EntityDeadEvent.RemoveAction(_entityDeadAction);
+        Region?.EntityEnteredWorldEvent.RemoveAction(_entityEnteredWorldAction);
         Region?.CinematicFinishedEvent.RemoveAction(_cinematicFinishedAction);
         Runs.Remove((Game.Id, MetaGame.Id));
         base.OnDestroy();
