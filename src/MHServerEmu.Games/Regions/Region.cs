@@ -486,7 +486,6 @@ namespace MHServerEmu.Games.Regions
                 MythicRiftScenarioVendorSpawner.SpawnDangerRoomScenarioVendor(this);
 
             OmegaRaidVendorService.SpawnInHelicarrier(this);
-            RiftAccessTeleportService.SpawnAgeOfDoomGuide(this);
 
             return true;
         }

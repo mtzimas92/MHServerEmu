@@ -1,11 +1,9 @@
 using Gazillion;
 using MHServerEmu.Core.Memory;
-using MHServerEmu.Core.VectorMath;
 using MHServerEmu.Games.Entities;
 using MHServerEmu.Games.Entities.Avatars;
 using MHServerEmu.Games.GameData;
 using MHServerEmu.Games.GameData.Prototypes;
-using MHServerEmu.Games.Properties;
 using MHServerEmu.Games.Regions;
 using MHServerEmu.Games.UI;
 
@@ -15,10 +13,6 @@ namespace MHServerEmu.Games.MythicRifts
     {
         private const string OmegaLimboEntryTargetPrototypeName = "Regions/EndGame/TierX/Limbo/Targets/LimboEntryTarget.prototype";
         private const string AgeOfDoomEntryTargetPrototypeName = "Regions/StoryRevamp/CH09Asgard/Transitions/LokiBossPhaseOneTarget.prototype";
-        private static readonly PrototypeId HelicarrierRegionRef = (PrototypeId)13623659297421268224;
-        private static readonly PrototypeId AgeOfDoomGuideRef = GameDatabase.GetPrototypeRefByName(
-            "Entity/Characters/NPCs/Testing/testingDrDoom.prototype");
-
         // Hub NPCs for direct access to higher difficulty raid/patrol content.
         public static readonly PrototypeId OmegaPatrolTeleporterRef = (PrototypeId)1753661696525930987;
         public static readonly PrototypeId RaidAccessTeleporterRef = (PrototypeId)13792587214021661359;
@@ -37,7 +31,6 @@ namespace MHServerEmu.Games.MythicRifts
         private static readonly LocaleStringId MoreRaidOptionsButtonRef = (LocaleStringId)18000000000000080213;
         private static readonly LocaleStringId CosmicUltronButtonRef = (LocaleStringId)18000000000000080214;
         private static readonly LocaleStringId AgeOfDoomButtonRef = (LocaleStringId)18000000000000080300;
-        private static readonly LocaleStringId AgeOfDoomDialogTextRef = (LocaleStringId)18000000000000080301;
         private static readonly LocaleStringId OmegaMidtownButtonRef = (LocaleStringId)18000000000000080220;
         private static readonly LocaleStringId OmegaIndustryCityButtonRef = (LocaleStringId)18000000000000080221;
         private static readonly LocaleStringId OmegaHightownButtonRef = (LocaleStringId)18000000000000080222;
@@ -51,12 +44,6 @@ namespace MHServerEmu.Games.MythicRifts
             if (interactableObject.PrototypeDataRef == RaidAccessTeleporterRef)
             {
                 UseRaidAccessTeleporter(player, interactableObject);
-                return true;
-            }
-
-            if (interactableObject.PrototypeDataRef == AgeOfDoomGuideRef)
-            {
-                UseAgeOfDoomGuide(player, interactableObject);
                 return true;
             }
 
@@ -146,7 +133,7 @@ namespace MHServerEmu.Games.MythicRifts
             dialog.TargetId = npc.Id;
             dialog.InteractorId = player.CurrentAvatar?.Id ?? Entity.InvalidId;
             dialog.AddButton(GameDialogResultEnum.eGDR_Option1, OmegaLimboButtonRef, ButtonStyle.SecondaryPositive, false);
-            dialog.AddButton(GameDialogResultEnum.eGDR_Option2, CosmicUltronButtonRef, ButtonStyle.SecondaryPositive, false);
+            dialog.AddButton(GameDialogResultEnum.eGDR_Option2, MoreRaidOptionsButtonRef, ButtonStyle.SecondaryPositive, false);
 
             game.GameDialogManager.PostDialogToClient(dialog);
 
@@ -159,57 +146,44 @@ namespace MHServerEmu.Games.MythicRifts
                         break;
 
                     case GameDialogResultEnum.eGDR_Option2:
-                        TeleportDialogPlayerToTarget(game, playerGuid, CosmicUltronTargetRef, Tier3SuperheroicRef);
+                    {
+                        Player responsePlayer = game.EntityManager.GetEntityByDbGuid<Player>(playerGuid);
+                        if (responsePlayer != null)
+                            ShowRaidAccessEventTeleporter(responsePlayer, npc);
                         break;
+                    }
                 }
             }
         }
 
-        private static void UseAgeOfDoomGuide(Player player, WorldEntity npc)
+        private static void ShowRaidAccessEventTeleporter(Player player, WorldEntity npc)
         {
             Game game = player.Game;
 
             GameDialogInstance dialog = game.GameDialogManager.CreateInstance(player.DatabaseUniqueId);
-            dialog.OnResponse = OnAgeOfDoomGuideDialogResponse;
-            dialog.Message.LocaleString = AgeOfDoomDialogTextRef;
+            dialog.OnResponse = OnRaidAccessEventTeleporterDialogResponse;
+            dialog.Message.LocaleString = RaidAccessDialogTextRef;
             dialog.Options = DialogOptionEnum.WorldClick;
             dialog.TargetId = npc.Id;
             dialog.InteractorId = player.CurrentAvatar?.Id ?? Entity.InvalidId;
-            dialog.AddButton(GameDialogResultEnum.eGDR_Option1, AgeOfDoomButtonRef, ButtonStyle.SecondaryPositive, false);
+            dialog.AddButton(GameDialogResultEnum.eGDR_Option1, CosmicUltronButtonRef, ButtonStyle.SecondaryPositive, false);
+            dialog.AddButton(GameDialogResultEnum.eGDR_Option2, AgeOfDoomButtonRef, ButtonStyle.SecondaryPositive, false);
 
             game.GameDialogManager.PostDialogToClient(dialog);
 
-            void OnAgeOfDoomGuideDialogResponse(ulong playerGuid, DialogResponse response)
+            void OnRaidAccessEventTeleporterDialogResponse(ulong playerGuid, DialogResponse response)
             {
-                if (response.ButtonIndex == GameDialogResultEnum.eGDR_Option1)
-                    TeleportDialogPlayerToTarget(game, playerGuid, AgeOfDoomEntryTargetPrototypeName, Tier3SuperheroicRef);
+                switch (response.ButtonIndex)
+                {
+                    case GameDialogResultEnum.eGDR_Option1:
+                        TeleportDialogPlayerToTarget(game, playerGuid, CosmicUltronTargetRef, Tier3SuperheroicRef);
+                        break;
+
+                    case GameDialogResultEnum.eGDR_Option2:
+                        TeleportDialogPlayerToTarget(game, playerGuid, AgeOfDoomEntryTargetPrototypeName, Tier3SuperheroicRef);
+                        break;
+                }
             }
-        }
-
-        public static void SpawnAgeOfDoomGuide(Region region)
-        {
-            if (region?.PrototypeDataRef != HelicarrierRegionRef || AgeOfDoomGuideRef == PrototypeId.Invalid)
-                return;
-
-            foreach (Entity entity in region.Entities)
-            {
-                if (entity.PrototypeDataRef == AgeOfDoomGuideRef)
-                    return;
-            }
-
-            using var settingsHandle = EntitySettingsPool.Get(out EntitySettings settings);
-            settings.EntityRef = AgeOfDoomGuideRef;
-            settings.Position = new Vector3(344f, 1872f, 48f);
-            settings.Orientation = new Orientation(-MathF.PI / 2f, 0f, 0f);
-            settings.RegionId = region.Id;
-
-            using var settingsPropertiesHandle = PropertyCollectionPool.Get(out PropertyCollection settingsProperties);
-            settingsProperties[PropertyEnum.Interactable] = (int)TriBool.True;
-            settingsProperties[PropertyEnum.InteractableUsesLeft] = -1;
-            settingsProperties[PropertyEnum.Visible] = true;
-            settings.Properties = settingsProperties;
-
-            region.Game.EntityManager.CreateEntity(settings);
         }
 
         private static void UseOmegaPatrolTeleporter(Player player, WorldEntity npc)

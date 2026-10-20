@@ -33,22 +33,6 @@
   },
   {
     "Enabled": true,
-    "Prototype": "Entity/Characters/NPCs/Testing/testingDrDoom.prototype",
-    "Path": "DesignState",
-    "Description": "[Age of Doom] Enable Doctor Doom as the dedicated Age of Doom guide NPC.",
-    "ValueType": "Enum",
-    "Value": "Live"
-  },
-  {
-    "Enabled": true,
-    "Prototype": "Entity/Characters/NPCs/Testing/testingDrDoom.prototype",
-    "Path": "InteractRangeBonus",
-    "Description": "[Age of Doom] Keep Doctor Doom within validated interaction range.",
-    "ValueType": "Float",
-    "Value": 300
-  },
-  {
-    "Enabled": true,
     "Prototype": "Resource/Cells/DistrictCells/Helicarrier/Helicarrier_HUB.cell",
     "Path": "MarkerSet.Markers[2].EntityGuid",
     "Description": "[Rift Access] Place Misty Knight beside Silver Sable in the Helicarrier.",
