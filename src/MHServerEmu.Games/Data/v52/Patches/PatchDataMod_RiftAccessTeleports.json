@@ -1,0 +1,218 @@
+[
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Characters/NPCs/SilverSableHelicarrier.prototype",
+    "Path": "DesignState",
+    "Description": "[Rift Access] Enable Silver Sable as the Omega Trial guide NPC.",
+    "ValueType": "Enum",
+    "Value": "Live"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Characters/NPCs/MistyKnight.prototype",
+    "Path": "DesignState",
+    "Description": "[Rift Access] Enable Misty Knight as the Omega patrol selector NPC.",
+    "ValueType": "Enum",
+    "Value": "Live"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Characters/NPCs/MistyKnight.prototype",
+    "Path": "InteractRangeBonus",
+    "Description": "[Rift Access] Keep Misty Knight's custom Helicarrier placement within validated interaction range.",
+    "ValueType": "Float",
+    "Value": 300
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Characters/NPCs/DoctorStrange.prototype",
+    "Path": "DesignState",
+    "Description": "[Rift Access] Enable Doctor Strange as the raid access selector NPC.",
+    "ValueType": "Enum",
+    "Value": "Live"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Resource/Cells/DistrictCells/Helicarrier/Helicarrier_HUB.cell",
+    "Path": "MarkerSet.Markers[2].EntityGuid",
+    "Description": "[Rift Access] Place Misty Knight beside Silver Sable in the Helicarrier.",
+    "ValueType": "PrototypeGuid",
+    "Value": 4227756442550214266
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Resource/Cells/DistrictCells/Helicarrier/Helicarrier_HUB.cell",
+    "Path": "MarkerSet.Markers[2].Position",
+    "Description": "[Rift Access] Misty Knight Helicarrier position.",
+    "ValueType": "Vector3",
+    "Value": [-196, 1872, 48]
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Resource/Cells/DistrictCells/Helicarrier/Helicarrier_HUB.cell",
+    "Path": "MarkerSet.Markers[2].Rotation",
+    "Description": "[Rift Access] Misty Knight Helicarrier rotation.",
+    "ValueType": "Orientation",
+    "Value": [-1.5707963267948966, 0, 0]
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Resource/Cells/DistrictCells/Helicarrier/Helicarrier_HUB.cell",
+    "Path": "MarkerSet.Markers[26].Position",
+    "Description": "[Rift Access] Silver Sable Helicarrier position near Nick Fury.",
+    "ValueType": "Vector3",
+    "Value": [-16, 2084, 48]
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Resource/Cells/DistrictCells/Helicarrier/Helicarrier_HUB.cell",
+    "Path": "MarkerSet.Markers[26].Rotation",
+    "Description": "[Rift Access] Silver Sable Helicarrier rotation near Nick Fury.",
+    "ValueType": "Orientation",
+    "Value": [-1.5707963267948966, 0, 0]
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Resource/Cells/DistrictCells/Helicarrier/Helicarrier_HUB.cell",
+    "Path": "MarkerSet.Markers[3].EntityGuid",
+    "Description": "[Rift Access] Place Doctor Strange beside Silver Sable in the Helicarrier.",
+    "ValueType": "PrototypeGuid",
+    "Value": 4823431446756076203
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Resource/Cells/DistrictCells/Helicarrier/Helicarrier_HUB.cell",
+    "Path": "MarkerSet.Markers[3].Position",
+    "Description": "[Rift Access] Doctor Strange Helicarrier position.",
+    "ValueType": "Vector3",
+    "Value": [164, 1872, 48]
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Resource/Cells/DistrictCells/Helicarrier/Helicarrier_HUB.cell",
+    "Path": "MarkerSet.Markers[3].Rotation",
+    "Description": "[Rift Access] Doctor Strange Helicarrier rotation.",
+    "ValueType": "Orientation",
+    "Value": [-1.5707963267948966, 0, 0]
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Regions/RAIDS/AxisRaid/AxisRaidRegionBand.prototype",
+    "Path": "AccessDifficulties[]",
+    "Description": "[Rift Access] Allow Cosmic Axis entry at Tier3Superheroic.",
+    "ValueType": "PrototypeId",
+    "Value": 586640101754933627
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Regions/RAIDS/AxisRaid/AxisRaidRegionGreen.prototype",
+    "Path": "AccessDifficulties[]",
+    "Description": "[Rift Access] Keep Axis Green internal transitions at Tier3Superheroic.",
+    "ValueType": "PrototypeId",
+    "Value": 586640101754933627
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Regions/RAIDS/AxisRaid/AxisRaidRegionRed.prototype",
+    "Path": "AccessDifficulties[]",
+    "Description": "[Rift Access] Keep Axis Red internal transitions at Tier3Superheroic.",
+    "ValueType": "PrototypeId",
+    "Value": 586640101754933627
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Regions/RAIDS/MuspelheimRaid/SurturRaidRegionBand.prototype",
+    "Path": "AccessDifficulties[]",
+    "Description": "[Rift Access] Allow Omega Muspelheim entry at Tier5Omega1.",
+    "ValueType": "PrototypeId",
+    "Value": 424700179461639950
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Regions/RAIDS/MuspelheimRaid/SurturRaidRegionGreen.prototype",
+    "Path": "AccessDifficulties[]",
+    "Description": "[Rift Access] Keep Muspelheim Green internal transitions at Tier5Omega1.",
+    "ValueType": "PrototypeId",
+    "Value": 424700179461639950
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Regions/RAIDS/MuspelheimRaid/SurturRaidRegionRed.prototype",
+    "Path": "AccessDifficulties[]",
+    "Description": "[Rift Access] Keep Muspelheim Red internal transitions at Tier5Omega1.",
+    "ValueType": "PrototypeId",
+    "Value": 424700179461639950
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Regions/RAIDS/MuspelheimRaid/SurturRaidRegionBase.prototype",
+    "Path": "AccessDifficulties[]",
+    "Description": "[Rift Access] Keep Muspelheim base-region transitions at Tier5Omega1.",
+    "ValueType": "PrototypeId",
+    "Value": 424700179461639950
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Regions/RAIDS/MuspelheimRaid/SurturRaidRegionBand.prototype",
+    "Path": "AccessDifficulties[]",
+    "Description": "[Rift Access] Allow Silver Sable's Omega Trial entry at Tier4Cosmic.",
+    "ValueType": "PrototypeId",
+    "Value": 1087474643293441873
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Regions/RAIDS/MuspelheimRaid/SurturRaidRegionGreen.prototype",
+    "Path": "AccessDifficulties[]",
+    "Description": "[Rift Access] Keep Omega Trial Muspelheim Green transitions at Tier4Cosmic.",
+    "ValueType": "PrototypeId",
+    "Value": 1087474643293441873
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Regions/RAIDS/MuspelheimRaid/SurturRaidRegionRed.prototype",
+    "Path": "AccessDifficulties[]",
+    "Description": "[Rift Access] Keep Omega Trial Muspelheim Red transitions at Tier4Cosmic.",
+    "ValueType": "PrototypeId",
+    "Value": 1087474643293441873
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Regions/RAIDS/MuspelheimRaid/SurturRaidRegionBase.prototype",
+    "Path": "AccessDifficulties[]",
+    "Description": "[Rift Access] Keep Omega Trial Muspelheim base-region transitions at Tier4Cosmic.",
+    "ValueType": "PrototypeId",
+    "Value": 1087474643293441873
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Regions/EndGame/TierX/UltronGameMode/UltronRaidRegionCosmic.prototype",
+    "Path": "AccessDifficulties[]",
+    "Description": "[Rift Access] Allow Cosmic Ultron raid entry and internal transitions at Tier3Superheroic.",
+    "ValueType": "PrototypeId",
+    "Value": 586640101754933627
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Regions/EndGame/TierX/PatrolMidtown/AltRegions/XManhattanRegion60Cosmic.prototype",
+    "Path": "AccessDifficulties[]",
+    "Description": "[Rift Access] Allow Omega Midtown Patrol cosmic alt at Tier5Omega1.",
+    "ValueType": "PrototypeId",
+    "Value": 424700179461639950
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Regions/EndGame/TierX/PatrolBrooklyn/AltRegions/BrooklynPatrolRegionL60Cosmic.prototype",
+    "Path": "AccessDifficulties[]",
+    "Description": "[Rift Access] Allow Omega Industry City Patrol cosmic alt at Tier5Omega1.",
+    "ValueType": "PrototypeId",
+    "Value": 424700179461639950
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Regions/EndGame/TierX/PatrolHightown/AltRegions/UpperMadripoorRegionL60Cosmic.prototype",
+    "Path": "AccessDifficulties[]",
+    "Description": "[Rift Access] Allow Omega Hightown Patrol cosmic alt at Tier5Omega1.",
+    "ValueType": "PrototypeId",
+    "Value": 424700179461639950
+  }
+]

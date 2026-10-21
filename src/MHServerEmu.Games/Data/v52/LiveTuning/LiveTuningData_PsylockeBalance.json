@@ -1,0 +1,93 @@
+[
+  {
+    "Prototype": "Powers/Player/Psylocke/KatanaLeapSlashAoEDoT.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.45
+  },
+  {
+    "Prototype": "Powers/Player/Psylocke/KatanaDoubleStrikeMissileEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.45
+  },
+  {
+    "Prototype": "Powers/Player/Psylocke/KatanaPBAoE.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.45
+  },
+  {
+    "Prototype": "Powers/Player/Psylocke/DashBackstabCombo.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.45
+  },
+  {
+    "Prototype": "Powers/Player/Psylocke/PsiKatanaCone.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.45
+  },
+  {
+    "Prototype": "Powers/Player/Psylocke/KatanaLeapSlashAoEEnd.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.45
+  },
+  {
+    "Prototype": "Powers/Player/Psylocke/DashBackstabComboDecoyPower.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.45
+  },
+  {
+    "Prototype": "Powers/Player/Psylocke/DashStealthEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.45
+  },
+  {
+    "Prototype": "Powers/Player/Psylocke/KickPunch.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.45
+  },
+  {
+    "Prototype": "Powers/Player/Psylocke/KatanaPBAoEDecoyPower.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.45
+  },
+  {
+    "Prototype": "Powers/Player/Psylocke/SeekerButterfliesMissileEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.45
+  },
+  {
+    "Prototype": "Powers/Player/Psylocke/AoEDoT.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.45
+  },
+  {
+    "Prototype": "Powers/Player/Psylocke/ConeBlastBonusDamageStun.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.45
+  },
+  {
+    "Prototype": "Powers/Player/Psylocke/ConeBlast.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.45
+  },
+  {
+    "Prototype": "Powers/Player/Psylocke/CrossbowMissileEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.45
+  },
+  {
+    "Prototype": "Powers/Player/Psylocke/PsiKnifeTripleStrike.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.45
+  },
+  {
+    "Prototype": "Powers/Player/Psylocke/Implosion.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.45
+  },
+  {
+    "Prototype": "Powers/Player/Psylocke/PsiBoltMissileEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.45
+  }
+]
+

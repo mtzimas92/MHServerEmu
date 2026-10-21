@@ -1,0 +1,234 @@
+[
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Consumables/Prototypes/DangerRoom/PortalToRandomMaxAffixDungeon.prototype",
+    "Path": "DesignState",
+    "Description": "Enable the unused PortalToRandomMaxAffixDungeon launcher base for the infinite-level Cosmic Rift mode.",
+    "ValueType": "Enum",
+    "Value": "Live"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Consumables/Prototypes/DangerRoom/PortalToRandomMaxAffixDungeon.prototype",
+    "Path": "DisplayName",
+    "Description": "Fallback display name for server-side Cosmic Rift launcher surfaces when the presentation item cannot be used.",
+    "ValueType": "LocaleStringId",
+    "Value": 18000000000000080010
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Consumables/Prototypes/DangerRoom/PortalToRandomMaxAffixDungeon.prototype",
+    "Path": "TooltipDescription",
+    "Description": "Fallback tooltip for server-side Cosmic Rift launcher surfaces when the presentation item cannot be used.",
+    "ValueType": "LocaleStringId",
+    "Value": 18000000000000080011
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Consumables/Prototypes/DangerRoom/PortalToRandomMaxAffixDungeon.prototype",
+    "Path": "IconPath",
+    "Description": "Give the Cosmic Rift launcher its own distinct icon (a glowing blue energy rift) instead of the generic Danger Room simulation chip shared by all three consumables.",
+    "ValueType": "AssetId",
+    "Value": 18109230673074853238
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Consumables/Prototypes/DangerRoom/PortalToDangerRoomRandomThemeNoAffixesPurple.prototype",
+    "Path": "DesignState",
+    "Description": "Enable the unused purple no-affix Danger Room portal as the 30-wave Rift Gauntlet technical launcher base.",
+    "ValueType": "Enum",
+    "Value": "Live"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Consumables/Prototypes/DangerRoom/PortalToDangerRoomRandomThemeNoAffixesPurple.prototype",
+    "Path": "DisplayName",
+    "Description": "Fallback display name for the Rift Gauntlet technical launcher.",
+    "ValueType": "LocaleStringId",
+    "Value": 6233969392374514963
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Consumables/Prototypes/DangerRoom/PortalToDangerRoomRandomThemeNoAffixesPurple.prototype",
+    "Path": "TooltipDescription",
+    "Description": "Fallback tooltip for the Rift Gauntlet technical launcher.",
+    "ValueType": "LocaleStringId",
+    "Value": 16293886189635437874
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Consumables/Prototypes/Test/TestHearthStone.prototype",
+    "Path": "DisplayName",
+    "Description": "Present the independent Rift Gauntlet vendor item with its own player-facing name.",
+    "ValueType": "LocaleStringId",
+    "Value": 6233969392374514963
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Consumables/Prototypes/Test/TestHearthStone.prototype",
+    "Path": "TooltipDescription",
+    "Description": "Present the independent Rift Gauntlet vendor item with its own tooltip.",
+    "ValueType": "LocaleStringId",
+    "Value": 16293886189635437874
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Consumables/Prototypes/Test/TestHearthStone.prototype",
+    "Path": "IconPath",
+    "Description": "Give the Rift Gauntlet presentation item its own distinct icon (Scarlet Witch's red Chaos Rift power icon) instead of the generic Danger Room simulation chip shared by all three consumables.",
+    "ValueType": "AssetId",
+    "Value": 18306558645704594592
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Consumables/Prototypes/Test/TestHearthStone.prototype",
+    "Path": "IconPathHiRes",
+    "Description": "Use the Chaos Rift icon for high-resolution Rift Gauntlet item surfaces.",
+    "ValueType": "AssetId",
+    "Value": 18306558645704594592
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Consumables/Prototypes/Test/TestHearthStone.prototype",
+    "Path": "IconPathTooltipHeader",
+    "Description": "Use the Chaos Rift icon for Rift Gauntlet tooltip headers.",
+    "ValueType": "AssetId",
+    "Value": 18306558645704594592
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Consumables/Prototypes/Test/TestHearthStone.prototype",
+    "Path": "StoreIconPath",
+    "Description": "Use the Chaos Rift icon for vendor/store Rift Gauntlet item surfaces.",
+    "ValueType": "AssetId",
+    "Value": 18306558645704594592
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Consumables/Prototypes/DangerRoom/PortalToDangerRoomRandomThemeNoAffixesBlue.prototype",
+    "Path": "DesignState",
+    "Description": "Enable the unused blue no-affix Danger Room portal as the Boss Gauntlet technical launcher base.",
+    "ValueType": "Enum",
+    "Value": "Live"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Consumables/Prototypes/DangerRoom/PortalToDangerRoomRandomThemeNoAffixesBlue.prototype",
+    "Path": "DisplayName",
+    "Description": "Fallback display name for the Boss Gauntlet technical launcher.",
+    "ValueType": "LocaleStringId",
+    "Value": 6934926540613879050
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Consumables/Prototypes/DangerRoom/PortalToDangerRoomRandomThemeNoAffixesBlue.prototype",
+    "Path": "TooltipDescription",
+    "Description": "Fallback tooltip for the Boss Gauntlet technical launcher.",
+    "ValueType": "LocaleStringId",
+    "Value": 18388199697347446112
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Consumables/Prototypes/Test/TestStunKit.prototype",
+    "Path": "DisplayName",
+    "Description": "Present the independent Boss Gauntlet vendor item with its own player-facing name.",
+    "ValueType": "LocaleStringId",
+    "Value": 6934926540613879050
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Consumables/Prototypes/Test/TestStunKit.prototype",
+    "Path": "TooltipDescription",
+    "Description": "Present the independent Boss Gauntlet vendor item with its own tooltip.",
+    "ValueType": "LocaleStringId",
+    "Value": 18388199697347446112
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Consumables/Prototypes/Test/TestStunKit.prototype",
+    "Path": "IconPath",
+    "Description": "Give the Boss Gauntlet presentation item its own distinct icon (a dark infinity-symbol orb, fitting for an endless boss-wave survival mode) instead of the generic Danger Room simulation chip shared by all three consumables.",
+    "ValueType": "AssetId",
+    "Value": 16131469697309218259
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Consumables/Prototypes/Test/TestStunKit.prototype",
+    "Path": "IconPathHiRes",
+    "Description": "Use the Infinity Orb icon for high-resolution Boss Gauntlet item surfaces.",
+    "ValueType": "AssetId",
+    "Value": 16131469697309218259
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Consumables/Prototypes/Test/TestStunKit.prototype",
+    "Path": "IconPathTooltipHeader",
+    "Description": "Use the Infinity Orb icon for Boss Gauntlet tooltip headers.",
+    "ValueType": "AssetId",
+    "Value": 16131469697309218259
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Consumables/Prototypes/Test/TestStunKit.prototype",
+    "Path": "StoreIconPath",
+    "Description": "Use the Infinity Orb icon for vendor/store Boss Gauntlet item surfaces.",
+    "ValueType": "AssetId",
+    "Value": 16131469697309218259
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/CurrencyItems/RaidCurrency/GenoshaRaidToken.prototype",
+    "Path": "DesignState",
+    "Description": "Enable the unused Genosha raid token as the Rift Champion Commendation reward item.",
+    "ValueType": "Enum",
+    "Value": "Live"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/CurrencyItems/RaidCurrency/GenoshaRaidToken.prototype",
+    "Path": "DesignStatePS4",
+    "Description": "Keep the Rift Champion Commendation reward item live for console-design-state checks.",
+    "ValueType": "Enum",
+    "Value": "Live"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/CurrencyItems/RaidCurrency/GenoshaRaidToken.prototype",
+    "Path": "DesignStateXboxOne",
+    "Description": "Keep the Rift Champion Commendation reward item live for console-design-state checks.",
+    "ValueType": "Enum",
+    "Value": "Live"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/CurrencyItems/CurrencyPrototypes/GenoshaRaidCurrency.prototype",
+    "Path": "MaxAmount",
+    "Description": "Allow Rift Champion Commendations to accumulate as a long-term reward currency.",
+    "ValueType": "Integer",
+    "Value": 1000000
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Characters/Vendors/VendorTypes/TestVendorCrafter.prototype",
+    "Path": "AllowActionDonate",
+    "Description": "Disable the native 'donate items to increase rank' action on the Rift completion crafter - she has no persistent rank (spawned fresh each run with fixed attempts), so the button only confused players. Isolated re-test: this field previously failed to take effect alongside several LocaleStringId field patches that we now know don't reach the client at all (text-on-VendorType is client-resolved from its own local data) - testing this boolean action-flag on its own since it's a different kind of field (behavior, not display text) and vendor stock/behavior data has separately been confirmed to transmit correctly.",
+    "ValueType": "Boolean",
+    "Value": false
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Characters/Vendors/VendorTypes/VendorARMOREvent.prototype",
+    "Path": "AllowActionRefresh",
+    "Description": "Use the otherwise-unreferenced ARMOR event vendor type as the dedicated Omega Raid Vendor without exposing its native refresh action.",
+    "ValueType": "Boolean",
+    "Value": false
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Crafting/Recipes/Tab3Gear/UnbindUnique.prototype",
+    "Path": "CraftingCost.CostEvalCredits.Value",
+    "Description": "Hide the Unique recipe's native 200,000-credit display cost because the Rift completion crafter charges 100 Champion's Commendations server-side.",
+    "ValueType": "Integer",
+    "Value": 0
+  }
+]

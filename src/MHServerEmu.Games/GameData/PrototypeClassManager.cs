@@ -218,7 +218,7 @@ namespace MHServerEmu.Games.GameData
                             if (hasPatch) PrototypePatchManager.Instance.SetPathIndex(prototype, element, fieldInfo.Name, index++);
                             element.PostProcess();
                         }
-                        
+
                         break;
 
                     case PrototypeFieldType.ListMixin:
@@ -226,9 +226,14 @@ namespace MHServerEmu.Games.GameData
                         if (mixinList == null)
                             continue;
 
+                        // Register the whole list with the patcher before post-processing, so members are
+                        // addressable as Field[BlueprintId=x,Copy=n]. Without this they get traversed but
+                        // never registered, leaving anything inside a mixin list unpatchable.
+                        if (hasPatch) PrototypePatchManager.Instance.SetPathMixin(prototype, mixinList, fieldInfo.Name);
+
                         foreach (PrototypeMixinListItem mixin in mixinList)
                             mixin.Prototype.PostProcess();
-                        
+
                         break;
                 }
             }

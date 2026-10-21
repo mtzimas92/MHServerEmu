@@ -1,0 +1,62 @@
+using System.Collections;
+using System.Reflection;
+using MHServerEmu.Core.Memory;
+using MHServerEmu.Games.GameData;
+using MHServerEmu.Games.UI;
+
+namespace MHServerEmu.Games.MythicRifts
+{
+    internal static class MythicRiftUiController
+    {
+        private static readonly FieldInfo WidgetDictionaryField = typeof(UIDataProvider).GetField("_dataDict", BindingFlags.Instance | BindingFlags.NonPublic);
+        private static bool _reflectionWarningLogged;
+
+        public static int RemoveNativeWidgets(
+            UIDataProvider uiDataProvider,
+            PrototypeId riftContextRef,
+            PrototypeId levelWidgetRef,
+            PrototypeId quotaWidgetRef,
+            PrototypeId timerWidgetRef,
+            IReadOnlyCollection<(PrototypeId WidgetRef, PrototypeId ContextRef)> extraOwnedWidgets = null)
+        {
+            if (uiDataProvider == null || riftContextRef == PrototypeId.Invalid)
+                return 0;
+
+            if (WidgetDictionaryField?.GetValue(uiDataProvider) is not IDictionary widgetDictionary)
+            {
+                if (_reflectionWarningLogged == false)
+                {
+                    _reflectionWarningLogged = true;
+                }
+
+                return 0;
+            }
+
+            using var widgetsToDeleteHandle = ListPool<(PrototypeId WidgetRef, PrototypeId ContextRef)>.Get(out List<(PrototypeId WidgetRef, PrototypeId ContextRef)> widgetsToDelete);
+            foreach (DictionaryEntry entry in widgetDictionary)
+            {
+                if (entry.Key is not ValueTuple<PrototypeId, PrototypeId> key)
+                    continue;
+
+                if (MythicRiftUiOwnership.IsRiftOwnedWidget(
+                    key.Item1,
+                    key.Item2,
+                    riftContextRef,
+                    levelWidgetRef,
+                    quotaWidgetRef,
+                    timerWidgetRef) ||
+                    MythicRiftUiOwnership.IsRiftOwnedWidget(key.Item1, key.Item2, extraOwnedWidgets))
+                {
+                    continue;
+                }
+
+                widgetsToDelete.Add((key.Item1, key.Item2));
+            }
+
+            foreach ((PrototypeId widgetRef, PrototypeId contextRef) in widgetsToDelete)
+                uiDataProvider.DeleteWidget(widgetRef, contextRef);
+
+            return widgetsToDelete.Count;
+        }
+    }
+}

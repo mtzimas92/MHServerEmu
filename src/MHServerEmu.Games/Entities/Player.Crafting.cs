@@ -1,4 +1,4 @@
-﻿using MHServerEmu.Core.Extensions;
+using MHServerEmu.Core.Extensions;
 using MHServerEmu.Core.Logging;
 using MHServerEmu.Core.Memory;
 using MHServerEmu.Games.Entities.Avatars;
@@ -9,6 +9,7 @@ using MHServerEmu.Games.GameData;
 using MHServerEmu.Games.GameData.Prototypes;
 using MHServerEmu.Games.Loot;
 using MHServerEmu.Games.Loot.Specs;
+using MHServerEmu.Games.MythicRifts;
 using MHServerEmu.Games.Properties;
 using MHServerEmu.Games.Properties.Evals;
 using MHServerEmu.Games.Regions;
@@ -41,6 +42,7 @@ namespace MHServerEmu.Games.Entities
 
     public partial class Player
     {
+
         public CraftingResult Craft(ulong recipeItemId, ulong vendorId, List<ulong> ingredientIds, bool isRecraft)
         {
             // Validate arguments
@@ -58,6 +60,9 @@ namespace MHServerEmu.Games.Entities
 
             Avatar avatar = CurrentAvatar;
             if (!Verify.IsNotNull(avatar)) return CraftingResult.CraftingFailed;
+
+            if (TryHandleMythicRiftCompletionCraft(recipeProto, recipeItem, ingredientIds, vendor, resultsInv, isRecraft, out CraftingResult mythicRiftCraftingResult))
+                return mythicRiftCraftingResult;
 
             // Validate craftability
             CraftingResult canCraftRecipeResult = recipeItem.CanCraftRecipe(this, ingredientIds, vendor, isRecraft);
@@ -175,12 +180,16 @@ namespace MHServerEmu.Games.Entities
             Avatar avatar = GetActiveAvatarByIndex(avatarIndex);
             if (!Verify.IsNotNull(avatar)) return CraftingResult.CraftingFailed;
 
+            if (CanCraftMythicRiftCompletionRecipe(recipeItem, vendor))
+                return CraftingResult.Success;
+
             int vendorLevel = Properties[PropertyEnum.VendorLevel, vendorTypeProtoRef];
             if (recipeProto.UnlockAtCrafterRank > vendorLevel)
                 return CraftingResult.CraftingFailed;
 
             return CraftingResult.Success;
         }
+
 
         public bool HasLearnedCraftingRecipe(PrototypeId recipeProtoRef)
         {

@@ -393,7 +393,8 @@ namespace MHServerEmu.Games.Powers
 
                 // Run trigger chance check
                 float eventTriggerChance = triggeredPowerEvent.GetEventTriggerChance(Properties, Owner, target);
-                if (random.NextFloat() >= eventTriggerChance)
+                float eventTriggerRoll = random.NextFloat();
+                if (eventTriggerRoll >= eventTriggerChance)
                     continue;
 
                 // Run param comparison if needed

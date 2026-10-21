@@ -1,0 +1,74 @@
+{
+  "648426245676139781": {
+    "en_us": "Infinite Rift Scenario",
+    "ru_ru": "Сценарий Бесконечного разлома"
+  },
+  "8927776814607303943": {
+    "en_us": "Opens a single-use Infinite Rift scenario. Difficulty and rewards climb with your personal Rift level. Can only be used in the Danger Room.",
+    "ru_ru": "Открывает одноразовый сценарий Бесконечного разлома. Сложность и награды растут вместе с вашим личным уровнем разлома. Можно использовать только в Комнате опасностей."
+  },
+  "18000000000000080010": {
+    "en_us": "Infinite Rift Scenario",
+    "ru_ru": "Сценарий Бесконечного разлома"
+  },
+  "18000000000000080011": {
+    "en_us": "Opens a single-use Infinite Rift scenario. Difficulty and rewards climb with your personal Rift level. Can only be used in the Danger Room.",
+    "ru_ru": "Открывает одноразовый сценарий Бесконечного разлома. Сложность и награды растут вместе с вашим личным уровнем разлома. Можно использовать только в Комнате опасностей."
+  },
+  "18000000000000080020": {
+    "en_us": "Omega Training Scenario",
+    "ru_ru": "Сценарий Омега испытания"
+  },
+  "18000000000000080021": {
+    "en_us": "Opens a single-use 30-wave Omega Training scenario with milestone boss encounters and controlled rewards. Can only be used in the Danger Room.",
+    "ru_ru": "Открывает одноразовый сценарий Омега испытания на 30 волн с боссами на ключевых этапах и фиксированными наградами. Можно использовать только в Комнате опасностей."
+  },
+  "6233969392374514963": {
+    "en_us": "Omega Training Scenario",
+    "ru_ru": "Сценарий Омега испытания"
+  },
+  "16293886189635437874": {
+    "en_us": "Opens a single-use 30-wave Omega Training scenario with milestone boss encounters and controlled rewards. Can only be used in the Danger Room.",
+    "ru_ru": "Открывает одноразовый сценарий Омега испытания на 30 волн с боссами на ключевых этапах и фиксированными наградами. Можно использовать только в Комнате опасностей."
+  },
+  "18000000000000080030": {
+    "en_us": "Boss Gauntlet Scenario",
+    "ru_ru": "Сценарий Испытания боссами"
+  },
+  "18000000000000080031": {
+    "en_us": "Opens a single-use Boss Gauntlet. Survive increasingly difficult sequential boss waves. Rewards are awarded where the gauntlet ends. Can only be used in the Danger Room.",
+    "ru_ru": "Открывает одноразовое Испытания боссами. Выдержите последовательные волны боссов возрастающей сложности. Награды выдаются в конце испытания. Можно использовать только в Комнате опасностей."
+  },
+  "6934926540613879050": {
+    "en_us": "Boss Gauntlet Scenario",
+    "ru_ru": "Сценарий Испытания боссами"
+  },
+  "18388199697347446112": {
+    "en_us": "Opens a single-use Boss Gauntlet. Survive increasingly difficult sequential boss waves. Rewards are awarded where the gauntlet ends. Can only be used in the Danger Room.",
+    "ru_ru": "Открывает одноразовое Испытания боссами. Выдержите последовательные волны боссов возрастающей сложности. Награды выдаются в конце испытания. Можно использовать только в Комнате опасностей."
+  },
+  "18125085293394986243": {
+    "en_us": "Omega Upgrade Crafter",
+    "ru_ru": "Мастер Омега улучшений"
+  },
+  "7125873549576570123": {
+    "en_us": "Place an item level 69 Unique gear piece here to upgrade it to item level 72.",
+    "ru_ru": "Поместите Уникальный предмет 69 Ранга, чтобы улучшить его до 72 Ранга."
+  },
+  "15040965262186579301": {
+    "en_us": "Rift Unique Gear Upgrade",
+    "ru_ru": "Уникальный предмет разлома: Улучшение"
+  },
+  "443208439140517184": {
+    "en_us": "Requires: Unique armor or weapon (item level 69)",
+    "ru_ru": "Требуется: Уникальная броня или оружие (69 Ранга)"
+  },
+  "8901031692473861378": {
+    "en_us": "Upgrade one item level 69 Unique gear piece in slots 1-5 by +3 item levels to item level 72. The upgrade is guaranteed and costs 100 Champion's Commendations. One upgrade is available per completed Rift.",
+    "ru_ru": "Улучшает один Уникальный предмет 69 Ранга для 1–5 ячеек на +3 Ранга (до 72 Ранга). Улучшение гарантировано и стоит 100 Наград Чемпиона. За каждый пройденный разлом доступно одно улучшение."
+  },
+  "16699661896408302853": {
+    "en_us": "Champion's Commendation",
+    "ru_ru": "Награда Чемпиона"
+  }
+}

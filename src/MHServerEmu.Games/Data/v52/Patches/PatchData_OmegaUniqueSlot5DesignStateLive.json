@@ -1,0 +1,26 @@
+[
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot5/Unique238.prototype",
+    "Path": "DesignState",
+    "Description": "Omega slot 5 unique test: enable unused AnyHero Slot5 Unique238 by making its own item DesignState Live.",
+    "ValueType": "Enum",
+    "Value": "Live"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot5/Unique238.prototype",
+    "Path": "DesignStatePS4",
+    "Description": "Omega slot 5 unique test: enable unused AnyHero Slot5 Unique238 for clients that inspect the PS4 design-state override.",
+    "ValueType": "Enum",
+    "Value": "Live"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot5/Unique238.prototype",
+    "Path": "DesignStateXboxOne",
+    "Description": "Omega slot 5 unique test: enable unused AnyHero Slot5 Unique238 for clients that inspect the Xbox One design-state override.",
+    "ValueType": "Enum",
+    "Value": "Live"
+  }
+]

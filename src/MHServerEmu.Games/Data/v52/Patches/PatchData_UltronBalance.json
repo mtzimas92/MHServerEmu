@@ -1,0 +1,51 @@
+[
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Ultron/GroundThrowPhysicalBuff.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[0].Eval.Value",
+    "Description": "OpenCalligraphy export: EvalOnCreate[0].Eval.Value",
+    "ValueType": "Float",
+    "Value": 0.2
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Ultron/Talents/Talent4CommandingShotBuff.prototype",
+    "Path": "EvalOnCreate[0].Eval.Value",
+    "Description": "Update Commanding Shot talent tooltip/register value from +15% drone damage taken to +45%.",
+    "ValueType": "Float",
+    "Value": 0.45
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Ultron/DroneVulnerabilityCombo.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[0].Scope[0].Eval.Value",
+    "Description": "Increase Commanding Shot talent's DroneDamage vulnerability from +15% to +45%.",
+    "ValueType": "Float",
+    "Value": 0.45
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Ultron/CommandingShot.prototype",
+    "Path": "ActionsTriggeredOnPowerEvent[2].EventParam",
+    "Description": "Increase Commanding Shot talent cooldown shave for Summon Suicide Drone from 2 seconds to 4 seconds.",
+    "ValueType": "Float",
+    "Value": -4
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Ultron/CommandingShot.prototype",
+    "Path": "ActionsTriggeredOnPowerEvent[3].EventParam",
+    "Description": "Increase Commanding Shot talent cooldown shave for Drone Strafe from 2 seconds to 4 seconds.",
+    "ValueType": "Float",
+    "Value": -4
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Ultron/SpinAttack.prototype",
+    "Path": "OnHitProcChanceMultiplier",
+    "Description": "[Zero-Chance Procs] Enables Doop Proc.",
+    "ValueType": "Float",
+    "OriginalValue": 0.0,
+    "Value": 0.3
+  }
+]

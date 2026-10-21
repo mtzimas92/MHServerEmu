@@ -1,0 +1,36 @@
+{
+  "profileName": "safe-keyword-hotspots-v2-lightweight",
+  "enabled": true,
+  "useKeywordDiscovery": false,
+  "maxActiveHazards": 2,
+  "spawnIntervalSeconds": 20,
+  "durationSeconds": 6,
+  "spawnDistance": 420,
+  "spawnSearchDistance": 260,
+  "minStandardRiftLevel": 35,
+  "minRiftGauntletWave": 15,
+  "minBossGauntletWave": 18,
+  "discoveryNameKeywords": [
+    "hazard",
+    "hotspot",
+    "lava",
+    "fire",
+    "poison",
+    "acid",
+    "laser",
+    "lightning"
+  ],
+  "blockedNameKeywords": [
+    "mission",
+    "trigger",
+    "portal",
+    "transition",
+    "checkpoint",
+    "objective",
+    "script",
+    "ui",
+    "cinematic",
+    "raid"
+  ],
+  "hazards": []
+}

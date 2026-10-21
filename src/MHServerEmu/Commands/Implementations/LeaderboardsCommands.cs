@@ -27,6 +27,28 @@ namespace MHServerEmu.Commands.Implementations
             return "Leaderboard schedule reloaded.";
         }
 
+        [Command("createmissing")]
+        [CommandDescription("Creates the database record for a leaderboard prototype that became Public/Live after this server's database was first initialized.")]
+        [CommandUsage("leaderboards createmissing [prototypeName]")]
+        public string CreateMissing(string[] @params, NetClient client)
+        {
+            if (@params.Length == 0) return "Invalid arguments. Type 'help leaderboards createmissing' to get help.";
+
+            PrototypeId dataRef = GameDatabase.GetPrototypeRefByName(@params[0]);
+            if (dataRef == PrototypeId.Invalid)
+                return $"Failed to find prototype {@params[0]}";
+
+            LeaderboardDatabase leaderboardDB = LeaderboardDatabase.Instance;
+            if (leaderboardDB.IsInitialized == false)
+                return "Leaderboard database is not available.";
+
+            if (leaderboardDB.CreateMissingDatabaseRecord(dataRef) == false)
+                return $"{@params[0]} already has a database record, or is not a valid Public/Live leaderboard.";
+
+            leaderboardDB.ReloadAndReapplySchedule();
+            return $"Created database record for {@params[0]}. Reloaded and reapplied schedule.";
+        }
+
         [Command("instance")]
         [CommandDescription("Shows details for the specified leaderboard instance.")]
         [CommandUsage("leaderboards instance [instanceId]")]

@@ -1,0 +1,403 @@
+{
+  "profileName": "omega-tier-items-v1",
+  "enabled": true,
+  "omegaDifficultyPromotionChancePct": 50,
+  "omegaDifficultyRingPromotionChancePct": 100,
+  "preferredAffixChancePct": 100,
+  "maxPreferredAffixesPerItem": 1,
+  "preferredAffixes": [
+    {
+      "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/BonusSpirit/BonusSpiritT1.prototype",
+      "slots": [ "Gear01", "Gear02", "Gear03", "Gear04", "Gear05" ]
+    },
+    {
+      "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/BonusHealth/BonusHealthT2.prototype",
+      "slots": [ "Gear01", "Gear02", "Gear03", "Gear04", "Gear05" ]
+    },
+    {
+      "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/Complex/CostReduction/CostReductionArea.prototype",
+      "slots": [ "Gear01", "Gear02", "Gear03", "Gear04", "Gear05" ]
+    },
+    {
+      "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/Complex/CostReduction/CostReductionMelee.prototype",
+      "slots": [ "Gear01", "Gear02", "Gear03", "Gear04", "Gear05" ]
+    },
+    {
+      "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/Complex/CostReduction/CostReductionMovement.prototype",
+      "slots": [ "Gear01", "Gear02", "Gear03", "Gear04", "Gear05" ]
+    },
+    {
+      "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/Complex/CostReduction/CostReductionRanged.prototype",
+      "slots": [ "Gear01", "Gear02", "Gear03", "Gear04", "Gear05" ]
+    },
+    {
+      "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/DefenseAll/DefenseAllT2.prototype",
+      "slots": [ "Gear01", "Gear02", "Gear03", "Gear04", "Gear05" ]
+    },
+    {
+      "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/Dodge/DodgeT2.prototype",
+      "slots": [ "Gear01", "Gear02", "Gear03", "Gear04", "Gear05" ]
+    },
+    {
+      "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/Block/BlockT2.prototype",
+      "slots": [ "Gear01", "Gear02", "Gear03", "Gear04", "Gear05" ]
+    },
+    {
+      "prototype": "Entity/Items/Affixes/UltimateAffixes/TripleBoost.prototype",
+      "slots": [ "Gear01", "Gear02", "Gear03", "Gear04", "Gear05" ]
+    },
+    {
+      "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/CritDamage/CritDamageT2.prototype",
+      "slots": [ "Gear01", "Gear02", "Gear03", "Gear04", "Gear05" ]
+    },
+    {
+      "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/BrutalDamage/BrutalDamageT2.prototype",
+      "slots": [ "Gear01", "Gear02", "Gear03", "Gear04", "Gear05" ]
+    }
+  ],
+  "disabledAffixes": [
+    "Entity/Items/Affixes/ArmorAffixes/Loot20/CosmicAffixes/CosmicMissileDampening.prototype",
+    "Entity/Items/Affixes/ArmorAffixes/Loot20/CosmicAffixes/CosmicReflectOnDash.prototype"
+  ],
+  "disabledAffixCategories": [
+  ],
+  "itemOverrides": [
+    {
+      "id": "unique400-omega-support-package",
+      "enabled": true,
+      "rerollForcedAffixesWithBuiltInSeed": true,
+      "itemPrototypes": [
+        "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot3/Unique400.prototype"
+      ],
+      "rarities": [
+        "Entity/Items/Rarity/R6Unique.prototype"
+      ],
+      "overrideItemLevel": 69,
+      "maximizeAffixRolls": false,
+      "clearBuiltInProperties": true,
+      "preserveProcBuiltInProperties": false,
+      "preserveBuiltInPropertyIndexes": [ 0, 1, 4, 5, 6, 7, 8 ],
+      "maximizeBuiltInPropertyRolls": false,
+      "clearExistingAffixes": true,
+      "preserveProcAffixes": true,
+      "builtInProperties": [
+        {
+          "property": {
+            "Property": "StatAllModifier"
+          },
+          "valueMin": 2,
+          "valueMax": 2,
+          "rollAsInteger": true
+        }
+      ],
+      "forcedAffixes": [
+        {
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/BonusHealth/BonusHealthT3.prototype",
+          "count": 1,
+          "allowInvalidAttachment": true,
+          "replaceExistingSamePosition": false
+        }
+      ],
+      "procKeywordProperties": [],
+      "affixReplacements": [],
+      "randomAffixes": []
+    },
+    {
+      "id": "monument-of-ell",
+      "enabled": true,
+      "itemPrototypes": [
+        "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot5/Unique238.prototype"
+      ],
+      "rarities": [
+        "Entity/Items/Rarity/R6Unique.prototype"
+      ],
+      "maximizeAffixRolls": true,
+      "clearBuiltInProperties": true,
+      "preserveBuiltInPropertyIndexes": [ 0 ],
+      "disableTriggeredItemActions": true,
+      "clearExistingAffixes": true,
+      "preserveProcAffixes": true,
+      "disabledAffixes": [
+      ],
+      "disabledProcPowers": [
+      ],
+      "builtInProperties": [
+      ],
+      "forcedAffixes": [
+        {
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/DamageRating/DamageRatingT3.prototype",
+          "count": 1,
+          "allowInvalidAttachment": true,
+          "replaceExistingSamePosition": false
+        },
+        {
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/CritChance/CritChanceT3.prototype",
+          "count": 1,
+          "allowInvalidAttachment": true,
+          "replaceExistingSamePosition": false
+        },
+        {
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/CritDamage/CritDamageT3.prototype",
+          "count": 1,
+          "allowInvalidAttachment": true,
+          "replaceExistingSamePosition": false
+        },
+        {
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Duration/DurationBonus09to15.prototype",
+          "count": 1,
+          "allowInvalidAttachment": true,
+          "replaceExistingSamePosition": false
+        },
+        {
+          "prototype": "Entity/Items/Affixes/RingAffixes/Prefixes/MeleeDamage.prototype",
+          "count": 1,
+          "allowInvalidAttachment": true,
+          "replaceExistingSamePosition": false
+        },
+        {
+          "prototype": "Entity/Items/Affixes/RingAffixes/Prefixes/AoeDamage.prototype",
+          "count": 1,
+          "allowInvalidAttachment": true,
+          "replaceExistingSamePosition": false
+        },
+        {
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/BonusHealth/BonusHealthT3.prototype",
+          "count": 1,
+          "allowInvalidAttachment": true,
+          "replaceExistingSamePosition": false
+        }
+      ],
+      "procKeywordProperties": [
+        {
+          "trigger": "OnCrit",
+          "power": "Powers/ItemPowers/UniquesPowers/Unique400StackingProc.prototype",
+          "keyword": "Powers/Blueprints/Keywords/Melee.defaults",
+          "chance": 0.2
+        }
+      ],
+      "affixReplacements": [
+      ],
+      "randomAffixes": [
+      ]
+    },
+    {
+      "id": "unique304-fire-giant-horns",
+      "enabled": true,
+      "rerollForcedAffixesWithBuiltInSeed": true,
+      "itemPrototypes": [
+        "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot5/Unique304.prototype"
+      ],
+      "rarities": [
+        "Entity/Items/Rarity/R6Unique.prototype"
+      ],
+      "overrideItemLevel": 69,
+      "maximizeAffixRolls": false,
+      "clearBuiltInProperties": true,
+      "preserveBuiltInPropertyIndexes": [ 0 ],
+      "clearExistingAffixes": true,
+      "preserveProcAffixes": true,
+      "disabledAffixes": [
+      ],
+      "builtInProperties": [
+      ],
+      "forcedAffixes": [
+        {
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/DamageRating/DamageRatingT3.prototype",
+          "count": 1,
+          "allowInvalidAttachment": true,
+          "replaceExistingSamePosition": false
+        },
+        {
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/BonusHealth/BonusHealthT3.prototype",
+          "count": 1,
+          "allowInvalidAttachment": true,
+          "replaceExistingSamePosition": false
+        },
+        {
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/CritChance/CritChanceT3.prototype",
+          "count": 1,
+          "allowInvalidAttachment": true,
+          "replaceExistingSamePosition": false
+        },
+        {
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/BrutalStrike/BrutalStrikeT3.prototype",
+          "count": 1,
+          "allowInvalidAttachment": true,
+          "replaceExistingSamePosition": false
+        },
+        {
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/Attributes/FightingT3.prototype",
+          "count": 1,
+          "allowInvalidAttachment": true,
+          "replaceExistingSamePosition": false
+        },
+        {
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/Attributes/SpeedT3.prototype",
+          "count": 1,
+          "allowInvalidAttachment": true,
+          "replaceExistingSamePosition": false
+        },
+        {
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/DamageSummoner/DamageSummonerT3.prototype",
+          "count": 1,
+          "allowInvalidAttachment": true,
+          "replaceExistingSamePosition": false
+        },
+        {
+          "prototype": "Entity/Items/Affixes/RingAffixes/BloodstoneAffixes/BloodstoneSummonDuration.prototype",
+          "count": 1,
+          "allowInvalidAttachment": true,
+          "replaceExistingSamePosition": false
+        }
+      ],
+      "procKeywordProperties": [
+      ],
+      "affixReplacements": [
+      ],
+      "randomAffixes": [
+      ]
+    },
+    {
+      "id": "unique298-fire-giant-greaves",
+      "enabled": true,
+      "rerollForcedAffixesWithBuiltInSeed": true,
+      "itemPrototypes": [
+        "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot4/Unique298.prototype"
+      ],
+      "rarities": [
+        "Entity/Items/Rarity/R6Unique.prototype"
+      ],
+      "overrideItemLevel": 69,
+      "maximizeAffixRolls": false,
+      "clearBuiltInProperties": true,
+      "preserveBuiltInPropertyIndexes": [ 0 ],
+      "clearExistingAffixes": true,
+      "preserveProcAffixes": true,
+      "disabledAffixes": [
+      ],
+      "builtInProperties": [
+      ],
+      "forcedAffixes": [
+        {
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/DamageEnergy/DamageEnergyT3.prototype",
+          "count": 1,
+          "allowInvalidAttachment": true,
+          "replaceExistingSamePosition": false
+        },
+        {
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/DamageMental/DamageMentalT3.prototype",
+          "count": 1,
+          "allowInvalidAttachment": true,
+          "replaceExistingSamePosition": false
+        },
+        {
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/BonusHealth/BonusHealthT3.prototype",
+          "count": 1,
+          "allowInvalidAttachment": true,
+          "replaceExistingSamePosition": false
+        },
+        {
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/CritChance/CritChanceT3.prototype",
+          "count": 1,
+          "allowInvalidAttachment": true,
+          "replaceExistingSamePosition": false
+        },
+        {
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/CritDamage/CritDamageT3.prototype",
+          "count": 1,
+          "allowInvalidAttachment": true,
+          "replaceExistingSamePosition": false
+        },
+        {
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Duration/DurationBonus09to15.prototype",
+          "count": 1,
+          "allowInvalidAttachment": true,
+          "replaceExistingSamePosition": false
+        },
+        {
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/MovementSpeed/MovementSpeedT3.prototype",
+          "count": 1,
+          "allowInvalidAttachment": true,
+          "replaceExistingSamePosition": false
+        },
+        {
+          "prototype": "Entity/Items/Affixes/LegendaryAffixes/StatAllAttributesBonus.prototype",
+          "count": 1,
+          "allowInvalidAttachment": true,
+          "replaceExistingSamePosition": false
+        }
+      ],
+      "procKeywordProperties": [
+      ],
+      "affixReplacements": [
+      ],
+      "randomAffixes": [
+      ]
+    },
+    {
+      "id": "unique294-fire-giant-aegis",
+      "enabled": true,
+      "rerollForcedAffixesWithBuiltInSeed": true,
+      "itemPrototypes": [
+        "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot2/Unique294.prototype"
+      ],
+      "rarities": [
+        "Entity/Items/Rarity/R6Unique.prototype"
+      ],
+      "overrideItemLevel": 69,
+      "maximizeAffixRolls": false,
+      "clearBuiltInProperties": true,
+      "preserveBuiltInPropertyIndexes": [ 0, 2, 4 ],
+      "clearExistingAffixes": true,
+      "preserveProcAffixes": true,
+      "disabledAffixes": [
+      ],
+      "builtInProperties": [
+      ],
+      "forcedAffixes": [
+        {
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/DefenseAll/DefenseAllT3.prototype",
+          "count": 1,
+          "allowInvalidAttachment": true,
+          "replaceExistingSamePosition": false
+        },
+        {
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/BonusHealth/BonusHealthT3.prototype",
+          "count": 1,
+          "allowInvalidAttachment": true,
+          "replaceExistingSamePosition": false
+        },
+        {
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/Attributes/StrengthT3.prototype",
+          "count": 1,
+          "allowInvalidAttachment": true,
+          "replaceExistingSamePosition": false
+        },
+        {
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/Attributes/EnergyT3.prototype",
+          "count": 1,
+          "allowInvalidAttachment": true,
+          "replaceExistingSamePosition": false
+        },
+        {
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/BrutalStrike/BrutalStrikeT3.prototype",
+          "count": 1,
+          "allowInvalidAttachment": true,
+          "replaceExistingSamePosition": false
+        },
+        {
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/BrutalDamage/BrutalDamageT3.prototype",
+          "count": 1,
+          "allowInvalidAttachment": true,
+          "replaceExistingSamePosition": false
+        }
+      ],
+      "procKeywordProperties": [
+      ],
+      "affixReplacements": [
+      ],
+      "randomAffixes": [
+      ]
+    }
+  ]
+}

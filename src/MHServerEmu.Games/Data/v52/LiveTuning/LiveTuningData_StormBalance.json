@@ -1,0 +1,13 @@
+[
+  {
+    "Prototype": "Powers/Player/Storm/MaelstromIntervalHotspotEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.5
+  },
+  {
+    "Prototype": "Powers/Player/Storm/MassiveLightningStrike.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.5
+  }
+]
+

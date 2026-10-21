@@ -14,6 +14,7 @@ using MHServerEmu.Games.Entities;
 using MHServerEmu.Games.Entities.Avatars;
 using MHServerEmu.Games.Entities.Locomotion;
 using MHServerEmu.Games.GameData.Calligraphy;
+using MHServerEmu.Games.MythicRifts;
 using MHServerEmu.Games.Navi;
 using MHServerEmu.Games.Powers;
 using MHServerEmu.Games.Powers.Conditions;
@@ -895,7 +896,8 @@ namespace MHServerEmu.Games.GameData.Prototypes
             if (Verify.IsNotNull(proceduralAI))
             {
                 HandleContext(proceduralAI, ownerController, DestroyTurretsOnDeath);
-                HandleContext(proceduralAI, ownerController, SpawnDrDoomPhase2);
+                if (MythicRiftStandaloneBossFixups.IsStandaloneBoss(agent) == false)
+                    HandleContext(proceduralAI, ownerController, SpawnDrDoomPhase2);
             }
         }
     }
@@ -968,7 +970,7 @@ namespace MHServerEmu.Games.GameData.Prototypes
                 Verify.IsTrue(ownerController.AttemptActivatePower(DeathStun, agent.Id, agent.RegionLocation.Position));
 
             ProceduralAI proceduralAI = ownerController.Brain;
-            if (Verify.IsNotNull(proceduralAI))
+            if (Verify.IsNotNull(proceduralAI) && MythicRiftStandaloneBossFixups.IsStandaloneBoss(agent) == false)
                 HandleContext(proceduralAI, ownerController, SpawnDrDoomPhase3);
         }
     }
@@ -1176,6 +1178,61 @@ namespace MHServerEmu.Games.GameData.Prototypes
             InitPowers(agent, SummonProceduralPowers);
         }
 
+        private static StaticBehaviorReturnType MoveTowardTargetIfOutOfRange(
+            AIController ownerController,
+            ProceduralAI proceduralAI,
+            Agent agent,
+            WorldEntity target,
+            Picker<ProceduralUsePowerContextPrototype> powerPicker)
+        {
+            if (agent == null || target == null || target.IsInWorld == false)
+                return StaticBehaviorReturnType.Failed;
+
+            if (MythicRiftStandaloneBossFixups.IsStandaloneBoss(agent) == false)
+                return StaticBehaviorReturnType.Completed;
+
+            float minRange = float.MaxValue;
+            int numPowers = powerPicker.GetNumElements();
+            for (int i = 0; i < numPowers; i++)
+            {
+                if (powerPicker.GetElementAt(i, out ProceduralUsePowerContextPrototype proto) == false)
+                    continue;
+
+                PrototypeId powerRef = proto?.PowerContext?.Power?.DataRef ?? PrototypeId.Invalid;
+                if (powerRef == PrototypeId.Invalid)
+                    continue;
+
+                Power power = agent.GetPower(powerRef);
+                if (power == null)
+                    continue;
+
+                float range = power.GetRange();
+                if (range > 0f && range < minRange)
+                    minRange = range;
+            }
+
+            if (minRange == float.MaxValue)
+                return StaticBehaviorReturnType.Completed;
+
+            float currentDistance = agent.GetDistanceTo(target, true);
+            if (currentDistance <= minRange)
+                return StaticBehaviorReturnType.Completed;
+
+            MoveToContext moveContext = new()
+            {
+                OwnerController = ownerController,
+                MoveTo = MoveToType.Target,
+                MovementSpeed = MovementSpeedOverride.Default,
+                EnforceLOS = false,
+                RangeMin = 0f,
+                RangeMax = minRange * 0.7f,
+                LOSSweepPadding = 0f,
+                StopLocomotorOnMoveToFail = false,
+            };
+
+            return proceduralAI.HandleContext(MoveTo.Instance, moveContext, null);
+        }
+
         public override void Think(AIController ownerController)
         {
             ProceduralAI proceduralAI = ownerController.Brain;
@@ -1253,6 +1310,9 @@ namespace MHServerEmu.Games.GameData.Prototypes
                     {
                         using var powerPickerHandle = PickerPool<ProceduralUsePowerContextPrototype>.Get(random, out powerPicker);
                         PopulatePowerPicker(ownerController, powerPicker);
+                        if (MoveTowardTargetIfOutOfRange(ownerController, proceduralAI, agent, target, powerPicker) == StaticBehaviorReturnType.Running)
+                            return;
+
                         if (HandleProceduralPower(ownerController, proceduralAI, random, currentTime, powerPicker, true) == StaticBehaviorReturnType.Running)
                             return;
                     }
@@ -1269,6 +1329,9 @@ namespace MHServerEmu.Games.GameData.Prototypes
                     {
                         using var powerPickerHandle = PickerPool<ProceduralUsePowerContextPrototype>.Get(random, out powerPicker);
                         PopulatePowerPicker(ownerController, powerPicker);
+                        if (MoveTowardTargetIfOutOfRange(ownerController, proceduralAI, agent, target, powerPicker) == StaticBehaviorReturnType.Running)
+                            return;
+
                         if (HandleProceduralPower(ownerController, proceduralAI, random, currentTime, powerPicker, true) == StaticBehaviorReturnType.Running)
                             return;
                     }

@@ -1,0 +1,284 @@
+[
+  {
+    "Enabled": true,
+    "Prototype": "Leaderboards/Prototypes/Leaderboards/DangerRoom/DRScenarioTimeDoopSectorEpic.prototype",
+    "Path": "DesignState",
+    "Description": "Repurpose DRScenarioTimeDoopSectorEpic as AIM static challenge time leaderboard.",
+    "ValueType": "Enum",
+    "Value": "Live"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Leaderboards/Prototypes/Leaderboards/DangerRoom/DRScenarioTimeDoopSectorEpic.prototype",
+    "Path": "Public",
+    "Description": "Make AIM static challenge leaderboard visible.",
+    "ValueType": "Boolean",
+    "Value": true
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Leaderboards/Prototypes/Leaderboards/DangerRoom/DRScenarioTimeDoopSectorEpic.prototype",
+    "Path": "RankingRule",
+    "Description": "Danger Room time boards rank lower completion times first.",
+    "ValueType": "Enum",
+    "Value": "Ascending"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Leaderboards/Prototypes/Leaderboards/DangerRoom/DRScenarioTimeDoopSectorEpic.prototype",
+    "Path": "Type",
+    "Description": "Match existing Danger Room scenario leaderboards.",
+    "ValueType": "Enum",
+    "Value": "Player"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Leaderboards/Prototypes/Leaderboards/DangerRoom/DRScenarioTimeDoopSectorEpic.prototype",
+    "Path": "ResetFrequency",
+    "Description": "Match existing Danger Room scenario leaderboards.",
+    "ValueType": "Enum",
+    "Value": "Weekly"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Leaderboards/Prototypes/Leaderboards/DangerRoom/DRScenarioTimeDoopSectorEpic.prototype",
+    "Path": "Duration",
+    "Description": "Match existing Danger Room scenario leaderboards.",
+    "ValueType": "Enum",
+    "Value": "Week"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Leaderboards/Prototypes/Leaderboards/DangerRoom/DRScenarioTimeDoopSectorEpic.prototype",
+    "Path": "ScoreDisplayFormat",
+    "Description": "Display AIM static challenge score as completion time.",
+    "ValueType": "Enum",
+    "Value": "Time"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Leaderboards/Prototypes/Leaderboards/DangerRoom/DRScenarioTimeDoopSectorEpic.prototype",
+    "Path": "Category",
+    "Description": "Place AIM static challenge under Danger Room leaderboard category.",
+    "ValueType": "PrototypeId",
+    "Value": "Leaderboards/Prototypes/Categories/DangerRoom/DangerRoom.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Leaderboards/Prototypes/Leaderboards/DangerRoom/DRScenarioTimeDoopSectorEpic.prototype",
+    "Path": "MaxArchivedInstances",
+    "Description": "Match existing Danger Room scenario leaderboards.",
+    "ValueType": "Integer",
+    "Value": 1
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Leaderboards/Prototypes/Leaderboards/DangerRoom/DRScenarioTimeDoopSectorEpic.prototype",
+    "Path": "DepthOfStandings",
+    "Description": "Match existing Danger Room scenario leaderboards.",
+    "ValueType": "Integer",
+    "Value": 500
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Leaderboards/Prototypes/Leaderboards/DangerRoom/DRScenarioTimeDoopSectorEpic.prototype",
+    "Path": "Rewards",
+    "Description": "Use the same Epic Danger Room tournament reward tiers as DRScenarioTimeDoopSectorEpic.",
+    "ValueType": "PrototypeArray",
+    "Value": [
+      {
+        "ParentDataRef": 13336755512767289921,
+        "RewardItem": 10725549729630201503,
+        "Position": 1
+      },
+      {
+        "ParentDataRef": 619897566873983735,
+        "RewardItem": 4382436200489821222,
+        "PercentileBucket": "Within10Percent"
+      },
+      {
+        "ParentDataRef": 619897566873983735,
+        "RewardItem": 9248456611955221870,
+        "PercentileBucket": "Within20Percent"
+      },
+      {
+        "ParentDataRef": 619897566873983735,
+        "RewardItem": 7023104330708952433,
+        "PercentileBucket": "Within50Percent"
+      },
+      {
+        "ParentDataRef": 619897566873983735,
+        "RewardItem": 3591549019571889717,
+        "PercentileBucket": "Within90Percent"
+      },
+      {
+        "ParentDataRef": 619897566873983735,
+        "RewardItem": 3591549019571889717,
+        "PercentileBucket": "Over90Percent"
+      }
+    ]
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Leaderboards/Prototypes/Leaderboards/DangerRoom/DRScenarioTimeDoopSectorEpic.prototype",
+    "Path": "ScoringRules",
+    "Description": "Use the same Danger Room completion-time scoring rule as Doop Sector Epic, scoped to the AIM normal static challenge region.",
+    "ValueType": "PrototypeArray",
+    "Value": [
+      {
+        "ParentDataRef": 6791016298265778189,
+        "Event": {
+          "ParentDataRef": 7967119926961641359,
+          "Context": {
+            "ParentDataRef": 11094662274680558056,
+            "ContextRegion": 15929066374051474570
+          },
+          "Timer": 15245742899951046877
+        },
+        "GUID": 696287221186560,
+        "ValueInt": 1
+      }
+    ]
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Leaderboards/Prototypes/Leaderboards/DangerRoom/DRScenarioTimeDoopSectorCosmic.prototype",
+    "Path": "DesignState",
+    "Description": "Repurpose DRScenarioTimeDoopSectorCosmic as AIM cosmic static challenge time leaderboard.",
+    "ValueType": "Enum",
+    "Value": "Live"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Leaderboards/Prototypes/Leaderboards/DangerRoom/DRScenarioTimeDoopSectorCosmic.prototype",
+    "Path": "Public",
+    "Description": "Make AIM cosmic static challenge leaderboard visible.",
+    "ValueType": "Boolean",
+    "Value": true
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Leaderboards/Prototypes/Leaderboards/DangerRoom/DRScenarioTimeDoopSectorCosmic.prototype",
+    "Path": "RankingRule",
+    "Description": "Danger Room time boards rank lower completion times first.",
+    "ValueType": "Enum",
+    "Value": "Ascending"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Leaderboards/Prototypes/Leaderboards/DangerRoom/DRScenarioTimeDoopSectorCosmic.prototype",
+    "Path": "Type",
+    "Description": "Match existing Danger Room scenario leaderboards.",
+    "ValueType": "Enum",
+    "Value": "Player"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Leaderboards/Prototypes/Leaderboards/DangerRoom/DRScenarioTimeDoopSectorCosmic.prototype",
+    "Path": "ResetFrequency",
+    "Description": "Match existing Danger Room scenario leaderboards.",
+    "ValueType": "Enum",
+    "Value": "Weekly"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Leaderboards/Prototypes/Leaderboards/DangerRoom/DRScenarioTimeDoopSectorCosmic.prototype",
+    "Path": "Duration",
+    "Description": "Match existing Danger Room scenario leaderboards.",
+    "ValueType": "Enum",
+    "Value": "Week"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Leaderboards/Prototypes/Leaderboards/DangerRoom/DRScenarioTimeDoopSectorCosmic.prototype",
+    "Path": "ScoreDisplayFormat",
+    "Description": "Display AIM cosmic static challenge score as completion time.",
+    "ValueType": "Enum",
+    "Value": "Time"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Leaderboards/Prototypes/Leaderboards/DangerRoom/DRScenarioTimeDoopSectorCosmic.prototype",
+    "Path": "Category",
+    "Description": "Place AIM cosmic static challenge under Danger Room leaderboard category.",
+    "ValueType": "PrototypeId",
+    "Value": "Leaderboards/Prototypes/Categories/DangerRoom/DangerRoom.prototype"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Leaderboards/Prototypes/Leaderboards/DangerRoom/DRScenarioTimeDoopSectorCosmic.prototype",
+    "Path": "MaxArchivedInstances",
+    "Description": "Match existing Danger Room scenario leaderboards.",
+    "ValueType": "Integer",
+    "Value": 1
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Leaderboards/Prototypes/Leaderboards/DangerRoom/DRScenarioTimeDoopSectorCosmic.prototype",
+    "Path": "DepthOfStandings",
+    "Description": "Match existing Danger Room scenario leaderboards.",
+    "ValueType": "Integer",
+    "Value": 500
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Leaderboards/Prototypes/Leaderboards/DangerRoom/DRScenarioTimeDoopSectorCosmic.prototype",
+    "Path": "Rewards",
+    "Description": "Use the same Cosmic Danger Room tournament reward tiers as DRScenarioTimeDoopSectorCosmic.",
+    "ValueType": "PrototypeArray",
+    "Value": [
+      {
+        "ParentDataRef": 13336755512767289921,
+        "RewardItem": 16732901443988891516,
+        "Position": 1
+      },
+      {
+        "ParentDataRef": 619897566873983735,
+        "RewardItem": 9449416310059443459,
+        "PercentileBucket": "Within10Percent"
+      },
+      {
+        "ParentDataRef": 619897566873983735,
+        "RewardItem": 10908058201500427851,
+        "PercentileBucket": "Within20Percent"
+      },
+      {
+        "ParentDataRef": 619897566873983735,
+        "RewardItem": 8525102164046915150,
+        "PercentileBucket": "Within50Percent"
+      },
+      {
+        "ParentDataRef": 619897566873983735,
+        "RewardItem": 199173246784710418,
+        "PercentileBucket": "Within90Percent"
+      },
+      {
+        "ParentDataRef": 619897566873983735,
+        "RewardItem": 199173246784710418,
+        "PercentileBucket": "Over90Percent"
+      }
+    ]
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Leaderboards/Prototypes/Leaderboards/DangerRoom/DRScenarioTimeDoopSectorCosmic.prototype",
+    "Path": "ScoringRules",
+    "Description": "Use the same Danger Room completion-time scoring rule as Doop Sector Cosmic, scoped to the AIM cosmic static challenge region.",
+    "ValueType": "PrototypeArray",
+    "Value": [
+      {
+        "ParentDataRef": 6791016298265778189,
+        "Event": {
+          "ParentDataRef": 7967119926961641359,
+          "Context": {
+            "ParentDataRef": 11094662274680558056,
+            "ContextRegion": 6345598189133442813
+          },
+          "Timer": 15245742899951046877
+        },
+        "GUID": 696287221186560,
+        "ValueInt": 1
+      }
+    ]
+  }
+]

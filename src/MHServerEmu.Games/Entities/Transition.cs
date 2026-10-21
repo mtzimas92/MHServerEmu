@@ -8,6 +8,7 @@ using MHServerEmu.Games.Entities.Avatars;
 using MHServerEmu.Games.Entities.Inventories;
 using MHServerEmu.Games.GameData;
 using MHServerEmu.Games.GameData.Prototypes;
+using MHServerEmu.Games.MythicRifts;
 using MHServerEmu.Games.Properties;
 using MHServerEmu.Games.Regions;
 using MHServerEmu.Games.UI;
@@ -174,8 +175,28 @@ namespace MHServerEmu.Games.Entities
             destination.SetEntity(transition);
         }
 
+        public bool ConfigureDirectTarget(PrototypeId targetRef)
+        {
+            TransitionDestination destination = TransitionDestination.FromTargetRef(targetRef);
+            if (!Verify.IsNotNull(destination, $"ConfigureDirectTarget(): Failed to build destination for target {targetRef.GetNameFormatted()}"))
+                return false;
+
+            _destinationList.Clear();
+            _destinationList.Add(destination);
+            return true;
+        }
+
         public bool UseTransition(Player player)
         {
+            if (Game.MythicRiftManager.TryUseRewardRoomPortal(player, this))
+                return true;
+
+            if (Game.MythicRiftManager.TryUseReturnPortal(player, this))
+                return true;
+
+            if (Game.MythicRiftManager.TryBlockUnsafeRiftTransition(player, this))
+                return true;
+
             switch (TransitionPrototype.Type)
             {
                 case RegionTransitionType.Transition:
@@ -317,6 +338,15 @@ namespace MHServerEmu.Games.Entities
             if (!Verify.IsTrue(_destinationList.Count == 1)) return false;
 
             TransitionDestination destination = _destinationList[0];
+            Region destinationRegion = Game.RegionManager.GetRegion(destination.RegionId);
+            bool canEnterDestination = destinationRegion != null
+                ? RiftAccessTeleportService.CanEnterOmegaPatrol(player, destinationRegion)
+                : RiftAccessTeleportService.CanEnterOmegaPatrol(player, destination.RegionRef, Region?.DifficultyTierRef ?? PrototypeId.Invalid);
+            if (canEnterDestination == false)
+            {
+                player.SendBannerMessage(GameDatabase.UIGlobalsPrototype.MessageRegionRestricted);
+                return false;
+            }
 
             using var teleporterHandle = TeleporterPool.Get(out Teleporter teleporter);
             teleporter.Initialize(player, TeleportContextEnum.TeleportContext_Transition);

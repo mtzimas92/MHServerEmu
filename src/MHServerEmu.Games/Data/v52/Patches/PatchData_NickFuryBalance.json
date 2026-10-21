@@ -1,0 +1,132 @@
+[
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/NickFury/Reload.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].ChanceToApplyCondition.Conditional.Arg2.Value",
+    "Description": "OpenCalligraphy export: ChanceToApplyCondition.Conditional.Arg2.Value",
+    "ValueType": "Float",
+    "Value": 0.5
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/NickFury/Reload.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[0].Eval.Value",
+    "Description": "OpenCalligraphy export: EvalOnCreate[0].Eval.Value",
+    "ValueType": "Float",
+    "Value": 1
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/NickFury/SummonMedic.prototype",
+    "Path": "EvalPowerSynergies.Scope[0].Eval.Arg1.Value",
+    "Description": "OpenCalligraphy export: EvalPowerSynergies.Scope[0].Eval.Arg1.Value",
+    "ValueType": "Float",
+    "Value": 3
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/NickFury/SummonMinigun.prototype",
+    "Path": "EvalPowerSynergies.Scope[0].Eval.Arg1.Value",
+    "Description": "OpenCalligraphy export: EvalPowerSynergies.Scope[0].Eval.Arg1.Value",
+    "ValueType": "Float",
+    "Value": 3
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/NickFury/SummonRifleman.prototype",
+    "Path": "EvalPowerSynergies.Scope[0].Eval.Arg1.Value",
+    "Description": "OpenCalligraphy export: EvalPowerSynergies.Scope[0].Eval.Arg1.Value",
+    "ValueType": "Float",
+    "Value": 3
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/NickFury/SummonShotgun.prototype",
+    "Path": "EvalPowerSynergies.Scope[0].Eval.Arg1.Value",
+    "Description": "OpenCalligraphy export: EvalPowerSynergies.Scope[0].Eval.Arg1.Value",
+    "ValueType": "Float",
+    "Value": 3
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/NickFury/HeadsDown.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[]",
+    "Description": "Append a local 20% Heads Down vulnerability eval to the actual target condition.",
+    "ValueType": "Prototype",
+    "Value": {
+      "ParentDataRef": 12394606670048857323,
+      "Op": "Scope",
+      "Scope": [
+        {
+          "ParentDataRef": 1429542141982412459,
+          "Op": "AssignProp",
+          "Prop": {
+            "Property": "DamagePctVulnerability"
+          },
+          "Eval": {
+            "ParentDataRef": 5074715296837012907,
+            "Op": "LoadFloat",
+            "Value": 0.2
+          }
+        }
+      ]
+    }
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/NickFury/HeadsDownRanged.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[]",
+    "Description": "Append a local 20% Fire Ant vulnerability eval to the actual target condition.",
+    "ValueType": "Prototype",
+    "Value": {
+      "ParentDataRef": 12394606670048857323,
+      "Op": "Scope",
+      "Scope": [
+        {
+          "ParentDataRef": 1429542141982412459,
+          "Op": "AssignProp",
+          "Prop": {
+            "Property": "DamagePctVulnerability"
+          },
+          "Eval": {
+            "ParentDataRef": 5074715296837012907,
+            "Op": "LoadFloat",
+            "Value": 0.2
+          }
+        }
+      ]
+    }
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/NickFury/SummonMedic.prototype",
+    "Path": "SummonEntityContexts[0].EvalOnSummon[2].Scope[0].Eval.Arg1.Value",
+    "Description": "Increase Shield Medic summon runtime health assignment multiplier.",
+    "ValueType": "Float",
+    "Value": 3
+   },
+   {
+     "Enabled": true,
+     "Prototype": "Powers/Player/NickFury/SummonMinigun.prototype",
+     "Path": "SummonEntityContexts[0].EvalOnSummon[2].Scope[0].Eval.Arg1.Value",
+     "Description": "Increase Shield Medic summon runtime health assignment multiplier.",
+     "ValueType": "Float",
+     "Value": 3
+   },
+   {
+     "Enabled": true,
+     "Prototype": "Powers/Player/NickFury/SummonRifleman.prototype",
+     "Path": "SummonEntityContexts[0].EvalOnSummon[2].Scope[0].Eval.Arg1.Value",
+     "Description": "Increase Shield Medic summon runtime health assignment multiplier.",
+     "ValueType": "Float",
+     "Value": 3
+   },
+   {
+     "Enabled": true,
+     "Prototype": "Powers/Player/NickFury/SummonShotgun.prototype",
+     "Path": "SummonEntityContexts[0].EvalOnSummon[2].Scope[0].Eval.Arg1.Value",
+     "Description": "Increase Shield Medic summon runtime health assignment multiplier.",
+     "ValueType": "Float",
+     "Value": 3
+   }
+]

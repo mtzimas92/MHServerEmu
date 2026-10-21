@@ -1,0 +1,117 @@
+[
+  {
+    "Prototype": "Powers/Player/Ultron/SignatureHotspotEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.5
+  },
+  {
+    "Prototype": "Powers/Player/Ultron/BigBigBlast.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.5
+  },
+  {
+    "Prototype": "Powers/Player/Ultron/SpinAttack.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.5
+  },
+  {
+    "Prototype": "Powers/Player/Ultron/EncephaloBeam.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.5
+  },
+  {
+    "Prototype": "Powers/Player/Ultron/CommandingShot.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.5
+  },
+  {
+    "Prototype": "Powers/Player/Ultron/DroneExplodeonDeathProc.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.5
+  },
+  {
+    "Prototype": "Powers/Player/Ultron/FingerLaserBlasts.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.5
+  },
+  {
+    "Prototype": "Powers/Player/Ultron/RadiationBlast.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.5
+  },
+  {
+    "Prototype": "Powers/Player/Ultron/FingerLasers.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.5
+  },
+  {
+    "Prototype": "Powers/Player/Ultron/LeapStrikeCombo.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.4
+  },
+  {
+    "Prototype": "Powers/Player/Ultron/GroundThrowMissileEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.4
+  },
+  {
+    "Prototype": "Powers/Player/Ultron/FocusedConcussion.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.4
+  },
+  {
+    "Prototype": "Powers/Player/Ultron/DroneStrafeMissileEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.55
+  },
+  {
+    "Prototype": "Powers/Player/Ultron/MeleeStrike.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.4
+  },
+  {
+    "Prototype": "Powers/Player/Ultron/SlamDamage.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.4
+  },
+  {
+    "Prototype": "Powers/Player/Ultron/ConcussionBlast.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.4
+  },
+  {
+    "Prototype": "Powers/Player/Ultron/DashProcEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.4
+  },
+  {
+    "Prototype": "Powers/Player/Ultron/BladeDroneSpinAttack.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.1
+  },
+  {
+    "Prototype": "Powers/Player/Ultron/BladeDroneLungeEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.1
+  },
+  {
+    "Prototype": "Powers/Player/Ultron/BladeDroneSlash2.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.1
+  },
+  {
+    "Prototype": "Powers/Player/Ultron/BladeDroneSlashHit.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.1
+  },
+  {
+    "Prototype": "Powers/Player/Ultron/FlamethrowerHotspotEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.1
+  },
+  {
+    "Prototype": "Powers/Player/Ultron/SummonRangedDroneProcEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.1
+  }
+]

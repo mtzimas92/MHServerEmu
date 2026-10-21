@@ -1,0 +1,147 @@
+[
+  {
+    "Prototype": "Powers/Player/IronMan/MissileCritPassiveProcMissileEff.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 2.0
+  },
+  {
+    "Prototype": "Powers/Player/IronMan/SignatureDamageCombo.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/IronMan/MicrolasersHotspotEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/IronMan/SonicShockwaveDoTCombo.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/IronMan/BrutalStrikeComboEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/IronMan/MicromissilesMissileEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/IronMan/RainOfMissilesHotspotEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/IronMan/SonicShockwave.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/IronMan/JetThrustPunch.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/IronMan/DeathFromAboveComboEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/IronMan/ChanneledEnergyBeamEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/IronMan/OrbitalBombardmentHotspotEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/IronMan/ShieldOverloadExplosion.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/IronMan/RepulsorSpray.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/IronMan/UnibeamUpgradedDamageCombo.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/IronMan/UniBeam.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/IronMan/FreonRay.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/IronMan/RapidFire.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/IronMan/WristRocketMissileEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/IronMan/WristRocketMissileEffectDoT.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/IronMan/MissileSalvoEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/IronMan/BasicRepulsorBeam.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/IronMan/ShieldOverloadExplosionUpgrade2.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/IronMan/ShieldOverloadExplosionUpgrade3.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/IronMan/ShieldOverloadExplosionUpgrade4.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/IronMan/ShieldOverloadExplosionUpgrade.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/IronMan/BasicDentingPunch.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/IronMan/RepulsorBurstMissileEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/IronMan/SpeedRushProcEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  }
+]

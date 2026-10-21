@@ -1,0 +1,50 @@
+[
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Magik/BounceStrikeStart.prototype",
+    "Path": "ActionsTriggeredOnPowerEvent[1].EvalEventTriggerChance.EvalIf.Value",
+    "Description": "Buff Explosive Will's triggered Soul Shockwave / Sorcerous Eruption damage scalar.",
+    "ValueType": "Float",
+    "Value": 1.5
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Magik/Talents/SoulConeLayerSoulswordBuff.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[0].Eval.Value",
+    "Description": "Buff Deadly Fangs from +15% to +50%.",
+    "ValueType": "Float",
+    "Value": 0.50
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Magik/Talents/Talent3SteppingMastery.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[1].Eval.Value",
+    "Description": "Buff Stepping Disc Mastery's Step to Me damage scalar to +300%.",
+    "ValueType": "Float",
+    "Value": 3
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Magik/Talents/Talent3MagicalProjection.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[1].Eval.Value",
+    "Description": "OpenCalligraphy export: EvalOnCreate[1].Eval.Value",
+    "ValueType": "Float",
+    "Value": 3
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Magik/Talents/Talent3MagicalProjection.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[2].Eval.Value",
+    "Description": "OpenCalligraphy export: EvalOnCreate[2].Eval.Value",
+    "ValueType": "Float",
+    "Value": 3
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Magik/Talents/Talent3MagicalProjection.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[4].Eval.Value",
+    "Description": "OpenCalligraphy export: EvalOnCreate[4].Eval.Value",
+    "ValueType": "Float",
+    "Value": 3
+  }
+]

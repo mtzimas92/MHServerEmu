@@ -1,4 +1,4 @@
-﻿using Gazillion;
+using Gazillion;
 using MHServerEmu.Core.Extensions;
 using MHServerEmu.Core.Logging;
 using MHServerEmu.Core.Memory;
@@ -12,6 +12,7 @@ using MHServerEmu.Games.GameData;
 using MHServerEmu.Games.GameData.Calligraphy;
 using MHServerEmu.Games.GameData.Prototypes;
 using MHServerEmu.Games.Loot;
+using MHServerEmu.Games.MythicRifts;
 using MHServerEmu.Games.Properties;
 using MHServerEmu.Games.Properties.Evals;
 using MHServerEmu.Games.Regions;
@@ -75,6 +76,12 @@ namespace MHServerEmu.Games.Entities
 
         public void InitializeVendorInventory(PrototypeId inventoryProtoRef)
         {
+            if (TryInitializeMythicRiftCompletionVendorInventory(inventoryProtoRef))
+                return;
+
+            if (TryInitializeMythicRiftCompletionCrafterInventory(inventoryProtoRef))
+                return;
+
             foreach (PrototypeId vendorTypeProtoRef in DataDirectory.Instance.IteratePrototypesInHierarchy<VendorTypePrototype>(PrototypeIterateFlags.NoAbstract))
             {
                 VendorTypePrototype vendorTypeProto = vendorTypeProtoRef.As<VendorTypePrototype>();
@@ -144,6 +151,12 @@ namespace MHServerEmu.Games.Entities
             WorldEntity vendor = entityManager.GetEntity<WorldEntity>(vendorId);
             if (!Verify.IsNotNull(vendor)) return false;
 
+            if (TryBuyMythicRiftCompletionVendorOffer(item, vendor))
+                return true;
+
+            if (IsMythicRiftVendorItem(item, vendor))
+                return BuyMythicRiftVendorItem(avatarIndex, item);
+
             // Find the inventory slot to put the purchased item in
             uint vendorSlot = Inventory.InvalidSlot;
             bool isInBuybackInventory = item.IsInBuybackInventory;
@@ -211,6 +224,8 @@ namespace MHServerEmu.Games.Entities
                 OnScoringEvent(new(ScoringEventType.ItemCollected, item.Prototype, rarityProto, count));
             }
 
+            TryRegisterPurchasedMythicRiftBeacon(item, vendor, "normal-vendor-flow");
+
             // Use the item if needed
             if (item.Properties[PropertyEnum.ItemAutoUseOnPurchase])
             {
@@ -219,6 +234,31 @@ namespace MHServerEmu.Games.Entities
             }
 
             return true;
+        }
+
+        public void EnsureMythicRiftVendorStock(WorldEntity vendor)
+        {
+            if (vendor == null)
+                return;
+
+            if (EnsureMythicRiftCompletionVendorStock(vendor))
+                return;
+
+            if (EnsureMythicRiftCompletionCrafterStock(vendor))
+                return;
+
+            if (ShouldInjectMythicRiftVendorStock(vendor) == false)
+                return;
+
+            PrototypeId vendorTypeProtoRef = vendor.Properties[PropertyEnum.VendorType];
+            VendorTypePrototype vendorTypeProto = vendorTypeProtoRef.As<VendorTypePrototype>();
+            if (vendorTypeProto == null)
+                return;
+
+            if (TryAddMythicRiftVendorItem(vendorTypeProto))
+                SendMessage(NetMessageVendorRefresh.CreateBuilder().SetVendorTypeProtoId((ulong)vendorTypeProtoRef).Build());
+
+            TrySendMythicRiftVendorHint();
         }
 
         public bool SellItemToVendor(int avatarIndex, ulong itemId, ulong vendorId)
@@ -736,6 +776,12 @@ namespace MHServerEmu.Games.Entities
             if (vendorTypeProto.GetInventories(inventoryList) == false)
                 return true;
 
+            if (TryBlockMythicRiftCompletionCrafterReroll(vendorTypeProtoRef, isInitializing))
+                return true;
+
+            if (TryBlockMythicRiftCompletionVendorReroll(vendorTypeProtoRef, isInitializing))
+                return true;
+
             // Get roll settings from properties
             int rollSeed = Properties[PropertyEnum.VendorRollSeed, vendorTypeProtoRef];
             if (!Verify.IsTrue(rollSeed != 0)) return false;
@@ -913,6 +959,9 @@ namespace MHServerEmu.Games.Entities
                 }
             }
 
+            if (ShouldInjectMythicRiftVendorStock(vendorTypeProto))
+                TryAddMythicRiftVendorItem(vendorTypeProto);
+
             UpdateCraftingIngredientAvailableStackCounts(craftingIngredientSet);
 
             // Notify the client if needed
@@ -967,8 +1016,22 @@ namespace MHServerEmu.Games.Entities
             if (freeSlot == Inventory.InvalidSlot)
                 return VendorResult.BuyInventoryFull;
 
+            WorldEntity vendor = Game.EntityManager.GetEntity<WorldEntity>(vendorId);
+            if (vendor == null) { Logger.Warn("CanBuyItemFromVendor(): vendor == null"); return VendorResult.BuyFailure; }
+            if (vendor.IsVendor == false) { Logger.Warn("CanBuyItemFromVendor(): vendor.IsVendor == false"); return VendorResult.BuyFailure; }
+            bool isMythicRiftCompletionVendorOfferItem = IsMythicRiftCompletionVendorOfferItem(item, vendor);
+
+            if (avatar.InInteractRange(vendor, InteractionMethod.Buy) == false)
+                return VendorResult.BuyOutOfRange;
+
+            if (vendor.Id != DialogTargetId)
+                return VendorResult.BuyDialogTargetIdMismatch;
+
             // Check if the player has enough stuff to afford this item
-            if (itemProto.Cost != null && itemProto.Cost.CanAffordItem(this, item) == false)
+            if (isMythicRiftCompletionVendorOfferItem == false &&
+                IsMythicRiftVendorItem(item, vendor) == false &&
+                itemProto.Cost != null &&
+                itemProto.Cost.CanAffordItem(this, item) == false)
                 return VendorResult.BuyCannotAffordItem;
 
             // Check if the player is a cool enough person to have this item
@@ -1002,17 +1065,6 @@ namespace MHServerEmu.Games.Entities
             if (item.IsCraftingRecipe && HasLearnedCraftingRecipe(itemProto.DataRef))
                 return VendorResult.BuyPlayerAlreadyHasCraftingRecipe;
 
-            // Validate the vendor
-            WorldEntity vendor = Game.EntityManager.GetEntity<WorldEntity>(vendorId);
-            if (!Verify.IsNotNull(vendor)) return VendorResult.BuyFailure;
-            if (!Verify.IsTrue(vendor.IsVendor)) return VendorResult.BuyFailure;
-
-            if (avatar.InInteractRange(vendor, InteractionMethod.Buy) == false)
-                return VendorResult.BuyOutOfRange;
-
-            if (vendor.Id != DialogTargetId)
-                return VendorResult.BuyDialogTargetIdMismatch;
-
             // Make sure this item is in one of this vendor's inventories
             PrototypeId vendorTypeProtoRef = vendor.Properties[PropertyEnum.VendorType];
             VendorTypePrototype vendorTypeProto = vendorTypeProtoRef.As<VendorTypePrototype>();
@@ -1023,6 +1075,7 @@ namespace MHServerEmu.Games.Entities
 
             return VendorResult.BuySuccess;
         }
+
 
         private VendorResult CanSellItemToVendor(int avatarIndex, ulong itemId, ulong vendorId)
         {

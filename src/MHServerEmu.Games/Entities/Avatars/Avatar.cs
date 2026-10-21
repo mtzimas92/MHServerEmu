@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using Gazillion;
 using MHServerEmu.Core.Collections;
 using MHServerEmu.Core.Extensions;
@@ -25,6 +25,7 @@ using MHServerEmu.Games.GameData.Tables;
 using MHServerEmu.Games.Loot;
 using MHServerEmu.Games.MetaGames;
 using MHServerEmu.Games.Missions;
+using MHServerEmu.Games.MythicRifts;
 using MHServerEmu.Games.Network;
 using MHServerEmu.Games.Powers;
 using MHServerEmu.Games.Powers.Conditions;
@@ -58,7 +59,6 @@ namespace MHServerEmu.Games.Entities.Avatars
         // (and therefore different) region instances, since everyone entering via Shanna now gets the same
         // explicit tier no matter what.
         private static readonly PrototypeId UESvsDinosDifficultyTierRef = (PrototypeId)7540373722300157771;
-
         private static readonly Logger Logger = LogManager.CreateLogger();
         private static readonly TimeSpan StandardContinuousPowerRecheckDelay = TimeSpan.FromMilliseconds(150);
 
@@ -542,6 +542,9 @@ namespace MHServerEmu.Games.Entities.Avatars
             Player owner = GetOwnerOfType<Player>();
             if (!Verify.IsNotNull(owner)) return false;
 
+            if (Game.MythicRiftManager?.TryHandleRiftDeathRelease(this, requestType) == true)
+                return true;
+
             if (region.MetaGames.Count > 0) 
             {
                 var player = GetOwnerOfType<Player>();
@@ -793,6 +796,12 @@ namespace MHServerEmu.Games.Entities.Avatars
 
             RegionPrototype regionProto = region.Prototype;
             if (!Verify.IsNotNull(regionProto)) return false;
+
+            if (Game.MythicRiftManager.ShouldBlockBossGauntletBodyslide(player))
+            {
+                player.SendBannerMessage(GameDatabase.UIGlobalsPrototype.MessageRegionRestricted);
+                return false;
+            }
 
             if (regionProto.Behavior != RegionBehavior.Town)    // -> To Town
             {
@@ -4661,6 +4670,8 @@ namespace MHServerEmu.Games.Entities.Avatars
                 transition.UseTransition(player);
             else if (interactableObject.PrototypeDataRef == ShannaPortalGuideRef)
                 UseShannaPortalGuide(player, interactableObject);
+            else if (OmegaTrialService.TryUseOmegaTrialGuide(player, interactableObject) == false)
+                RiftAccessTeleportService.TryUseRiftAccessTeleporter(player, interactableObject);
 
             interactableObject.OnInteractedWith(this);
 
@@ -4673,8 +4684,7 @@ namespace MHServerEmu.Games.Entities.Avatars
         // which the client resolves entirely from its own local copy and never asks the server about). Its text is
         // overridden via AchievementStringMap_99_DinosInvadeManhattan.json (see [[achievement-string-override-global-text-fix]])
         // to actually mention Manhattan instead of the generic native line.
-	private static readonly LocaleStringId ShannaDinosaurFlavorTextRef = (LocaleStringId)423133379684795656;
-        
+        private static readonly LocaleStringId ShannaDinosaurFlavorTextRef = (LocaleStringId)423133379684795656;
 	// Localization/Translations/Dialogs/Yes.prototype and No.prototype - dedicated generic Yes/No button text,
         // each referenced by nothing else in the game's data, so reusing them here can't collide with any other
         // dialog's wording. Matches the real "Travel to X? Yes/No" pattern used by native portal NPCs.
@@ -7950,6 +7960,7 @@ namespace MHServerEmu.Games.Entities.Avatars
 
             var region = Region;
             region?.AvatarEnteredRegionEvent.Invoke(new(player, region.PrototypeDataRef));
+            OmegaTrialService.OnAvatarEnteredRegion(player, region);
             player.OnScoringEvent(new(ScoringEventType.RegionEnter));
         }
 

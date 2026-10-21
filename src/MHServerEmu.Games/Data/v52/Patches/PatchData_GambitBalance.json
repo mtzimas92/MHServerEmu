@@ -1,0 +1,67 @@
+[
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Gambit/BoVaultMeleeBuffCombo.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[0].Scope[0].Eval.Value",
+    "Description": "OpenCalligraphy export: EvalOnCreate[0].Scope[0].Eval.Value",
+    "ValueType": "Float",
+    "Value": 0.25
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Gambit/RoyalFlushRangedBuffCombo.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[0].Scope[0].Eval.Value",
+    "Description": "OpenCalligraphy export: EvalOnCreate[0].Scope[0].Eval.Value",
+    "ValueType": "Float",
+    "Value": 0.10
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Gambit/Talents/BlackSuitBuff.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[0].Eval.Value",
+    "Description": "OpenCalligraphy export: EvalOnCreate[0].Eval.Value",
+    "ValueType": "Float",
+    "Value": 0.25
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Gambit/Talents/RedSuitBuff.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[0].Eval.Value",
+    "Description": "OpenCalligraphy export: EvalOnCreate[0].Eval.Value",
+    "ValueType": "Float",
+    "Value": 0.25
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Gambit/Traits/KineticEnergyRegen.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[1].Eval.Scope[0].EvalElse.Value",
+    "Description": "OpenCalligraphy export: EvalOnCreate[1].Eval.Scope[0].EvalElse.Value",
+    "ValueType": "Float",
+    "Value": 0.3
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Gambit/StreetSweepMissileEffect.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[]",
+    "Description": "Append a local 20% Street Sweep vulnerability eval to the actual target condition.",
+    "ValueType": "Prototype",
+    "Value": {
+      "ParentDataRef": 12394606670048857323,
+      "Op": "Scope",
+      "Scope": [
+        {
+          "ParentDataRef": 1429542141982412459,
+          "Op": "AssignProp",
+          "Prop": {
+            "Property": "DamagePctVulnerability"
+          },
+          "Eval": {
+            "ParentDataRef": 5074715296837012907,
+            "Op": "LoadFloat",
+            "Value": 0.2
+          }
+        }
+      ]
+    }
+  }
+]

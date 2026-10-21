@@ -44,6 +44,8 @@ namespace MHServerEmu.Games.Loot
 
         public LootContext LootContext { get; private set; }
         public Player Player { get; private set; }
+        public PrototypeId SourceEntityPrototypeRef { get; private set; }
+        public ulong SourceEntityId { get; private set; }
 
         public Region Region { get => Player?.GetRegion(); }
 
@@ -66,6 +68,8 @@ namespace MHServerEmu.Games.Loot
 
             LootContext = default;
             Player = default;
+            SourceEntityPrototypeRef = PrototypeId.Invalid;
+            SourceEntityId = 0;
         }
 
         public float GetDropChance(LootRollSettings settings, float noDropPercent)
@@ -267,6 +271,8 @@ namespace MHServerEmu.Games.Loot
         {
             LootContext = lootContext;
             Player = player;
+            SourceEntityPrototypeRef = sourceEntity?.PrototypeDataRef ?? PrototypeId.Invalid;
+            SourceEntityId = sourceEntity?.Id ?? 0;
 
             _allowedCooldownDrops.Clear();
             InitializeLootBonusData(sourceEntity, mission);

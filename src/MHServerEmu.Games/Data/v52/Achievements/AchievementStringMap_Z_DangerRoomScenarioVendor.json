@@ -1,0 +1,30 @@
+{
+"1706533413823186237": {
+    "en_us": "Infinite Rift Scenario",
+    "ru_ru": "Сценарий Бесконечного разлома"
+  },
+  "12263033689917752692": {
+    "en_us": "Opens a single-use Infinite Rift scenario. Difficulty and rewards climb with your personal Rift level. Can only be used in the Danger Room.",
+    "ru_ru": "Открывает одноразовый сценарий Бесконечного разлома. Сложность и награды растут вместе с вашим личным уровнем разлома. Можно использовать только в Комнате опасностей."
+  },
+  "16099252161710523707": {
+    "en_us": "Omega Training Scenario",
+    "ru_ru": "Сценарий Омега испытания"
+  },
+  "15651545415086507378": {
+    "en_us": "Opens a single-use 30-wave Omega Training scenario with milestone boss encounters and controlled rewards. Can only be used in the Danger Room.",
+    "ru_ru": "Открывает одноразовый сценарий Омега испытания на 30 волн с боссами на ключевых этапах и фиксированными наградами. Можно использовать только в Комнате опасностей."
+  },
+  "17409262550433924409": {
+    "en_us": "Boss Gauntlet Scenario",
+    "ru_ru": "Сценарий Испытания боссами"
+  },
+  "17853215770651002224": {
+    "en_us": "Opens a single-use Boss Gauntlet. Survive increasingly difficult sequential boss waves. Rewards are awarded where the gauntlet ends. Can only be used in the Danger Room.",
+    "ru_ru": "Открывает одноразовое Испытания боссами. Выдержите последовательные волны боссов возрастающей сложности. Награды выдаются в конце испытания. Можно использовать только в Комнате опасностей."
+  },
+  "16120450080109626624": {
+    "en_us": "Infinite Rifts Vendor",
+    "ru_ru": "Торговец Бесконечных разломов"
+  }
+}

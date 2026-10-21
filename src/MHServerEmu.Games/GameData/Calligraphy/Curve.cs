@@ -49,6 +49,65 @@ namespace MHServerEmu.Games.GameData.Calligraphy
             return true;
         }
 
+        /// <summary>
+        /// Sets the value at the specified position. Returns <see langword="false"/> if the position is outside
+        /// the curve.
+        /// </summary>
+        /// <remarks>
+        /// Exists so curves can be patched server-side rather than by editing the .sip and shipping it to every
+        /// player. Curves are evaluated on the server (GameDatabase.GetCurve, used by loot resolution and
+        /// property evals), so a change here is authoritative for what players actually receive.
+        ///
+        /// CAVEAT: the client keeps its own copy of every curve, and may use it for tooltip previews. A
+        /// server-only change can therefore show one number and deliver another. Check the tooltip against the
+        /// real result before relying on a patched curve for anything player-facing.
+        /// </remarks>
+        public bool SetAt(int position, float value)
+        {
+            if (position < MinPosition || position > MaxPosition)
+                return false;
+
+            _values[position - MinPosition] = value;
+            RefreshIsCurveZero();
+            return true;
+        }
+
+        /// <summary>
+        /// Multiplies every value in the curve by <paramref name="scale"/>.
+        /// </summary>
+        /// <remarks>
+        /// The usual way to retune a curve: these are progression curves, so rebalancing means changing the
+        /// whole shape, not one point. Editing a single position leaves a discontinuity at that index.
+        /// </remarks>
+        public void ScaleAll(float scale)
+        {
+            for (int i = 0; i < _values.Length; i++)
+                _values[i] *= scale;
+
+            RefreshIsCurveZero();
+        }
+
+        /// <summary>
+        /// Recomputes <see cref="IsCurveZero"/> after a mutation.
+        /// </summary>
+        /// <remarks>
+        /// Load() accumulates this while reading, so it must be rebuilt rather than updated incrementally -
+        /// a patch can take the last non-zero value to zero, or bring a zeroed curve back.
+        /// </remarks>
+        private void RefreshIsCurveZero()
+        {
+            IsCurveZero = true;
+
+            for (int i = 0; i < _values.Length; i++)
+            {
+                if (_values[i] != 0f)
+                {
+                    IsCurveZero = false;
+                    break;
+                }
+            }
+        }
+
         // NOTE: The client uses a bunch of copy-pasted code here for different versions of GetAt(), we just wrap the same float functions for int versions.
 
         /// <summary>

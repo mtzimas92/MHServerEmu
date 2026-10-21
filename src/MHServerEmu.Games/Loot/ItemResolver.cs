@@ -10,6 +10,7 @@ using MHServerEmu.Games.GameData.Calligraphy;
 using MHServerEmu.Games.GameData.Prototypes;
 using MHServerEmu.Games.Loot.Specs;
 using MHServerEmu.Games.Missions;
+using MHServerEmu.Games.OmegaTierItems;
 using MHServerEmu.Games.Properties;
 using MHServerEmu.Games.Regions;
 
@@ -22,6 +23,9 @@ namespace MHServerEmu.Games.Loot
     /// </summary>
     public class ItemResolver : IItemResolver, IPoolable
     {
+        private static readonly Logger Logger = LogManager.CreateLogger();
+
+
         private readonly int _itemLevelMin;
         private readonly int _itemLevelMax;
 
@@ -43,6 +47,8 @@ namespace MHServerEmu.Games.Loot
         public LootContext LootContextOverride { get; set; }
         public Player Player { get => _context.Player; }
         public Region Region { get => _context.Region; }
+        public PrototypeId SourceEntityPrototypeRef { get => _context.SourceEntityPrototypeRef; }
+        public ulong SourceEntityId { get => _context.SourceEntityId; }
 
         public ItemResolver()
         {
@@ -133,6 +139,7 @@ namespace MHServerEmu.Games.Loot
                 0, Array.Empty<AffixSpec>(), Random.Next(), PrototypeId.Invalid);
 
             itemSpec.StackCount = stackCount;
+            OmegaTierItemFactory.TryQueueCosmicDropForOmegaDifficulty(this, filterArgs, itemSpec);
 
             LootResult lootResult = new(itemSpec);
             PendingItem pendingItem = new(lootResult, filterArgs.RollFor, mutations, false);
@@ -383,16 +390,23 @@ namespace MHServerEmu.Games.Loot
         public bool CheckItem(DropFilterArguments filterArgs, RestrictionTestFlags restrictionFlags, bool arg2 = false, int stackCount = 1)
         {
             ItemPrototype itemProto = filterArgs.ItemProto as ItemPrototype;
-            if (!Verify.IsNotNull(itemProto)) return false;
+            if (!Verify.IsNotNull(itemProto))
+                return false;
 
             if (itemProto.ApprovedForUse() == false)
+            {
                 return false;
+            }
 
             if (itemProto.IsLiveTuningEnabled() == false)
+            {
                 return false;
+            }
 
             if (itemProto.IsDroppableForRestrictions(filterArgs, restrictionFlags) == false)
+            {
                 return false;
+            }
 
             if (restrictionFlags.HasFlag(RestrictionTestFlags.Slot))
             {
@@ -401,7 +415,9 @@ namespace MHServerEmu.Games.Loot
                 {
                     AgentPrototype agentProto = filterArgs.RollFor.As<AgentPrototype>();
                     if (itemProto.GetInventorySlotForAgent(agentProto) != slot)
+                    {
                         return false;
+                    }
                 }
             }
 
@@ -409,13 +425,17 @@ namespace MHServerEmu.Games.Loot
             {
                 AgentPrototype agentProto = filterArgs.RollFor.As<AgentPrototype>();
                 if (itemProto.IsDroppableForAgent(agentProto) == false)
+                {
                     return false;
+                }
             }
 
             if (restrictionFlags.HasFlag(RestrictionTestFlags.Cooldown))
             {
                 if (CheckDropCooldown(itemProto.DataRef, stackCount))
+                {
                     return false;
+                }
             }
 
             return true;
@@ -480,9 +500,12 @@ namespace MHServerEmu.Games.Loot
                 // Check vaporization
                 LootContext context = LootContext;
                 bool isVaporized = false;
+                ItemSpec pendingItemSpec = pendingItem.LootResult.ItemSpec;
+                bool queuedForOmega = OmegaTierItemFactory.IsQueuedForOmegaPromotion(pendingItemSpec);
+                bool nativeVaporizerEligible = settings.DropChanceModifiers.HasFlag(LootDropChanceModifiers.PreviewOnly) == false &&
+                                                (context == LootContext.Drop || context == LootContext.MissionReward);
 
-                if (settings.DropChanceModifiers.HasFlag(LootDropChanceModifiers.PreviewOnly) == false &&
-                    (context == LootContext.Drop || context == LootContext.MissionReward))
+                if (queuedForOmega == false && nativeVaporizerEligible)
                 {
                     isVaporized = LootVaporizer.ShouldVaporizeLootResult(settings.Player, pendingItem.LootResult, pendingItem.RollFor);
                 }
@@ -541,6 +564,12 @@ namespace MHServerEmu.Games.Loot
 
                             if (adjustResultFlags.HasFlag(RestrictionTestFlags.OutputRarity))
                                 itemSpec.RarityProtoRef = restrictionArgs.Rarity;
+
+                            bool finalizedOmega = OmegaTierItemFactory.TryFinalizeOmegaDropForOmegaDifficulty(this, itemSpec, settings, pendingItem.RollFor);
+                            if (queuedForOmega && finalizedOmega == false && nativeVaporizerEligible)
+                                isVaporized = LootVaporizer.ShouldVaporizeLootResult(settings.Player, pendingItem.LootResult, pendingItem.RollFor);
+
+                            OmegaTierItemFactory.TryApplyConfiguredUniqueOverrideForOmegaDifficulty(this, itemSpec, settings);
 
                             // Push the final processed item
                             _processedItemList.Add(new(itemSpec, isVaporized));

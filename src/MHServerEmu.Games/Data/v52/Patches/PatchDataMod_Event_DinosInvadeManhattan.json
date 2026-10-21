@@ -1,0 +1,693 @@
+[
+  {
+    "Enabled": true,
+    "Prototype": "Regions/EndGame/TierX/Redacted/DinosInvadeManhattan/UESvsDinosArea1.prototype",
+    "Path": "AreaName",
+    "Description": "[Dinos Invade Manhattan] SUPERSEDED 2026-07-23 - originally CONFIRMED INERT 2026-07-21 via this direct prototype-field patch (client resolves AreaName entirely from its own local prototype copy, this ValueType:LocaleStringId patch to the field itself never reaches it). The REAL working fix was found via a private-server veteran's tip: override LocaleStringId 12798526419926254962 ('PvE Test Environment') itself inside Data/Game/Achievements/AchievementStringMap_99_DinosInvadeManhattan.json - the server pushes real string TEXT (not just an ID) to the client at login via NetMessageAchievementDatabaseDump, and this override table turned out to be a GLOBAL client-side string override, not scoped to the Achievements/Leaderboards panel - confirmed live, banner now correctly reads 'Dinos Invade Manhattan'. This entry (Value:0, a no-op clearing an already-Invalid field) is left in place only as a historical marker of the dead end that led to the real discovery",
+    "ValueType": "LocaleStringId",
+    "Value": 0
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Populations/Clusters/Dinosaur/Deprecated/PvEWaveBattleEG02Phase1Boss.prototype",
+    "Path": "Entity",
+    "Description": "[Dinos Invade Manhattan] Retarget this deprecated/unused single-entity cluster (Max=1/Min=1, already correctly shaped as a solo boss spawn) from its native PvEWaveGameEG02Phase1Boss.prototype (shares the same MarvelAgent_DinoRider_TRex model, but not the exact prototype the user tested) directly to KingLizardRiderBossEG02.prototype - user confirmed via !entity spawn that this model renders correctly and looks great. Part of promoting King Lizard from a wave-trash Elite spawn to the event's actual final boss (random toss-up between this and PvEWaveBattleEG02Phase2Boss's retarget)",
+    "ValueType": "PrototypeId",
+    "Value": 12761272367405933307
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Populations/Clusters/Dinosaur/Deprecated/PvEWaveBattleEG02Phase2Boss.prototype",
+    "Path": "Entity",
+    "Description": "[Dinos Invade Manhattan] Same repurposing as PvEWaveBattleEG02Phase1Boss - retarget this deprecated/unused single-entity cluster to KingLizardBossEG02.prototype (plain, non-rider King Lizard boss model, also confirmed working via !entity spawn)",
+    "ValueType": "PrototypeId",
+    "Value": 9671380227843956965
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Metagame/PvEWaveBase/PvEScaleBattle/Modes/PvEScaleGamePhase7Base.prototype",
+    "Path": "WaveDurationMS",
+    "Description": "[Dinos Invade Manhattan] Native 300000 (5 min) confirmed by user (skilled play, char they know well) to be about a minute short of achievable given the boss's HP + the low Heroic-tier player damage multiplier, plus random spawn-location variance eating into available fight time. Explicitly NOT a difficulty complaint - user wants the fight to stay properly hard, just needs ~1 more minute of clock. Bumped to 360000 (6 min)",
+    "ValueType": "Integer",
+    "Value": 360000
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Metagame/PvEWaveBase/PvEScaleBattle/Modes/PvEScaleGamePhase7Base.prototype",
+    "Path": "BossPopulationObjects",
+    "Description": "[Dinos Invade Manhattan] Replaced the native 12-entry random-supervillain rotation (Magneto, Venom, Rhino, Hood, Elektra, Juggernaut, Taskmaster, Blob, Sabretooth, Electro, Gorgon, MadameHydra) with just the two retargeted King Lizard boss clusters (PvEWaveBattleEG02Phase1Boss=Rider, PvEWaveBattleEG02Phase2Boss=plain) - user's call: a random Marvel villain showing up mid-dinosaur-invasion was thematically incoherent, whereas King Lizard (already the wave pool's own Yellow/Elite-tier spawn) escalating into the final boss reads as the same threat ramping up. ScheduledBossSpawn's leader-detection already handles plain (non-PopulationLeaderPrototype) single-entity clusters correctly - leaderRef resolves to Invalid, so the one spawned entity is automatically treated as the leader for win-detection",
+    "ValueType": "PrototypeIdArray",
+    "Value": [
+      17249891207680302903,
+      18311221370764795704
+    ]
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Characters/Mobs/Dinosaurs/Redacted/DinosaursEG02/KingLizardBossEG02.prototype",
+    "Path": "Properties",
+    "Description": "[Dinos Invade Manhattan] UPDATED 2026-07-21 - now points at the custom-built Loot/Tables/Test/RaidTestPunisherTable.prototype (see PatchDataMod_Loot_CustomPrizeTable.json for the full 15-slot design), replacing both the earlier Lizard-medal mistake and the plain SharedEndgameWaveBattles fallback. ALSO added LootCooldownTimeHours: 20 (int) - traced a live 'Verify failed: _cooldownData.OriginProtoRef != PrototypeId.Invalid' warning (ItemResolverContext.GetDropChance) to King Lizard being a repurposed EG02 mob that never had this property, unlike every real boss (confirmed EGWB01Magneto natively carries LootCooldownTimeHours=20). Without it, ItemResolverContext.FindCooldownOrigin() can't find a cooldown anchor for ANY OnceDaily-gated node on this entity, so GetDropChance() short-circuits to 0% for all 4 OnceDaily slots (Cosmic Artifact, both comm boxes, Costume/Card/Pet) rather than throwing - a silent full miss, not a crash. Both LootTablePrototype and LootCooldownTimeHours must live in the SAME Properties patch entry - PrototypePatchManager.CheckProperties() only ever applies the FIRST ValueType:Properties patch entry found for a given prototype, so a second separate entry would be ignored entirely",
+    "ValueType": "Properties",
+    "Value": {
+      "LootTablePrototype": [
+        3567626871840706965,
+        0,
+        9316722085805298222,
+        1974318842335662990
+      ],
+      "LootCooldownTimeHours": 20
+    }
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Characters/Mobs/Dinosaurs/Redacted/DinosaursEG02/KingLizardRiderBossEG02.prototype",
+    "Path": "Properties",
+    "Description": "[Dinos Invade Manhattan] Same custom prize table + LootCooldownTimeHours fix as KingLizardBossEG02 - see that entry's description",
+    "ValueType": "Properties",
+    "Value": {
+      "LootTablePrototype": [
+        3567626871840706965,
+        0,
+        9316722085805298222,
+        1974318842335662990
+      ],
+      "LootCooldownTimeHours": 20
+    }
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Regions/EndGame/TierX/Redacted/DinosInvadeManhattan/UESvsDinosRegion.prototype",
+    "Path": "AlwaysShutdownWhenVacant",
+    "Description": "[Dinos Invade Manhattan] Native false + Behavior:PublicCombatZone/IsPublic:True means this region is configured like an open-world patrol zone (e.g. Midtown) meant to persist and be shared, not a private instanced scenario that closes when done. Confirmed via server log: a player manually leaving (RegionHandle.RemovePlayer fires clean) never set RegionFlags.ShutdownWhenVacant (only Prototype.AlwaysShutdownWhenVacant or an explicit Region.RequestShutdown() sets it), so RegionHandle.ShutdownIfVacant()'s PlayerCount==0 check never fires and the whole PvEScaleGameMode instance kept ticking unattended for multiple real minutes (threat climbing every tick with tracked=0, no players to spawn wave mobs for) - the stale, already-elevated-threat instance a later player walks back into. This single flag covers all the requested close-out triggers uniformly (death/teleport-out/failure/victory all end with player count reaching 0), since Region.RequestShutdown() (called from FailMode's shutdown chain) only sets this same flag and checks vacancy rather than force-killing regardless of it",
+    "ValueType": "Boolean",
+    "Value": true
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Regions/EndGame/TierX/Redacted/DinosInvadeManhattan/UESvsDinosRegion.prototype",
+    "Path": "AccessDifficulties[]",
+    "Description": "[Dinos Invade Manhattan] TEST - append Tier3Superheroic to the native [Tier1Normal, Tier2Heroic] access list to see if a T3 option becomes selectable when entering. RegionPrototype.PostProcess() only tracks 3 coarse color bands (Green/Red/Cosmic) via DifficultyTierMask, auto-recomputed from this array - no need to hand-patch the mask separately. Confirmed via Globals.defaults DifficultyTiers[] that Tier3Superheroic is the ONLY tier occupying the global Cosmic slot (Tier4Cosmic/Tier5Omega1 exist as prototypes but aren't in the active global rotation), so this unambiguously means Tier3Superheroic specifically, not some other Cosmic-named tier. Open question this test is meant to answer: does the difficulty-select UI actually offer it, or is that resolved from the client's own unpatched local copy of AccessDifficulties (same wall hit repeatedly this session for other fields). NOTE: must use ValueType PrototypeId not PrototypeDataRef here - AccessDifficulties is a raw PrototypeId[] array, and PrototypeDataRef's IsTypeCompatible check forces comparison against typeof(Prototype), which fails for a PrototypeId[] element type",
+    "ValueType": "PrototypeId",
+    "Value": 586640101754933627
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Metagame/PvEWaveBase/PvEScaleBattle/Modes/PvEScaleGamePhase1Base.prototype",
+    "Path": "PowerUpItem",
+    "Description": "[Dinos Invade Manhattan] PvEWaveBattlePowerUpItem never got a working model. EventLootPowerUpKingpin (tried first) worked visually but carries ARMOR-event mission baggage (granted a 'go kill Kingpin' condition on pickup). DangerRoomTrackedRegionScoreOrb200 is a generic, mission-free 'pick up to adjust a tracked score' orb - DesignState Live, native ObjectiveInfo (VisibleAlways, 50000 edge range) and Icons, no villain-specific side effects",
+    "ValueType": "PrototypeDataRef",
+    "Value": 757805338125411516
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Metagame/PvEWaveBase/PvEScaleBattle/Modes/PvEScaleGamePhase2Base.prototype",
+    "Path": "PowerUpItem",
+    "Description": "[Dinos Invade Manhattan] Same substitution as Phase1",
+    "ValueType": "PrototypeDataRef",
+    "Value": 757805338125411516
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Metagame/PvEWaveBase/PvEScaleBattle/Modes/PvEScaleGamePhase3Base.prototype",
+    "Path": "PowerUpItem",
+    "Description": "[Dinos Invade Manhattan] Same substitution as Phase1",
+    "ValueType": "PrototypeDataRef",
+    "Value": 757805338125411516
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Metagame/PvEWaveBase/PvEScaleBattle/Modes/PvEScaleGamePhase4Base.prototype",
+    "Path": "PowerUpItem",
+    "Description": "[Dinos Invade Manhattan] Same substitution as Phase1",
+    "ValueType": "PrototypeDataRef",
+    "Value": 757805338125411516
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Metagame/PvEWaveBase/PvEScaleBattle/Modes/PvEScaleGamePhase5Base.prototype",
+    "Path": "PowerUpItem",
+    "Description": "[Dinos Invade Manhattan] Same substitution as Phase1",
+    "ValueType": "PrototypeDataRef",
+    "Value": 757805338125411516
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Metagame/PvEWaveBase/PvEScaleBattle/Modes/PvEScaleGamePhase6Base.prototype",
+    "Path": "PowerUpItem",
+    "Description": "[Dinos Invade Manhattan] Same substitution as Phase1",
+    "ValueType": "PrototypeDataRef",
+    "Value": 757805338125411516
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Characters/Mobs/Dinosaurs/DinosaurRaptorBase.prototype",
+    "Path": "PlayDramaticEntrance",
+    "Description": "[Dinos Invade Manhattan] Native Always plays a real ~5s scripted entrance animation on spawn during which the mob has no health bar and can't be targeted/attacked by the player, while its own AI wakes and can attack the player almost immediately (WakeRandomStartMS is only 500ms - a separate, much shorter gate). Confirmed in-game: player takes hits with no way to fight back for the full animation. Disabling it removes the flourish from this same shared mob prototype's other use (Savage Land CH07 story chapter) too, but that's a one-time story beat vs. this happening on every wave spawn - accepted tradeoff",
+    "ValueType": "Enum",
+    "Value": "Never"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Characters/Mobs/Dinosaurs/DinosaurKingLizardBase.prototype",
+    "Path": "PlayDramaticEntrance",
+    "Description": "[Dinos Invade Manhattan] Same fix as DinosaurRaptorBase - see that entry's description",
+    "ValueType": "Enum",
+    "Value": "Never"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Characters/Mobs/Dinosaurs/DinosaurPterosaurBase.prototype",
+    "Path": "PlayDramaticEntrance",
+    "Description": "[Dinos Invade Manhattan] Same fix as DinosaurRaptorBase - see that entry's description",
+    "ValueType": "Enum",
+    "Value": "Never"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Characters/Mobs/Beetles/BeetleExploderBase.prototype",
+    "Path": "PlayDramaticEntrance",
+    "Description": "[Dinos Invade Manhattan] Same fix as DinosaurRaptorBase - see that entry's description",
+    "ValueType": "Enum",
+    "Value": "Never"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Characters/Mobs/Beetles/BeetleExploderFireBase.prototype",
+    "Path": "PlayDramaticEntrance",
+    "Description": "[Dinos Invade Manhattan] Same fix as DinosaurRaptorBase - see that entry's description",
+    "ValueType": "Enum",
+    "Value": "Never"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Characters/Mobs/Beetles/BeetleGasBase.prototype",
+    "Path": "PlayDramaticEntrance",
+    "Description": "[Dinos Invade Manhattan] Same fix as DinosaurRaptorBase - see that entry's description",
+    "ValueType": "Enum",
+    "Value": "Never"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Characters/Mobs/Cliffwalkers/CliffwalkerTribeWarriorBase.prototype",
+    "Path": "PlayDramaticEntrance",
+    "Description": "[Dinos Invade Manhattan] Same fix as DinosaurRaptorBase - see that entry's description",
+    "ValueType": "Enum",
+    "Value": "Never"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Characters/Mobs/Cliffwalkers/CliffwalkerTribeDarterBase.prototype",
+    "Path": "PlayDramaticEntrance",
+    "Description": "[Dinos Invade Manhattan] Same fix as DinosaurRaptorBase - see that entry's description",
+    "ValueType": "Enum",
+    "Value": "Never"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Characters/NPCs/ShannaA.prototype",
+    "Path": "DesignState",
+    "Description": "[Dinos Invade Manhattan] Portal-guide stand-in NPC for EGPVEManhattan (whose own UnrealClass never renders client-side - confirmed via controlled experiments, server patches to UnrealClass/Icons/ObjectiveInfo are never sent to the client). Spawned in code (Region.SpawnShannaPortalGuide, called from Region.Initialize for NPEAvengersTowerHUBRegion) at EGPVEManhattan's own marker position, which is left untouched so the return-trip target lookup (Cell.FindTargetLocation, a static EntityGuid->marker lookup) keeps resolving correctly. Only blocker for spawning her at all was DesignState",
+    "ValueType": "Enum",
+    "Value": "Live"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Characters/NPCs/ShannaA.prototype",
+    "Path": "DialogTextList[1].Weight",
+    "Description": "[Dinos Invade Manhattan] DialogTextList has 3 weighted lines (all Weight 1 natively); [1] and [2] reference her being in the Savage Land, which doesn't fit as the Manhattan portal guide. KNOWN LIMITATION: this patch applies successfully server-side (confirmed in logs) but has no visible effect - DialogData.PickDialog(Game, WorldEntityPrototype) is the only server-side weighted picker for this field and it is never called for a plain (non-Mission) DialogOption interact like hers, only for Mission-driven MissionConditionEntityInteract popups. Line selection for her appears to happen entirely client-side from the client's own unpatched copy, same architecture wall as UnrealClass/Icons/ObjectiveInfo. Left in place (harmless) as a marker of intent. Future option: rewire her interact through an unused Mission's EntityInteractCondition (which does call PickDialog server-side) if this is ever worth revisiting - not done now, purely cosmetic",
+    "ValueType": "Integer",
+    "Value": 0
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Characters/NPCs/ShannaA.prototype",
+    "Path": "DialogTextList[2].Weight",
+    "Description": "[Dinos Invade Manhattan] Same as DialogTextList[1], same known limitation - see that entry's description",
+    "ValueType": "Integer",
+    "Value": 0
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Metagame/PvEWaveBase/PvEScaleBattle/Modes/PvEScaleGamePhase1Base.prototype",
+    "Path": "WaveDifficultyPerSecond",
+    "Description": "[Dinos Invade Manhattan] Native 0.05/sec, bumped to 0.08 in an earlier round, now to 0.10 (~18 rise/phase) alongside making PowerUpDifficultyReduction a real lever (0.7->8.0) - confirmed via a full clean-win log that 0.08+0.15/cluster-reduction gave a good felt climb (~5.5-6/phase, ~35/50 by the boss phase), so this round is specifically about making the power-up orb a meaningful, worth-detouring-for objective rather than raising overall difficulty much further. See PowerUpDifficultyReduction's own description for the full reasoning",
+    "ValueType": "Float",
+    "Value": 0.1
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Metagame/PvEWaveBase/PvEScaleBattle/Modes/PvEScaleGamePhase2Base.prototype",
+    "Path": "WaveDifficultyPerSecond",
+    "Description": "[Dinos Invade Manhattan] Same rate bump as Phase1 - see that entry's description",
+    "ValueType": "Float",
+    "Value": 0.1
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Metagame/PvEWaveBase/PvEScaleBattle/Modes/PvEScaleGamePhase3Base.prototype",
+    "Path": "WaveDifficultyPerSecond",
+    "Description": "[Dinos Invade Manhattan] Same rate bump as Phase1 - see that entry's description",
+    "ValueType": "Float",
+    "Value": 0.1
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Metagame/PvEWaveBase/PvEScaleBattle/Modes/PvEScaleGamePhase4Base.prototype",
+    "Path": "WaveDifficultyPerSecond",
+    "Description": "[Dinos Invade Manhattan] Same rate bump as Phase1 - see that entry's description",
+    "ValueType": "Float",
+    "Value": 0.1
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Metagame/PvEWaveBase/PvEScaleBattle/Modes/PvEScaleGamePhase5Base.prototype",
+    "Path": "WaveDifficultyPerSecond",
+    "Description": "[Dinos Invade Manhattan] Same rate bump as Phase1 - see that entry's description",
+    "ValueType": "Float",
+    "Value": 0.1
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Metagame/PvEWaveBase/PvEScaleBattle/Modes/PvEScaleGamePhase6Base.prototype",
+    "Path": "WaveDifficultyPerSecond",
+    "Description": "[Dinos Invade Manhattan] Same rate bump as Phase1 - see that entry's description",
+    "ValueType": "Float",
+    "Value": 0.1
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Metagame/PvEWaveBase/PvEScaleBattle/Modes/PvEScaleGamePhase1Base.prototype",
+    "Path": "PowerUpDifficultyReduction",
+    "Description": "[Dinos Invade Manhattan] Native 0.7 against a ~18/phase total rise (at the new 0.10/sec rate) is under 4% of a phase's rise in one grab - user's own read: 'that's half of a cluster's worth of threat,' not worth detouring for. Bumped to 8.0 - roughly 44% of a phase's total rise in one deliberate pickup (only one orb spawns per phase, at PowerUpSpawnMS=45000). Skipping every orb across all 6 phases still fails the run (6 x ~18 rise vastly exceeds the 50 cap even with normal kill-reduction help), but grabbing it each phase plus normal kill activity should keep a competent group comfortably under the cap - makes seeking the orb a real, worthwhile objective instead of a rounding error",
+    "ValueType": "Float",
+    "Value": 8.0
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Metagame/PvEWaveBase/PvEScaleBattle/Modes/PvEScaleGamePhase2Base.prototype",
+    "Path": "PowerUpDifficultyReduction",
+    "Description": "[Dinos Invade Manhattan] Same bump as Phase1 - see that entry's description",
+    "ValueType": "Float",
+    "Value": 8.0
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Metagame/PvEWaveBase/PvEScaleBattle/Modes/PvEScaleGamePhase3Base.prototype",
+    "Path": "PowerUpDifficultyReduction",
+    "Description": "[Dinos Invade Manhattan] Same bump as Phase1 - see that entry's description",
+    "ValueType": "Float",
+    "Value": 8.0
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Metagame/PvEWaveBase/PvEScaleBattle/Modes/PvEScaleGamePhase4Base.prototype",
+    "Path": "PowerUpDifficultyReduction",
+    "Description": "[Dinos Invade Manhattan] Same bump as Phase1 - see that entry's description",
+    "ValueType": "Float",
+    "Value": 8.0
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Metagame/PvEWaveBase/PvEScaleBattle/Modes/PvEScaleGamePhase5Base.prototype",
+    "Path": "PowerUpDifficultyReduction",
+    "Description": "[Dinos Invade Manhattan] Same bump as Phase1 - see that entry's description",
+    "ValueType": "Float",
+    "Value": 8.0
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Metagame/PvEWaveBase/PvEScaleBattle/Modes/PvEScaleGamePhase6Base.prototype",
+    "Path": "PowerUpDifficultyReduction",
+    "Description": "[Dinos Invade Manhattan] Same bump as Phase1 - see that entry's description",
+    "ValueType": "Float",
+    "Value": 8.0
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Metagame/PvEWaveBase/PvEScaleBattle/Modes/PvEScaleGamePhase1Base.prototype",
+    "Path": "MobTotalDifficultyReduction",
+    "Description": "[Dinos Invade Manhattan] Native 4.2/cluster, then cut to 0.6/cluster in an earlier round - still far too strong. Server log from a real run (level 60, shield bug already fixed) showed threat pinned at ~0.48 (one tick's pure rise) almost the entire run while 'tracked' (alive wave mobs) climbed into the 50s-60s - i.e. even FALLING BEHIND on kills (not clearing everything) still generated enough cumulative reduction to fully cancel the rise every tick, since a single cluster's reduction (0.6) already exceeds the whole tick's rise (0.48). Cut to 0.15/cluster: even perfect nonstop clearing (2-3 clusters/tick) now yields only 0.3-0.45 reduction, LESS than the 0.48 rise, so kills alone can only slow the climb, never fully erase it. PowerUpDifficultyReduction (0.7, one deliberate pickup ~every 45s) becomes the main lever again, matching the original design intent ('collect power flares to decrease the threat'). Starting point for live tuning, not a final number",
+    "ValueType": "Float",
+    "Value": 0.15
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Metagame/PvEWaveBase/PvEScaleBattle/Modes/PvEScaleGamePhase2Base.prototype",
+    "Path": "MobTotalDifficultyReduction",
+    "Description": "[Dinos Invade Manhattan] Same cut as Phase1 - see that entry's description",
+    "ValueType": "Float",
+    "Value": 0.15
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Metagame/PvEWaveBase/PvEScaleBattle/Modes/PvEScaleGamePhase3Base.prototype",
+    "Path": "MobTotalDifficultyReduction",
+    "Description": "[Dinos Invade Manhattan] Same cut as Phase1 - see that entry's description",
+    "ValueType": "Float",
+    "Value": 0.15
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Metagame/PvEWaveBase/PvEScaleBattle/Modes/PvEScaleGamePhase4Base.prototype",
+    "Path": "MobTotalDifficultyReduction",
+    "Description": "[Dinos Invade Manhattan] Same cut as Phase1 - see that entry's description",
+    "ValueType": "Float",
+    "Value": 0.15
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Metagame/PvEWaveBase/PvEScaleBattle/Modes/PvEScaleGamePhase5Base.prototype",
+    "Path": "MobTotalDifficultyReduction",
+    "Description": "[Dinos Invade Manhattan] Same cut as Phase1 - see that entry's description",
+    "ValueType": "Float",
+    "Value": 0.15
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Metagame/PvEWaveBase/PvEScaleBattle/Modes/PvEScaleGamePhase6Base.prototype",
+    "Path": "MobTotalDifficultyReduction",
+    "Description": "[Dinos Invade Manhattan] Same cut as Phase1 - see that entry's description",
+    "ValueType": "Float",
+    "Value": 0.15
+  },
+  {
+    "Enabled": false,
+    "Prototype": "Loot/Tables/Mob/Bosses/EndgameWaveBattles/Subtables/SharedEndgameWaveBattles.prototype",
+    "Path": "Choices[4].NoDropPercent",
+    "Description": "[Dinos Invade Manhattan] REVERTED 2026-07-21 - disabled the costume/card/pet slot (Choices[4].Choices[0] -> SpecialsCostumeCardPet.prototype) based on an early '15 costumes dropping' report, but that turned out to be an unrelated patch/LiveTuning issue elsewhere (confirmed by the user via isolation testing - disabling other events/patches stopped it), not this table. SpecialsCostumeCardPet is tagged MarkSpecial/OnceDaily(PerAccount), so it was never actually spam-prone to begin with. Restoring the natural drop chance - a hard ~20 min boss fight rewarding a rare, once-daily-gated costume chance fits the intended design (user's own framing: 'this being a hard fight and the end MAY reward the player with a costume'). Left in the file disabled rather than deleted, in case the boss-loot redesign this unblocks needs to reference the original find",
+    "ValueType": "Float",
+    "Value": 1.0
+  },
+  {
+    "Enabled": false,
+    "Prototype": "Leaderboards/Prototypes/Leaderboards/TestEntityDeathLeaderboard.prototype",
+    "Path": "DesignState",
+    "Description": "[DISABLED 2026-09-06] TestEntityDeathLeaderboard was moved to the AIM Danger Room static challenge leaderboard. [Dinos Invade Manhattan] Leaderboard repurpose - user asked to reuse one of the unused test leaderboards for a 'Dino Wave Battles' board rather than author one from scratch. This is the 3-rule EntityDeath test leaderboard (native rules: HYDRA/StoryMode, AIM/no-context, Maggia/IndustryCityPatrol) - flipping DevelopmentOnly -> Live so it's actually loaded/active",
+    "ValueType": "Enum",
+    "Value": "Live"
+  },
+  {
+    "Enabled": false,
+    "Prototype": "Leaderboards/Prototypes/Leaderboards/TestEntityDeathLeaderboard.prototype",
+    "Path": "Public",
+    "Description": "[DISABLED 2026-09-06] TestEntityDeathLeaderboard was moved to the AIM Danger Room static challenge leaderboard. [Dinos Invade Manhattan] Native false (test-only) - must be true for players to see/opt into this board at all",
+    "ValueType": "Boolean",
+    "Value": true
+  },
+  {
+    "Enabled": false,
+    "Prototype": "Leaderboards/Prototypes/Leaderboards/TestEntityDeathLeaderboard.prototype",
+    "Path": "Category",
+    "Description": "[DISABLED 2026-09-06] TestEntityDeathLeaderboard was moved to the AIM Danger Room static challenge leaderboard. [Dinos Invade Manhattan] User confirmed live: leaderboard screen only shows Achievements/Danger Room/Heroes for Hire (LukeCageEvent's Events category)/Progression tabs. Initially read PatrolMidtownMobs' absence (Category=its own dedicated PatrolMidtown.prototype) as proof the client only renders a fixed whitelist of category tabs, but that's unconfirmed - PatrolMidtownMobs is tied to the 'Midtown Madness' DayOfWeek LiveTuning event (Data/Game/LiveTuning/EventSchedule.json, StartDayOfWeek=Monday) and today isn't Monday, which is a simpler, unrelated explanation for why IT specifically is missing. Repointing our Category to Leaderboards/Prototypes/Categories/Events/Events.prototype (Ref=3444720008110610318) - the exact category LukeCageEvent uses, proven to render as 'Heroes for Hire (Current Event)' right now with no day-of-week tie - is still a reasonable, low-risk thing to try since TestCategory is definitely not one of the visible tabs, but whether Category-whitelisting is really the mechanism (vs. something else entirely) is NOT confirmed - needs an in-game check after this patch to know for sure",
+    "ValueType": "PrototypeId",
+    "Value": 3444720008110610318
+  },
+  {
+    "Enabled": false,
+    "Prototype": "Leaderboards/Prototypes/Leaderboards/TestEntityDeathLeaderboard.prototype",
+    "Path": "Name",
+    "Description": "[DISABLED 2026-09-06] TestEntityDeathLeaderboard was moved to the AIM Danger Room static challenge leaderboard. [Dinos Invade Manhattan] Repointed to LocaleStringId 9070736888404837633 - an EXISTING client string that already reads exactly 'Dinos Invade Manhattan', currently used by UESvsDinosEntryTarget.prototype.Name (the connection-target label, i.e. the travel button text the user already confirmed displays correctly live). Reusing an already-proven, already-in-the-client string instead of inventing a new LocaleStringId (which the client would have no bundled text for at all) or patching AreaName-style (confirmed inert in an earlier entry in this same file - client resolves that specific field from its own local copy regardless of server data). Same general LocaleStringId lookup mechanism as the working button, not the broken AreaName path, so this should actually render",
+    "ValueType": "LocaleStringId",
+    "Value": 9070736888404837633
+  },
+  {
+    "Enabled": false,
+    "Prototype": "Leaderboards/Prototypes/Leaderboards/TestEntityDeathLeaderboard.prototype",
+    "Path": "Type",
+    "Description": "[DISABLED 2026-09-06] TestEntityDeathLeaderboard was moved to the AIM Danger Room static challenge leaderboard. [Dinos Invade Manhattan] Native Avatar (per-hero identity) -> Player, so a player's total dino-kill count is tracked once for their account, not split per hero they happen to be playing",
+    "ValueType": "Enum",
+    "Value": "Player"
+  },
+  {
+    "Enabled": false,
+    "Prototype": "Leaderboards/Prototypes/Leaderboards/TestEntityDeathLeaderboard.prototype",
+    "Path": "ResetFrequency",
+    "Description": "[DISABLED 2026-09-06] TestEntityDeathLeaderboard was moved to the AIM Danger Room static challenge leaderboard. [Dinos Invade Manhattan] Native Daily -> Weekly per user's choice - a running weekly competition instead of resetting every day",
+    "ValueType": "Enum",
+    "Value": "Weekly"
+  },
+  {
+    "Enabled": false,
+    "Prototype": "Leaderboards/Prototypes/Leaderboards/TestEntityDeathLeaderboard.prototype",
+    "Path": "Duration",
+    "Description": "[DISABLED 2026-09-06] TestEntityDeathLeaderboard was moved to the AIM Danger Room static challenge leaderboard. [Dinos Invade Manhattan] Native Day -> Week, matching the ResetFrequency change above",
+    "ValueType": "Enum",
+    "Value": "Week"
+  },
+  {
+    "Enabled": false,
+    "Prototype": "Leaderboards/Prototypes/Leaderboards/TestEntityDeathLeaderboard.prototype",
+    "Path": "ScoringRules[0].Event.EntityKeyword",
+    "Description": "[DISABLED 2026-09-06] TestEntityDeathLeaderboard was moved to the AIM Danger Room static challenge leaderboard. [Dinos Invade Manhattan] Rule 0 repurpose (was HYDRA keyword, ValueInt=5) - clearing EntityKeyword to Invalid makes ScoringEvents.FilterPrototype's null-prototype check pass unconditionally (confirmed in ScoringEvents.cs:321-324, 'if (prototype == null ...) return true'), so this rule now matches ANY entity death, giving 'total dino kills, any wave mob' per the user's chosen metric - scoped to our region by the Context patch below, not by mob identity",
+    "ValueType": "PrototypeId",
+    "Value": 0
+  },
+  {
+    "Enabled": false,
+    "Prototype": "Leaderboards/Prototypes/Leaderboards/TestEntityDeathLeaderboard.prototype",
+    "Path": "ScoringRules[0].Event.Context.ContextRegionKeyword",
+    "Description": "[DISABLED 2026-09-06] TestEntityDeathLeaderboard was moved to the AIM Danger Room static challenge leaderboard. [Dinos Invade Manhattan] Rule 0 - clearing the native StoryMode region-keyword scope (Context object confirmed to already exist for this rule via LootTableDumper --dump, unlike rule 1 which has no Context at all - see rule 1's own entries below for why it's handled differently)",
+    "ValueType": "PrototypeId",
+    "Value": 0
+  },
+  {
+    "Enabled": false,
+    "Prototype": "Leaderboards/Prototypes/Leaderboards/TestEntityDeathLeaderboard.prototype",
+    "Path": "ScoringRules[0].Event.Context.ContextRegion",
+    "Description": "[DISABLED 2026-09-06] TestEntityDeathLeaderboard was moved to the AIM Danger Room static challenge leaderboard. [Dinos Invade Manhattan] Rule 0 - scope 'any kill' to specifically UESvsDinosRegion.prototype (Ref=13643380196511063922), so this rule only fires for kills inside the Dino Wave Battles region and doesn't pick up unrelated kills anywhere else in the game",
+    "ValueType": "PrototypeId",
+    "Value": 13643380196511063922
+  },
+  {
+    "Enabled": false,
+    "Prototype": "Leaderboards/Prototypes/Leaderboards/TestEntityDeathLeaderboard.prototype",
+    "Path": "ScoringRules[1].Event.EntityPrototype",
+    "Description": "[DISABLED 2026-09-06] TestEntityDeathLeaderboard was moved to the AIM Danger Room static challenge leaderboard. [Dinos Invade Manhattan] Rule 1 repurpose (was AIM keyword, ValueInt=10, NO Context at all - confirmed via --dump, unlike rules 0/2). Left untouched, this rule would silently score any AIM-keyword mob kill ANYWHERE in the game once Public/Live flip live, leaking unrelated points onto this board. Since there's no Context object to scope by region (patching a path through a null embedded prototype never gets visited by PrototypeClassManager.PostProcessContainedPrototypes' embeddedPrototype!=null check, so it would just silently never apply), retargeting via EntityPrototype instead - a direct, always-present field on the Event object, no Context needed. EntityPrototype takes priority over EntityKeyword in this class's own PostProcess (ScoringEventPrototype.cs:274-280), and that computation runs AFTER base.PostProcess() applies this exact patch, so the priority swap takes effect correctly. Targets KingLizardRiderBossEG02.prototype (Ref=12761272367405933307), the event's actual final boss - self-contained bonus point for landing that specific kill (redundant with rule 0's blanket per-kill count, so the boss kill counts as 2 in the tally - an accepted, bounded quirk, not a leak to other content)",
+    "ValueType": "PrototypeId",
+    "Value": 12761272367405933307
+  },
+  {
+    "Enabled": false,
+    "Prototype": "Leaderboards/Prototypes/Leaderboards/TestEntityDeathLeaderboard.prototype",
+    "Path": "ScoringRules[2].Event.EntityKeyword",
+    "Description": "[DISABLED 2026-09-06] TestEntityDeathLeaderboard was moved to the AIM Danger Room static challenge leaderboard. [Dinos Invade Manhattan] Rule 2 repurpose (was Maggia keyword, ValueInt=15) - clearing so EntityPrototype (set below) is unambiguously the only filter",
+    "ValueType": "PrototypeId",
+    "Value": 0
+  },
+  {
+    "Enabled": false,
+    "Prototype": "Leaderboards/Prototypes/Leaderboards/TestEntityDeathLeaderboard.prototype",
+    "Path": "ScoringRules[2].Event.Context.ContextRegionKeyword",
+    "Description": "[DISABLED 2026-09-06] TestEntityDeathLeaderboard was moved to the AIM Danger Room static challenge leaderboard. [Dinos Invade Manhattan] Rule 2 - clearing the native IndustryCityPatrol region-keyword scope (Context confirmed to already exist for this rule, same as rule 0)",
+    "ValueType": "PrototypeId",
+    "Value": 0
+  },
+  {
+    "Enabled": false,
+    "Prototype": "Leaderboards/Prototypes/Leaderboards/TestEntityDeathLeaderboard.prototype",
+    "Path": "ScoringRules[2].Event.Context.ContextRegion",
+    "Description": "[DISABLED 2026-09-06] TestEntityDeathLeaderboard was moved to the AIM Danger Room static challenge leaderboard. [Dinos Invade Manhattan] Rule 2 - scope to UESvsDinosRegion same as rule 0 (belt-and-suspenders alongside the EntityPrototype filter below, since Context safely exists here)",
+    "ValueType": "PrototypeId",
+    "Value": 13643380196511063922
+  },
+  {
+    "Enabled": false,
+    "Prototype": "Leaderboards/Prototypes/Leaderboards/TestEntityDeathLeaderboard.prototype",
+    "Path": "ScoringRules[2].Event.EntityPrototype",
+    "Description": "[DISABLED 2026-09-06] TestEntityDeathLeaderboard was moved to the AIM Danger Room static challenge leaderboard. [Dinos Invade Manhattan] Rule 2 - targets KingLizardBossEG02.prototype (Ref=9671380227843956965), the plain (non-Rider) King Lizard boss variant, same bonus-point pattern as rule 1's Rider boss",
+    "ValueType": "PrototypeId",
+    "Value": 9671380227843956965
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Leaderboards/Prototypes/Leaderboards/CivilWar/CivilWarProReg.prototype",
+    "Path": "ResetFrequency",
+    "Description": "[Dino Wave Battles / Civil War hijack] User confirmed Civil War content can't actually be run and asked to hijack this leaderboard (plus CivilWarAntiReg and the CivilWar meta) for Dino Wave Battles tracking, since it already has a working, visible menu slot (unlike a brand-new leaderboard prototype, which the client's leaderboard UI apparently has no way to display - see TestEntityDeathLeaderboard's own patches above). Native Every12hours -> Weekly per user's request",
+    "ValueType": "Enum",
+    "Value": "Weekly"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Leaderboards/Prototypes/Leaderboards/CivilWar/CivilWarProReg.prototype",
+    "Path": "Duration",
+    "Description": "[Dino Wave Battles / Civil War hijack] Native _12hours -> Week, matching ResetFrequency above",
+    "ValueType": "Enum",
+    "Value": "Week"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Leaderboards/Prototypes/Leaderboards/CivilWar/CivilWarProReg.prototype",
+    "Path": "ScoringRules[0].Event.EntityPrototype",
+    "Description": "[Dino Wave Battles / Civil War hijack - CORRECTED 2026-07-22] Original --dump used maxDepth=1, which only prints a bare 'Event: [ScoringEventEntityDeathPrototype]' header and never recurses into its own fields - this wrongly looked like 'no filters at all' on every rule. A deeper dump (maxDepth 6) revealed EVERY one of the 61 rules natively requires Context.ContextPublicEventTeam=CivilWarProReg/AntiReg (a faction registration that can never happen since the Civil War public event itself is disabled - confirmed via LiveTuning log showing Events/PublicEvents/Events/CivilWar.prototype ePETV_Enabled=0), and only 7 of the 61 rules (indices 0-6) are even EntityDeath type (rest are EntityInteract/CompleteMission/AvatarUsedPower/ItemCollected) - my original 10-rule design (one rule per mob family + 2 dedicated boss rules) doesn't fit in 7 slots, and rules 8/9 were actually EntityInteract type, not EntityDeath, so a boss KILL could never have fired them anyway. Redesigned using only 3 of the 7 available EntityDeath slots, mirroring TestEntityDeathLeaderboard's proven-working pattern exactly: this rule (0) is now 'any kill in the Dino region' (EntityPrototype cleared back to Invalid, matching the TestEntityDeathLeaderboard design) instead of a per-family rule",
+    "ValueType": "PrototypeId",
+    "Value": 0
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Leaderboards/Prototypes/Leaderboards/CivilWar/CivilWarProReg.prototype",
+    "Path": "ScoringRules[0].Event.EntityPrototypeIncludeChildren",
+    "Description": "[Dino Wave Battles / Civil War hijack] Cleared back to false alongside EntityPrototype above - not needed for an unfiltered 'any kill' rule",
+    "ValueType": "Boolean",
+    "Value": false
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Leaderboards/Prototypes/Leaderboards/CivilWar/CivilWarProReg.prototype",
+    "Path": "ScoringRules[0].Event.Rank",
+    "Description": "[Dino Wave Battles / Civil War hijack] Native value was Mods/Ranks/Boss.prototype - this rule natively only counted BOSS-ranked kills, which is why regular wave-mob kills never scored even before we knew about it. Cleared to Invalid so any-ranked kill counts",
+    "ValueType": "PrototypeId",
+    "Value": 0
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Leaderboards/Prototypes/Leaderboards/CivilWar/CivilWarProReg.prototype",
+    "Path": "ScoringRules[0].Event.Context.ContextRegionKeyword",
+    "Description": "[Dino Wave Battles / Civil War hijack] Native value was Regions/Keywords/Patrols/MidtownManhattanNonCosmic.prototype - the Dino region doesn't carry this keyword, so this alone would have silently blocked every kill even with everything else fixed. Cleared so ContextRegion (set below) is the only region scope",
+    "ValueType": "PrototypeId",
+    "Value": 0
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Leaderboards/Prototypes/Leaderboards/CivilWar/CivilWarProReg.prototype",
+    "Path": "ScoringRules[0].Event.Context.ContextPublicEventTeam",
+    "Description": "[Dino Wave Battles / Civil War hijack] THE root cause of zero scoring across every kill test - native value was Events/PublicEvents/Teams/CivilWarProReg.prototype, requiring the player be registered to that faction via the actual Civil War public event, which is disabled and can never be joined. Cleared so FilterOwnerContext's FilterPublicEventTeam check passes unconditionally (null == always true)",
+    "ValueType": "PrototypeId",
+    "Value": 0
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Leaderboards/Prototypes/Leaderboards/CivilWar/CivilWarProReg.prototype",
+    "Path": "ScoringRules[0].Event.Context.ContextRegion",
+    "Description": "[Dino Wave Battles / Civil War hijack] Scope 'any kill' to specifically UESvsDinosRegion.prototype (Ref=13643380196511063922), same as TestEntityDeathLeaderboard's rule 0 - this Context object is confirmed to already exist natively on this rule (unlike what the shallow dump suggested), so this is a safe, proven-working field set",
+    "ValueType": "PrototypeId",
+    "Value": 13643380196511063922
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Leaderboards/Prototypes/Leaderboards/CivilWar/CivilWarProReg.prototype",
+    "Path": "ScoringRules[1].Event.EntityPrototype",
+    "Description": "[Dino Wave Battles / Civil War hijack] Rule 1 repurposed as a dedicated KingLizardBossEG02 boss-kill bonus (was DinosaurKingLizardBase family in the original broken design - dropped since rule 0 now covers 'any kill' including King Lizards already). Fires alongside rule 0 on this specific boss's death = 1(any)+1(this) = 2pt total, matching the requested mob=1/boss=2 split",
+    "ValueType": "PrototypeId",
+    "Value": 9671380227843956965
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Leaderboards/Prototypes/Leaderboards/CivilWar/CivilWarProReg.prototype",
+    "Path": "ScoringRules[1].Event.EntityPrototypeIncludeChildren",
+    "Description": "[Dino Wave Battles / Civil War hijack] False - this is an exact-match leaf boss instance, not a base class with variants",
+    "ValueType": "Boolean",
+    "Value": false
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Leaderboards/Prototypes/Leaderboards/CivilWar/CivilWarProReg.prototype",
+    "Path": "ScoringRules[1].Event.Rank",
+    "Description": "[Dino Wave Battles / Civil War hijack] Native Mods/Ranks/Boss.prototype cleared - EntityPrototype's exact match already scopes this rule tightly enough, no need to also depend on this custom boss actually carrying the Boss rank tag",
+    "ValueType": "PrototypeId",
+    "Value": 0
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Leaderboards/Prototypes/Leaderboards/CivilWar/CivilWarProReg.prototype",
+    "Path": "ScoringRules[1].Event.Context.ContextRegionKeyword",
+    "Description": "[Dino Wave Battles / Civil War hijack] Native value was Regions/Keywords/Patrols/IndustryCityPatrolNonCosmic.prototype - cleared, same reasoning as rule 0",
+    "ValueType": "PrototypeId",
+    "Value": 0
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Leaderboards/Prototypes/Leaderboards/CivilWar/CivilWarProReg.prototype",
+    "Path": "ScoringRules[1].Event.Context.ContextPublicEventTeam",
+    "Description": "[Dino Wave Battles / Civil War hijack] Cleared - same root-cause fix as rule 0",
+    "ValueType": "PrototypeId",
+    "Value": 0
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Leaderboards/Prototypes/Leaderboards/CivilWar/CivilWarProReg.prototype",
+    "Path": "ScoringRules[1].Event.Context.ContextRegion",
+    "Description": "[Dino Wave Battles / Civil War hijack] Belt-and-suspenders region scope alongside the exact EntityPrototype match",
+    "ValueType": "PrototypeId",
+    "Value": 13643380196511063922
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Leaderboards/Prototypes/Leaderboards/CivilWar/CivilWarProReg.prototype",
+    "Path": "ScoringRules[2].Event.EntityPrototype",
+    "Description": "[Dino Wave Battles / Civil War hijack] Rule 2 repurposed as a dedicated KingLizardRiderBossEG02 boss-kill bonus (was DinosaurPterosaurBase family in the original broken design, dropped for the same reason as rule 1)",
+    "ValueType": "PrototypeId",
+    "Value": 12761272367405933307
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Leaderboards/Prototypes/Leaderboards/CivilWar/CivilWarProReg.prototype",
+    "Path": "ScoringRules[2].Event.EntityPrototypeIncludeChildren",
+    "Description": "[Dino Wave Battles / Civil War hijack] False - exact-match leaf boss instance",
+    "ValueType": "Boolean",
+    "Value": false
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Leaderboards/Prototypes/Leaderboards/CivilWar/CivilWarProReg.prototype",
+    "Path": "ScoringRules[2].Event.Rank",
+    "Description": "[Dino Wave Battles / Civil War hijack] Native Mods/Ranks/Boss.prototype cleared, same reasoning as rule 1",
+    "ValueType": "PrototypeId",
+    "Value": 0
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Leaderboards/Prototypes/Leaderboards/CivilWar/CivilWarProReg.prototype",
+    "Path": "ScoringRules[2].Event.Context.ContextRegionKeyword",
+    "Description": "[Dino Wave Battles / Civil War hijack] Native value was Regions/Keywords/Story/UpperMadripoorNonCosmic.prototype - cleared",
+    "ValueType": "PrototypeId",
+    "Value": 0
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Leaderboards/Prototypes/Leaderboards/CivilWar/CivilWarProReg.prototype",
+    "Path": "ScoringRules[2].Event.Context.ContextPublicEventTeam",
+    "Description": "[Dino Wave Battles / Civil War hijack] Cleared - same root-cause fix as rule 0",
+    "ValueType": "PrototypeId",
+    "Value": 0
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Leaderboards/Prototypes/Leaderboards/CivilWar/CivilWarProReg.prototype",
+    "Path": "ScoringRules[2].Event.Context.ContextRegion",
+    "Description": "[Dino Wave Battles / Civil War hijack] Belt-and-suspenders region scope alongside the exact EntityPrototype match",
+    "ValueType": "PrototypeId",
+    "Value": 13643380196511063922
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Leaderboards/Prototypes/Leaderboards/CivilWar/CivilWarProReg.prototype",
+    "Path": "Name",
+    "Description": "[Dino Wave Battles / Civil War hijack] Repointed to the same 'Dinos Invade Manhattan' string as the CivilWar meta above - this is the sub-board that actually grants rewards, so its own name shouldn't read 'Pro-Registration' either",
+    "ValueType": "LocaleStringId",
+    "Value": 9070736888404837633
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Leaderboards/Prototypes/Leaderboards/CivilWar/CivilWar.prototype",
+    "Path": "MetaLeaderboardEntries[0].Rewards",
+    "Description": "[Dino Wave Battles / Civil War hijack - CRASH FIX 2026-07-23] SERVER CRASHED LIVE: Leaderboard.GetMetaRewards() has its own separate native reward structure (MetaLeaderboardEntries[N].Rewards, distinct from the LeaderboardPrototype.Rewards[] array patched onto ProReg/AntiReg directly in PatchDataMod_Items_LeaderboardRewards.json) that we never knew about and never touched. It grants a meta-level reward to every player in each sub-leaderboard's Entries once per faction pass. Since our hijack mirrors identical scoring onto BOTH CivilWarProReg and CivilWarAntiReg, every player appears in both sub-boards' Entries - so the same player's reward got inserted twice (once per faction pass) into the SQLite Rewards table, which has a PRIMARY KEY on (LeaderboardId, InstanceId, ParticipantId), throwing an unhandled constraint exception that took down the entire server process (see SQLiteLeaderboardDBManager.InsertRewards - also hardened to INSERT OR IGNORE as a defense-in-depth fix, but the real fix is here: clearing this array to empty makes GetMetaRewards' `metaEntry.Rewards.IsNullOrEmpty()` check skip this whole entry's processing pass entirely, per LeaderboardInstance.cs:523. Value is an empty PrototypeArray, not an append - Path has no trailing [] so this replaces the whole field rather than adding to it. Entry [0] was CivilWarAntiReg per the native MetaLeaderboardEntries ordering",
+    "ValueType": "PrototypeArray",
+    "Value": []
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Leaderboards/Prototypes/Leaderboards/CivilWar/CivilWar.prototype",
+    "Path": "MetaLeaderboardEntries[1].Rewards",
+    "Description": "[Dino Wave Battles / Civil War hijack - CRASH FIX 2026-07-23] Same fix as MetaLeaderboardEntries[0] above (entry [1] = CivilWarProReg per the native ordering) - see that entry's description for the full crash writeup. Both meta-entries' native reward structures are cleared; the ONLY reward source left active is CivilWarProReg's own direct Rewards[] array (PatchDataMod_Items_LeaderboardRewards.json), which doesn't have this per-faction duplication problem",
+    "ValueType": "PrototypeArray",
+    "Value": []
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Leaderboards/Prototypes/Leaderboards/CivilWar/CivilWar.prototype",
+    "Path": "Public",
+    "Description": "[Dino Wave Battles cleanup 2026-07-23] Hides the CivilWar meta's own row from the client dropdown (user confirmed live it showed as a 3rd selectable entry alongside ProReg/AntiReg, not just a header). Safe to hide independently of the sub-boards: GetMetaRewards()/meta-sub instance linkage lives entirely in the DB-backed Leaderboards service, not in this per-game LeaderboardInfoCache, so ProReg's own scoring and reward payout are unaffected",
+    "ValueType": "Boolean",
+    "Value": false
+  }
+]

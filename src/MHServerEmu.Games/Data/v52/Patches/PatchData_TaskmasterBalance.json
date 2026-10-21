@@ -1,0 +1,36 @@
+[
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Taskmaster/Tumble.prototype",
+    "Path": "Keywords[]",
+    "Description": "Allow Silent Killer to trigger Daredevil's Mastery Tornado Kick unlock as a non-signature cooldown movement power.",
+    "ValueType": "PrototypeId",
+    "Value": 7418492937796981347
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/SecResGainOne400MSCDProc.prototype",
+    "Path": "CooldownTimeMS.Value",
+    "Description": "OpenCalligraphy export: CooldownTimeMS.Value",
+    "ValueType": "Integer",
+    "Value": 0
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Characters/Avatars/Shipping/Taskmaster.prototype",
+    "Path": "Properties",
+    "Description": "Offensive Trait: add +4% damage per Fighting on top of the existing +1.5% all-stat damage scaling.",
+    "ValueType": "Properties",
+    "Value": {
+      "StatFightingSkillsDmgPctPerPoint": 0.025
+    }
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Taskmaster/PoisonGasBomb.prototype",
+    "Path": "EvalPowerSynergies.Eval.Arg1.Value",
+    "Description": "OpenCalligraphy export: EvalPowerSynergies.Eval.Arg1.Value",
+    "ValueType": "Integer",
+    "Value": 8000
+  }
+]

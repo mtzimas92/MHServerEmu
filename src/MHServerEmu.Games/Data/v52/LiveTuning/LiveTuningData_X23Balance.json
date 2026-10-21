@@ -1,0 +1,32 @@
+[
+  {
+    "Prototype": "Powers/Player/X23/MvmtSTSS.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.5
+  },
+  {
+    "Prototype": "Powers/Player/X23/CoupDeGraceDamageCombo.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/X23/TripleKick.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/X23/TripleKick3rdHit.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/X23/TripleKick2ndHit.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/X23/Eviscerate.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.5
+  }
+]

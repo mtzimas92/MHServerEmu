@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using Gazillion;
 using MHServerEmu.Core.Collections;
 using MHServerEmu.Core.Collisions;
@@ -25,6 +25,7 @@ using MHServerEmu.Games.GameData.Prototypes;
 using MHServerEmu.Games.Loot;
 using MHServerEmu.Games.MetaGames;
 using MHServerEmu.Games.Missions;
+using MHServerEmu.Games.MythicRifts;
 using MHServerEmu.Games.Navi;
 using MHServerEmu.Games.Network;
 using MHServerEmu.Games.Populations;
@@ -465,6 +466,10 @@ namespace MHServerEmu.Games.Regions
                 }
             }
 
+            // Age of Doom uses a dedicated Loki throne-room instance without changing the
+            // region prototype or replacing the native Age of Ultron event.
+            MHServerEmu.Games.AgeOfDoom.AgeOfDoomGameMode.TryAttachToRegion(this);
+
 #if GAME_VERSION_1_52 || GAME_VERSION_1_53
             ApplyDifficultyTierProperties(settings.DifficultyTierRef);
 #endif
@@ -472,8 +477,15 @@ namespace MHServerEmu.Games.Regions
             IsGenerated = true;
             CreatedTime = Clock.UnixTime;
 
-	    if (regionProto.DataRef == NPEAvengersTowerHUBRegionRef)
+            if (regionProto.DataRef == NPEAvengersTowerHUBRegionRef)
+            {
                 SpawnShannaPortalGuide();
+            }
+
+            if (regionProto.DataRef == (PrototypeId)13296910602616641976UL)
+                MythicRiftScenarioVendorSpawner.SpawnDangerRoomScenarioVendor(this);
+
+            OmegaRaidVendorService.SpawnInHelicarrier(this);
 
             return true;
         }
@@ -511,7 +523,7 @@ namespace MHServerEmu.Games.Regions
             Orientation shannaOrientation = Orientation.FromDeltaVector(landingPosition - shannaPosition);
 
             using var entitySettingsHandle = EntitySettingsPool.Get(out EntitySettings entitySettings);
-	    entitySettings.EntityRef = ShannaPortalGuideRef;
+            entitySettings.EntityRef = ShannaPortalGuideRef;
             entitySettings.Position = shannaPosition;
             entitySettings.Orientation = shannaOrientation;
             entitySettings.RegionId = Id;

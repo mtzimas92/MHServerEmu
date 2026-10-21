@@ -1,0 +1,26 @@
+[
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Characters/Vendors/Prototypes/HUB03Helicarrier/Trainers/HelicarrierACCTrainer.prototype",
+    "Path": "DesignState",
+    "Description": "Enable the Helicarrier trainer used by the server-side Omega Raid Vendor.",
+    "ValueType": "Enum",
+    "Value": "Live"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Characters/Vendors/Prototypes/HUB03Helicarrier/Trainers/HelicarrierACCTrainer.prototype",
+    "Path": "DesignStatePS4",
+    "Description": "Enable the Helicarrier Omega Raid Vendor for clients that inspect the PS4 design state.",
+    "ValueType": "Enum",
+    "Value": "Live"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Characters/Vendors/Prototypes/HUB03Helicarrier/Trainers/HelicarrierACCTrainer.prototype",
+    "Path": "DesignStateXboxOne",
+    "Description": "Enable the Helicarrier Omega Raid Vendor for clients that inspect the Xbox One design state.",
+    "ValueType": "Enum",
+    "Value": "Live"
+  }
+]

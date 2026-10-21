@@ -1,0 +1,143 @@
+[
+  {
+    "Prototype": "Powers/Player/Magik/NastirhBasicBlast.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/Magik/LifeTapDoT.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.65
+  },
+  {
+    "Prototype": "Powers/Player/Magik/NastirhInfect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/Magik/LimboDemonDoubleStrike2ndHit.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/Magik/LimboDemonDoubleStrike.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/Magik/OtherworldlyNovaMissileEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/Magik/NastirhBasicBlast2.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/Magik/LimboDemonClawAttack.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/Magik/NastirhLimboPortalHotspotEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/Magik/SoulCapture.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/Magik/BFLDAoEPunch.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/Magik/BFLDLeapAttackEnd.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/Magik/BoneSpiritMissileEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/Magik/BFLDBackhandRight.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/Magik/BFLDBackhandLeft.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/Magik/NastirhMagicBomb.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/Magik/LimboDemonLeapAttackEnd.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/Magik/LifeTapDoTAppliedByOtherPowerCombo.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/Magik/SoulConeMissileEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.3
+  },
+  {
+    "Prototype": "Powers/Player/Magik/AssassinateCombo.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.45
+  },
+  {
+    "Prototype": "Powers/Player/Magik/SorcerousEruptionDamageCombo.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.45
+  },
+  {
+    "Prototype": "Powers/Player/Magik/SoulShockwaveMissileEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.45
+  },
+  {
+    "Prototype": "Powers/Player/Magik/BounceStrikeBounce.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.45
+  },
+  {
+    "Prototype": "Powers/Player/Magik/BounceStrikeBounceMarvelNOW.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.45
+  },
+  {
+    "Prototype": "Powers/Player/Magik/TeleportOther.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.45
+  },
+  {
+    "Prototype": "Powers/Player/Magik/SoulswordWideSlash.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.45
+  },
+  {
+    "Prototype": "Powers/Player/Magik/SoulswordBasic.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.45
+  },
+  {
+    "Prototype": "Powers/Player/Magik/TeleportPBAOE.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.45
+  }
+]
+

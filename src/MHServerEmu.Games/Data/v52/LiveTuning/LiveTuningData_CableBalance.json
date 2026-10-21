@@ -1,0 +1,197 @@
+[
+  {
+    "Prototype": "Powers/Player/Cable/FutureBombEnergyExplosion.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 2.0
+  },
+  {
+    "Prototype": "Powers/Player/Cable/FutureBombMentalExplosion.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 2.0
+  },
+  {
+    "Prototype": "Powers/Player/Cable/FutureBombMentalExplosionGunKeyword.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 2.0
+  },
+  {
+    "Prototype": "Powers/Player/Cable/FutureBombMentalExplosionMentalKeyword.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 2.0
+  },
+  {
+    "Prototype": "Powers/Player/Cable/FutureBombEnergyExplosionMentalKeyword.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 2.0
+  },
+  {
+    "Prototype": "Powers/Player/Cable/FutureBombEnergyExplosionPsimitarKeyword.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 2.0
+  },
+  {
+    "Prototype": "Powers/Player/Cable/FutureBombEnergyExplosionGunKeyword.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 2.0
+  },
+  {
+    "Prototype": "Powers/Player/Cable/FutureBombMentalExplosionPsimitarKeyword.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 2.0
+  },
+  {
+    "Prototype": "Powers/Player/Cable/ViperBeamPlusHotspotEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.5
+  },
+  {
+    "Prototype": "Powers/Player/Cable/ViperBeamHotspotEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.4
+  },
+  {
+    "Prototype": "Powers/Player/Cable/PlasmaBarrageHotspotEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.4
+  },
+  {
+    "Prototype": "Powers/Player/Cable/ParticleAccelerator.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.4
+  },
+  {
+    "Prototype": "Powers/Player/Cable/EnergyPulseMissileEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.4
+  },
+  {
+    "Prototype": "Powers/Player/Cable/VortexGrenadeImplosion.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.4
+  },
+  {
+    "Prototype": "Powers/Player/Cable/ConcussionBlast.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.4
+  },
+  {
+    "Prototype": "Powers/Player/Cable/ParticleAcceleratorSecondaryDoT.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.4
+  },
+  {
+    "Prototype": "Powers/Player/Cable/ParticleAcceleratorFirstExplosion.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.4
+  },
+  {
+    "Prototype": "Powers/Player/Cable/PulseBoltMissileEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.4
+  },
+  {
+    "Prototype": "Powers/Player/Cable/ParticleAcceleratorSecondExplosion.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.4
+  },
+  {
+    "Prototype": "Powers/Player/Cable/KineticBarrierHotspotEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.4
+  },
+  {
+    "Prototype": "Powers/Player/Cable/VortexGrenadeHotspotEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.4
+  },
+  {
+    "Prototype": "Powers/Player/Cable/EnergyPulseMissileEffectPlus.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.4
+  },
+  {
+    "Prototype": "Powers/Player/Cable/TKSpearSlam.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/Cable/TKOverloadKnockdown.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/Cable/PsimitarImpale.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/Cable/PsimitarCyclone.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/Cable/PsimitarWaves.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/Cable/PsychicHaze.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/Cable/PsychicBulletsMissileEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/Cable/PsimitarLungeEffectNoDoT.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/Cable/PsimitarLungeDoT.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/Cable/PsychicHazeDoTCombo.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/Cable/TelepathicIllusionDoT.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/Cable/PsimitarWavesPlus.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/Cable/TelepathicIllusionAttack.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/Cable/PsychicBulletsMissileEffectPlus.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/Cable/TelepathicIllusionAttackCombo.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/Cable/TelepathicIllusionAttackProc.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  },
+  {
+    "Prototype": "Powers/Player/Cable/PsimitarLungeEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.6
+  }
+]

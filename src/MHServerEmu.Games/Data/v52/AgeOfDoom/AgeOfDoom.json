@@ -1,0 +1,39 @@
+{
+  "enabled": false,
+  "metaGamePrototypeId": 2140634644043404383,
+  "regionPrototypeId": 9322383157057886124,
+  "difficultyTierPrototypeId": 586640101754933627,
+  "modeNameLocaleStringId": 18000000000000080300,
+  "timeLimitMinutes": 35,
+  "spawnIntervalSeconds": 4,
+  "maximumLivingEnemiesPerPlayer": 12,
+  "spawnRadius": 700.0,
+  "incursionKillsPerPlayer": 60,
+  "councilBosses": 4,
+  "midtownDoomBosses": 8,
+  "midtownDoomPrototype": "Entity/Characters/Bosses/PatrolMidtown/MidtownEventDoctorDoom.prototype",
+  "objectiveWidgetPrototype": "UI/Widgets/GenericFractionWidget.prototype",
+  "cinematicTimeoutSeconds": 180,
+  "cinematicPrototypes": [
+    "FullscreenMovies/Cinematics/ChroniclesOfDoom01.prototype",
+    "FullscreenMovies/Cinematics/ChroniclesOfDoom02.prototype",
+    "FullscreenMovies/Cinematics/ChroniclesOfDoom03.prototype",
+    "FullscreenMovies/Cinematics/ChroniclesOfDoom04.prototype"
+  ],
+  "minionPrototypes": [
+    "Entity/Characters/Mobs/Doombots/Chapter/DoombotsCH08/ServoGuardMeleeD3CH08.prototype",
+    "Entity/Characters/Mobs/Doombots/Chapter/DoombotsCH08/ServoGuardRangedD3CH08.prototype",
+    "Entity/Characters/Mobs/Doombots/Chapter/DoombotsCH08/DoombotInfernoD3CH08.prototype"
+  ],
+  "councilBossPrototypes": [
+    "Entity/Characters/Bosses/CivilWar/CrossbonesPatrolBossMidtown.prototype",
+    "Entity/Characters/Bosses/DangerRoom/DangerRoomMODOK.prototype",
+    "Entity/Characters/Bosses/PatrolBrooklyn/BrooklynEventLoki.prototype"
+  ],
+  "doomPhasePrototypes": [
+    "Entity/Characters/Bosses/PVEDailies/Cosmic/EGD09CDrDoomPhase1.prototype",
+    "Entity/Characters/Bosses/PVEDailies/Cosmic/EGD09CDrDoomPhase2.prototype",
+    "Entity/Characters/Bosses/PVEDailies/Cosmic/EGD09CDrDoomPhase3.prototype"
+  ],
+  "completionRewards": []
+}

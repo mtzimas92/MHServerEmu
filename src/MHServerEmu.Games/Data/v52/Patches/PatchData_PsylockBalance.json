@@ -1,0 +1,45 @@
+[
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Psylocke/KatanaDoubleStrikeMissileEffectMental.prototype",
+    "Path": "Keywords[]",
+    "Description": "OpenCalligraphy export: Keywords",
+    "ValueType": "PrototypeId",
+    "Value": 720980541349630335
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Psylocke/KatanaPBAoEMental.prototype",
+    "Path": "Keywords[]",
+    "Description": "OpenCalligraphy export: Keywords",
+    "ValueType": "PrototypeId",
+    "Value": 720980541349630335
+  },
+  {
+	  "Enabled": true,
+	  "Prototype": "Powers/Player/Psylocke/PassiveDecoysSummonProc.prototype",
+	  "Path": "SummonMaxSimultaneous",
+	  "Description": "[Psylocke] Allow movement powers to independently reach three projections while Talent4MaxProjections is selected.",
+	  "ValueType": "Prototype",
+	  "Value": {
+		"ParentDataRef": "Eval/ControlFlow/IfElse.defaults",
+		"Op": "IfElse",
+		"Conditional": {
+		  "ParentDataRef": "Eval/Other/EntityHasTalent.defaults",
+		  "Op": "EntityHasTalent",
+		  "Context": "Entity",
+		  "Talent": "Powers/Player/Psylocke/Talents/Talent4MaxProjections.prototype"
+		},
+		"EvalIf": {
+		  "ParentDataRef": "Eval/Constants/LoadFloat.defaults",
+		  "Op": "LoadFloat",
+		  "Value": 3
+		},
+		"EvalElse": {
+		  "ParentDataRef": "Eval/Constants/LoadFloat.defaults",
+		  "Op": "LoadFloat",
+		  "Value": 2
+		}
+	  }
+  }
+]

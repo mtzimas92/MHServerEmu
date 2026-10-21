@@ -1,0 +1,123 @@
+[
+  {
+    "Prototype": "Powers/Player/Elektra/CrossStrikeIntervalEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.55
+  },
+  {
+    "Prototype": "Powers/Player/Elektra/SpinningStrikeBleed.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.55
+  },
+  {
+    "Prototype": "Powers/Player/Elektra/AssassinateComboBoss.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.55
+  },
+  {
+    "Prototype": "Powers/Player/Elektra/KillCommandMysticArcaneBeam.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.55
+  },
+  {
+    "Prototype": "Powers/Player/Elektra/BasicSai.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.55
+  },
+  {
+    "Prototype": "Powers/Player/Elektra/KillCommandMysticArcaneBeam2.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.55
+  },
+  {
+    "Prototype": "Powers/Player/Elektra/ShadowStrikeDrop.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.55
+  },
+  {
+    "Prototype": "Powers/Player/Elektra/SaiStrike.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.55
+  },
+  {
+    "Prototype": "Powers/Player/Elektra/SpinningStrikeEnd.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.55
+  },
+  {
+    "Prototype": "Powers/Player/Elektra/TeleportDashProcEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.55
+  },
+  {
+    "Prototype": "Powers/Player/Elektra/StaffStrike.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.55
+  },
+  {
+    "Prototype": "Powers/Player/Elektra/BamfDiveBombEnd.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.55
+  },
+  {
+    "Prototype": "Powers/Player/Elektra/BlowDartSummonHotspotEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.55
+  },
+  {
+    "Prototype": "Powers/Player/Elektra/KillCommandCombo.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.55
+  },
+  {
+    "Prototype": "Powers/Player/Elektra/KnifeThrowEffectBoss.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.55
+  },
+  {
+    "Prototype": "Powers/Player/Elektra/SilentScream.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.55
+  },
+  {
+    "Prototype": "Powers/Player/Elektra/KnifeRopeChainHotspotEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.55
+  },
+  {
+    "Prototype": "Powers/Player/Elektra/BlowDartMissileEffect.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.55
+  },
+  {
+    "Prototype": "Powers/Player/Elektra/TripleChain2ndHit.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.55
+  },
+  {
+    "Prototype": "Powers/Player/Elektra/TripleChain3rdHit.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.55
+  },
+  {
+    "Prototype": "Powers/Player/Elektra/TripleChain.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.55
+  },
+  {
+    "Prototype": "Powers/Player/Elektra/ThrowShuriken.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.55
+  },
+  {
+    "Prototype": "Powers/Player/Elektra/KillCommandMasterSlash2.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.55
+  },
+  {
+    "Prototype": "Powers/Player/Elektra/KillCommandMasterSlash.prototype",
+    "Setting": "ePTV_PowerDamagePVE",
+    "Value": 1.55
+  }
+]
+

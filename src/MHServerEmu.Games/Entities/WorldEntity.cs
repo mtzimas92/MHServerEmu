@@ -10,6 +10,7 @@ using MHServerEmu.Core.Serialization;
 using MHServerEmu.Core.System.Time;
 using MHServerEmu.Core.VectorMath;
 using MHServerEmu.Games.Common;
+using MHServerEmu.Games.Diagnostics;
 using MHServerEmu.Games.Dialog;
 using MHServerEmu.Games.Entities.Avatars;
 using MHServerEmu.Games.Entities.Inventories;
@@ -24,6 +25,7 @@ using MHServerEmu.Games.GameData.LiveTuning;
 using MHServerEmu.Games.GameData.Prototypes;
 using MHServerEmu.Games.Loot;
 using MHServerEmu.Games.MetaGames;
+using MHServerEmu.Games.MythicRifts;
 using MHServerEmu.Games.Missions;
 using MHServerEmu.Games.Navi;
 using MHServerEmu.Games.Network;
@@ -2172,6 +2174,8 @@ namespace MHServerEmu.Games.Entities
             long startHealth = health;
             long healthDelta = 0;
 
+            OmegaTrialService.TryAdjustPlayerDamage(this, powerResults);
+
             if (powerResults.Flags.HasFlag(PowerResultFlags.InstantKill))
             {
                 // INSTANT KILL
@@ -2235,6 +2239,8 @@ namespace MHServerEmu.Games.Entities
 
             if (powerResults.IsAvoided)
                 return false;
+
+            PowerDamageMetricsLogger.RecordDamage(powerResults, this, ultimateOwner, powerUser, startHealth, health, adjustHealth);
 
             // Apply health change
             bool killed = false;

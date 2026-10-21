@@ -1,0 +1,35 @@
+[
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Storm/ElementalStormHotspotVulnerability.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[0]",
+    "Description": "Replace only Storm's Lightning Storm vulnerability condition eval with a local 20% clone; leave the shared VulnerabilityDEPRECATED eval and slow condition untouched.",
+    "ValueType": "Prototype",
+    "Value": {
+      "ParentDataRef": 12394606670048857323,
+      "Op": "Scope",
+      "Scope": [
+        {
+          "ParentDataRef": 1429542141982412459,
+          "Op": "AssignProp",
+          "Prop": {
+            "Property": "DamagePctVulnerability"
+          },
+          "Eval": {
+            "ParentDataRef": 5074715296837012907,
+            "Op": "LoadFloat",
+            "Value": 0.2
+          }
+        }
+      ]
+    }
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Entity/Characters/PetsAndSummons/Storm/Tornado.prototype",
+    "Path": "Locomotion.Speed",
+    "Description": "OpenCalligraphy export: Speed",
+    "ValueType": "Float",
+    "Value": 415
+  }
+]

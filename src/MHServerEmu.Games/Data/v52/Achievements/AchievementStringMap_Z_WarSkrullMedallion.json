@@ -1,0 +1,10 @@
+{
+  "2064762393879708998": {
+    "en_us": "When you hit with an Energy Power, gain $param1.power.condition0.DamageRatingBonusForPowerKeyword.nofraction$ Physical Damage Rating for $param1.power.condition0.duration$. (15 second cooldown)\nWhen you hit with a Physical Power, gain $param1.power.condition0.DamageRatingBonusForPowerKeyword.nofraction$ Energy Damage Rating for $param1.power.condition0.duration$. (15 second cooldown)",
+    "ru_ru": "При попадании Энергетической способностью, получите $param1.power.condition0.DamageRatingBonusForPowerKeyword.nofraction$ Рейтинг Физического урона на $param1.power.condition0.duration$. (Перезарядка 15 сек)\nПри попадании Физической способностью, получите $param1.power.condition0.DamageRatingBonusForPowerKeyword.nofraction$ Рейтинг Энергетического урона на $param1.power.condition0.duration$. (Перезарядка 15 сек)"
+  },
+  "3625867136349177160": {
+    "en_us": "When you hit with a Physical Power, gain $param1.power.condition0.DamageRatingBonusForPowerKeyword.nofraction$ Energy Damage Rating for $param1.power.condition0.duration$. (15 second cooldown)",
+    "ru_ru": "При попадании Физической способностью, получаете $param1.power.condition0.DamageRatingBonusForPowerKeyword.nofraction$ Рейтинг Энергетического урона на $param1.power.condition0.duration$. (Перезарядка 15 сек)"
+  }
+}

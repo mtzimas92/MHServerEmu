@@ -1,0 +1,34 @@
+[
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/IronMan/DeathFromAboveMeleeDamageIncrease.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[0].Eval.Value",
+    "Description": "OpenCalligraphy export: EvalOnCreate[0].Eval.Value",
+    "ValueType": "Float",
+    "Value": 0.3
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/IronMan/OverheatSelfDamage.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[0].Eval.Arg1.Value",
+    "Description": "OpenCalligraphy export: EvalOnCreate[0].Eval.Arg1.Value",
+    "ValueType": "Float",
+    "Value": 0.001
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/IronMan/Traits/OffenseTraitStatConversionEffect.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[0].Eval.Arg1.EvalElse.Value",
+    "Description": "OpenCalligraphy export: EvalOnCreate[0].Eval.Arg1.EvalElse.Value",
+    "ValueType": "Float",
+    "Value": 0.0006
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/IronMan/Traits/OffenseTraitStatConversionEffect.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[0].Eval.Arg1.EvalIf.Value",
+    "Description": "OpenCalligraphy export: EvalOnCreate[0].Eval.Arg1.EvalIf.Value",
+    "ValueType": "Float",
+    "Value": 0.0012
+  }
+]

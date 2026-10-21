@@ -74,9 +74,8 @@ namespace MHServerEmu.Leaderboards
         /// </summary>
         public static void ValidateMetaLeaderboards(LeaderboardScheduler[] schedulers)
         {
-            // HACK: This affects only Civil War leaderboards. See LeaderboardInstance.AddNewMetaEntries() for context why we need this.
-            const int NumMetaSchedulers = 3;
-
+            // HACK: This affects only native Civil War leaderboards. See LeaderboardInstance.AddNewMetaEntries() for context why we need this.
+            LeaderboardScheduler civilWar = null;
             List<LeaderboardScheduler> metaSchedulers = new();
 
             foreach (LeaderboardScheduler schedule in schedulers)
@@ -85,12 +84,22 @@ namespace MHServerEmu.Leaderboards
                 {
                     case 4526141029363356341:   // CivilWarAntiReg
                     case 1775041796111535192:   // CivilWarProReg
+                        metaSchedulers.Add(schedule);
+                        break;
                     case -556417788383984134:   // CivilWar
+                        civilWar = schedule;
                         metaSchedulers.Add(schedule);
                         break;
                 }
             }
 
+            if (HasRepurposedCivilWarSubLeaderboard(metaSchedulers))
+                return;
+
+            if (civilWar == null)
+                return;
+
+            const int NumMetaSchedulers = 3;
             if (metaSchedulers.Count != NumMetaSchedulers)
                 throw new InvalidDataException($"Expected {NumMetaSchedulers} meta schedulers, but found {metaSchedulers.Count}.");
 
@@ -103,6 +112,30 @@ namespace MHServerEmu.Leaderboards
                 if (!Verify.IsTrue(scheduler.IsEnabled == isEnabled, $"Schedule entry {scheduler} is out of sync, forcing IsEnabled = {isEnabled}"))
                     scheduler.IsEnabled = isEnabled;
             }
+        }
+
+        private static bool HasRepurposedCivilWarSubLeaderboard(List<LeaderboardScheduler> metaSchedulers)
+        {
+            foreach (LeaderboardScheduler scheduler in metaSchedulers)
+            {
+                if (scheduler.IsRepurposedCivilWarSubLeaderboard())
+                    return true;
+            }
+
+            return false;
+        }
+
+        private bool IsRepurposedCivilWarSubLeaderboard()
+        {
+            LeaderboardPrototype leaderboardProto = GetPrototype();
+            if (leaderboardProto?.ScoringRules == null || leaderboardProto.ScoringRules.Length == 0)
+                return false;
+
+            ScoringEventEntityDeathPrototype scoringEvent = leaderboardProto.ScoringRules[0]?.Event as ScoringEventEntityDeathPrototype;
+            if (scoringEvent == null)
+                return false;
+
+            return scoringEvent.Context == null || scoringEvent.Context.ContextPublicEventTeam == null;
         }
 
         public DateTime CalcNextUtcActivationDate(DateTime? referenceTimeArg = null, DateTime? currentTimeArg = null)

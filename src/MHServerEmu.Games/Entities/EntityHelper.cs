@@ -1,5 +1,4 @@
 ﻿using MHServerEmu.Core.Extensions;
-using MHServerEmu.Core.Logging;
 using MHServerEmu.Core.Memory;
 using MHServerEmu.Core.VectorMath;
 using MHServerEmu.Games.Entities.Avatars;

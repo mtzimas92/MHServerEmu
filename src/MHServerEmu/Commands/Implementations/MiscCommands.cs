@@ -234,34 +234,6 @@ namespace MHServerEmu.Commands.Implementations
             }
         }
 
-        [CommandGroup("Ultron")]
-        [CommandGroupDescription("Teleports to the Ultron Raid.")]
-        [CommandGroupFlags(CommandGroupFlags.SingleCommand)]
-        public class UltronCommand : CommandGroup
-        {
-            [DefaultCommand]
-            [CommandInvokerType(CommandInvokerType.Client)]
-            public string Ultron(string[] @params, NetClient client)
-            {
-                Player player = ((PlayerConnection)client).Player;
-                PrototypeId targetProtoRef = (PrototypeId)6101407482858775734;
-                PrototypeId omegaDifficulty = (PrototypeId)586640101754933627;
-                if (omegaDifficulty == PrototypeId.Invalid)
-                {
-                    return "Error: Could not find 'Difficulty/Tiers/Tier4Cosmic.prototype'.";
-                }
-		using var teleporterHandle = TeleporterPool.Get(out Teleporter teleporter);
-                teleporter.Initialize(player, TeleportContextEnum.TeleportContext_Debug);
-                teleporter.DifficultyTierRef = omegaDifficulty;
-
-                if (teleporter.TeleportToTarget(targetProtoRef) == false)
-                {
-                    return "Teleport failed. Check server logs for details.";
-                }
-                return "Teleporting to Ultron (Cosmic)...";
-            }
-        }
-
     }
 }
 

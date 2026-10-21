@@ -11,6 +11,7 @@ using MHServerEmu.Games.GameData;
 using MHServerEmu.Games.GameData.Prototypes;
 using MHServerEmu.Games.Network;
 using MHServerEmu.Games.Regions;
+using MHServerEmu.Games.AgeOfDoom;
 
 namespace MHServerEmu.Games.MetaGames.GameModes
 {
@@ -45,6 +46,8 @@ namespace MHServerEmu.Games.MetaGames.GameModes
         {
             var gamemodeProto = GameDatabase.GetPrototype<MetaGameModePrototype>(modeRef);
             if (MetaGame.Debug) Logger.Debug($"CreateGameMode {GameDatabase.GetFormattedPrototypeName(modeRef)} {gamemodeProto.GetType().Name}");
+            if (AgeOfDoomGameMode.ShouldReplace(metaGame))
+                return new AgeOfDoomGameMode(metaGame, gamemodeProto);
             return gamemodeProto.AllocateGameMode(metaGame);
         }
 

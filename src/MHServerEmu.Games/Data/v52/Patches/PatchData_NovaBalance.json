@@ -1,0 +1,141 @@
+[
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Nova/PBAoENukeIncreaseEffectCombo.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[1].Eval.Value",
+    "Description": "OpenCalligraphy export: EvalOnCreate[1].Eval.Value",
+    "ValueType": "Float",
+    "Value": 0
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Nova/PulsarExplosionProc.prototype",
+    "Path": "CooldownTimeMS.Value",
+    "Description": "OpenCalligraphy export: CooldownTimeMS.Value",
+    "ValueType": "Integer",
+    "Value": 1000
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Nova/Talents/Talent2MeleeBuffs.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[0].Eval.Value",
+    "Description": "OpenCalligraphy export: EvalOnCreate[0].Eval.Value",
+    "ValueType": "Float",
+    "Value": 0.1
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Nova/PulsarExplosionRandomLocation.prototype",
+    "Path": "SummonEntityContexts[0].EvalOnSummon[]",
+    "Description": "Pulsar Field second Pulsar: make the free second Pulsar Explosion deal 65% less damage.",
+    "ValueType": "Prototype",
+    "Value": {
+      "ParentDataRef": "Eval/Properties/AssignProp.defaults",
+      "Op": "AssignProp",
+      "Prop": "DamageMult",
+      "Eval": {
+        "ParentDataRef": "Eval/Constants/LoadFloat.defaults",
+        "Op": "LoadFloat",
+        "Value": -0.65
+      }
+    }
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Nova/PulsarHotspotRandomLocation.prototype",
+    "Path": "SummonEntityContexts[0].EvalOnSummon[]",
+    "Description": "Pulsar Field second Pulsar: make the free second Pulsar Hotspot deal 65% less damage.",
+    "ValueType": "Prototype",
+    "Value": {
+      "ParentDataRef": "Eval/Properties/AssignProp.defaults",
+      "Op": "AssignProp",
+      "Prop": "DamageMult",
+      "Eval": {
+        "ParentDataRef": "Eval/Constants/LoadFloat.defaults",
+        "Op": "LoadFloat",
+        "Value": -0.65
+      }
+    }
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Nova/PulsarImplosionRandomLocation.prototype",
+    "Path": "SummonEntityContexts[0].EvalOnSummon[]",
+    "Description": "Pulsar Field second Pulsar: make the free second Pulsar Implosion deal 65% less damage.",
+    "ValueType": "Prototype",
+    "Value": {
+      "ParentDataRef": "Eval/Properties/AssignProp.defaults",
+      "Op": "AssignProp",
+      "Prop": "DamageMult",
+      "Eval": {
+        "ParentDataRef": "Eval/Constants/LoadFloat.defaults",
+        "Op": "LoadFloat",
+        "Value": -0.65
+      }
+    }
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Nova/BasicPunch.prototype",
+    "Path": "ResetTargetPositionAtContactTime",
+    "Description": "Prevent Nova Basic Punch from forcing a target position correction at contact time, which can create visible camera/position snapping.",
+    "ValueType": "Boolean",
+    "Value": false
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Nova/LungingPunch.prototype",
+    "Path": "ResetTargetPositionAtContactTime",
+    "Description": "Prevent Nova Lunging Punch from forcing a target position correction at contact time.",
+    "ValueType": "Boolean",
+    "Value": false
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Nova/LungingPunchCombo.prototype",
+    "Path": "ResetTargetPositionAtContactTime",
+    "Description": "Prevent Nova Lunging Punch combo damage from forcing a target position correction at contact time.",
+    "ValueType": "Boolean",
+    "Value": false
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Nova/LungingPunchEffect.prototype",
+    "Path": "ResetTargetPositionAtContactTime",
+    "Description": "Prevent Nova Lunging Punch effect damage from forcing a target position correction at contact time.",
+    "ValueType": "Boolean",
+    "Value": false
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Nova/LungingPunchDashPower.prototype",
+    "Path": "MoveToOppositeEdgeOfTarget",
+    "Description": "Keep Lunging Punch from crossing through/to the far edge of the target, reducing camera displacement while preserving the movement-power proc.",
+    "ValueType": "Boolean",
+    "Value": false
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Nova/LungingPunchDashPower.prototype",
+    "Path": "MoveToExactTargetLocation",
+    "Description": "Keep Lunging Punch from snapping to the exact target location.",
+    "ValueType": "Boolean",
+    "Value": false
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Nova/LungingPunchDashPower.prototype",
+    "Path": "AdditionalTargetPosOffset",
+    "Description": "Remove Lunging Punch's extra target-position offset after disabling exact target movement.",
+    "ValueType": "Float",
+    "Value": 0
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Nova/LungingPunchDashPower.prototype",
+    "Path": "ConstantMoveTime",
+    "Description": "Use the normal movement-power timing behavior instead of forcing a constant snap-like move time.",
+    "ValueType": "Boolean",
+    "Value": false
+  }
+]

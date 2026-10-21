@@ -82,6 +82,39 @@ namespace MHServerEmu.Games.MetaGames.GameModes
             RegisterEvents();
 
             _totalKills = 0;
+
+            BalanceDefenders();
+        }
+
+        public void BalanceDefenders()
+        {
+            var match = Region.GetPvPMatch();
+            if (match == null) return;
+            var teams = match.Teams;
+            if (teams.Count == 0) return;
+            var manager = Game.EntityManager;
+            if (manager == null) return;
+
+            var teamSize = teams[0].TeamSize;
+
+            float multiplier = teamSize switch
+                {
+                    5 => 1.0f,
+                    4 => 0.85f,
+                    3 => 0.70f,
+                    2 => 0.55f,
+                    1 => 0.40f,
+                    _ => 1.0f
+                };
+
+            foreach (var defenderId in _defenders)
+            {
+                var defender = manager.GetEntity<WorldEntity>(defenderId);
+                if (defender == null) continue;
+
+                int baseHealth = defender.Properties[PropertyEnum.HealthMax];
+                defender.Properties[PropertyEnum.HealthMax] = (int)(baseHealth * multiplier);
+            }
         }
 
         public override void OnDeactivate()
@@ -606,10 +639,11 @@ namespace MHServerEmu.Games.MetaGames.GameModes
                 var target = entity as WorldEntity;
                 if (target.PrototypeDataRef != startTarget.Entity) continue;
 
+                /* startTarget is Unique for Region
                 var targetCell = GameDatabase.GetDataRefByAsset(startTarget.Cell);
                 if (target.Cell.PrototypeDataRef != targetCell) continue;
 
-                if (target.Area.PrototypeDataRef != startTarget.Area) continue;
+                if (target.Area.PrototypeDataRef != startTarget.Area) continue;*/
 
                 return target;
             }

@@ -6,6 +6,7 @@ using MHServerEmu.Games.Entities.Items;
 using MHServerEmu.Games.GameData.Calligraphy;
 using MHServerEmu.Games.GameData.Tables;
 using MHServerEmu.Games.Loot;
+using MHServerEmu.Games.OmegaTierItems;
 using MHServerEmu.Games.Properties.Evals;
 
 namespace MHServerEmu.Games.GameData.Prototypes
@@ -591,6 +592,9 @@ namespace MHServerEmu.Games.GameData.Prototypes
         public override MutationResults Mutate(LootRollSettings settings, IItemResolver resolver, LootCloneRecord lootCloneRecord)
         {
             lootCloneRecord.Seed = resolver.Random.Next();
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
+            OmegaTierItemFactory.RerollConfiguredForcedAffixSeeds(lootCloneRecord, resolver.Random);
+#endif
             return MutationResults.Changed;
         }
     }

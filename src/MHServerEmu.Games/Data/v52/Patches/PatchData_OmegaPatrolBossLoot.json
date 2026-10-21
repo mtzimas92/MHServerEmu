@@ -1,0 +1,48 @@
+[
+  {
+    "Enabled": true,
+    "Prototype": "Loot/Tables/Mob/Bosses/PatrolHightown/Subtable/SharedPatrolHightownBossesCosmicSub.prototype",
+    "Path": "Choices[3].NumMin",
+    "Description": "Prevent Hightown event bosses from repeating their nested five-roll armor bundle five times.",
+    "ValueType": "Long",
+    "Value": 1
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Loot/Tables/Mob/Bosses/PatrolHightown/Subtable/SharedPatrolHightownBossesCosmicSub.prototype",
+    "Path": "Choices[]",
+    "Description": "Give Hightown Cosmic event bosses one independent 25% Cosmic offense-or-defense ring roll without replacing armor rewards.",
+    "ValueType": "Prototype",
+    "Value": {
+      "ParentDataRef": 181874990376424634,
+      "NoDropPercent": 0.75,
+      "Modifiers": [
+        {
+          "ClassName": "LootRollSetRarityPrototype",
+          "Choices": [
+            "Entity/Items/Rarity/R5Cosmic.prototype"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Loot/Tables/Mob/Bosses/PatrolMidtown/Subtable/SharedPatrolMidtownBossesCosmicSub.prototype",
+    "Path": "Choices[]",
+    "Description": "Give Midtown Cosmic event bosses one independent 25% Cosmic offense-or-defense ring roll without replacing armor rewards.",
+    "ValueType": "Prototype",
+    "Value": {
+      "ParentDataRef": 181874990376424634,
+      "NoDropPercent": 0.75,
+      "Modifiers": [
+        {
+          "ClassName": "LootRollSetRarityPrototype",
+          "Choices": [
+            "Entity/Items/Rarity/R5Cosmic.prototype"
+          ]
+        }
+      ]
+    }
+  }
+]

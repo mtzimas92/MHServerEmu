@@ -8,6 +8,7 @@ using MHServerEmu.Core.System.Time;
 using MHServerEmu.Core.VectorMath;
 using MHServerEmu.Games.Behavior;
 using MHServerEmu.Games.Common;
+using MHServerEmu.Games.Diagnostics;
 using MHServerEmu.Games.Entities;
 using MHServerEmu.Games.Entities.Avatars;
 using MHServerEmu.Games.Entities.Items;
@@ -377,7 +378,7 @@ namespace MHServerEmu.Games.Powers
                 }
 
                 // Calculate variance / tuning score / magnitude multipliers
-                float damageVariance = powerProperties[PropertyEnum.DamageVariance];
+                float damageVariance = PowerDamageMetricsLogger.IsDeterministic ? 0f : powerProperties[PropertyEnum.DamageVariance];
                 float damageVarianceMult = (1f - damageVariance) + (damageVariance * 2f * Game.Random.NextFloat());
 
                 float damageTuningScore = powerProto.DamageTuningScore;
@@ -619,7 +620,7 @@ namespace MHServerEmu.Games.Powers
 
             float healingMagnitude = powerProperties[PropertyEnum.HealingMagnitude];
 
-            float healingVariance = powerProperties[PropertyEnum.DamageVariance];
+            float healingVariance = PowerDamageMetricsLogger.IsDeterministic ? 0f : powerProperties[PropertyEnum.DamageVariance];
             float healingVarianceMult = (1f - healingVariance) + (healingVariance * 2f * Game.Random.NextFloat());
 
             float healing = healingBase * healingMagnitude * healingVarianceMult;
@@ -2852,6 +2853,9 @@ namespace MHServerEmu.Games.Powers
         /// </summary>
         private bool CheckCritChance(WorldEntity target)
         {
+            if (PowerDamageMetricsLogger.IsDeterministic)
+                return false;
+
             // Skip power that can't crit
             if (PowerPrototype.CanCrit == false || PowerPrototype.Activation == PowerActivationType.Passive)
                 return false;
@@ -2884,6 +2888,9 @@ namespace MHServerEmu.Games.Powers
         /// </summary>
         private bool CheckSuperCritChance(WorldEntity target)
         {
+            if (PowerDamageMetricsLogger.IsDeterministic)
+                return false;
+
             // Override target level if needed
             int targetLevelOverride = -1;
             if (IsPlayerPayload && target.CanBePlayerOwned() == false)
@@ -2899,6 +2906,9 @@ namespace MHServerEmu.Games.Powers
         /// </summary>
         private bool CheckDodgeChance(WorldEntity target)
         {
+            if (PowerDamageMetricsLogger.IsDeterministic)
+                return false;
+
             PowerPrototype powerProto = PowerPrototype;
             if (!Verify.IsNotNull(powerProto)) return false;
 
@@ -2921,6 +2931,9 @@ namespace MHServerEmu.Games.Powers
         /// </summary>
         private bool CheckBlockChance(WorldEntity target)
         {
+            if (PowerDamageMetricsLogger.IsDeterministic)
+                return false;
+
             PowerPrototype powerProto = PowerPrototype;
             if (!Verify.IsNotNull(powerProto)) return false;
 
@@ -2981,7 +2994,7 @@ namespace MHServerEmu.Games.Powers
         private float CalculateOverTimeValue(PropertyCollection overTimeProperties, PropertyId baseProp, PropertyId varianceProp, PropertyId magnitudeProp, float bonus = 0f)
         {
             // Helper function for calculating over time values
-            float variance = overTimeProperties[varianceProp];
+            float variance = PowerDamageMetricsLogger.IsDeterministic ? 0f : overTimeProperties[varianceProp];
             float varianceMult = (1f - variance) + (variance * 2f * Game.Random.NextFloat());
             return (overTimeProperties[baseProp] + bonus) * varianceMult * overTimeProperties[magnitudeProp];
         }

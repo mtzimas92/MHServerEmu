@@ -10,5 +10,6 @@ namespace MHServerEmu.Games.GameData
         public bool EnableLiveTuningEvents { get; private set; } = true;
         public bool AutoRefreshLiveTuning { get; private set; } = true;
         public bool LoadLocaleFiles { get; private set; } = false;
+        public bool EnableOmegaTierItems { get; private set; } = true;
     }
 }

@@ -11,6 +11,7 @@ using MHServerEmu.Games.Behavior.StaticAI;
 using MHServerEmu.Games.Common;
 using MHServerEmu.Games.Entities;
 using MHServerEmu.Games.Entities.Avatars;
+using MHServerEmu.Games.MythicRifts;
 using MHServerEmu.Games.Powers;
 using MHServerEmu.Games.Properties;
 using MHServerEmu.Games.Regions;
@@ -143,10 +144,18 @@ namespace MHServerEmu.Games.GameData.Prototypes
             {
                 if (affixPower && agent.Properties.HasProperty(PropertyEnum.EnemyBoost))
                 {
-                    if (!Verify.IsNotNull(AffixSettings, $"Agent [{agent}] has enemy affix(es), but no AffixSettings data in its procedural profile!"))
-                        return StaticBehaviorReturnType.Failed;
-
-                    powerPicker.Add(null, AffixSettings.PickWeight);
+                    if (AffixSettings == null)
+                    {
+                        if (MythicRiftStandaloneBossFixups.AllowsMissingAffixSettingsFallback(agent) == false &&
+                            !Verify.IsNotNull(AffixSettings, $"Agent [{agent}] has enemy affix(es), but no AffixSettings data in its procedural profile!"))
+                        {
+                            return StaticBehaviorReturnType.Failed;
+                        }
+                    }
+                    else
+                    {
+                        powerPicker.Add(null, AffixSettings.PickWeight);
+                    }
                 }
 
                 while (powerPicker.Empty() == false)

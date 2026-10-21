@@ -49,6 +49,8 @@ namespace MHServerEmu.Games.Regions
         public PrototypeId ItemRarity { get; set; }
         public PropertyCollection Properties { get; private set; }
         public PrototypeId DangerRoomScenarioRef { get; set; }
+        public bool BypassQueueRegionForRift { get; set; }
+        public bool ForcePrivateRegion { get; set; }
 
         public Teleporter() { }     // Use pooling instead of this constructor
 
@@ -88,6 +90,8 @@ namespace MHServerEmu.Games.Regions
             }
 
             DangerRoomScenarioRef = default;
+            BypassQueueRegionForRift = default;
+            ForcePrivateRegion = default;
         }
 
         public void Initialize(Player player, TeleportContextEnum context)
@@ -209,13 +213,35 @@ namespace MHServerEmu.Games.Regions
                     case TeleportContextEnum.TeleportContext_Mission:
                     case TeleportContextEnum.TeleportContext_Power:
                     case TeleportContextEnum.TeleportContext_Resurrect:
+                    case TeleportContextEnum.TeleportContext_MetaGame:
                         DifficultyTierRef = region.DifficultyTierRef;
                         break;
                 }
             }
 
-            // Clamp target region's difficulty to the available range
-            DifficultyTierRef = Player.GetDifficultyTierForRegion(regionProtoRef, DifficultyTierRef);
+            // Clamp target region's difficulty to the available range. Rift/debug/transition teleports may
+            // intentionally request exact Tier4/Tier5 prototypes that share a base tier enum, so
+            // preserve those refs when the destination supports their enum bucket.
+            if ((BypassQueueRegionForRift ||
+                 Context == TeleportContextEnum.TeleportContext_Debug ||
+                 Context == TeleportContextEnum.TeleportContext_Transition) &&
+                DifficultyTierRef != PrototypeId.Invalid)
+            {
+                PrototypeId requestedDifficultyTierRef = DifficultyTierRef;
+                if (RegionPrototype.ConstrainDifficulty(regionProtoRef, requestedDifficultyTierRef) != PrototypeId.Invalid &&
+                    Player.CanChangeDifficulty(requestedDifficultyTierRef))
+                {
+                    DifficultyTierRef = requestedDifficultyTierRef;
+                }
+                else
+                {
+                    DifficultyTierRef = Player.GetDifficultyTierForRegion(regionProtoRef, requestedDifficultyTierRef);
+                }
+            }
+            else
+            {
+                DifficultyTierRef = Player.GetDifficultyTierForRegion(regionProtoRef, DifficultyTierRef);
+            }
 #endif
 
             if (IsLocalTeleport(region, destinationRegionProto))
@@ -232,7 +258,7 @@ namespace MHServerEmu.Games.Regions
                     return false;
 #endif
 
-                if (destinationRegionProto.IsQueueRegion)
+                if (destinationRegionProto.IsQueueRegion && BypassQueueRegionForRift == false)
                     return BeginTeleportToQueueTarget(regionProtoRef);
 
                 return TeleportToRemoteTarget(regionProtoRef, areaProtoRef, cellProtoRef, entityProtoRef);
@@ -526,6 +552,9 @@ namespace MHServerEmu.Games.Regions
                 .SetItemRarity((ulong)ItemRarity)
                 // propertyBuffer
                 .SetDangerRoomScenarioR((ulong)DangerRoomScenarioRef);
+
+            if (ForcePrivateRegion)
+                builder.SetCheat(true);
 
             if (AccessPortal != null)
                 builder.SetAccessPortal(AccessPortal);

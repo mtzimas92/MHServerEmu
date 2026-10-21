@@ -32,6 +32,7 @@ using MHServerEmu.Games.Loot;
 using MHServerEmu.Games.MetaGames;
 using MHServerEmu.Games.Missions;
 using MHServerEmu.Games.MTXStore;
+using MHServerEmu.Games.MythicRifts;
 using MHServerEmu.Games.Navi;
 using MHServerEmu.Games.Network;
 using MHServerEmu.Games.Populations;
@@ -132,6 +133,9 @@ namespace MHServerEmu.Games.Entities
 
         private uint _loginCount;
         private TimeSpan _loginRewardCooldownTimeStart;
+        private int _mythicRiftHighestUnlockedLevel = 1;
+        private MythicRiftPlayerProgress _mythicRiftProgress = new();
+        private OmegaContentRewardProgress _omegaContentRewardProgress = new();
 
         private TeleportData _teleportData;
         private SpawnGimbal _spawnGimbal;
@@ -188,6 +192,14 @@ namespace MHServerEmu.Games.Entities
         public long GazillioniteBalance { get => PlayerConnection.GazillioniteBalance; set => PlayerConnection.GazillioniteBalance = value; }
         public int PowerSpecIndexUnlocked { get => Properties[PropertyEnum.PowerSpecIndexUnlocked]; }
         public ulong TeamUpSynergyConditionId { get; set; }
+        public int MythicRiftHighestUnlockedLevel
+        {
+            get => Math.Max(_mythicRiftHighestUnlockedLevel, 1);
+            set => _mythicRiftHighestUnlockedLevel = Math.Max(value, 1);
+        }
+
+        public MythicRiftPlayerProgress MythicRiftProgress => _mythicRiftProgress;
+        public OmegaContentRewardProgress OmegaContentRewardProgress => _omegaContentRewardProgress;
 
         public override ulong PartyId { get => _partyId.Get(); }
         public bool IsInParty { get => PartyId != 0; }
@@ -483,6 +495,12 @@ namespace MHServerEmu.Games.Entities
                 // Login count
                 success &= Serializer.Transfer(archive, ref _loginCount);
                 success &= Serializer.Transfer(archive, ref _loginRewardCooldownTimeStart);
+                success &= Serializer.Transfer(archive, ref _mythicRiftHighestUnlockedLevel);
+                if (archive.IsPacking || archive.Version >= ArchiveVersion.AddedRiftAvatarProgress)
+                {
+                    success &= Serializer.Transfer(archive, _mythicRiftProgress);
+                    success &= Serializer.Transfer(archive, _omegaContentRewardProgress);
+                }
             }
 
             return success;
@@ -646,6 +664,14 @@ namespace MHServerEmu.Games.Entities
 
             Avatar avatar = CurrentAvatar;
             if (!Verify.IsNotNull(avatar)) return false;
+
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
+            if (RiftAccessTeleportService.CanEnterOmegaPatrol(this, regionProtoRef, difficultyTierProtoRef) == false)
+            {
+                SendBannerMessage(GameDatabase.UIGlobalsPrototype.MessageRegionRestricted);
+                return false;
+            }
+#endif
 
             if (regionProto.HasPvPMetaGame)
             {
@@ -1939,7 +1965,12 @@ namespace MHServerEmu.Games.Entities
             {
                 PrototypeId bodysliderRegionProtoRef = Properties[PropertyEnum.BodySliderRegionRef];
                 RegionPrototype regionProto = bodysliderRegionProtoRef.As<RegionPrototype>();
-                if (regionProto != null && regionProto.Behavior == RegionBehavior.PrivateStory)
+                bool removeBodysliderProperties = regionProto != null && regionProto.Behavior == RegionBehavior.PrivateStory;
+#if GAME_VERSION_1_52 || GAME_VERSION_1_53
+                PrototypeId bodysliderDifficultyRef = Properties[PropertyEnum.BodySliderDifficultyRef];
+                removeBodysliderProperties |= RiftAccessTeleportService.CanEnterOmegaPatrol(this, bodysliderRegionProtoRef, bodysliderDifficultyRef) == false;
+#endif
+                if (removeBodysliderProperties)
                     RemoveBodysliderProperties();
             }
 
@@ -2321,6 +2352,9 @@ namespace MHServerEmu.Games.Entities
 
             if (avatarToSwitchToProto.IsLiveTuningEnabled() == false)
                 return CanSwitchAvatarResult.NotAllowedUnknown;
+
+            if (RiftAccessTeleportService.CanUseAvatarInCurrentOmegaPatrol(this, avatarToSwitchTo) == false)
+                return CanSwitchAvatarResult.NotAllowedInRegion;
 
             // Do not check anything else if not requested
             if (ignoreGameplayRestrictions)
@@ -3913,6 +3947,7 @@ namespace MHServerEmu.Games.Entities
         public void SendStoryNotification(StoryNotificationPrototype storyNotification, PrototypeId missionRef = PrototypeId.Invalid)
         {
             if (storyNotification == null) return;
+            if (OmegaTrialService.ShouldSuppressNativeTrialMissionNotification(this, missionRef)) return;
 
             var message = NetMessageStoryNotification.CreateBuilder();
             message.SetDisplayTextStringId((ulong)storyNotification.DisplayText);
@@ -3950,6 +3985,7 @@ namespace MHServerEmu.Games.Entities
         public bool SendBannerMessage(BannerMessagePrototype bannerMessageProto)
         {
             if (!Verify.IsNotNull(bannerMessageProto)) return false;
+            if (OmegaTrialService.ShouldSuppressNativeTrialBannerMessage(this, bannerMessageProto)) return false;
 
             return SendBannerMessage(bannerMessageProto.BannerText, bannerMessageProto.TextStyle, bannerMessageProto.TimeToLiveMS,
                 bannerMessageProto.MessageStyle, bannerMessageProto.DoNotQueue, bannerMessageProto.ShowImmediately);
@@ -4780,6 +4816,12 @@ namespace MHServerEmu.Games.Entities
             // Request queue if we are teleporting to a player in a different region, and it is a match region.
             Player targetPlayer = Game.EntityManager.GetEntityByDbGuid<Player>(targetPlayerDbId);
             Region targetRegion = targetPlayer?.GetRegion();
+
+            if (RiftAccessTeleportService.CanEnterOmegaPatrol(this, targetRegion) == false)
+            {
+                SendBannerMessage(GameDatabase.UIGlobalsPrototype.MessageRegionRestricted);
+                return false;
+            }
 
             // We are guaranteed to have a current region here because we check above that our avatar is in the world.
             if (targetRegion == null || targetRegion.Id != GetRegion().Id)

@@ -82,6 +82,25 @@ namespace MHServerEmu.Games.UI
             player.SendMessage(message);
         }
 
+        public int RemoveDialogsFromClient(ulong playerGuid)
+        {
+            List<GameDialogInstance> dialogsToRemove = new();
+
+            foreach (GameDialogInstance dialog in _dialogs.Values)
+            {
+                if (dialog.PlayerGuid == playerGuid)
+                    dialogsToRemove.Add(dialog);
+            }
+
+            foreach (GameDialogInstance dialog in dialogsToRemove)
+            {
+                RemoveDialogFromClient(dialog);
+                _dialogs.Remove(dialog.ServerId);
+            }
+
+            return dialogsToRemove.Count;
+        }
+
         public GameDialogInstance CreateInstance(ulong playerGuid)
         {
             ulong serverId = _nextServerId++;

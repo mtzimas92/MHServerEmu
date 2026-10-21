@@ -1,0 +1,44 @@
+[
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/BlackCat/TrapSignatureDFAHit.prototype",
+    "Path": "EvalOnCreate[]",
+    "Description": "[TAHITI2] Black Cat Cat's Meow: +100% crit chance on the Trap Signature dive hit, one of the two powers in that chain that actually deals damage.",
+    "ValueType": "Prototype",
+    "Value": {
+      "ParentDataRef": 1429542141982412459,
+      "Op": "AssignProp",
+      "Prop": "CritChancePctAdd",
+      "Eval": {
+        "ParentDataRef": 5074715296837012907,
+        "Op": "LoadFloat",
+        "Value": 1.0
+      }
+    }
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/BlackCat/TrapSignatureTrapExplosionHit.prototype",
+    "Path": "EvalOnCreate[]",
+    "Description": "[TAHITI2] Black Cat Cat's Meow: +100% crit chance on the Trap Signature explosion hit, the other damage-dealing power in that chain.",
+    "ValueType": "Prototype",
+    "Value": {
+      "ParentDataRef": 1429542141982412459,
+      "Op": "AssignProp",
+      "Prop": "CritChancePctAdd",
+      "Eval": {
+        "ParentDataRef": 5074715296837012907,
+        "Op": "LoadFloat",
+        "Value": 1.0
+      }
+    }
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/BlackCat/Talents/TalentTrapsDontBreakStealth.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[0].Eval.Value",
+    "Description": "OpenCalligraphy export: EvalOnCreate[0].Eval.Value",
+    "ValueType": "Float",
+    "Value": 0.3
+  }
+]
