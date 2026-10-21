@@ -48,6 +48,8 @@ public sealed class AgeOfDoomGameMode : MetaGameMode
     private readonly EventPointer<TickEvent> _tickEvent = new();
     private readonly EventPointer<TimeoutEvent> _timeoutEvent = new();
     private readonly EventPointer<CinematicTimeoutEvent> _cinematicTimeoutEvent = new();
+    private readonly EventPointer<NativeLokiCleanupEvent> _nativeLokiCleanupEvent = new();
+    private readonly HashSet<ulong> _pendingNativeLokiBossIds = new();
     private RunState _run;
     public static bool IsEnabled => Tuning.Enabled;
     private bool IsPlayableInstance => IsPlayableRegion(Region);
@@ -191,13 +193,55 @@ public sealed class AgeOfDoomGameMode : MetaGameMode
             .ToArray();
 
         foreach (Agent nativeLoki in nativeLokiBosses)
-            nativeLoki.Destroy();
+        {
+            if (nativeLoki.IsInWorld)
+                nativeLoki.Destroy();
+            else
+                QueueNativeLokiBossCleanup(nativeLoki.Id);
+        }
     }
 
     private void OnEntityEnteredWorld(in EntityEnteredWorldGameEvent evt)
     {
         if (evt.Entity is Agent agent && NativeLokiBossRefs.Contains(agent.PrototypeDataRef))
-            agent.Destroy();
+            QueueNativeLokiBossCleanup(agent.Id);
+    }
+
+    private void QueueNativeLokiBossCleanup(ulong entityId)
+    {
+        _pendingNativeLokiBossIds.Add(entityId);
+        Schedule(_nativeLokiCleanupEvent, TimeSpan.Zero);
+    }
+
+    private void RemovePendingNativeLokiBosses()
+    {
+        if (_pendingNativeLokiBossIds.Count == 0)
+            return;
+
+        foreach (ulong entityId in _pendingNativeLokiBossIds.ToArray())
+        {
+            Agent nativeLoki = Game?.EntityManager?.GetEntity<Agent>(entityId);
+            if (nativeLoki == null || nativeLoki.IsDestroyed)
+            {
+                _pendingNativeLokiBossIds.Remove(entityId);
+                continue;
+            }
+
+            if (nativeLoki.IsInWorld && NativeLokiBossRefs.Contains(nativeLoki.PrototypeDataRef))
+            {
+                nativeLoki.Destroy();
+                _pendingNativeLokiBossIds.Remove(entityId);
+            }
+        }
+
+        if (_pendingNativeLokiBossIds.Count > 0)
+            Schedule(_nativeLokiCleanupEvent, TimeSpan.FromMilliseconds(1));
+    }
+
+    private void ScheduledNativeLokiCleanup()
+    {
+        _nativeLokiCleanupEvent.Set(null);
+        RemovePendingNativeLokiBosses();
     }
 
     private static void SuppressNativeLokiMissions(Player player, MissionManager missionManager)
@@ -246,6 +290,7 @@ public sealed class AgeOfDoomGameMode : MetaGameMode
         Region?.EntityEnteredWorldEvent.RemoveAction(_entityEnteredWorldAction);
         Region?.CinematicFinishedEvent.RemoveAction(_cinematicFinishedAction);
         Game?.GameEventScheduler?.CancelAllEvents(_pendingEvents);
+        _pendingNativeLokiBossIds.Clear();
     }
 
     public override void OnDestroy()
@@ -253,6 +298,7 @@ public sealed class AgeOfDoomGameMode : MetaGameMode
         Region?.EntityDeadEvent.RemoveAction(_entityDeadAction);
         Region?.EntityEnteredWorldEvent.RemoveAction(_entityEnteredWorldAction);
         Region?.CinematicFinishedEvent.RemoveAction(_cinematicFinishedAction);
+        _pendingNativeLokiBossIds.Clear();
         Runs.Remove((Game.Id, MetaGame.Id));
         base.OnDestroy();
     }
@@ -864,5 +910,10 @@ public sealed class AgeOfDoomGameMode : MetaGameMode
     public sealed class CinematicTimeoutEvent : CallMethodEvent<AgeOfDoomGameMode>
     {
         protected override CallbackDelegate GetCallback() => mode => mode.ScheduledCinematicTimeout();
+    }
+
+    public sealed class NativeLokiCleanupEvent : CallMethodEvent<AgeOfDoomGameMode>
+    {
+        protected override CallbackDelegate GetCallback() => mode => mode.ScheduledNativeLokiCleanup();
     }
 }
