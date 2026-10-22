@@ -23,7 +23,7 @@
           "itemPrototype": "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot5/Unique304.prototype",
           "itemRarityPrototype": "Entity/Items/Rarity/R6Unique.prototype",
           "quantity": 1,
-          "chancePercent": 100,
+          "chancePercent": 2,
           "itemLevel": 69
         },
         {
@@ -32,7 +32,7 @@
           "itemPrototype": "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot4/Unique298.prototype",
           "itemRarityPrototype": "Entity/Items/Rarity/R6Unique.prototype",
           "quantity": 1,
-          "chancePercent": 100,
+          "chancePercent": 2,
           "itemLevel": 69
         },
         {
@@ -41,7 +41,7 @@
           "itemPrototype": "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot2/Unique294.prototype",
           "itemRarityPrototype": "Entity/Items/Rarity/R6Unique.prototype",
           "quantity": 1,
-          "chancePercent": 100,
+          "chancePercent": 2,
           "itemLevel": 69
         }
       ]

@@ -58,7 +58,6 @@ namespace MHServerEmu.Games.Entities.Items
 
         private ItemSpec _itemSpec = new();
         private List<AffixPropertiesCopyEntry> _affixProperties = new();
-        private bool _traceOmegaUnique294;
 
         private ulong _tickerId;
 
@@ -958,9 +957,6 @@ namespace MHServerEmu.Games.Entities.Items
             if (!Verify.IsTrue(itemSpec.IsValid, $"Invalid ItemSpec on Item {this}!"))
                 return false;
 
-#if GAME_VERSION_1_52 || GAME_VERSION_1_53
-            _traceOmegaUnique294 = false;
-#endif
             _itemSpec.Set(itemSpec);
 
             ItemPrototype itemProto = ItemPrototype;
@@ -1028,7 +1024,6 @@ namespace MHServerEmu.Games.Entities.Items
 
 #if GAME_VERSION_1_52 || GAME_VERSION_1_53
             ApplyOmegaTierRuntimeAffixReplacements(random);
-            TraceOmegaUnique294("finalized");
 #endif
 
             // Pick triggered power
@@ -1080,10 +1075,6 @@ namespace MHServerEmu.Games.Entities.Items
                 if (itemOverride?.Matches(_itemSpec.ItemProtoRef, _itemSpec.RarityProtoRef) != true)
                     continue;
 
-                _traceOmegaUnique294 = string.Equals(itemOverride.Id, "unique294-fire-giant-aegis", StringComparison.Ordinal);
-                if (_traceOmegaUnique294)
-                    TraceOmegaUnique294("before-built-in-clear");
-
                 if (OmegaTierItemFactory.HasConfiguredBuiltInPropertyPrototypeOverride(_itemSpec.ItemProtoRef, _itemSpec.RarityProtoRef))
                     continue;
 
@@ -1093,9 +1084,6 @@ namespace MHServerEmu.Games.Entities.Items
 
                 RemoveBuiltInPropertyValues(ItemPrototype.PropertiesBuiltIn, itemOverride);
                 changed = true;
-
-                if (_traceOmegaUnique294)
-                    TraceOmegaUnique294("after-built-in-clear");
 
                 if (itemOverride.ReplaceBuiltInPropertiesFromTemplate == false)
                     continue;
@@ -1131,49 +1119,6 @@ namespace MHServerEmu.Games.Entities.Items
             }
 
             return changed;
-        }
-
-        private void TraceOmegaUnique294(string stage)
-        {
-            if (_traceOmegaUnique294 == false || ItemPrototype == null || _itemSpec == null)
-                return;
-
-            StringBuilder builtIns = new();
-            PropertyEntryPrototype[] propertyEntries = ItemPrototype.PropertiesBuiltIn;
-            if (propertyEntries.HasValue())
-            {
-                for (int i = 0; i < propertyEntries.Length; i++)
-                {
-                    PropertyId propertyId = GetBuiltInPropertyId(propertyEntries[i]);
-                    if (builtIns.Length > 0)
-                        builtIns.Append(',');
-
-                    if (propertyId == PropertyId.Invalid)
-                    {
-                        builtIns.Append($"{i}:unresolved");
-                        continue;
-                    }
-
-                    bool present = Properties.HasProperty(propertyId);
-                    builtIns.Append($"{i}:{propertyId.Enum}:present={present}");
-                    if (present)
-                    {
-                        PropertyInfo propertyInfo = GameDatabase.PropertyInfoTable.LookupPropertyInfo(propertyId.Enum);
-                        if (propertyInfo != null)
-                            builtIns.Append($":value={Properties[propertyId].Print(propertyInfo.DataType)}");
-                    }
-                }
-            }
-
-            StringBuilder affixes = new();
-            foreach (AffixPropertiesCopyEntry affixEntry in _affixProperties)
-            {
-                if (affixes.Length > 0)
-                    affixes.Append(',');
-                affixes.Append(affixEntry.AffixProto?.DataRef.GetNameFormatted() ?? "unresolved");
-            }
-
-            Logger.Info($"[OmegaUnique294Trace] stage={stage} entityId=0x{Id:X} item={_itemSpec.ItemProtoRef.GetNameFormatted()} rarity={_itemSpec.RarityProtoRef.GetNameFormatted()} itemLevel={_itemSpec.ItemLevel} seed={_itemSpec.Seed} configuredPrototypeOverride={OmegaTierItemFactory.HasConfiguredBuiltInPropertyPrototypeOverride(_itemSpec.ItemProtoRef, _itemSpec.RarityProtoRef)} builtIns=[{builtIns}] affixes=[{affixes}]");
         }
 
         private void RemoveBuiltInPropertyValues(PropertyEntryPrototype[] propertyEntries, OmegaTierItemOverrideTuning itemOverride)
