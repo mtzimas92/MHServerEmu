@@ -52,19 +52,25 @@ namespace MHServerEmu.Games.MythicRifts
         public string Id { get; set; }
         public bool Enabled { get; set; } = true;
         public string CompletionMission { get; set; }
+        public string CompletionEntity { get; set; }
         public string RequiredDifficulty { get; set; } = "Difficulty/Tiers/Tier5Omega1.prototype";
         public List<OmegaContentRewardEntryTuning> Rewards { get; set; } = new();
         [JsonIgnore] public PrototypeId CompletionMissionRef { get; private set; }
+        [JsonIgnore] public PrototypeId CompletionEntityRef { get; private set; }
         [JsonIgnore] public PrototypeId RequiredDifficultyRef { get; private set; }
 
         public void Normalize()
         {
             Id = string.IsNullOrWhiteSpace(Id) ? CompletionMission?.Trim() : Id.Trim();
             CompletionMission = CompletionMission?.Trim();
+            CompletionEntity = CompletionEntity?.Trim();
             RequiredDifficulty = RequiredDifficulty?.Trim();
             CompletionMissionRef = string.IsNullOrWhiteSpace(CompletionMission)
                 ? PrototypeId.Invalid
                 : GameDatabase.GetPrototypeRefByName(CompletionMission);
+            CompletionEntityRef = string.IsNullOrWhiteSpace(CompletionEntity)
+                ? PrototypeId.Invalid
+                : GameDatabase.GetPrototypeRefByName(CompletionEntity);
             RequiredDifficultyRef = string.IsNullOrWhiteSpace(RequiredDifficulty)
                 ? PrototypeId.Invalid
                 : GameDatabase.GetPrototypeRefByName(RequiredDifficulty);

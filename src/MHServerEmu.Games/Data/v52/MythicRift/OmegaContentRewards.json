@@ -5,6 +5,7 @@
       "id": "omega-muspelheim",
       "enabled": true,
       "completionMission": "Missions/Prototypes/Raids/Surtur/RaidSurturFinalPhase.prototype",
+      "completionEntity": "Entity/Characters/Bosses/SurturRaid/SurturBoss.prototype",
       "requiredDifficulty": "Difficulty/Tiers/Tier5Omega1.prototype",
       "rewards": [
         {

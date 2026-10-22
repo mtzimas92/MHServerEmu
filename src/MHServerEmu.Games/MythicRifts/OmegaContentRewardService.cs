@@ -64,6 +64,14 @@ namespace MHServerEmu.Games.MythicRifts
 
             foreach (OmegaContentActivityTuning activity in tuning.GetActivities(mission.PrototypeDataRef))
             {
+                PrototypeId completionEntityRef = activity.CompletionEntityRef;
+                if (completionEntityRef != PrototypeId.Invalid &&
+                    GameDatabase.DataDirectory.PrototypeIsAPrototype(entity.PrototypeDataRef, completionEntityRef) == false)
+                {
+                    Logger.Info($"[OmegaRaidRewardTrace] stage=entity-trigger-skipped activity={activity.Id} mission={mission.PrototypeDataRef.GetNameFormatted()} entity={entity.PrototypeDataRef.GetNameFormatted()} requiredEntity={completionEntityRef.GetNameFormatted()} reason=not-completion-entity");
+                    continue;
+                }
+
                 using var recipientsHandle = HashSetPool<Player>.Get(out HashSet<Player> recipients);
                 using var playersHandle = ListPool<Player>.Get(out List<Player> players);
 
