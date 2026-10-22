@@ -4031,7 +4031,7 @@ namespace MHServerEmu.Games.Entities
             bool updateContext = false;
 
             Party party = GetParty();
-            if (party != null && party.Type == GroupType.GroupType_Party && avatars.Count > 0)
+            if (party != null && avatars.Count > 0)
             {
                 using var newFiltersHandle = ListPool<PrototypeId>.Get(out List<PrototypeId> newFilters);
 

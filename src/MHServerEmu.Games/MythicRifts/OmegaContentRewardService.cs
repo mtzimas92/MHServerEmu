@@ -68,17 +68,38 @@ namespace MHServerEmu.Games.MythicRifts
                 if (killer != null)
                     recipients.Add(killer);
 
+                Player raidAnchor = killer;
+                if (raidAnchor == null)
+                    foreach (Player recipient in recipients)
+                    {
+                        raidAnchor = recipient;
+                        break;
+                    }
+
+                var raid = raidAnchor?.GetParty();
+                if (raid?.Type == Gazillion.GroupType.GroupType_Raid)
+                {
+                    foreach (var member in raid)
+                    {
+                        Player raidMember = mission.Game.EntityManager.GetEntityByDbGuid<Player>(member.Key);
+                        if (raidMember != null)
+                            recipients.Add(raidMember);
+                    }
+                }
+
                 foreach (Player player in recipients)
                 {
-                    if (player?.CurrentAvatar == null || player.CurrentAvatar.Region != entity.Region)
+                    var avatar = player?.CurrentAvatar;
+                    if (avatar?.Region == null)
                         continue;
 
                     PrototypeId difficultyRef = activity.RequiredDifficultyRef;
-                    if (difficultyRef != PrototypeId.Invalid && player.CurrentAvatar.Region.DifficultyTierRef != difficultyRef)
+                    if (difficultyRef != PrototypeId.Invalid && avatar.Region.DifficultyTierRef != difficultyRef)
                         continue;
 
                     RecordDeathGrant(player.DatabaseUniqueId, mission.PrototypeDataRef);
-                    GrantActivityRewards(player, activity, entity);
+                    WorldEntity rewardSource = avatar.Region == entity.Region ? entity : avatar;
+                    GrantActivityRewards(player, activity, rewardSource);
                 }
 
                 return;
