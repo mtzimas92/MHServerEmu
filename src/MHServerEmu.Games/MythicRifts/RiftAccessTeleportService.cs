@@ -78,7 +78,7 @@ namespace MHServerEmu.Games.MythicRifts
             {
                 if (response.ButtonIndex == GameDialogResultEnum.eGDR_Option1)
                 {
-                    TeleportDialogPlayerToTarget(game, playerGuid, "Regions/RAIDS/AxisRaid/ConnectionNodes/AxisRaidEntryTarget.prototype", Tier3SuperheroicRef);
+                    TeleportDialogPlayerToTarget(game, playerGuid, "Regions/RAIDS/AxisRaid/ConnectionNodes/AxisRaidEntryTargetGreen.prototype", Tier3SuperheroicRef);
                     return;
                 }
 
