@@ -17,6 +17,7 @@ namespace MHServerEmu.Games.MythicRifts
     {
         private static readonly Logger Logger = LogManager.CreateLogger();
         private const ulong ChampionCommendationItemPrototypeId = 2852929430040615658;
+        private const ulong ProtectorCommendationItemPrototypeId = 810646464305634596;
         private const int WeeklyChampionCommendationCap = 350;
         private const string WeeklyChampionCommendationClaimId = "mythic-rift:account:champion-commendations-total";
         private static readonly ConcurrentDictionary<(ulong PlayerDbId, PrototypeId MissionRef), long> RecentDeathGrants = new();
@@ -35,12 +36,17 @@ namespace MHServerEmu.Games.MythicRifts
 
             foreach (OmegaContentActivityTuning activity in tuning.GetActivities(evt.MissionRef))
             {
+                Logger.Info($"[OmegaRaidRewardTrace] stage=mission-complete activity={activity.Id} playerDbId=0x{player.DatabaseUniqueId:X} participant={evt.Participant} contributor={evt.Contributor} region={player.CurrentAvatar.Region?.PrototypeDataRef.GetNameFormatted() ?? "none"} difficulty={player.CurrentAvatar.Region?.DifficultyTierRef.GetNameFormatted() ?? "none"}");
+
                 PrototypeId difficultyRef = activity.RequiredDifficultyRef;
                 if (difficultyRef != PrototypeId.Invalid && player.CurrentAvatar.Region?.DifficultyTierRef != difficultyRef)
                     return;
 
                 if (WasRecentlyGrantedFromEntityDeath(player.DatabaseUniqueId, evt.MissionRef))
+                {
+                    Logger.Info($"[OmegaRaidRewardTrace] stage=mission-complete-skipped activity={activity.Id} playerDbId=0x{player.DatabaseUniqueId:X} reason=recent-entity-death-grant");
                     return;
+                }
 
                 GrantActivityRewards(player, activity);
                 return;
@@ -68,34 +74,56 @@ namespace MHServerEmu.Games.MythicRifts
                 if (killer != null)
                     recipients.Add(killer);
 
-                Player raidAnchor = killer;
-                if (raidAnchor == null)
+                Player groupAnchor = killer;
+                if (groupAnchor == null)
                     foreach (Player recipient in recipients)
                     {
-                        raidAnchor = recipient;
+                        groupAnchor = recipient;
                         break;
                     }
 
-                var raid = raidAnchor?.GetParty();
-                if (raid?.Type == Gazillion.GroupType.GroupType_Raid)
+                var group = groupAnchor?.GetParty();
+                using var groupMemberIdsHandle = ListPool<ulong>.Get(out List<ulong> groupMemberIds);
+                using var unresolvedMemberIdsHandle = ListPool<ulong>.Get(out List<ulong> unresolvedMemberIds);
+                if (group != null)
                 {
-                    foreach (var member in raid)
+                    foreach (var member in group)
                     {
+                        groupMemberIds.Add(member.Key);
                         Player raidMember = mission.Game.EntityManager.GetEntityByDbGuid<Player>(member.Key);
                         if (raidMember != null)
                             recipients.Add(raidMember);
+                        else
+                            unresolvedMemberIds.Add(member.Key);
+                    }
+
+                    // Raid portals can divide members between regions while they remain in the
+                    // same game and group. Resolve from the live game roster as a fallback in
+                    // case this region's party snapshot is incomplete.
+                    foreach (Player gamePlayer in new PlayerIterator(mission.Game))
+                    {
+                        if (gamePlayer?.GetParty()?.PartyId == group.PartyId)
+                            recipients.Add(gamePlayer);
                     }
                 }
+
+                Logger.Info($"[OmegaRaidRewardTrace] stage=recipients activity={activity.Id} mission={mission.PrototypeDataRef.GetNameFormatted()} gameId=0x{mission.Game.Id:X} entity={entity.PrototypeDataRef.GetNameFormatted()} entityRegion={entity.Region?.PrototypeDataRef.GetNameFormatted() ?? "none"} killerDbId=0x{killer?.DatabaseUniqueId ?? 0:X} groupId=0x{group?.PartyId ?? 0:X} groupType={group?.Type.ToString() ?? "none"} groupMembers=[{string.Join(',', groupMemberIds.Select(id => $"0x{id:X}"))}] unresolvedMembers=[{string.Join(',', unresolvedMemberIds.Select(id => $"0x{id:X}"))}] recipients=[{string.Join(',', recipients.Select(player => $"0x{player.DatabaseUniqueId:X}:{player.CurrentAvatar?.Region?.PrototypeDataRef.GetNameFormatted() ?? "none"}"))}]");
 
                 foreach (Player player in recipients)
                 {
                     var avatar = player?.CurrentAvatar;
                     if (avatar?.Region == null)
+                    {
+                        Logger.Info($"[OmegaRaidRewardTrace] stage=skipped activity={activity.Id} playerDbId=0x{player?.DatabaseUniqueId ?? 0:X} reason=no-avatar-region");
                         continue;
+                    }
 
                     PrototypeId difficultyRef = activity.RequiredDifficultyRef;
                     if (difficultyRef != PrototypeId.Invalid && avatar.Region.DifficultyTierRef != difficultyRef)
+                    {
+                        Logger.Info($"[OmegaRaidRewardTrace] stage=skipped activity={activity.Id} playerDbId=0x{player.DatabaseUniqueId:X} reason=difficulty actual={avatar.Region.DifficultyTierRef.GetNameFormatted()} required={difficultyRef.GetNameFormatted()} region={avatar.Region.PrototypeDataRef.GetNameFormatted()}");
                         continue;
+                    }
 
                     RecordDeathGrant(player.DatabaseUniqueId, mission.PrototypeDataRef);
                     WorldEntity rewardSource = avatar.Region == entity.Region ? entity : avatar;
@@ -137,7 +165,10 @@ namespace MHServerEmu.Games.MythicRifts
                     continue;
                 float chanceRoll = player.Game.Random.NextFloat() * 100f;
                 if (chanceRoll >= reward.ChancePercent)
+                {
+                    Logger.Info($"[OmegaRaidRewardTrace] stage=reward-roll activity={activity.Id} playerDbId=0x{player.DatabaseUniqueId:X} reward={reward.Id} roll={chanceRoll:F2} chance={reward.ChancePercent:F2} result=miss");
                     continue;
+                }
 
                 long periodMarker = GetPeriodMarker(reward.Period);
                 int quantity = reward.Quantity;
@@ -146,7 +177,10 @@ namespace MHServerEmu.Games.MythicRifts
                     int claimed = player.OmegaContentRewardProgress.GetClaimedAmount(reward.Id, periodMarker);
                     quantity = Math.Min(quantity, Math.Max(reward.PeriodLimit - claimed, 0));
                     if (quantity <= 0)
+                    {
+                        Logger.Info($"[OmegaRaidRewardTrace] stage=reward-skipped activity={activity.Id} playerDbId=0x{player.DatabaseUniqueId:X} reward={reward.Id} reason=period-limit claimed={claimed} limit={reward.PeriodLimit} periodMarker={periodMarker}");
                         continue;
+                    }
                 }
 
                 PrototypeId itemRef = reward.ItemPrototypeRef;
@@ -163,14 +197,27 @@ namespace MHServerEmu.Games.MythicRifts
                     int weeklyClaimed = player.OmegaContentRewardProgress.GetClaimedAmount(WeeklyChampionCommendationClaimId, championPeriodMarker);
                     quantity = Math.Min(quantity, Math.Max(WeeklyChampionCommendationCap - weeklyClaimed, 0));
                     if (quantity <= 0)
+                    {
+                        Logger.Info($"[OmegaRaidRewardTrace] stage=reward-skipped activity={activity.Id} playerDbId=0x{player.DatabaseUniqueId:X} reward={reward.Id} reason=champion-cap claimed={weeklyClaimed} limit={WeeklyChampionCommendationCap} periodMarker={championPeriodMarker}");
                         continue;
+                    }
                 }
 
-                if (GiveStackedItem(player, itemRef, reward.ItemRarityPrototypeRef, quantity, reward.ItemLevel, rewardSource) == false)
+                WorldEntity deliverySource = rewardSource;
+                if (string.Equals(activity.Id, "cosmic-axis", StringComparison.OrdinalIgnoreCase) &&
+                    (itemRef == (PrototypeId)ChampionCommendationItemPrototypeId ||
+                     itemRef == (PrototypeId)ProtectorCommendationItemPrototypeId))
+                {
+                    deliverySource = player.CurrentAvatar;
+                }
+
+                if (GiveStackedItem(player, itemRef, reward.ItemRarityPrototypeRef, quantity, reward.ItemLevel, deliverySource) == false)
                 {
                     Logger.Warn($"Failed to deliver Omega content reward: playerDbId=0x{player.DatabaseUniqueId:X} activity={activity.Id} reward={reward.Id} item={itemRef.GetNameFormatted()} quantity={quantity} itemLevel={reward.ItemLevel}");
                     continue;
                 }
+
+                Logger.Info($"[OmegaRaidRewardTrace] stage=reward-delivered activity={activity.Id} playerDbId=0x{player.DatabaseUniqueId:X} reward={reward.Id} item={itemRef.GetNameFormatted()} quantity={quantity} itemLevel={reward.ItemLevel} roll={chanceRoll:F2} chance={reward.ChancePercent:F2} source={(deliverySource == player.CurrentAvatar ? "player" : "encounter")}");
 
                 if (reward.PeriodLimit > 0)
                     player.OmegaContentRewardProgress.AddClaimedAmount(reward.Id, periodMarker, quantity);
