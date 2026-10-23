@@ -2161,6 +2161,9 @@ namespace MHServerEmu.Games.MythicRifts
                 if (itemSpec == null)
                     continue;
 
+                if (guaranteedItem.RequireAffixes && itemSpec.AffixSpecs.Count == 0)
+                    continue;
+
                 if (RewardItemSpecMatchesAllowedEquipmentSlots(itemSpec, player, allowedEquipmentSlots) == false)
                     continue;
 
@@ -5565,6 +5568,7 @@ namespace MHServerEmu.Games.MythicRifts
                                     CandidateItemProtoRefs = candidates,
                                     CandidateAllowedEquipmentSlots = allowedEquipmentSlots,
                                     CandidateRequestedEquipmentSlot = slot,
+                                    RequireAffixes = entry.RequireAffixes,
                                     Quantity = 1,
                                     ItemLevel = entry.ItemLevel,
                                     RarityProtoRef = rarityProtoRef,
@@ -5586,6 +5590,7 @@ namespace MHServerEmu.Games.MythicRifts
                             ItemProtoRef = PrototypeId.Invalid,
                             CandidateItemProtoRefs = candidates,
                             CandidateAllowedEquipmentSlots = allowedEquipmentSlots,
+                            RequireAffixes = entry.RequireAffixes,
                             Quantity = 1,
                             ItemLevel = entry.ItemLevel,
                             RarityProtoRef = rarityProtoRef,
@@ -5710,7 +5715,7 @@ namespace MHServerEmu.Games.MythicRifts
             if (entry == null || string.IsNullOrWhiteSpace(entry.PrototypeDirectoryPrefix))
                 return false;
 
-            return allowedEquipmentSlots.Count > 0;
+            return entry.RequireAffixes || allowedEquipmentSlots.Count > 0;
         }
 
         private IReadOnlyList<PrototypeId> ResolveRewardItemPool(MythicRiftRandomItemPoolTuning entry)

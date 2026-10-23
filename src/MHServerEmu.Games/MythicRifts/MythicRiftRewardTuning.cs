@@ -598,6 +598,7 @@ namespace MHServerEmu.Games.MythicRifts
         public List<string> ItemRarityPrototypes { get; set; } = new();
         public List<string> AllowedEquipmentSlots { get; set; } = new();
         public bool RollEachAllowedEquipmentSlot { get; set; }
+        public bool RequireAffixes { get; set; }
         public float ChancePercent { get; set; } = 100f;
         public int Rolls { get; set; } = 1;
         public int ItemLevel { get; set; } = 1;

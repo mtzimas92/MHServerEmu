@@ -19,5 +19,6 @@ namespace MHServerEmu.Games.MythicRifts
         public IReadOnlyList<PrototypeId> CandidateItemProtoRefs { get; init; }
         public IReadOnlyList<EquipmentInvUISlot> CandidateAllowedEquipmentSlots { get; init; }
         public EquipmentInvUISlot CandidateRequestedEquipmentSlot { get; init; } = EquipmentInvUISlot.Invalid;
+        public bool RequireAffixes { get; init; }
     }
 }
