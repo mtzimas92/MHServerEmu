@@ -558,7 +558,13 @@ namespace MHServerEmu.Games.Regions
              do
              {
                  found = false;*/
-            foreach (var entity in Entities)
+            // Destroying an entity may remove it from EntityManager immediately. Snapshot the
+            // region contents so shutdown never invalidates the live dictionary enumerator.
+            using var shutdownEntitiesHandle = ListPool<Entity>.Get(out List<Entity> shutdownEntities);
+            foreach (Entity entity in Entities)
+                shutdownEntities.Add(entity);
+
+            foreach (Entity entity in shutdownEntities)
             {
                 if (entity is WorldEntity worldEntity)
                 {
