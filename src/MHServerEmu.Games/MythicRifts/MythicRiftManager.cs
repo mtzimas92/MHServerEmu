@@ -3415,6 +3415,8 @@ namespace MHServerEmu.Games.MythicRifts
 
             if (entity is not Agent agent || agent is Avatar || agent.IsTeamUpAgent || agent.IsDestroyProtectedEntity || agent.IsVendor)
                 return false;
+            if (agent.Prototype is OrbPrototype)
+                return false;
             if (runState.IsTrackedBoss(agent.Id) || runState.CustomPopulationEntityIds.Contains(agent.Id) || agent.GetOwnerOfType<Player>() != null)
                 return false;
             return agent.IsHostileToPlayers() || agent.WorldEntityPrototype?.MissionEntityDeathCredit == true;
@@ -8269,6 +8271,12 @@ namespace MHServerEmu.Games.MythicRifts
 
             if (worldEntity is Agent agent)
             {
+                // Pickup orbs are transient player rewards/resources, not residual enemies.
+                // Destroying them at a gauntlet checkpoint can also leave their owning
+                // hero's orb-related conditions out of sync during the next transfer.
+                if (agent.Prototype is OrbPrototype)
+                    return false;
+
                 if (agent.IsTeamUpAgent || agent.GetOwnerOfType<Player>() != null)
                     return false;
 
