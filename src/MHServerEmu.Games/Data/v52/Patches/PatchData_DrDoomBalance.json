@@ -9,14 +9,6 @@
   },
   {
     "Enabled": true,
-    "Prototype": "Powers/Player/DrDoom/ChanneledBeam.prototype",
-    "Path": "ChannelLoopTimeMS.Value",
-    "Description": "Channeled Torment: set Channeled Beam channel loop duration to 3 seconds.",
-    "ValueType": "Integer",
-    "Value": 2300
-  },
-  {
-    "Enabled": true,
     "Prototype": "Powers/Player/DrDoom/ConcussiveBlasts.prototype",
     "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[0].Eval.Value",
     "Description": "Vulnerable to Tech from 20 to 30%",

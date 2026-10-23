@@ -9,11 +9,23 @@
   },
   {
     "Enabled": true,
-    "Prototype": "Powers/Player/Colossus/GroundStompCooldown.prototype",
-    "Path": "CooldownTimeMS.Value",
-    "Description": "Seismic Stomp: reduce Demolition Stomp's mapped cooldown from 8s to 6s.",
-    "ValueType": "Integer",
-    "Value": 6000
+    "Prototype": "Powers/Player/Colossus/Talents/Talent3GroundStompFissureLayers.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[]",
+    "Description": "Seismic Stomp: replicate a two-second cooldown reduction for the mapped Demolition Stomp power so both server and client resolve six seconds.",
+    "ValueType": "Prototype",
+    "Value": {
+      "ParentDataRef": "Eval/Properties/AssignProp.defaults",
+      "Op": "AssignProp",
+      "Prop": {
+        "ParentDataRef": "Property/Mixin/CooldownModifierMSForPowerProp.defaults",
+        "Param0": "Powers/Player/Colossus/GroundStompCooldown.prototype"
+      },
+      "Eval": {
+        "ParentDataRef": "Eval/Constants/LoadFloat.defaults",
+        "Op": "LoadFloat",
+        "Value": -2000
+      }
+    }
   },
   {
     "Enabled": true,
@@ -290,5 +302,21 @@
       },
       "PowerEvent": "OnPowerEnd"
     }
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Colossus/GroupTauntCooldown.prototype",
+    "Path": "PowerCategory",
+    "Description": "Classify the triggered Group Taunt cooldown helper as a combo effect so repeated Metal Regeneration activations can assign and release it safely.",
+    "ValueType": "Enum",
+    "Value": "ComboEffect"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/Colossus/GroupTauntTalentBuff.prototype",
+    "Path": "PowerCategory",
+    "Description": "Classify the triggered Group Taunt talent buff helper as a combo effect so repeated Metal Regeneration activations can assign and release it safely.",
+    "ValueType": "Enum",
+    "Value": "ComboEffect"
   }
 ]

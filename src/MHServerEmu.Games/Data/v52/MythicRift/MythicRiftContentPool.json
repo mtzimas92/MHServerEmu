@@ -519,33 +519,6 @@
       "randomBossEligible": false
     },
     {
-      "id": "midtown-patrol",
-      "displayName": "Midtown Manhattan Patrol",
-      "defaultKillQuota": 75,
-      "regionPrototypeName": "Regions/EndGame/TierX/PatrolMidtown/AltRegions/XManhattanRegion60Cosmic.prototype",
-      "randomMapEligible": false,
-      "randomBossEligible": false,
-      "useCustomPopulation": true
-    },
-    {
-      "id": "brooklyn-patrol",
-      "displayName": "Industry City Patrol",
-      "defaultKillQuota": 75,
-      "regionPrototypeName": "Regions/EndGame/TierX/PatrolBrooklyn/AltRegions/BrooklynPatrolRegionL60Cosmic.prototype",
-      "randomMapEligible": false,
-      "randomBossEligible": false,
-      "useCustomPopulation": true
-    },
-    {
-      "id": "hightown-patrol",
-      "displayName": "Hightown Patrol",
-      "defaultKillQuota": 75,
-      "regionPrototypeName": "Regions/EndGame/TierX/PatrolHightown/AltRegions/UpperMadripoorRegionL60Cosmic.prototype",
-      "randomMapEligible": false,
-      "randomBossEligible": false,
-      "useCustomPopulation": true
-    },
-    {
       "id": "savage-land-patrol",
       "displayName": "Savage Land Patrol",
       "defaultKillQuota": 75,

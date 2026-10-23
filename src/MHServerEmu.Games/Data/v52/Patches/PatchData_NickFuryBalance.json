@@ -9,6 +9,44 @@
   },
   {
     "Enabled": true,
+    "Prototype": "Powers/Player/NickFury/Traits/DefaultAmmoBelow25Pct.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[0].Prop",
+    "Description": "Fresh Clips: end the low-ammo cooldown modifier after ammo rises back above 50%.",
+    "ValueType": "PropertyId",
+    "Value": {
+      "Property": "Proc",
+      "Params": [
+        14,
+        "Powers/Player/NickFury/Traits/DefaultAmmoBelow25PctEnd.prototype",
+        50
+      ]
+    }
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/NickFury/Traits/DefaultAmmoRegenTrigger.prototype",
+    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[1].Prop",
+    "Description": "Fresh Clips: activate the low-ammo cooldown modifier when ammo falls below 50%, retaining the native one-point hysteresis.",
+    "ValueType": "PropertyId",
+    "Value": {
+      "Property": "Proc",
+      "Params": [
+        15,
+        "Powers/Player/NickFury/Traits/DefaultAmmoBelow25Pct.prototype",
+        51
+      ]
+    }
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/Player/NickFury/Reload.prototype",
+    "Path": "EvalOnActivate[0].Eval.Conditional.Arg2.Value",
+    "Description": "Fresh Clips: align Reload's condition cleanup threshold with the patched 50% ammo threshold.",
+    "ValueType": "Float",
+    "Value": 0.5
+  },
+  {
+    "Enabled": true,
     "Prototype": "Powers/Player/NickFury/Reload.prototype",
     "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate[0].Eval.Value",
     "Description": "OpenCalligraphy export: EvalOnCreate[0].Eval.Value",
