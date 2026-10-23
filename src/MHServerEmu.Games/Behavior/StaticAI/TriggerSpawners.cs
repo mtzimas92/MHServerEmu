@@ -3,11 +3,14 @@ using MHServerEmu.Games.GameData;
 using MHServerEmu.Games.Entities;
 using MHServerEmu.Core.Extensions;
 using MHServerEmu.Core.Collisions;
+using MHServerEmu.Core.Logging;
 
 namespace MHServerEmu.Games.Behavior.StaticAI
 {
     public class TriggerSpawners : IAIState
     {
+        private static readonly Logger Logger = LogManager.CreateLogger();
+
         public static TriggerSpawners Instance { get; } = new();
         private TriggerSpawners() { }
 
@@ -43,6 +46,15 @@ namespace MHServerEmu.Games.Behavior.StaticAI
                 
                 if (addSpawner)
                     spawners.Add(spawner);
+            }
+
+            bool traceDoomTransition = agent.PrototypeDataRef.GetName().Contains("DrDoomPhase2", StringComparison.Ordinal);
+            if (traceDoomTransition)
+            {
+                Logger.Info(
+                    $"[DoomPhaseTrace] stage=trigger-spawners owner={agent} region={region} " +
+                    $"searchWholeRegion={triggerSpawnersContext.SearchWholeRegion} requested=[{string.Join(",", triggerSpawnersContext.Spawners?.Select(id => id.GetName()) ?? Array.Empty<string>())}] " +
+                    $"matched=[{string.Join(",", spawners.Select(spawner => spawner.PrototypeDataRef.GetName()))}]");
             }
 
             foreach (var spawner in spawners)
