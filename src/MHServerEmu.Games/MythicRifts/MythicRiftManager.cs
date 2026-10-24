@@ -6245,14 +6245,16 @@ namespace MHServerEmu.Games.MythicRifts
             if (entity == null || entity.IsDestroyed)
                 return;
 
-            MythicRiftStandaloneBossFixups.Clear(entity.Id);
+            Agent agent = entity as Agent;
+            if (agent != null)
+                MythicRiftStandaloneBossFixups.Clear(agent);
 
             // A death callback runs before the entity's native removal path. Let that
             // path finish instead of exiting/destroying the same entity twice.
             if (entity.IsDead)
                 return;
 
-            if (entity is Agent agent)
+            if (agent != null)
                 agent.KillSummonedOnOwnerDeath();
 
             if (entity.IsInWorld)

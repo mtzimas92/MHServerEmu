@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using MHServerEmu.Games.Entities;
 using MHServerEmu.Games.GameData;
 using MHServerEmu.Games.GameData.Prototypes;
@@ -7,18 +8,24 @@ namespace MHServerEmu.Games.MythicRifts
 {
     public static class MythicRiftStandaloneBossFixups
     {
-        private static readonly HashSet<ulong> StandaloneBossIds = new();
-        private static readonly HashSet<ulong> StandaloneBossAffixFallbackIds = new();
+        private sealed class StandaloneBossState
+        {
+            public bool AllowMissingAffixSettingsFallback { get; set; }
+        }
+
+        private static readonly ConditionalWeakTable<Agent, StandaloneBossState> StandaloneBosses = new();
         private const float StandaloneBossAggroRange = 3000f;
 
         public static bool IsStandaloneBoss(Agent agent)
         {
-            return agent != null && StandaloneBossIds.Contains(agent.Id);
+            return agent != null && StandaloneBosses.TryGetValue(agent, out _);
         }
 
         public static bool AllowsMissingAffixSettingsFallback(Agent agent)
         {
-            return agent != null && StandaloneBossAffixFallbackIds.Contains(agent.Id);
+            return agent != null
+                && StandaloneBosses.TryGetValue(agent, out StandaloneBossState state)
+                && state.AllowMissingAffixSettingsFallback;
         }
 
         public static void Apply(Agent agent, bool allowMissingAffixSettingsFallback = false)
@@ -26,9 +33,9 @@ namespace MHServerEmu.Games.MythicRifts
             if (agent == null)
                 return;
 
-            StandaloneBossIds.Add(agent.Id);
+            StandaloneBossState state = StandaloneBosses.GetValue(agent, static _ => new());
             if (allowMissingAffixSettingsFallback)
-                StandaloneBossAffixFallbackIds.Add(agent.Id);
+                state.AllowMissingAffixSettingsFallback = true;
 
             if (agent.AIController == null)
                 return;
@@ -46,13 +53,10 @@ namespace MHServerEmu.Games.MythicRifts
             blackboard[PropertyEnum.AICustomTimeVal1] = (long)agent.Game.CurrentTime.TotalMilliseconds + 3_600_000_000L;
         }
 
-        public static void Clear(ulong entityId)
+        public static void Clear(Agent agent)
         {
-            if (entityId == 0)
-                return;
-
-            StandaloneBossIds.Remove(entityId);
-            StandaloneBossAffixFallbackIds.Remove(entityId);
+            if (agent != null)
+                StandaloneBosses.Remove(agent);
         }
     }
 }

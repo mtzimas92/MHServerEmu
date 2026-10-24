@@ -44,5 +44,277 @@
         }
       ]
     }
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/CastleDoom/VenomCosmicArtifact.prototype",
+    "Path": "Modifiers[0].Choices[]",
+    "Description": "Allow this native boss-specific Cosmic Artifact roll in Tier5 Omega patrols.",
+    "ValueType": "PrototypeId",
+    "Value": 424700179461639950
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/OdinsPalace/KurseCosmicArtifact.prototype",
+    "Path": "Modifiers[0].Choices[]",
+    "Description": "Allow this native boss-specific Cosmic Artifact roll in Tier5 Omega patrols.",
+    "ValueType": "PrototypeId",
+    "Value": 424700179461639950
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/ChurchOfPurification/JuggernautCosmicArtifacts.prototype",
+    "Path": "Modifiers[0].Choices[]",
+    "Description": "Allow this native boss-specific Cosmic Artifact roll in Tier5 Omega patrols.",
+    "ValueType": "PrototypeId",
+    "Value": 424700179461639950
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Loot/Tables/Mob/Bosses/EndgameDailies/Subtables/InfernalWarSkrullCosmicArtifact.prototype",
+    "Path": "Modifiers[0].Choices[]",
+    "Description": "Allow this native boss-specific Cosmic Artifact roll in Tier5 Omega patrols.",
+    "ValueType": "PrototypeId",
+    "Value": 424700179461639950
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Loot/Tables/Mob/Bosses/EndgameDailies/Subtables/MegaSentinelCosmicArtifact.prototype",
+    "Path": "Modifiers[0].Choices[]",
+    "Description": "Allow this native boss-specific Cosmic Artifact roll in Tier5 Omega patrols.",
+    "ValueType": "PrototypeId",
+    "Value": 424700179461639950
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/SinisterLab/MisterSinisterCosmicArtifact.prototype",
+    "Path": "Modifiers[0].Choices[]",
+    "Description": "Allow this native boss-specific Cosmic Artifact roll in Tier5 Omega patrols.",
+    "ValueType": "PrototypeId",
+    "Value": 424700179461639950
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/HoodsHideout/HoodCosmicArtifact.prototype",
+    "Path": "Modifiers[0].Choices[]",
+    "Description": "Allow this native boss-specific Cosmic Artifact roll in Tier5 Omega patrols.",
+    "ValueType": "PrototypeId",
+    "Value": 424700179461639950
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Loot/Tables/Mob/Bosses/EndgameDailies/Subtables/MindlessTitanCosmicArtifact.prototype",
+    "Path": "Modifiers[0].Choices[]",
+    "Description": "Allow this native boss-specific Cosmic Artifact roll in Tier5 Omega patrols.",
+    "ValueType": "PrototypeId",
+    "Value": 424700179461639950
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Loot/Tables/Mob/Bosses/EndgameDailies/Subtables/CrossbonesCosmicArtifact.prototype",
+    "Path": "Modifiers[0].Choices[]",
+    "Description": "Allow this native boss-specific Cosmic Artifact roll in Tier5 Omega patrols.",
+    "ValueType": "PrototypeId",
+    "Value": 424700179461639950
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Loot/Tables/Mob/Bosses/EndgameDailies/Subtables/RhinoCosmicArtifact.prototype",
+    "Path": "Modifiers[0].Choices[]",
+    "Description": "Allow this native boss-specific Cosmic Artifact roll in Tier5 Omega patrols.",
+    "ValueType": "PrototypeId",
+    "Value": 424700179461639950
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/StrykerCommandBunker/MagnetoCosmicArtifact.prototype",
+    "Path": "Modifiers[0].Choices[]",
+    "Description": "Allow this native boss-specific Cosmic Artifact roll in Tier5 Omega patrols.",
+    "ValueType": "PrototypeId",
+    "Value": 424700179461639950
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Loot/Tables/Mob/Bosses/EndgameDailies/Subtables/BlackCatCosmicArtifact.prototype",
+    "Path": "Modifiers[0].Choices[]",
+    "Description": "Allow this native boss-specific Cosmic Artifact roll in Tier5 Omega patrols.",
+    "ValueType": "PrototypeId",
+    "Value": 424700179461639950
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/AIMWeaponFacility/WizardCosmicArtifact.prototype",
+    "Path": "Modifiers[0].Choices[]",
+    "Description": "Allow this native boss-specific Cosmic Artifact roll in Tier5 Omega patrols.",
+    "ValueType": "PrototypeId",
+    "Value": 424700179461639950
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Loot/Tables/Mob/Bosses/EndgameDailies/Subtables/SkrullDefendersCosmicArtifact.prototype",
+    "Path": "Modifiers[0].Choices[]",
+    "Description": "Allow this native boss-specific Cosmic Artifact roll in Tier5 Omega patrols.",
+    "ValueType": "PrototypeId",
+    "Value": 424700179461639950
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Loot/Tables/Mob/Bosses/EndgameDailies/Subtables/LokiCosmicArtifact.prototype",
+    "Path": "Modifiers[0].Choices[]",
+    "Description": "Allow this native boss-specific Cosmic Artifact roll in Tier5 Omega patrols.",
+    "ValueType": "PrototypeId",
+    "Value": 424700179461639950
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/StrykerCommandBunker/PyroCosmicArtifact.prototype",
+    "Path": "Modifiers[0].Choices[]",
+    "Description": "Allow this native boss-specific Cosmic Artifact roll in Tier5 Omega patrols.",
+    "ValueType": "PrototypeId",
+    "Value": 424700179461639950
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/FiskTower/KingpinCosmicArtifact.prototype",
+    "Path": "Modifiers[0].Choices[]",
+    "Description": "Allow this native boss-specific Cosmic Artifact roll in Tier5 Omega patrols.",
+    "ValueType": "PrototypeId",
+    "Value": 424700179461639950
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/TaskmasterInstitute/TaskmasterCosmicArtifact.prototype",
+    "Path": "Modifiers[0].Choices[]",
+    "Description": "Allow this native boss-specific Cosmic Artifact roll in Tier5 Omega patrols.",
+    "ValueType": "PrototypeId",
+    "Value": 424700179461639950
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Loot/Tables/Mob/Bosses/EndgameDailies/Subtables/SkrullAvengersCosmicArtifact.prototype",
+    "Path": "Modifiers[0].Choices[]",
+    "Description": "Allow this native boss-specific Cosmic Artifact roll in Tier5 Omega patrols.",
+    "ValueType": "PrototypeId",
+    "Value": 424700179461639950
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/CastleDoom/GrimReaperCosmicArtifact.prototype",
+    "Path": "Modifiers[0].Choices[]",
+    "Description": "Allow this native boss-specific Cosmic Artifact roll in Tier5 Omega patrols.",
+    "ValueType": "PrototypeId",
+    "Value": 424700179461639950
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/KingpinsWarehouse/DoctorOctopusCosmicArtifact.prototype",
+    "Path": "Modifiers[0].Choices[]",
+    "Description": "Allow this native boss-specific Cosmic Artifact roll in Tier5 Omega patrols.",
+    "ValueType": "PrototypeId",
+    "Value": 424700179461639950
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Loot/Tables/Mob/Bosses/EndgameDailies/Subtables/SkrullElektraCosmicArtifact.prototype",
+    "Path": "Modifiers[0].Choices[]",
+    "Description": "Allow this native boss-specific Cosmic Artifact roll in Tier5 Omega patrols.",
+    "ValueType": "PrototypeId",
+    "Value": 424700179461639950
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/CastleDoom/ElectroCosmicArtifact.prototype",
+    "Path": "Modifiers[0].Choices[]",
+    "Description": "Allow this native boss-specific Cosmic Artifact roll in Tier5 Omega patrols.",
+    "ValueType": "PrototypeId",
+    "Value": 424700179461639950
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/CastleDoom/LivingLaserCosmicArtifact.prototype",
+    "Path": "Modifiers[0].Choices[]",
+    "Description": "Allow this native boss-specific Cosmic Artifact roll in Tier5 Omega patrols.",
+    "ValueType": "PrototypeId",
+    "Value": 424700179461639950
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Loot/Tables/Mob/Bosses/EndgameDailies/Subtables/LizardCosmicArtifact.prototype",
+    "Path": "Modifiers[0].Choices[]",
+    "Description": "Allow this native boss-specific Cosmic Artifact roll in Tier5 Omega patrols.",
+    "ValueType": "PrototypeId",
+    "Value": 424700179461639950
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/CastleDoom/DoctorDoomCosmicArtifacts.prototype",
+    "Path": "Modifiers[0].Choices[]",
+    "Description": "Allow this native boss-specific Cosmic Artifact roll in Tier5 Omega patrols.",
+    "ValueType": "PrototypeId",
+    "Value": 424700179461639950
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/CastleDoom/BlobCosmicArtifact.prototype",
+    "Path": "Modifiers[0].Choices[]",
+    "Description": "Allow this native boss-specific Cosmic Artifact roll in Tier5 Omega patrols.",
+    "ValueType": "PrototypeId",
+    "Value": 424700179461639950
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Loot/Tables/Mob/Bosses/EndgameDailies/Subtables/HydeCosmicArtifact.prototype",
+    "Path": "Modifiers[0].Choices[]",
+    "Description": "Allow this native boss-specific Cosmic Artifact roll in Tier5 Omega patrols.",
+    "ValueType": "PrototypeId",
+    "Value": 424700179461639950
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Loot/Tables/Mob/Bosses/EndgameDailies/Subtables/NickFuryCosmicArtifact.prototype",
+    "Path": "Modifiers[0].Choices[]",
+    "Description": "Allow this native boss-specific Cosmic Artifact roll in Tier5 Omega patrols.",
+    "ValueType": "PrototypeId",
+    "Value": 424700179461639950
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/CastleDoom/SabertoothCosmicArtifact.prototype",
+    "Path": "Modifiers[0].Choices[]",
+    "Description": "Allow this native boss-specific Cosmic Artifact roll in Tier5 Omega patrols.",
+    "ValueType": "PrototypeId",
+    "Value": 424700179461639950
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Loot/Tables/Mob/Bosses/EndgameDailies/Terminals/HydraIsland/MandarinCosmicArtifact.prototype",
+    "Path": "Modifiers[0].Choices[]",
+    "Description": "Allow this native boss-specific Cosmic Artifact roll in Tier5 Omega patrols.",
+    "ValueType": "PrototypeId",
+    "Value": 424700179461639950
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Loot/Tables/Mob/Bosses/EndgameDailies/Subtables/ManApeCosmicArtifact.prototype",
+    "Path": "Modifiers[0].Choices[]",
+    "Description": "Allow this native boss-specific Cosmic Artifact roll in Tier5 Omega patrols.",
+    "ValueType": "PrototypeId",
+    "Value": 424700179461639950
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Loot/Tables/Mob/Bosses/EndgameDailies/Subtables/SpiderCloneCosmicArtifact.prototype",
+    "Path": "Modifiers[0].Choices[]",
+    "Description": "Allow this native boss-specific Cosmic Artifact roll in Tier5 Omega patrols.",
+    "ValueType": "PrototypeId",
+    "Value": 424700179461639950
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Loot/Tables/Mob/Bosses/EndgameDailies/Subtables/SauronCosmicArtifact.prototype",
+    "Path": "Modifiers[0].Choices[]",
+    "Description": "Allow this native boss-specific Cosmic Artifact roll in Tier5 Omega patrols.",
+    "ValueType": "PrototypeId",
+    "Value": 424700179461639950
   }
 ]
