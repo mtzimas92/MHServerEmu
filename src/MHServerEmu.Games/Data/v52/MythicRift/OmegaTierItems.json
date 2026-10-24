@@ -112,6 +112,7 @@
         "Entity/Items/Rarity/R6Unique.prototype"
       ],
       "maximizeAffixRolls": true,
+      "maximizeBuiltInPropertyRolls": true,
       "clearBuiltInProperties": true,
       "preserveBuiltInPropertyIndexes": [ 0 ],
       "disableTriggeredItemActions": true,

@@ -67,6 +67,24 @@ namespace MHServerEmu.Games.OmegaTierItems
             return OmegaTierItemTuning.Load().HasItemOverride(itemProtoRef, rarityProtoRef);
         }
 
+        public static bool ShouldMaximizeBuiltInPropertyRolls(PrototypeId itemProtoRef, PrototypeId rarityProtoRef)
+        {
+            OmegaTierItemTuning tuning = OmegaTierItemTuning.Load();
+            if (tuning?.Enabled != true || itemProtoRef == PrototypeId.Invalid ||
+                tuning.ItemOverridesByPrototype.TryGetValue(itemProtoRef, out List<OmegaTierItemOverrideTuning> itemOverrides) == false)
+            {
+                return false;
+            }
+
+            foreach (OmegaTierItemOverrideTuning itemOverride in itemOverrides)
+            {
+                if (itemOverride?.Matches(itemProtoRef, rarityProtoRef) == true && itemOverride.MaximizeBuiltInPropertyRolls)
+                    return true;
+            }
+
+            return false;
+        }
+
         public static bool IsQueuedForOmegaPromotion(ItemSpec itemSpec)
         {
             return itemSpec != null && PendingOmegaPromotions.TryGetValue(itemSpec, out _);
@@ -284,7 +302,8 @@ namespace MHServerEmu.Games.OmegaTierItems
             PrototypeId rarityProtoRef,
             LootContext lootContext,
             Player player,
-            int level)
+            int level,
+            bool allowForcedRarityOutsideDropRestrictions = false)
         {
             ItemPrototype itemProto = itemProtoRef.As<ItemPrototype>();
             if (itemProto == null || game == null)
@@ -323,7 +342,8 @@ namespace MHServerEmu.Games.OmegaTierItems
 
             RestrictionTestFlags nonRarityRestrictions = RestrictionTestFlags.All & ~(RestrictionTestFlags.Rarity | RestrictionTestFlags.Level);
             if (itemProto.MakeRestrictionsDroppable(filterArgs, nonRarityRestrictions, out _) == false ||
-                itemProto.IsDroppableForRestrictions(filterArgs, RestrictionTestFlags.Rarity) == false)
+                (allowForcedRarityOutsideDropRestrictions == false &&
+                 itemProto.IsDroppableForRestrictions(filterArgs, RestrictionTestFlags.Rarity) == false))
                 return null;
 
             ItemSpec itemSpec = new(

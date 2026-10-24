@@ -169,6 +169,16 @@
   },
   {
     "Enabled": true,
+    "Prototype": "Entity/Items/Affixes/UltimateAffixes/TripleBoost.prototype",
+    "Path": "PropertyEntries[0].Prop",
+    "Description": "[Omega Tier Items] Make Triple Boost's XP roll a functional global XP percentage instead of a cap with no matching per-kill bonus.",
+    "ValueType": "PropertyId",
+    "Value": {
+      "Property": "ExperienceBonusPct"
+    }
+  },
+  {
+    "Enabled": true,
     "Prototype": "Entity/Items/Affixes/UltimateAffixes/MortalStrike.prototype",
     "Path": "DropRestrictions[1].AllowedRarities[]",
     "Description": "[Omega Tier Items] Permit the replacement Omega-exclusive prefix pool on R6Omega.",

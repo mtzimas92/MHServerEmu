@@ -293,6 +293,7 @@
         "Entity/Items/Rarity/R4Epic.prototype",
         "Entity/Items/Rarity/R5Cosmic.prototype"
       ],
+      "itemRarityWeights": [ 95, 5 ],
       "requireAffixes": true,
       "chancePercent": 100,
       "rolls": 1,

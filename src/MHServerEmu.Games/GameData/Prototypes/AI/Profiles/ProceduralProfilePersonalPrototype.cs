@@ -904,8 +904,6 @@ namespace MHServerEmu.Games.GameData.Prototypes
 
     public class ProceduralProfileDrDoomPhase2Prototype : ProceduralProfileWithAttackPrototype
     {
-        private static readonly Logger Logger = LogManager.CreateLogger();
-
         public MoveToContextPrototype MoveToTarget { get; protected set; }
         public OrbitContextPrototype OrbitTarget { get; protected set; }
         public PrototypeId DeathStun { get; protected set; }
@@ -974,18 +972,7 @@ namespace MHServerEmu.Games.GameData.Prototypes
             ProceduralAI proceduralAI = ownerController.Brain;
             bool standaloneRiftBoss = MythicRiftStandaloneBossFixups.IsStandaloneBoss(agent);
             if (Verify.IsNotNull(proceduralAI) && standaloneRiftBoss == false)
-            {
-                StaticBehaviorReturnType result = HandleContext(proceduralAI, ownerController, SpawnDrDoomPhase3);
-                Logger.Info(
-                    $"[DoomPhaseTrace] stage=phase2-killed owner={agent} region={agent?.Region} " +
-                    $"standaloneRiftBoss={standaloneRiftBoss} brainAvailable=True contextAvailable={SpawnDrDoomPhase3 != null} result={result}");
-            }
-            else
-            {
-                Logger.Info(
-                    $"[DoomPhaseTrace] stage=phase2-killed owner={agent} region={agent?.Region} " +
-                    $"standaloneRiftBoss={standaloneRiftBoss} brainAvailable={proceduralAI != null} contextAvailable={SpawnDrDoomPhase3 != null} result=Skipped");
-            }
+                HandleContext(proceduralAI, ownerController, SpawnDrDoomPhase3);
         }
     }
 

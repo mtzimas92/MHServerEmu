@@ -596,6 +596,7 @@ namespace MHServerEmu.Games.MythicRifts
         public List<string> ItemPrototypePaths { get; set; } = new();
         public string ItemRarityPrototype { get; set; }
         public List<string> ItemRarityPrototypes { get; set; } = new();
+        public List<float> ItemRarityWeights { get; set; } = new();
         public List<string> AllowedEquipmentSlots { get; set; } = new();
         public bool RollEachAllowedEquipmentSlot { get; set; }
         public bool RequireAffixes { get; set; }
@@ -631,6 +632,9 @@ namespace MHServerEmu.Games.MythicRifts
                     .Select(name => name.Trim())
                     .Distinct(StringComparer.OrdinalIgnoreCase)
                     .ToList();
+            ItemRarityWeights = ItemRarityWeights == null
+                ? new()
+                : ItemRarityWeights.Select(weight => Math.Max(weight, 0f)).ToList();
             AllowedEquipmentSlots = AllowedEquipmentSlots == null
                 ? new()
                 : AllowedEquipmentSlots

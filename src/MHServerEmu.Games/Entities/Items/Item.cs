@@ -971,10 +971,14 @@ namespace MHServerEmu.Games.Entities.Items
             // Apply built-in properties
             if (itemProto.PropertiesBuiltIn.HasValue())
             {
+                bool maximizeBuiltInPropertyRolls = OmegaTierItemFactory.ShouldMaximizeBuiltInPropertyRolls(
+                    _itemSpec.ItemProtoRef,
+                    _itemSpec.RarityProtoRef);
                 for (int builtInIndex = 0; builtInIndex < itemProto.PropertiesBuiltIn.Length; builtInIndex++)
                 {
                     PropertyEntryPrototype propertyEntryProto = itemProto.PropertiesBuiltIn[builtInIndex];
-                    float randomMult = random.NextFloat();
+                    float rolledRandomMult = random.NextFloat();
+                    float randomMult = maximizeBuiltInPropertyRolls ? 0.99999988f : rolledRandomMult;
 
                     PropertyPickInRangeEntryPrototype propPickEntryProto = propertyEntryProto as PropertyPickInRangeEntryPrototype;
                     PropertySetEntryPrototype propSetEntryProto = propertyEntryProto as PropertySetEntryPrototype;

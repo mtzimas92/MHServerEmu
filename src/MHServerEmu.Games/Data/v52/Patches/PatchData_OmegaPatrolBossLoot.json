@@ -316,5 +316,13 @@
     "Description": "Allow this native boss-specific Cosmic Artifact roll in Tier5 Omega patrols.",
     "ValueType": "PrototypeId",
     "Value": 424700179461639950
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Loot/Tables/Events/WealthOfKingsCounty.prototype",
+    "Path": "Choices[2].Modifiers[0].Choices[]",
+    "Description": "Allow the existing three-Bundles-of-Cash Cosmic boss branch to run in Tier5 Omega Industry City Patrol.",
+    "ValueType": "PrototypeId",
+    "Value": "Difficulty/Tiers/Tier5Omega1.prototype"
   }
 ]

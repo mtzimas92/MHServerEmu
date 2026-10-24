@@ -2147,6 +2147,9 @@ namespace MHServerEmu.Games.MythicRifts
                 if (candidateProto == null)
                     continue;
 
+                if (IsRewardPoolExcludedPrototype(candidateRef))
+                    continue;
+
                 if (RewardPoolItemMatchesForcedRarity(candidateProto, guaranteedItem.RarityProtoRef) == false)
                     continue;
 
@@ -2156,7 +2159,14 @@ namespace MHServerEmu.Games.MythicRifts
                 bool hasForcedRarity = guaranteedItem.RarityProtoRef != PrototypeId.Invalid;
                 bool useItemFactory = OmegaTierItemFactory.ShouldUseFactory(candidateRef, guaranteedItem.RarityProtoRef);
                 ItemSpec itemSpec = hasForcedRarity || useItemFactory
-                    ? OmegaTierItemFactory.CreateItemSpec(Game, candidateRef, guaranteedItem.RarityProtoRef, LootContext.Drop, player, resolvedItemLevel)
+                    ? OmegaTierItemFactory.CreateItemSpec(
+                        Game,
+                        candidateRef,
+                        guaranteedItem.RarityProtoRef,
+                        LootContext.Drop,
+                        player,
+                        resolvedItemLevel,
+                        allowForcedRarityOutsideDropRestrictions: true)
                     : Game.LootManager.CreateItemSpec(candidateRef, LootContext.Drop, player, resolvedItemLevel);
                 if (itemSpec == null)
                     continue;
@@ -4305,7 +4315,7 @@ namespace MHServerEmu.Games.MythicRifts
                 if (boss == null || boss.IsDestroyed)
                     continue;
 
-                boss.ModifyTrackingContext(bossIconsWidgetRef, EntityTrackingFlag.HUD);
+                boss.Region?.EntityTracker.ModifyTrackingContext(boss, bossIconsWidgetRef, EntityTrackingFlag.HUD);
                 if (bossIconsWidget.TrackEntity(boss))
                     trackedCount++;
             }
@@ -4316,7 +4326,7 @@ namespace MHServerEmu.Games.MythicRifts
                 if (avatar == null || avatar.IsInWorld == false || avatar.Region?.Id != runState.RegionId)
                     continue;
 
-                avatar.ModifyTrackingContext(bossIconsWidgetRef, EntityTrackingFlag.HUD);
+                avatar.Region.EntityTracker.ModifyTrackingContext(avatar, bossIconsWidgetRef, EntityTrackingFlag.HUD);
                 if (bossIconsWidget.TrackEntity(avatar))
                     trackedCount++;
             }
@@ -5541,9 +5551,7 @@ namespace MHServerEmu.Games.MythicRifts
                         continue;
                     }
 
-                    string rarityPrototypeName = entry.ItemRarityPrototypes.Count > 0
-                        ? entry.ItemRarityPrototypes[Game.Random.Next(0, entry.ItemRarityPrototypes.Count)]
-                        : entry.ItemRarityPrototype;
+                    string rarityPrototypeName = ResolveRandomItemPoolRarity(entry);
                     PrototypeId rarityProtoRef = string.IsNullOrWhiteSpace(rarityPrototypeName)
                         ? PrototypeId.Invalid
                         : ResolvePrototype(rarityPrototypeName);
@@ -5627,6 +5635,29 @@ namespace MHServerEmu.Games.MythicRifts
             }
 
             return resolvedItems;
+        }
+
+        private string ResolveRandomItemPoolRarity(MythicRiftRandomItemPoolTuning entry)
+        {
+            if (entry.ItemRarityPrototypes.Count == 0)
+                return entry.ItemRarityPrototype;
+
+            if (entry.ItemRarityWeights.Count != entry.ItemRarityPrototypes.Count)
+                return entry.ItemRarityPrototypes[Game.Random.Next(0, entry.ItemRarityPrototypes.Count)];
+
+            float totalWeight = entry.ItemRarityWeights.Sum();
+            if (totalWeight <= 0f)
+                return entry.ItemRarityPrototypes[Game.Random.Next(0, entry.ItemRarityPrototypes.Count)];
+
+            float roll = Game.Random.NextFloat() * totalWeight;
+            for (int i = 0; i < entry.ItemRarityPrototypes.Count; i++)
+            {
+                roll -= entry.ItemRarityWeights[i];
+                if (roll < 0f)
+                    return entry.ItemRarityPrototypes[i];
+            }
+
+            return entry.ItemRarityPrototypes[^1];
         }
 
         private bool CanClaimLimitedReward(Player player, Avatar avatar, MythicRiftRewardGuaranteedItem reward)
@@ -5736,6 +5767,9 @@ namespace MHServerEmu.Games.MythicRifts
                         continue;
                     }
 
+                    if (IsRewardPoolExcludedPrototype(itemProtoRef))
+                        continue;
+
                     if (itemProto.IsLiveTuningEnabled() == false)
                     {
                         continue;
@@ -5798,6 +5832,9 @@ namespace MHServerEmu.Games.MythicRifts
                 if (prototypeName.StartsWith(normalizedPrefix, StringComparison.OrdinalIgnoreCase) == false)
                     continue;
 
+                if (IsRewardPoolExcludedPrototype(itemProtoRef))
+                    continue;
+
                 ItemPrototype itemProto = itemProtoRef.As<ItemPrototype>();
                 if (itemProto?.IsLiveTuningEnabled() != true)
                     continue;
@@ -5818,6 +5855,19 @@ namespace MHServerEmu.Games.MythicRifts
                 StringComparison.OrdinalIgnoreCase));
             _rewardItemPoolsByDirectory[cacheKey] = candidates;
             return candidates;
+        }
+
+        private static bool IsRewardPoolExcludedPrototype(PrototypeId itemProtoRef)
+        {
+            string prototypeName = GameDatabase.GetPrototypeName(itemProtoRef);
+            return string.IsNullOrWhiteSpace(prototypeName) ||
+                prototypeName.EndsWith(".defaults", StringComparison.OrdinalIgnoreCase) ||
+                prototypeName.Contains("/ParentPrototypes/", StringComparison.OrdinalIgnoreCase) ||
+                prototypeName.Contains("/Test/", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(
+                    prototypeName,
+                    "Entity/Items/Insignias/Prototypes/Insignia104.prototype",
+                    StringComparison.OrdinalIgnoreCase);
         }
 
         private static bool ShouldDeferRewardPoolSlotFiltering(string normalizedPrefix, IReadOnlyList<EquipmentInvUISlot> allowedEquipmentSlots)
@@ -7794,7 +7844,8 @@ namespace MHServerEmu.Games.MythicRifts
                 // Native mission contexts may be removed by Rift suppression. The run
                 // tracks these bosses directly, so do not retain stale native contexts.
                 MythicRiftStandaloneBossFixups.Apply(bossAgent, allowMissingAffixSettingsFallback: true);
-                bossAgent.TrackingContextMap.Clear();
+                foreach (PrototypeId trackingContextRef in bossAgent.TrackingContextMap.Keys.ToArray())
+                    region.EntityTracker.ModifyTrackingContext(bossAgent, trackingContextRef, EntityTrackingFlag.None);
 
                 ApplyCheckpointBossTuning(runState, bossAgent);
 
