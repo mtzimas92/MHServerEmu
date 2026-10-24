@@ -14,17 +14,5 @@
     "Description": "OpenCalligraphy export: Keywords",
     "ValueType": "PrototypeId",
     "Value": 720980541349630335
-  },
-  {
-    "Enabled": true,
-    "Prototype": "Powers/Player/Psylocke/PassiveDecoysSummonProc.prototype",
-    "Path": "SummonMaxSimultaneous",
-    "Description": "Allow the Max Projections talent's movement-triggered summon power to maintain three projections.",
-    "ValueType": "Prototype",
-    "Value": {
-      "ParentDataRef": "Eval/Constants/LoadInt.defaults",
-      "Op": "LoadInt",
-      "Value": 3
-    }
   }
 ]
