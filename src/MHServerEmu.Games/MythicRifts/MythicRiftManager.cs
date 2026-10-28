@@ -50,7 +50,7 @@ namespace MHServerEmu.Games.MythicRifts
         private const int RiftBossMinimumCharacterLevel = 63;
         private const int BossGauntletPlayerDeathLimit = 2;
         private const ulong ChampionCommendationItemPrototypeId = 2852929430040615658;
-        private const int WeeklyChampionCommendationCap = 700;
+        private const int WeeklyChampionCommendationCap = 350;
         private const string WeeklyChampionCommendationClaimId = "mythic-rift:account:champion-commendations-total";
         private static readonly (string DisplayName, string PrototypeName)[] WeeklyCommendationChannels =
         {

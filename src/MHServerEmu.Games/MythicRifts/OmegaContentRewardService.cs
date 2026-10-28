@@ -18,7 +18,7 @@ namespace MHServerEmu.Games.MythicRifts
         private static readonly Logger Logger = LogManager.CreateLogger();
         private const ulong ChampionCommendationItemPrototypeId = 2852929430040615658;
         private const ulong ProtectorCommendationItemPrototypeId = 810646464305634596;
-        private const int WeeklyChampionCommendationCap = 700;
+        private const int WeeklyChampionCommendationCap = 350;
         private const string WeeklyChampionCommendationClaimId = "mythic-rift:account:champion-commendations-total";
         private static readonly ConcurrentDictionary<(ulong PlayerDbId, PrototypeId MissionRef), long> RecentDeathGrants = new();
         private const long RecentDeathGrantWindowMs = 10 * 60 * 1000;
