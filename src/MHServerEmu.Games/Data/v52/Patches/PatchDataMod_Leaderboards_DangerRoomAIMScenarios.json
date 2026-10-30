@@ -129,6 +129,7 @@
         "ParentDataRef": 6791016298265778189,
         "Event": {
           "ParentDataRef": 7967119926961641359,
+          "Type": "CompletionTime",
           "Context": {
             "ParentDataRef": 11094662274680558056,
             "ContextRegion": 15929066374051474570
@@ -270,6 +271,7 @@
         "ParentDataRef": 6791016298265778189,
         "Event": {
           "ParentDataRef": 7967119926961641359,
+          "Type": "CompletionTime",
           "Context": {
             "ParentDataRef": 11094662274680558056,
             "ContextRegion": 6345598189133442813

@@ -189,7 +189,7 @@ namespace MHServerEmu.Games.MythicRifts
                             break;
 
                         if (AgeOfDoomGameMode.IsEnabled)
-                            TeleportDialogPlayerToTarget(game, playerGuid, AgeOfDoomEntryTargetPrototypeName, Tier3SuperheroicRef);
+                            TeleportDialogPlayerToDedicatedAgeOfDoom(game, playerGuid);
                         else
                             ShowAgeOfDoomDisabledDialog(responsePlayer, npc);
                         break;
@@ -208,6 +208,22 @@ namespace MHServerEmu.Games.MythicRifts
             dialog.InteractorId = player.CurrentAvatar?.Id ?? Entity.InvalidId;
             dialog.AddButton(GameDialogResultEnum.eGDR_Option1, AgeOfDoomDisabledAcknowledgeRef, ButtonStyle.SecondaryPositive, false);
             player.Game.GameDialogManager.PostDialogToClient(dialog);
+        }
+
+        private static void TeleportDialogPlayerToDedicatedAgeOfDoom(Game game, ulong playerGuid)
+        {
+            Player player = game.EntityManager.GetEntityByDbGuid<Player>(playerGuid);
+            PrototypeId targetRef = GameDatabase.GetPrototypeRefByName(AgeOfDoomEntryTargetPrototypeName);
+            if (player == null || targetRef == PrototypeId.Invalid)
+                return;
+
+            using var teleporterHandle = TeleporterPool.Get(out Teleporter teleporter);
+            teleporter.Initialize(player, TeleportContextEnum.TeleportContext_Debug);
+            teleporter.DifficultyTierRef = Tier3SuperheroicRef;
+            teleporter.BypassRegionDifficultyConstraint = true;
+            teleporter.BypassQueueRegionForRift = true;
+            teleporter.ForcePrivateRegion = true;
+            teleporter.TeleportToTarget(targetRef);
         }
 
         private static void UseOmegaPatrolTeleporter(Player player, WorldEntity npc)

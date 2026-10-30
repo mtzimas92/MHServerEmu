@@ -51,6 +51,7 @@ namespace MHServerEmu.Games.Regions
         public PrototypeId DangerRoomScenarioRef { get; set; }
         public bool BypassQueueRegionForRift { get; set; }
         public bool ForcePrivateRegion { get; set; }
+        public bool BypassRegionDifficultyConstraint { get; set; }
 
         public Teleporter() { }     // Use pooling instead of this constructor
 
@@ -92,6 +93,7 @@ namespace MHServerEmu.Games.Regions
             DangerRoomScenarioRef = default;
             BypassQueueRegionForRift = default;
             ForcePrivateRegion = default;
+            BypassRegionDifficultyConstraint = default;
         }
 
         public void Initialize(Player player, TeleportContextEnum context)
@@ -222,7 +224,15 @@ namespace MHServerEmu.Games.Regions
             // Clamp target region's difficulty to the available range. Rift/debug/transition teleports may
             // intentionally request exact Tier4/Tier5 prototypes that share a base tier enum, so
             // preserve those refs when the destination supports their enum bucket.
-            if ((BypassQueueRegionForRift ||
+            if (BypassRegionDifficultyConstraint)
+            {
+                if (DifficultyTierRef.As<DifficultyTierPrototype>() == null ||
+                    Player.CanChangeDifficulty(DifficultyTierRef) == false)
+                {
+                    return false;
+                }
+            }
+            else if ((BypassQueueRegionForRift ||
                  Context == TeleportContextEnum.TeleportContext_Debug ||
                  Context == TeleportContextEnum.TeleportContext_Transition) &&
                 DifficultyTierRef != PrototypeId.Invalid)
