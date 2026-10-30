@@ -9,7 +9,7 @@ using MHServerEmu.Games.Properties;
 namespace MHServerEmu.Commands.Implementations
 {
     [CommandGroup("commendations")]
-    [CommandGroupDescription("Shows Demonfire commendation drop progress.")]
+    [CommandGroupDescription("Shows weekly commendation drop progress.")]
     [CommandGroupFlags(CommandGroupFlags.SingleCommand)]
     public class CommendationCommands : CommandGroup
     {
@@ -27,7 +27,7 @@ namespace MHServerEmu.Commands.Implementations
             if (player == null)
                 return "Player not found.";
 
-            List<string> lines = new() { "Demonfire commendation drops:" };
+            List<string> lines = new() { "Weekly commendation drops:" };
 
             foreach (CommendationChannel channel in Channels)
             {
@@ -44,6 +44,17 @@ namespace MHServerEmu.Commands.Implementations
                 int count = player.Properties[PropertyEnum.LootCooldownCount, channelRef];
                 int remaining = Math.Max(channelProto.MaxDrops - count, 0);
                 lines.Add($"{channel.DisplayName}: {count}/{channelProto.MaxDrops} ({remaining} remaining)");
+            }
+
+            if (player.Game?.MythicRiftManager is { } riftManager &&
+                riftManager.TryGetWeeklyChampionCommendationProgress(player, out int championCount, out int championCap))
+            {
+                int remaining = Math.Max(championCap - championCount, 0);
+                lines.Add($"Champion Commendations: {championCount}/{championCap} ({remaining} remaining)");
+            }
+            else
+            {
+                lines.Add("Champion Commendations: unavailable");
             }
 
             return string.Join('\n', lines);
