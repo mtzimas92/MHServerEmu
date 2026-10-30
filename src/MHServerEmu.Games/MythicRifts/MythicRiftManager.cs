@@ -709,6 +709,19 @@ namespace MHServerEmu.Games.MythicRifts
             return results;
         }
 
+        public bool TryGetWeeklyChampionCommendationProgress(Player player, out int claimed, out int cap)
+        {
+            claimed = 0;
+            cap = WeeklyChampionCommendationCap;
+            if (player == null)
+                return false;
+
+            claimed = player.OmegaContentRewardProgress.GetClaimedAmount(
+                WeeklyChampionCommendationClaimId,
+                GetLimitedRewardPeriod("weekly"));
+            return true;
+        }
+
         private void TryResetOmegaTrainingProgressForLeaderboard(Player player)
         {
             Avatar avatar = player?.CurrentAvatar;
