@@ -1,6 +1,6 @@
 [
   {
-    "Enabled": true,
+    "Enabled": false,
     "Prototype": "Regions/StoryRevamp/CH09Asgard/CH0906LokiBossRegion.prototype",
     "Path": "AccessDifficulties[]",
     "Description": "[Age of Doom] Allow the dedicated Loki throne-room arena to run at Cosmic difficulty.",
