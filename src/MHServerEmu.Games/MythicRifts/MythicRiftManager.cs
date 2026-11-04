@@ -50,7 +50,7 @@ namespace MHServerEmu.Games.MythicRifts
         private const int RiftBossMinimumCharacterLevel = 63;
         private const int BossGauntletPlayerDeathLimit = 2;
         private const ulong ChampionCommendationItemPrototypeId = 2852929430040615658;
-        private const int WeeklyChampionCommendationCap = 350;
+        private const int WeeklyChampionCommendationCap = 500;
         private const string WeeklyChampionCommendationClaimId = "mythic-rift:account:champion-commendations-total";
         private static readonly (string DisplayName, string PrototypeName)[] WeeklyCommendationChannels =
         {
@@ -5880,6 +5880,18 @@ namespace MHServerEmu.Games.MythicRifts
                 string.Equals(
                     prototypeName,
                     "Entity/Items/Insignias/Prototypes/Insignia104.prototype",
+                    StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(
+                    prototypeName,
+                    "Entity/Items/Insignias/Insignia141.prototype",
+                    StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(
+                    prototypeName,
+                    "Entity/Items/Insignias/Insignia145.prototype",
+                    StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(
+                    prototypeName,
+                    "Entity/Items/Insignias/Insignia146.prototype",
                     StringComparison.OrdinalIgnoreCase);
         }
 
