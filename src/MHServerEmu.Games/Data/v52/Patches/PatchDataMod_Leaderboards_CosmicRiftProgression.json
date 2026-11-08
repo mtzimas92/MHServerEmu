@@ -3,7 +3,7 @@
     "Enabled": true,
     "Prototype": "Leaderboards/Prototypes/Leaderboards/CivilWar/CivilWarAntiReg.prototype",
     "Path": "ScoringRules[0].Event.EntityKeyword",
-    "Description": "[Cosmic Rift Progression] Repurpose the dormant CivilWarAntiReg leaderboard as a synthetic Standard Rift progression board. The marker keyword is only used by the server-side Mythic Rift level-up report.",
+    "Description": "[Cosmic Rift Progression] Repurpose the dormant CivilWarAntiReg leaderboard as a Standard Rift progression board. Server-side Rift progression submits directly to this rule; the native Civil War context remains intact to prevent organic entity deaths from creating entries.",
     "ValueType": "PrototypeId",
     "Value": 14574478248157977338
   },
@@ -11,15 +11,7 @@
     "Enabled": true,
     "Prototype": "Leaderboards/Prototypes/Leaderboards/CivilWar/CivilWarAntiReg.prototype",
     "Path": "ScoringRules[0].Event.Rank",
-    "Description": "[Cosmic Rift Progression] Remove the native boss-rank filter so only the synthetic marker controls scoring.",
-    "ValueType": "PrototypeId",
-    "Value": 0
-  },
-  {
-    "Enabled": true,
-    "Prototype": "Leaderboards/Prototypes/Leaderboards/CivilWar/CivilWarAntiReg.prototype",
-    "Path": "ScoringRules[0].Event.Context",
-    "Description": "[Cosmic Rift Progression] Remove the native event context so the synthetic server-side score event can match.",
+    "Description": "[Cosmic Rift Progression] Remove the native boss-rank filter from the repurposed progression rule.",
     "ValueType": "PrototypeId",
     "Value": 0
   },

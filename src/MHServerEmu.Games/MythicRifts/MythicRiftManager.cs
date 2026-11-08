@@ -597,7 +597,12 @@ namespace MHServerEmu.Games.MythicRifts
             if (scoringEvent == null)
                 return;
 
-            onlinePlayer.OnScoringEvent(new(ScoringEventType.EntityDeath, scoringEvent.Proto0, leaderboardProgress));
+            // Submit directly to the repurposed rule. Its native Civil War context remains in place
+            // so ordinary entity deaths cannot accidentally enroll players in the Rift leaderboard.
+            onlinePlayer.LeaderboardManager.UpdateEvent(
+                leaderboardProto.ScoringRules[0],
+                leaderboardProgress,
+                Entity.InvalidId);
         }
 
         public void TryResetStandardRiftProgressForLeaderboard(Player player)
