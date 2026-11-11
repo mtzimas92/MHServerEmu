@@ -215,6 +215,9 @@ namespace MHServerEmu.PlayerManagement.Auth
             playerDbId = 0;
             
 
+            if (string.IsNullOrWhiteSpace(ticket))
+                return VerifyPlatformTicketResult.InvalidTicket;
+
             if (_platformTicketManager.TryGetValue(ticket, out ulong sessionId) == false)
                 return VerifyPlatformTicketResult.InvalidTicket;
 
@@ -227,7 +230,7 @@ namespace MHServerEmu.PlayerManagement.Auth
             if (session.PlatformTicket != ticket)
                 return VerifyPlatformTicketResult.TicketMismatch;
 
-            if (account.Email.Equals(email, StringComparison.OrdinalIgnoreCase) == false)
+            if (string.Equals(account.Email, email, StringComparison.OrdinalIgnoreCase) == false)
                 return VerifyPlatformTicketResult.EmailMismatch;
 
             playerDbId = (ulong)account.Id;
