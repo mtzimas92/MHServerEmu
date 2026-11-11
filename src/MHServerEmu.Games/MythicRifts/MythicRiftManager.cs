@@ -5888,6 +5888,10 @@ namespace MHServerEmu.Games.MythicRifts
                     StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(
                     prototypeName,
+                    "Entity/Items/Insignias/Insignia140.prototype",
+                    StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(
+                    prototypeName,
                     "Entity/Items/Insignias/Insignia141.prototype",
                     StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(
