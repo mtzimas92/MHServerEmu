@@ -77,7 +77,10 @@ namespace MHServerEmu.Games.Entities.Items
         public bool IsBoundToCharacter { get => _itemSpec.GetBindingState(out PrototypeId agentProtoRef) && agentProtoRef != PrototypeId.Invalid; }
         public bool IsTradable { get => Properties[PropertyEnum.ItemIsTradable] && _itemSpec.GetTradeRestricted() == false; }
         public PrototypeId BoundAgentProtoRef { get => _itemSpec.GetBindingState(out PrototypeId agentProtoRef) ? agentProtoRef : PrototypeId.Invalid; }
-        public bool WouldBeDestroyedOnDrop { get => IsBoundToAccount || GameDatabase.DebugGlobalsPrototype.TrashedItemsDropInWorld == false; }
+        public bool WouldBeDestroyedOnDrop =>
+            IsBoundToAccount ||
+            OmegaTierItemFactory.IsOmegaRarity(_itemSpec.RarityProtoRef) ||
+            GameDatabase.DebugGlobalsPrototype.TrashedItemsDropInWorld == false;
         public bool StacksCanBeSplit { get => ItemPrototype?.StackSettings?.StacksCanBeSplit == true; }
 
         public bool IsPetItem { get => ItemPrototype?.IsPetItem == true; }
