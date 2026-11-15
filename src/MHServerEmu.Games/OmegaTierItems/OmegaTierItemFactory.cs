@@ -753,7 +753,7 @@ namespace MHServerEmu.Games.OmegaTierItems
 
         internal static bool ApplyConfiguredAffixMigrations(ItemSpec itemSpec)
         {
-            if (itemSpec == null || itemSpec.IsValid == false || itemSpec.AffixSpecs.Count == 0)
+            if (itemSpec == null || itemSpec.IsValid == false)
                 return false;
 
             OmegaTierItemTuning tuning = OmegaTierItemTuning.Load();
@@ -803,10 +803,35 @@ namespace MHServerEmu.Games.OmegaTierItems
                 }
             }
 
+            foreach (OmegaTierForcedAffixTuning forcedAffix in itemOverride.ForcedAffixes)
+            {
+                AffixPrototype forcedAffixProto = forcedAffix?.ResolvedAffixPrototype ?? ResolveAffix(forcedAffix?.Prototype);
+                if (forcedAffixProto == null || forcedAffix.Count <= 0)
+                    continue;
+
+                int existingCount = affixSpecs.Count(spec => spec?.AffixProto?.DataRef == forcedAffixProto.DataRef);
+                for (int i = existingCount; i < forcedAffix.Count; i++)
+                {
+                    int seed = itemOverride.MaximizeAffixRolls
+                        ? CreateMaxRollAffixSeed(null, forcedAffixProto)
+                        : CreateConfiguredMigrationAffixSeed(itemSpec, forcedAffixProto.DataRef, i);
+                    affixSpecs.Add(new(forcedAffixProto, PrototypeId.Invalid, seed));
+                    changed = true;
+                }
+            }
+
             if (changed)
                 itemSpec.SetAffixes(affixSpecs);
 
             return changed;
+        }
+
+        private static int CreateConfiguredMigrationAffixSeed(ItemSpec itemSpec, PrototypeId affixRef, int ordinal)
+        {
+            ulong affixValue = (ulong)affixRef;
+            int seed = itemSpec.Seed ^ (int)affixValue ^ (int)(affixValue >> 32) ^ ((ordinal + 1) * 397);
+            seed &= int.MaxValue;
+            return seed == 0 ? ordinal + 1 : seed;
         }
 
         private static bool TryApplyConfiguredBuiltInPropertyPrototypeOverride(

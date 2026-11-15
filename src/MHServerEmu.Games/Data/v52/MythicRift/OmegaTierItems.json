@@ -83,14 +83,6 @@
       "builtInProperties": [
         {
           "property": {
-            "Property": "HealthAddBonus"
-          },
-          "valueMin": 2911,
-          "valueMax": 3158,
-          "rollAsInteger": true
-        },
-        {
-          "property": {
             "Property": "StatAllModifier"
           },
           "valueMin": 2,
@@ -100,6 +92,12 @@
       ],
       "forcedAffixes": [
         {
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/BonusHealth/BonusHealthT2.prototype",
+          "count": 1,
+          "allowInvalidAttachment": true,
+          "replaceExistingSamePosition": false
+        },
+        {
           "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/BonusHealth/BonusHealthT1.prototype",
           "count": 1,
           "allowInvalidAttachment": true,
@@ -108,7 +106,7 @@
       ],
       "procKeywordProperties": [],
       "affixReplacements": [
-        { "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/BonusHealth/BonusHealthT1.prototype", "allowInvalidAttachment": true, "replaceAffixes": [ "Entity/Items/Affixes/ArmorAffixes/Loot20/BonusHealth/BonusHealthT3.prototype" ] }
+        { "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/BonusHealth/BonusHealthT2.prototype", "allowInvalidAttachment": true, "replaceAffixes": [ "Entity/Items/Affixes/ArmorAffixes/Loot20/BonusHealth/BonusHealthT3.prototype" ] }
       ],
       "randomAffixes": []
     },
@@ -123,7 +121,7 @@
       ],
       "maximizeAffixRolls": true,
       "clearBuiltInProperties": true,
-      "preserveBuiltInPropertyIndexes": [ 0 ],
+      "preserveBuiltInPropertyIndexes": [],
       "disableTriggeredItemActions": true,
       "clearExistingAffixes": true,
       "preserveProcAffixes": true,
@@ -131,12 +129,6 @@
         "Entity/Items/Affixes/ArmorAffixes/Loot20/DamageRating/DamageRatingT1.prototype",
         "Entity/Items/Affixes/ArmorAffixes/Loot20/DamageRating/DamageRatingT2.prototype",
         "Entity/Items/Affixes/ArmorAffixes/Loot20/DamageRating/DamageRatingT3.prototype",
-        "Entity/Items/Affixes/ArmorAffixes/Loot20/CritChance/CritChanceT1.prototype",
-        "Entity/Items/Affixes/ArmorAffixes/Loot20/CritChance/CritChanceT2.prototype",
-        "Entity/Items/Affixes/ArmorAffixes/Loot20/CritChance/CritChanceT3.prototype",
-        "Entity/Items/Affixes/ArmorAffixes/Loot20/CritDamage/CritDamageT1.prototype",
-        "Entity/Items/Affixes/ArmorAffixes/Loot20/CritDamage/CritDamageT2.prototype",
-        "Entity/Items/Affixes/ArmorAffixes/Loot20/CritDamage/CritDamageT3.prototype",
         "Entity/Items/Affixes/ArmorAffixes/Duration/DurationBonus09to15.prototype",
         "Entity/Items/Affixes/RingAffixes/Prefixes/MeleeDamage.prototype",
         "Entity/Items/Affixes/RingAffixes/Prefixes/AoeDamage.prototype",
@@ -149,26 +141,18 @@
       "builtInProperties": [
         {
           "property": {
+            "Property": "DamageReductionPctFromGear"
+          },
+          "valueMin": 0.06,
+          "valueMax": 0.06,
+          "rollAsInteger": false
+        },
+        {
+          "property": {
             "Property": "DamageRating"
           },
           "valueMin": 1091,
           "valueMax": 1091,
-          "rollAsInteger": true
-        },
-        {
-          "property": {
-            "Property": "CritRatingBonusAdd"
-          },
-          "valueMin": 268,
-          "valueMax": 268,
-          "rollAsInteger": true
-        },
-        {
-          "property": {
-            "Property": "CritDamageRating"
-          },
-          "valueMin": 900,
-          "valueMax": 900,
           "rollAsInteger": true
         },
         {
@@ -211,6 +195,18 @@
         }
       ],
       "forcedAffixes": [
+        {
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/CritChance/CritChanceT1.prototype",
+          "count": 1,
+          "allowInvalidAttachment": true,
+          "replaceExistingSamePosition": false
+        },
+        {
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/CritDamage/CritDamageT1.prototype",
+          "count": 1,
+          "allowInvalidAttachment": true,
+          "replaceExistingSamePosition": false
+        }
       ],
       "procKeywordProperties": [
         {
@@ -221,6 +217,8 @@
         }
       ],
       "affixReplacements": [
+        { "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/CritChance/CritChanceT1.prototype", "allowInvalidAttachment": true, "replaceAffixes": [ "Entity/Items/Affixes/ArmorAffixes/Loot20/CritChance/CritChanceT2.prototype", "Entity/Items/Affixes/ArmorAffixes/Loot20/CritChance/CritChanceT3.prototype" ] },
+        { "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/CritDamage/CritDamageT1.prototype", "allowInvalidAttachment": true, "replaceAffixes": [ "Entity/Items/Affixes/ArmorAffixes/Loot20/CritDamage/CritDamageT2.prototype", "Entity/Items/Affixes/ArmorAffixes/Loot20/CritDamage/CritDamageT3.prototype" ] }
       ],
       "randomAffixes": [
       ]
