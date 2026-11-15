@@ -92,14 +92,16 @@
       ],
       "forcedAffixes": [
         {
-          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/BonusHealth/BonusHealthT3.prototype",
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/BonusHealth/BonusHealthT1.prototype",
           "count": 1,
           "allowInvalidAttachment": true,
           "replaceExistingSamePosition": false
         }
       ],
       "procKeywordProperties": [],
-      "affixReplacements": [],
+      "affixReplacements": [
+        { "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/BonusHealth/BonusHealthT1.prototype", "allowInvalidAttachment": true, "replaceAffixes": [ "Entity/Items/Affixes/ArmorAffixes/Loot20/BonusHealth/BonusHealthT3.prototype" ] }
+      ],
       "randomAffixes": []
     },
     {
@@ -125,19 +127,19 @@
       ],
       "forcedAffixes": [
         {
-          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/DamageRating/DamageRatingT3.prototype",
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/DamageRating/DamageRatingT1.prototype",
           "count": 1,
           "allowInvalidAttachment": true,
           "replaceExistingSamePosition": false
         },
         {
-          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/CritChance/CritChanceT3.prototype",
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/CritChance/CritChanceT1.prototype",
           "count": 1,
           "allowInvalidAttachment": true,
           "replaceExistingSamePosition": false
         },
         {
-          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/CritDamage/CritDamageT3.prototype",
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/CritDamage/CritDamageT1.prototype",
           "count": 1,
           "allowInvalidAttachment": true,
           "replaceExistingSamePosition": false
@@ -161,7 +163,7 @@
           "replaceExistingSamePosition": false
         },
         {
-          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/BonusHealth/BonusHealthT3.prototype",
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/BonusHealth/BonusHealthT1.prototype",
           "count": 1,
           "allowInvalidAttachment": true,
           "replaceExistingSamePosition": false
@@ -176,6 +178,10 @@
         }
       ],
       "affixReplacements": [
+        { "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/DamageRating/DamageRatingT1.prototype", "allowInvalidAttachment": true, "replaceAffixes": [ "Entity/Items/Affixes/ArmorAffixes/Loot20/DamageRating/DamageRatingT3.prototype" ] },
+        { "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/CritChance/CritChanceT1.prototype", "allowInvalidAttachment": true, "replaceAffixes": [ "Entity/Items/Affixes/ArmorAffixes/Loot20/CritChance/CritChanceT3.prototype" ] },
+        { "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/CritDamage/CritDamageT1.prototype", "allowInvalidAttachment": true, "replaceAffixes": [ "Entity/Items/Affixes/ArmorAffixes/Loot20/CritDamage/CritDamageT3.prototype" ] },
+        { "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/BonusHealth/BonusHealthT1.prototype", "allowInvalidAttachment": true, "replaceAffixes": [ "Entity/Items/Affixes/ArmorAffixes/Loot20/BonusHealth/BonusHealthT3.prototype" ] }
       ],
       "randomAffixes": [
       ]
@@ -202,43 +208,43 @@
       ],
       "forcedAffixes": [
         {
-          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/DamageRating/DamageRatingT3.prototype",
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/DamageRating/DamageRatingT1.prototype",
           "count": 1,
           "allowInvalidAttachment": true,
           "replaceExistingSamePosition": false
         },
         {
-          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/BonusHealth/BonusHealthT3.prototype",
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/BonusHealth/BonusHealthT1.prototype",
           "count": 1,
           "allowInvalidAttachment": true,
           "replaceExistingSamePosition": false
         },
         {
-          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/CritChance/CritChanceT3.prototype",
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/CritChance/CritChanceT1.prototype",
           "count": 1,
           "allowInvalidAttachment": true,
           "replaceExistingSamePosition": false
         },
         {
-          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/BrutalStrike/BrutalStrikeT3.prototype",
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/BrutalStrike/BrutalStrikeT1.prototype",
           "count": 1,
           "allowInvalidAttachment": true,
           "replaceExistingSamePosition": false
         },
         {
-          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/Attributes/FightingT3.prototype",
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/Attributes/FightingT1.prototype",
           "count": 1,
           "allowInvalidAttachment": true,
           "replaceExistingSamePosition": false
         },
         {
-          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/Attributes/SpeedT3.prototype",
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/Attributes/SpeedT1.prototype",
           "count": 1,
           "allowInvalidAttachment": true,
           "replaceExistingSamePosition": false
         },
         {
-          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/DamageSummoner/DamageSummonerT3.prototype",
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/DamageSummoner/DamageSummonerT1.prototype",
           "count": 1,
           "allowInvalidAttachment": true,
           "replaceExistingSamePosition": false
@@ -253,6 +259,13 @@
       "procKeywordProperties": [
       ],
       "affixReplacements": [
+        { "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/DamageRating/DamageRatingT1.prototype", "allowInvalidAttachment": true, "replaceAffixes": [ "Entity/Items/Affixes/ArmorAffixes/Loot20/DamageRating/DamageRatingT3.prototype" ] },
+        { "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/BonusHealth/BonusHealthT1.prototype", "allowInvalidAttachment": true, "replaceAffixes": [ "Entity/Items/Affixes/ArmorAffixes/Loot20/BonusHealth/BonusHealthT3.prototype" ] },
+        { "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/CritChance/CritChanceT1.prototype", "allowInvalidAttachment": true, "replaceAffixes": [ "Entity/Items/Affixes/ArmorAffixes/Loot20/CritChance/CritChanceT3.prototype" ] },
+        { "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/BrutalStrike/BrutalStrikeT1.prototype", "allowInvalidAttachment": true, "replaceAffixes": [ "Entity/Items/Affixes/ArmorAffixes/Loot20/BrutalStrike/BrutalStrikeT3.prototype" ] },
+        { "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/Attributes/FightingT1.prototype", "allowInvalidAttachment": true, "replaceAffixes": [ "Entity/Items/Affixes/ArmorAffixes/Loot20/Attributes/FightingT3.prototype" ] },
+        { "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/Attributes/SpeedT1.prototype", "allowInvalidAttachment": true, "replaceAffixes": [ "Entity/Items/Affixes/ArmorAffixes/Loot20/Attributes/SpeedT3.prototype" ] },
+        { "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/DamageSummoner/DamageSummonerT1.prototype", "allowInvalidAttachment": true, "replaceAffixes": [ "Entity/Items/Affixes/ArmorAffixes/Loot20/DamageSummoner/DamageSummonerT3.prototype" ] }
       ],
       "randomAffixes": [
       ]
@@ -279,31 +292,31 @@
       ],
       "forcedAffixes": [
         {
-          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/DamageEnergy/DamageEnergyT3.prototype",
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/DamageEnergy/DamageEnergyT1.prototype",
           "count": 1,
           "allowInvalidAttachment": true,
           "replaceExistingSamePosition": false
         },
         {
-          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/DamageMental/DamageMentalT3.prototype",
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/DamageMental/DamageMentalT1.prototype",
           "count": 1,
           "allowInvalidAttachment": true,
           "replaceExistingSamePosition": false
         },
         {
-          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/BonusHealth/BonusHealthT3.prototype",
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/BonusHealth/BonusHealthT1.prototype",
           "count": 1,
           "allowInvalidAttachment": true,
           "replaceExistingSamePosition": false
         },
         {
-          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/CritChance/CritChanceT3.prototype",
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/CritChance/CritChanceT1.prototype",
           "count": 1,
           "allowInvalidAttachment": true,
           "replaceExistingSamePosition": false
         },
         {
-          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/CritDamage/CritDamageT3.prototype",
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/CritDamage/CritDamageT1.prototype",
           "count": 1,
           "allowInvalidAttachment": true,
           "replaceExistingSamePosition": false
@@ -315,7 +328,7 @@
           "replaceExistingSamePosition": false
         },
         {
-          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/MovementSpeed/MovementSpeedT3.prototype",
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/MovementSpeed/MovementSpeedT1.prototype",
           "count": 1,
           "allowInvalidAttachment": true,
           "replaceExistingSamePosition": false
@@ -330,6 +343,12 @@
       "procKeywordProperties": [
       ],
       "affixReplacements": [
+        { "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/DamageEnergy/DamageEnergyT1.prototype", "allowInvalidAttachment": true, "replaceAffixes": [ "Entity/Items/Affixes/ArmorAffixes/Loot20/DamageEnergy/DamageEnergyT3.prototype" ] },
+        { "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/DamageMental/DamageMentalT1.prototype", "allowInvalidAttachment": true, "replaceAffixes": [ "Entity/Items/Affixes/ArmorAffixes/Loot20/DamageMental/DamageMentalT3.prototype" ] },
+        { "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/BonusHealth/BonusHealthT1.prototype", "allowInvalidAttachment": true, "replaceAffixes": [ "Entity/Items/Affixes/ArmorAffixes/Loot20/BonusHealth/BonusHealthT3.prototype" ] },
+        { "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/CritChance/CritChanceT1.prototype", "allowInvalidAttachment": true, "replaceAffixes": [ "Entity/Items/Affixes/ArmorAffixes/Loot20/CritChance/CritChanceT3.prototype" ] },
+        { "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/CritDamage/CritDamageT1.prototype", "allowInvalidAttachment": true, "replaceAffixes": [ "Entity/Items/Affixes/ArmorAffixes/Loot20/CritDamage/CritDamageT3.prototype" ] },
+        { "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/MovementSpeed/MovementSpeedT1.prototype", "allowInvalidAttachment": true, "replaceAffixes": [ "Entity/Items/Affixes/ArmorAffixes/Loot20/MovementSpeed/MovementSpeedT3.prototype" ] }
       ],
       "randomAffixes": [
       ]
@@ -356,37 +375,37 @@
       ],
       "forcedAffixes": [
         {
-          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/DefenseAll/DefenseAllT3.prototype",
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/DefenseAll/DefenseAllT1.prototype",
           "count": 1,
           "allowInvalidAttachment": true,
           "replaceExistingSamePosition": false
         },
         {
-          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/BonusHealth/BonusHealthT3.prototype",
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/BonusHealth/BonusHealthT1.prototype",
           "count": 1,
           "allowInvalidAttachment": true,
           "replaceExistingSamePosition": false
         },
         {
-          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/Attributes/StrengthT3.prototype",
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/Attributes/StrengthT1.prototype",
           "count": 1,
           "allowInvalidAttachment": true,
           "replaceExistingSamePosition": false
         },
         {
-          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/Attributes/EnergyT3.prototype",
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/Attributes/EnergyT1.prototype",
           "count": 1,
           "allowInvalidAttachment": true,
           "replaceExistingSamePosition": false
         },
         {
-          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/BrutalStrike/BrutalStrikeT3.prototype",
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/BrutalStrike/BrutalStrikeT1.prototype",
           "count": 1,
           "allowInvalidAttachment": true,
           "replaceExistingSamePosition": false
         },
         {
-          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/BrutalDamage/BrutalDamageT3.prototype",
+          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/BrutalDamage/BrutalDamageT1.prototype",
           "count": 1,
           "allowInvalidAttachment": true,
           "replaceExistingSamePosition": false
@@ -395,6 +414,12 @@
       "procKeywordProperties": [
       ],
       "affixReplacements": [
+        { "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/DefenseAll/DefenseAllT1.prototype", "allowInvalidAttachment": true, "replaceAffixes": [ "Entity/Items/Affixes/ArmorAffixes/Loot20/DefenseAll/DefenseAllT3.prototype" ] },
+        { "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/BonusHealth/BonusHealthT1.prototype", "allowInvalidAttachment": true, "replaceAffixes": [ "Entity/Items/Affixes/ArmorAffixes/Loot20/BonusHealth/BonusHealthT3.prototype" ] },
+        { "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/Attributes/StrengthT1.prototype", "allowInvalidAttachment": true, "replaceAffixes": [ "Entity/Items/Affixes/ArmorAffixes/Loot20/Attributes/StrengthT3.prototype" ] },
+        { "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/Attributes/EnergyT1.prototype", "allowInvalidAttachment": true, "replaceAffixes": [ "Entity/Items/Affixes/ArmorAffixes/Loot20/Attributes/EnergyT3.prototype" ] },
+        { "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/BrutalStrike/BrutalStrikeT1.prototype", "allowInvalidAttachment": true, "replaceAffixes": [ "Entity/Items/Affixes/ArmorAffixes/Loot20/BrutalStrike/BrutalStrikeT3.prototype" ] },
+        { "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/BrutalDamage/BrutalDamageT1.prototype", "allowInvalidAttachment": true, "replaceAffixes": [ "Entity/Items/Affixes/ArmorAffixes/Loot20/BrutalDamage/BrutalDamageT3.prototype" ] }
       ],
       "randomAffixes": [
       ]

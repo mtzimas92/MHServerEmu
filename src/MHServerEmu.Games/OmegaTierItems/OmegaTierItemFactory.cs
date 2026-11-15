@@ -751,6 +751,56 @@ namespace MHServerEmu.Games.OmegaTierItems
             return changed;
         }
 
+        internal static bool ApplyConfiguredAffixMigrations(ItemSpec itemSpec)
+        {
+            if (itemSpec == null || itemSpec.IsValid == false || itemSpec.AffixSpecs.Count == 0)
+                return false;
+
+            OmegaTierItemTuning tuning = OmegaTierItemTuning.Load();
+            if (tuning?.Enabled != true || tuning.ItemOverrides.Count == 0)
+                return false;
+
+            OmegaTierItemOverrideTuning itemOverride = tuning.ItemOverrides.FirstOrDefault(
+                entry => entry?.Matches(itemSpec.ItemProtoRef, itemSpec.RarityProtoRef) == true &&
+                    entry.AffixReplacements?.Count > 0);
+            if (itemOverride == null)
+                return false;
+
+            List<AffixSpec> affixSpecs = new(itemSpec.AffixSpecs.Count);
+            foreach (AffixSpec affixSpec in itemSpec.AffixSpecs)
+                affixSpecs.Add(new(affixSpec));
+
+            bool changed = false;
+            foreach (OmegaTierAffixReplacementTuning replacement in itemOverride.AffixReplacements)
+            {
+                if (replacement == null || replacement.Count <= 0)
+                    continue;
+
+                AffixPrototype replacementAffixProto = replacement.ResolvedAffixPrototype ?? ResolveAffix(replacement.Prototype);
+                if (replacementAffixProto == null)
+                    continue;
+
+                for (int i = 0; i < replacement.Count; i++)
+                {
+                    int replacementIndex = FindOverrideReplacementAffixIndex(affixSpecs, replacementAffixProto, tuning, replacement);
+                    if (replacementIndex < 0)
+                        break;
+
+                    AffixSpec existingAffixSpec = affixSpecs[replacementIndex];
+                    affixSpecs[replacementIndex] = new(
+                        replacementAffixProto,
+                        existingAffixSpec.ScopeProtoRef,
+                        existingAffixSpec.Seed);
+                    changed = true;
+                }
+            }
+
+            if (changed)
+                itemSpec.SetAffixes(affixSpecs);
+
+            return changed;
+        }
+
         private static bool TryApplyConfiguredBuiltInPropertyPrototypeOverride(
             ItemPrototype itemProto,
             OmegaTierItemOverrideTuning itemOverride,

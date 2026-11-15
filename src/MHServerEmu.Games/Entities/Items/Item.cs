@@ -992,6 +992,7 @@ namespace MHServerEmu.Games.Entities.Items
 #if GAME_VERSION_1_52 || GAME_VERSION_1_53
             ApplyOmegaTierBuiltInPropertyTemplate(random);
             OmegaTierItemFactory.ApplyConfiguredRuntimeProperties(this);
+            OmegaTierItemFactory.ApplyConfiguredAffixMigrations(_itemSpec);
 #endif
 
             // Apply built-in affixes
@@ -1021,10 +1022,6 @@ namespace MHServerEmu.Games.Entities.Items
                 if (!Verify.IsNotNull(affixSpec.AffixProto)) return false;
                 OnAffixAdded(random, affixSpec.AffixProto, affixSpec.ScopeProtoRef, _itemSpec.EquippableBy, 0);
             }
-
-#if GAME_VERSION_1_52 || GAME_VERSION_1_53
-            ApplyOmegaTierRuntimeAffixReplacements(random);
-#endif
 
             // Pick triggered power
             ItemActionSetPrototype triggeredActions = ShouldDisableOmegaTierTriggeredItemActions()
@@ -1169,149 +1166,6 @@ namespace MHServerEmu.Games.Entities.Items
                 propertyEnum == PropertyEnum.ProcPowerRank ||
                 propertyEnum == PropertyEnum.ProcCasterOverride ||
                 propertyEnum == PropertyEnum.ProcTargetOverride;
-        }
-
-        private bool ApplyOmegaTierRuntimeAffixReplacements(GRandom random)
-        {
-            if (_itemSpec == null || _itemSpec.IsValid == false || _affixProperties.Count == 0 ||
-                OmegaTierItemFactory.IsOmegaRarity(_itemSpec.RarityProtoRef) == false)
-            {
-                return false;
-            }
-
-            OmegaTierItemTuning tuning = OmegaTierItemTuning.Load();
-            if (tuning?.Enabled != true || tuning.ItemOverrides.Count == 0)
-                return false;
-
-            bool changed = false;
-            foreach (OmegaTierItemOverrideTuning itemOverride in tuning.ItemOverrides)
-            {
-                if (itemOverride?.Matches(_itemSpec.ItemProtoRef, _itemSpec.RarityProtoRef) != true ||
-                    itemOverride.AffixReplacements == null || itemOverride.AffixReplacements.Count == 0)
-                {
-                    continue;
-                }
-
-                foreach (OmegaTierAffixReplacementTuning replacement in itemOverride.AffixReplacements)
-                {
-                    if (replacement == null || replacement.Count <= 0)
-                        continue;
-
-                    AffixPrototype replacementAffixProto = replacement.ResolvedAffixPrototype ?? OmegaTierItemFactory.ResolveAffix(replacement.Prototype);
-                    if (replacementAffixProto == null)
-                        continue;
-
-                    for (int i = 0; i < replacement.Count; i++)
-                    {
-                        int replacementIndex = FindOmegaTierRuntimeReplacementAffixIndex(replacementAffixProto, tuning, replacement);
-                        if (replacementIndex < 0)
-                            continue;
-
-                        if (RemoveOmegaTierRuntimeAffixPropertyEntryAt(replacementIndex) == false)
-                            continue;
-
-                        if (HasOmegaTierRuntimeAffix(replacementAffixProto.DataRef) == false)
-                        {
-                            if (TryGetOmegaTierItemSpecAffixSeed(replacementAffixProto.DataRef, out int seed) == false)
-                            {
-                                seed = random.Next(1, int.MaxValue);
-                                ItemSpec.AddAffixSpec(new(replacementAffixProto, PrototypeId.Invalid, seed));
-                            }
-
-                            GRandom affixRandom = new(seed);
-                            OnAffixAdded(affixRandom, replacementAffixProto, PrototypeId.Invalid, _itemSpec.EquippableBy, 0);
-                        }
-
-                        changed = true;
-                    }
-                }
-            }
-
-            return changed;
-        }
-
-        private int FindOmegaTierRuntimeReplacementAffixIndex(
-            AffixPrototype replacementAffixProto,
-            OmegaTierItemTuning tuning,
-            OmegaTierAffixReplacementTuning replacement)
-        {
-            if (replacement.ReplaceAffixIndexes.Count > 0)
-            {
-                foreach (int index in replacement.ReplaceAffixIndexes)
-                {
-                    if (index < 0 || index >= _affixProperties.Count)
-                        continue;
-
-                    AffixPrototype existingAffixProto = _affixProperties[index].AffixProto;
-                    if (OmegaTierItemFactory.CanReplaceOverrideAffix(existingAffixProto, replacementAffixProto, tuning, replacement, requireSamePosition: false, requireConfiguredIndex: true))
-                        return index;
-                }
-
-                return -1;
-            }
-
-            for (int i = 0; i < _affixProperties.Count; i++)
-            {
-                AffixPrototype existingAffixProto = _affixProperties[i].AffixProto;
-                if (OmegaTierItemFactory.CanReplaceOverrideAffix(existingAffixProto, replacementAffixProto, tuning, replacement, requireSamePosition: true))
-                    return i;
-            }
-
-            for (int i = 0; i < _affixProperties.Count; i++)
-            {
-                AffixPrototype existingAffixProto = _affixProperties[i].AffixProto;
-                if (OmegaTierItemFactory.CanReplaceOverrideAffix(existingAffixProto, replacementAffixProto, tuning, replacement, requireSamePosition: false))
-                    return i;
-            }
-
-            return -1;
-        }
-
-        private bool RemoveOmegaTierRuntimeAffixPropertyEntryAt(int index)
-        {
-            if (index < 0 || index >= _affixProperties.Count)
-                return false;
-
-            AffixPropertiesCopyEntry entry = _affixProperties[index];
-            if (entry.Properties != null && Properties.HasChildCollection(entry.Properties))
-                entry.Properties.RemoveFromParent(Properties);
-
-            _affixProperties.RemoveAt(index);
-            return true;
-        }
-
-        private bool HasOmegaTierRuntimeAffix(PrototypeId affixRef)
-        {
-            if (affixRef == PrototypeId.Invalid)
-                return false;
-
-            foreach (AffixPropertiesCopyEntry entry in _affixProperties)
-            {
-                if (entry.AffixProto?.DataRef == affixRef)
-                    return true;
-            }
-
-            return false;
-        }
-
-        private bool TryGetOmegaTierItemSpecAffixSeed(PrototypeId affixRef, out int seed)
-        {
-            seed = 0;
-            if (affixRef == PrototypeId.Invalid)
-                return false;
-
-            IReadOnlyList<AffixSpec> affixSpecs = ItemSpec.AffixSpecs;
-            for (int i = 0; i < affixSpecs.Count; i++)
-            {
-                AffixSpec affixSpec = affixSpecs[i];
-                if (affixSpec?.AffixProto?.DataRef == affixRef)
-                {
-                    seed = affixSpec.Seed;
-                    return true;
-                }
-            }
-
-            return false;
         }
 
         private bool ShouldDisableOmegaTierTriggeredItemActions()
