@@ -762,15 +762,23 @@ namespace MHServerEmu.Games.OmegaTierItems
 
             OmegaTierItemOverrideTuning itemOverride = tuning.ItemOverrides.FirstOrDefault(
                 entry => entry?.Matches(itemSpec.ItemProtoRef, itemSpec.RarityProtoRef) == true &&
-                    entry.AffixReplacements?.Count > 0);
+                    ((entry.AffixReplacements?.Count ?? 0) > 0 || entry.DisabledAffixRefs.Count > 0));
             if (itemOverride == null)
                 return false;
 
             List<AffixSpec> affixSpecs = new(itemSpec.AffixSpecs.Count);
-            foreach (AffixSpec affixSpec in itemSpec.AffixSpecs)
-                affixSpecs.Add(new(affixSpec));
-
             bool changed = false;
+            foreach (AffixSpec affixSpec in itemSpec.AffixSpecs)
+            {
+                if (affixSpec?.AffixProto != null && itemOverride.IsAffixDisabled(affixSpec.AffixProto))
+                {
+                    changed = true;
+                    continue;
+                }
+
+                affixSpecs.Add(new(affixSpec));
+            }
+
             foreach (OmegaTierAffixReplacementTuning replacement in itemOverride.AffixReplacements)
             {
                 if (replacement == null || replacement.Count <= 0)
