@@ -76,10 +76,14 @@
       "maximizeAffixRolls": false,
       "clearBuiltInProperties": true,
       "preserveProcBuiltInProperties": false,
-      "preserveBuiltInPropertyIndexes": [ 0, 4, 5, 6, 7, 8 ],
+      "preserveBuiltInPropertyIndexes": [ 0, 1, 4, 5, 6, 7, 8 ],
       "maximizeBuiltInPropertyRolls": false,
       "clearExistingAffixes": true,
       "preserveProcAffixes": true,
+      "disabledAffixes": [
+        "Entity/Items/Affixes/ArmorAffixes/Loot20/BonusHealth/BonusHealthT2.prototype",
+        "Entity/Items/Affixes/ArmorAffixes/Loot20/BonusHealth/BonusHealthT3.prototype"
+      ],
       "builtInProperties": [
         {
           "property": {
@@ -92,12 +96,6 @@
       ],
       "forcedAffixes": [
         {
-          "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/BonusHealth/BonusHealthT2.prototype",
-          "count": 1,
-          "allowInvalidAttachment": true,
-          "replaceExistingSamePosition": false
-        },
-        {
           "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/BonusHealth/BonusHealthT1.prototype",
           "count": 1,
           "allowInvalidAttachment": true,
@@ -105,9 +103,7 @@
         }
       ],
       "procKeywordProperties": [],
-      "affixReplacements": [
-        { "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/BonusHealth/BonusHealthT2.prototype", "allowInvalidAttachment": true, "replaceAffixes": [ "Entity/Items/Affixes/ArmorAffixes/Loot20/BonusHealth/BonusHealthT3.prototype" ] }
-      ],
+      "affixReplacements": [],
       "randomAffixes": []
     },
     {
