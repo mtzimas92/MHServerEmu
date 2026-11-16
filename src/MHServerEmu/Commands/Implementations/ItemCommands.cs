@@ -103,6 +103,45 @@ namespace MHServerEmu.Commands.Implementations
             return $"Destroyed {indestructibleItemList.Count} indestructible items.";
         }
 
+        [Command("unbindmonument")]
+        [CommandDescription("Removes the binding from Monument of Ell items in the player's general inventory.")]
+        [CommandUsage("item unbindmonument")]
+        [CommandInvokerType(CommandInvokerType.Client)]
+        public string UnbindMonumentOfEll(string[] @params, NetClient client)
+        {
+            const string MonumentOfEllPrototype = "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot5/Unique238.prototype";
+
+            PlayerConnection playerConnection = (PlayerConnection)client;
+            Player player = playerConnection.Player;
+            Inventory general = player.GetInventory(InventoryConvenienceLabel.General);
+            if (general == null)
+                return "General inventory not found.";
+
+            PrototypeId monumentOfEllRef = GameDatabase.GetPrototypeRefByName(MonumentOfEllPrototype);
+            if (monumentOfEllRef == PrototypeId.Invalid)
+                return "Monument of Ell prototype not found.";
+
+            int found = 0;
+            int unbound = 0;
+            foreach (var entry in general)
+            {
+                Item item = player.Game.EntityManager.GetEntity<Item>(entry.Id);
+                if (item == null || item.PrototypeDataRef != monumentOfEllRef)
+                    continue;
+
+                found++;
+                if (item.IsBoundToAccount && item.SetBinding(false))
+                    unbound++;
+            }
+
+            if (found == 0)
+                return "Place Monument of Ell in your general inventory before using this command.";
+
+            return unbound > 0
+                ? $"Unbound {unbound} Monument of Ell item(s)."
+                : "All Monument of Ell items in your general inventory are already unbound.";
+        }
+
         [Command("roll")]
         [CommandDescription("Rolls the specified loot table.")]
         [CommandUsage("item roll [pattern]")]

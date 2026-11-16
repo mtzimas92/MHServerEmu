@@ -771,6 +771,89 @@ namespace MHServerEmu.Games.OmegaTierItems
             return changed;
         }
 
+        internal static bool ApplyConfiguredAffixMigrations(ItemSpec itemSpec)
+        {
+            if (itemSpec == null || itemSpec.IsValid == false)
+                return false;
+
+            OmegaTierItemTuning tuning = OmegaTierItemTuning.Load();
+            if (tuning?.Enabled != true || tuning.ItemOverrides.Count == 0)
+                return false;
+
+            OmegaTierItemOverrideTuning itemOverride = tuning.ItemOverrides.FirstOrDefault(
+                entry => entry?.Matches(itemSpec.ItemProtoRef, itemSpec.RarityProtoRef) == true &&
+                    ((entry.AffixReplacements?.Count ?? 0) > 0 || entry.DisabledAffixRefs.Count > 0));
+            if (itemOverride == null)
+                return false;
+
+            List<AffixSpec> affixSpecs = new(itemSpec.AffixSpecs.Count);
+            bool changed = false;
+            foreach (AffixSpec affixSpec in itemSpec.AffixSpecs)
+            {
+                if (affixSpec?.AffixProto != null && itemOverride.IsAffixDisabled(affixSpec.AffixProto))
+                {
+                    changed = true;
+                    continue;
+                }
+
+                affixSpecs.Add(new(affixSpec));
+            }
+
+            foreach (OmegaTierAffixReplacementTuning replacement in itemOverride.AffixReplacements)
+            {
+                if (replacement == null || replacement.Count <= 0)
+                    continue;
+
+                AffixPrototype replacementAffixProto = replacement.ResolvedAffixPrototype ?? ResolveAffix(replacement.Prototype);
+                if (replacementAffixProto == null)
+                    continue;
+
+                for (int i = 0; i < replacement.Count; i++)
+                {
+                    int replacementIndex = FindOverrideReplacementAffixIndex(affixSpecs, replacementAffixProto, tuning, replacement);
+                    if (replacementIndex < 0)
+                        break;
+
+                    AffixSpec existingAffixSpec = affixSpecs[replacementIndex];
+                    affixSpecs[replacementIndex] = new(
+                        replacementAffixProto,
+                        existingAffixSpec.ScopeProtoRef,
+                        existingAffixSpec.Seed);
+                    changed = true;
+                }
+            }
+
+            foreach (OmegaTierForcedAffixTuning forcedAffix in itemOverride.ForcedAffixes)
+            {
+                AffixPrototype forcedAffixProto = forcedAffix?.ResolvedAffixPrototype ?? ResolveAffix(forcedAffix?.Prototype);
+                if (forcedAffixProto == null || forcedAffix.Count <= 0)
+                    continue;
+
+                int existingCount = affixSpecs.Count(spec => spec?.AffixProto?.DataRef == forcedAffixProto.DataRef);
+                for (int i = existingCount; i < forcedAffix.Count; i++)
+                {
+                    int seed = itemOverride.MaximizeAffixRolls
+                        ? CreateMaxRollAffixSeed(null, forcedAffixProto)
+                        : CreateConfiguredMigrationAffixSeed(itemSpec, forcedAffixProto.DataRef, i);
+                    affixSpecs.Add(new(forcedAffixProto, PrototypeId.Invalid, seed));
+                    changed = true;
+                }
+            }
+
+            if (changed)
+                itemSpec.SetAffixes(affixSpecs);
+
+            return changed;
+        }
+
+        private static int CreateConfiguredMigrationAffixSeed(ItemSpec itemSpec, PrototypeId affixRef, int ordinal)
+        {
+            ulong affixValue = (ulong)affixRef;
+            int seed = itemSpec.Seed ^ (int)affixValue ^ (int)(affixValue >> 32) ^ ((ordinal + 1) * 397);
+            seed &= int.MaxValue;
+            return seed == 0 ? ordinal + 1 : seed;
+        }
+
         private static bool TryApplyConfiguredBuiltInPropertyPrototypeOverride(
             ItemPrototype itemProto,
             OmegaTierItemOverrideTuning itemOverride,
