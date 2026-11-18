@@ -132,9 +132,6 @@
         "Entity/Items/Affixes/ArmorAffixes/Loot20/BonusHealth/BonusHealthT2.prototype",
         "Entity/Items/Affixes/ArmorAffixes/Loot20/BonusHealth/BonusHealthT3.prototype"
       ],
-      "disabledProcPowers": [
-        "Powers/ItemPowers/UniquesPowers/Unique238ElitePictureDrop.prototype"
-      ],
       "builtInProperties": [
         {
           "property": {
@@ -208,7 +205,7 @@
       "procKeywordProperties": [
         {
           "trigger": "OnCrit",
-          "power": "Powers/ItemPowers/UniquesPowers/Unique238ElitePictureDrop.prototype",
+          "power": "Powers/ItemPowers/UniquesPowers/Unique306BleedProc.prototype",
           "keyword": "Powers/Blueprints/Keywords/Melee.defaults",
           "chance": 0.2
         }

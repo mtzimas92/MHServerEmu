@@ -9,7 +9,7 @@
       "Property": "ProcKeyword",
       "Params": [
         "OnCrit",
-        "Powers/ItemPowers/UniquesPowers/Unique238ElitePictureDrop.prototype",
+        "Powers/ItemPowers/UniquesPowers/Unique306BleedProc.prototype",
         "Powers/Blueprints/Keywords/Melee.defaults"
       ]
     }
@@ -40,46 +40,68 @@
   },
   {
     "Enabled": true,
-    "Prototype": "Powers/ItemPowers/UniquesPowers/Unique238ElitePictureDrop.prototype",
-    "Path": "ActionsTriggeredOnPowerEvent",
-    "Description": "Monument of Ell: remove the old elite-picture reward action from its isolated proc power.",
+    "Prototype": "Powers/ItemPowers/UniquesPowers/Unique306BleedProc.prototype",
+    "Path": "EvalOnCreate",
+    "Description": "Monument of Ell: replace Unique306's native bleed payload with a deterministic +9 Strength buff.",
     "ValueType": "PrototypeArray",
+    "Value": [
+      {
+        "ParentDataRef": "Eval/Properties/AssignProp.defaults",
+        "Op": "AssignProp",
+        "Prop": {
+          "Property": "StatStrengthModifier"
+        },
+        "Eval": {
+          "ParentDataRef": "Eval/Constants/LoadInt.defaults",
+          "Op": "LoadInt",
+          "Value": 9
+        }
+      }
+    ]
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/ItemPowers/UniquesPowers/Unique306BleedProc.prototype",
+    "Path": "Scope",
+    "Description": "Monument of Ell: apply the repurposed condition to the wearer.",
+    "ValueType": "Enum",
+    "Value": "User"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/ItemPowers/UniquesPowers/Unique306BleedProc.prototype",
+    "Path": "DurationMS",
+    "Description": "Monument of Ell: keep the Strength buff active for six seconds.",
+    "ValueType": "Integer",
+    "Value": 6000
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/ItemPowers/UniquesPowers/Unique306BleedProc.prototype",
+    "Path": "DurationMSCurve",
+    "Description": "Monument of Ell: remove the native bleed duration curve.",
+    "ValueType": "Enum",
+    "Value": "Invalid"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/ItemPowers/UniquesPowers/Unique306BleedProc.prototype",
+    "Path": "Keywords",
+    "Description": "Monument of Ell: remove the native Bleed and DamageOverTime keywords.",
+    "ValueType": "PrototypeIdArray",
     "Value": []
   },
   {
     "Enabled": true,
-    "Prototype": "Powers/ItemPowers/UniquesPowers/Unique238ElitePictureDrop.prototype",
-    "Path": "AppliesConditions[]",
-    "Description": "Monument of Ell: apply a non-stacking +9 Strength condition to the wearer for six seconds.",
-    "ValueType": "Prototype",
-    "Value": {
-      "ParentDataRef": "Powers/Blueprints/Condition.defaults",
-      "Scope": "User",
-      "DurationMS": 6000,
-      "StackingBehavior": {
-        "ParentDataRef": "Powers/Blueprints/Stacking/StackingBehavior.defaults",
-        "ApplicationStyle": "Refresh",
-        "MaxNumStacks": 1
-      },
-      "EvalOnCreate": [
-        {
-          "ParentDataRef": "Eval/Properties/AssignProp.defaults",
-          "Op": "AssignProp",
-          "Prop": {
-            "Property": "StatStrengthModifier"
-          },
-          "Eval": {
-            "ParentDataRef": "Eval/Constants/LoadInt.defaults",
-            "Op": "LoadInt",
-            "Value": 9
-          }
-        }
-      ]
-    }
+    "Prototype": "Powers/ItemPowers/UniquesPowers/Unique306BleedProc.prototype",
+    "Path": "StackingBehaviorLEGACY.MaxNumStacks",
+    "Description": "Monument of Ell: prevent the Strength condition from stacking.",
+    "ValueType": "Integer",
+    "Value": 1
   },
   {
     "Enabled": true,
-    "Prototype": "Powers/ItemPowers/UniquesPowers/Unique238ElitePictureDrop.prototype",
+    "Prototype": "Powers/ItemPowers/UniquesPowers/Unique306BleedProc.prototype",
     "Path": "CooldownTimeMS.Value",
     "Description": "Monument of Ell: set the Strength proc cooldown to one second.",
     "ValueType": "Integer",
@@ -87,7 +109,7 @@
   },
   {
     "Enabled": true,
-    "Prototype": "Powers/ItemPowers/UniquesPowers/Unique238ElitePictureDrop.prototype",
+    "Prototype": "Powers/ItemPowers/UniquesPowers/Unique306BleedProc.prototype",
     "Path": "ProcChanceMultiplierBehavior",
     "Description": "Monument of Ell: use the configured 20% chance without source-power proc chance scaling.",
     "ValueType": "Enum",

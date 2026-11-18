@@ -95,7 +95,7 @@ namespace MHServerEmu.Games.Entities
 
     public partial class WorldEntity
     {
-        private const string MonumentStrengthProcName = "Powers/ItemPowers/UniquesPowers/Unique238ElitePictureDrop.prototype";
+        private const string MonumentStrengthProcName = "Powers/ItemPowers/UniquesPowers/Unique306BleedProc.prototype";
         private static PrototypeId _monumentStrengthProcRef = PrototypeId.Invalid;
 
         private static bool IsMonumentStrengthProc(PrototypeId powerProtoRef)
