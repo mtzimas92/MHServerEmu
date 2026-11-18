@@ -78,6 +78,14 @@
   {
     "Enabled": true,
     "Prototype": "Powers/ItemPowers/UniquesPowers/Unique306BleedProc.prototype",
+    "Path": "ProcChanceMultiplierBehavior",
+    "Description": "Omega slot 5 Strength proc: ignore source power proc chance multipliers.",
+    "ValueType": "Enum",
+    "Value": "IgnoreProcChanceMultiplier"
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/ItemPowers/UniquesPowers/Unique306BleedProc.prototype",
     "Path": "StackingBehaviorLEGACY.MaxNumStacks",
     "Description": "Omega slot 5 Strength proc: prevent the repurposed stat condition from stacking.",
     "ValueType": "Integer",
