@@ -1749,11 +1749,25 @@ namespace MHServerEmu.Games.Entities
                     PrototypeId triggeringPowerRef = properties[PropertyEnum.TriggeringPowerRef, procPowerProtoRef];
 
                     bool wasAssigned = caster.AssignPower(procPowerProtoRef, indexProps, true, triggeringPowerRef) != null;
+                    if (IsMonumentStrengthProc(procPowerProtoRef))
+                    {
+                        Logger.Info(
+                            $"[MonumentStrengthProcTrace] stage=power-assignment owner={this} caster={caster} " +
+                            $"power={procPowerProtoRef.GetNameFormatted()} assigned={wasAssigned}");
+                    }
+
                     if (!Verify.IsTrue(wasAssigned, $"Failed to assign {procPowerProtoRef.GetName()} to [{caster}]"))
                         success = false;
                 }
                 else
                 {
+                    if (IsMonumentStrengthProc(procPowerProtoRef))
+                    {
+                        Logger.Info(
+                            $"[MonumentStrengthProcTrace] stage=power-assignment owner={this} caster={caster} " +
+                            $"power={procPowerProtoRef.GetNameFormatted()} assigned=False action=unassign");
+                    }
+
                     caster.UnassignPower(procPowerProtoRef);
                 }
 

@@ -117,7 +117,7 @@
       ],
       "maximizeAffixRolls": true,
       "clearBuiltInProperties": true,
-      "preserveBuiltInPropertyIndexes": [],
+      "preserveBuiltInPropertyIndexes": [ 6 ],
       "disableTriggeredItemActions": true,
       "clearExistingAffixes": true,
       "preserveProcAffixes": true,
