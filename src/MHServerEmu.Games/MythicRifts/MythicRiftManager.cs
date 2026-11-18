@@ -1361,14 +1361,22 @@ namespace MHServerEmu.Games.MythicRifts
                 return false;
             }
 
+            Logger.Info(
+                $"[OmegaRaidVendorPurchase] stage=attempt playerDbId=0x{player.DatabaseUniqueId:X} " +
+                $"offer={offer.Id} item={rewardItemProtoRef.GetNameFormatted()} cost={cost} availableBefore={availableCurrency}");
+
             if (SpendRiftSigils(player, cost) == false)
             {
+                Logger.Warn(
+                    $"[OmegaRaidVendorPurchase] stage=currency-spend-failed playerDbId=0x{player.DatabaseUniqueId:X} " +
+                    $"offer={offer.Id} item={rewardItemProtoRef.GetNameFormatted()} cost={cost} availableBefore={availableCurrency} " +
+                    $"availableAfter={GetRiftSigilCount(player)}");
                 result = MythicRiftRewardShopPurchaseResult.Failed($"Failed to spend {RiftArtifactVendorCurrencyDisplayName} for offer {offer.Id}.");
                 return false;
             }
 
             Avatar avatar = player.CurrentAvatar;
-            GrantRewardItem(
+            bool delivered = GrantRewardItem(
                 new MythicRiftRewardGuaranteedItem
                 {
                     Id = offer.Id,
@@ -1384,7 +1392,27 @@ namespace MHServerEmu.Games.MythicRifts
                 null,
                 offer.Delivery);
 
+            if (delivered == false)
+            {
+                bool refunded = RefundRiftSigils(player, cost);
+                int currencyAfterFailure = GetRiftSigilCount(player);
+                Logger.Warn(
+                    $"[OmegaRaidVendorPurchase] stage=delivery-failed playerDbId=0x{player.DatabaseUniqueId:X} " +
+                    $"offer={offer.Id} item={rewardItemProtoRef.GetNameFormatted()} cost={cost} delivery={offer.Delivery} " +
+                    $"refunded={refunded} availableAfter={currencyAfterFailure}");
+
+                string refundMessage = refunded
+                    ? $"The item could not be delivered. Your {cost} {RiftArtifactVendorCurrencyDisplayName} were refunded."
+                    : $"The item could not be delivered and the automatic {RiftArtifactVendorCurrencyDisplayName} refund failed. Contact an administrator.";
+                result = MythicRiftRewardShopPurchaseResult.Failed(refundMessage);
+                return false;
+            }
+
             int remainingCurrency = GetRiftSigilCount(player);
+            Logger.Info(
+                $"[OmegaRaidVendorPurchase] stage=success playerDbId=0x{player.DatabaseUniqueId:X} " +
+                $"offer={offer.Id} item={rewardItemProtoRef.GetNameFormatted()} cost={cost} delivery={offer.Delivery} " +
+                $"availableAfter={remainingCurrency}");
             result = new()
             {
                 Success = true,
@@ -1533,6 +1561,19 @@ namespace MHServerEmu.Games.MythicRifts
             }
 
             return false;
+        }
+
+        private bool RefundRiftSigils(Player player, int amount)
+        {
+            if (player == null || amount <= 0)
+                return false;
+
+            PrototypeId currencyProtoRef = ResolvePrototype(RiftArtifactVendorCurrencyPrototypeName);
+            if (currencyProtoRef == PrototypeId.Invalid)
+                return false;
+
+            player.Properties.AdjustProperty(amount, new PropertyId(PropertyEnum.Currency, currencyProtoRef));
+            return true;
         }
 
         public int GetCompletionCrafterAttemptsRemaining(ulong playerDbId)
@@ -1997,7 +2038,7 @@ namespace MHServerEmu.Games.MythicRifts
             }
         }
 
-        private void GrantRewardItem(
+        private bool GrantRewardItem(
             MythicRiftRewardGuaranteedItem guaranteedItem,
             Player player,
             Avatar avatar,
@@ -2007,11 +2048,11 @@ namespace MHServerEmu.Games.MythicRifts
             int stackCount = 1)
         {
             if (guaranteedItem == null)
-                return;
+                return false;
 
             PrototypeId itemProtoRef = guaranteedItem.ItemProtoRef;
             if (player == null)
-                return;
+                return false;
 
             string delivery = deliveryOverride ?? guaranteedItem.Delivery;
             int itemLevel = guaranteedItem.ItemLevel;
@@ -2026,12 +2067,10 @@ namespace MHServerEmu.Games.MythicRifts
                 {
                     using var inputSettingsHandle = LootInputSettingsPool.Get(out LootInputSettings inputSettings);
                     inputSettings.Initialize(LootContext.Drop, player, rewardSourceEntity, Math.Max(itemLevel, 1), positionOverride);
-                    Game.LootManager.SpawnLootFromSummary(lootResultSummary, inputSettings);
-                    return;
+                    return Game.LootManager.SpawnLootFromSummary(lootResultSummary, inputSettings);
                 }
 
-                Game.LootManager.GiveLootFromSummary(lootResultSummary, player, PrototypeId.Invalid);
-                return;
+                return Game.LootManager.GiveLootFromSummary(lootResultSummary, player, PrototypeId.Invalid);
             }
 
             ItemSpec candidateItemSpec = null;
@@ -2040,12 +2079,12 @@ namespace MHServerEmu.Games.MythicRifts
                 candidateItemSpec = CreateRewardItemSpecFromCandidates(guaranteedItem, player, Math.Max(itemLevel, 1), out itemProtoRef);
                 if (candidateItemSpec == null)
                 {
-                    return;
+                    return false;
                 }
             }
 
             if (itemProtoRef == PrototypeId.Invalid)
-                return;
+                return false;
 
             bool hasForcedRarity = guaranteedItem.RarityProtoRef != PrototypeId.Invalid;
             bool useItemFactory = OmegaTierItemFactory.ShouldUseFactory(itemProtoRef, guaranteedItem.RarityProtoRef);
@@ -2057,7 +2096,7 @@ namespace MHServerEmu.Games.MythicRifts
                     : Game.LootManager.CreateItemSpec(itemProtoRef, LootContext.Drop, player, resolvedItemLevel));
                 if (itemSpec == null)
                 {
-                    return;
+                    return false;
                 }
 
                 itemSpec.StackCount = Math.Max(stackCount, 1);
@@ -2069,14 +2108,10 @@ namespace MHServerEmu.Games.MythicRifts
                 {
                     using var inputSettingsHandle = LootInputSettingsPool.Get(out LootInputSettings inputSettings);
                     inputSettings.Initialize(LootContext.Drop, player, rewardSourceEntity, resolvedItemLevel, positionOverride);
-                    Game.LootManager.SpawnLootFromSummary(lootResultSummary, inputSettings);
-                }
-                else
-                {
-                    Game.LootManager.GiveLootFromSummary(lootResultSummary, player, PrototypeId.Invalid);
+                    return Game.LootManager.SpawnLootFromSummary(lootResultSummary, inputSettings);
                 }
 
-                return;
+                return Game.LootManager.GiveLootFromSummary(lootResultSummary, player, PrototypeId.Invalid);
             }
 
             if (MythicRiftRewardTuning.IsGroundDelivery(delivery))
@@ -2085,7 +2120,7 @@ namespace MHServerEmu.Games.MythicRifts
                 {
                     ItemSpec itemSpec = Game.LootManager.CreateItemSpec(itemProtoRef, LootContext.Drop, player);
                     if (itemSpec == null)
-                        return;
+                        return false;
 
                     itemSpec.StackCount = Math.Max(stackCount, 1);
 
@@ -2093,15 +2128,13 @@ namespace MHServerEmu.Games.MythicRifts
                     lootResultSummary.Add(new LootResult(itemSpec));
                     using var inputSettingsHandle = LootInputSettingsPool.Get(out LootInputSettings inputSettings);
                     inputSettings.Initialize(LootContext.Drop, player, rewardSourceEntity, positionOverride);
-                    Game.LootManager.SpawnLootFromSummary(lootResultSummary, inputSettings);
-                    return;
+                    return Game.LootManager.SpawnLootFromSummary(lootResultSummary, inputSettings);
                 }
 
-                Game.LootManager.SpawnItem(itemProtoRef, LootContext.Drop, player, rewardSourceEntity);
-                return;
+                return Game.LootManager.SpawnItem(itemProtoRef, LootContext.Drop, player, rewardSourceEntity);
             }
 
-            Game.LootManager.GiveItem(itemProtoRef, LootContext.Drop, player);
+            return Game.LootManager.GiveItem(itemProtoRef, LootContext.Drop, player);
         }
 
         private Vector3 GetFixedRewardDropPosition(MythicRiftRunState runState, int playerIndex, int recipientCount, int playerDropIndex)

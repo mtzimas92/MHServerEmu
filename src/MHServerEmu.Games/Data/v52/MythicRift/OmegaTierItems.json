@@ -118,7 +118,7 @@
       "maximizeAffixRolls": true,
       "maximizeBuiltInPropertyRolls": true,
       "clearBuiltInProperties": true,
-      "preserveBuiltInPropertyIndexes": [],
+      "preserveBuiltInPropertyIndexes": [ 6 ],
       "disableTriggeredItemActions": true,
       "clearExistingAffixes": true,
       "preserveProcAffixes": true,
@@ -132,8 +132,6 @@
         "Entity/Items/Affixes/ArmorAffixes/Loot20/BonusHealth/BonusHealthT1.prototype",
         "Entity/Items/Affixes/ArmorAffixes/Loot20/BonusHealth/BonusHealthT2.prototype",
         "Entity/Items/Affixes/ArmorAffixes/Loot20/BonusHealth/BonusHealthT3.prototype"
-      ],
-      "disabledProcPowers": [
       ],
       "builtInProperties": [
         {
@@ -208,7 +206,7 @@
       "procKeywordProperties": [
         {
           "trigger": "OnCrit",
-          "power": "Powers/ItemPowers/UniquesPowers/Unique400StackingProc.prototype",
+          "power": "Powers/ItemPowers/UniquesPowers/Unique306BleedProc.prototype",
           "keyword": "Powers/Blueprints/Keywords/Melee.defaults",
           "chance": 0.2
         }
