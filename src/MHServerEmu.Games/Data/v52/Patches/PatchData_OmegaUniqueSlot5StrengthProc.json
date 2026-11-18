@@ -1,122 +1,25 @@
 [
   {
     "Enabled": true,
-    "Prototype": "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot5/Unique238.prototype",
-    "Path": "PropertiesBuiltIn[]",
-    "Description": "Omega slot 5 Strength proc: append the working OnCrit + Melee +9 Strength proc as an additional built-in item property.",
-    "ValueType": "Prototype",
-    "Value": {
-      "ParentDataRef": "Property/PropertyPickInRangeEntry.defaults",
-      "Prop": {
-        "Property": "ProcKeyword",
-        "Params": [
-          16724240818568959069,
-          "Powers/ItemPowers/UniquesPowers/Unique400StackingProc.prototype",
-          "Powers/Blueprints/Keywords/Melee.defaults"
-        ]
-      },
-      "ValueMin": {
-        "ParentDataRef": "Eval/Constants/LoadFloat.defaults",
-        "Op": "LoadFloat",
-        "Value": 0.2
-      },
-      "ValueMax": {
-        "ParentDataRef": "Eval/Constants/LoadFloat.defaults",
-        "Op": "LoadFloat",
-        "Value": 0.2
-      }
-    }
-  },
-  {
-    "Enabled": true,
-    "Prototype": "Powers/ItemPowers/UniquesPowers/Unique400StackingProc.prototype",
-    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].DurationMS",
-    "Description": "Omega slot 5 Strength proc: set the actual inserted proc condition duration to 6 seconds.",
-    "ValueType": "Integer",
-    "Value": 6000
-  },
-  {
-    "Enabled": true,
-    "Prototype": "Powers/ItemPowers/UniquesPowers/Unique400StackingProc.prototype",
-    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].DurationMSCurve",
-    "Description": "Omega slot 5 Strength proc: remove the item-variation duration curve so the duration is deterministic.",
-    "ValueType": "Enum",
-    "Value": "Invalid"
-  },
-  {
-    "Enabled": true,
-    "Prototype": "Powers/ItemPowers/UniquesPowers/Unique400StackingProc.prototype",
-    "Path": "CooldownTimeMS.Value",
-    "Description": "Omega slot 5 Strength proc: keep the proc cooldown at 1 second.",
-    "ValueType": "Integer",
-    "Value": 1000
-  },
-  {
-    "Enabled": true,
-    "Prototype": "Powers/ItemPowers/UniquesPowers/Unique400StackingProc.prototype",
-    "Path": "ProcChanceMultiplierBehavior",
-    "Description": "Omega slot 5 Strength proc: make the melee critical proc ignore source power proc chance multipliers so 100% means every eligible melee crit.",
-    "ValueType": "Enum",
-    "Value": "IgnoreProcChanceMultiplier"
-  },
-  {
-    "Enabled": true,
-    "Prototype": "Powers/ItemPowers/UniquesPowers/Unique400StackingProc.prototype",
-    "Path": "StackingBehaviorLEGACY.MaxNumStacks",
-    "Description": "Omega slot 5 Strength proc: prevent the repurposed stat proc from stacking.",
-    "ValueType": "Integer",
-    "Value": 1
-  },
-  {
-    "Enabled": true,
-    "Prototype": "Powers/ItemPowers/UniquesPowers/Unique400StackingProc.prototype",
+    "Prototype": "Powers/ItemPowers/UniquesPowers/Unique238ElitePictureDrop.prototype",
     "Path": "ActionsTriggeredOnPowerEvent",
-    "Description": "Omega slot 5 Strength proc: remove the old stack-count follow-up proc.",
+    "Description": "Monument of Ell: retain its native client-visible proc row as a tooltip carrier while disabling the old elite-picture reward action.",
     "ValueType": "PrototypeArray",
     "Value": []
-  },
-  {
-    "Enabled": true,
-    "Prototype": "Powers/ItemPowers/UniquesPowers/Unique400StackingProc.prototype",
-    "Path": "AppliesConditions[BlueprintId=2892105955435876127,Copy=0].EvalOnCreate",
-    "Description": "Omega slot 5 Strength proc: replace the actual inserted proc condition payload with a deterministic +9 Strength buff.",
-    "ValueType": "PrototypeArray",
-    "Value": [
-      {
-        "ParentDataRef": "Eval/Properties/AssignProp.defaults",
-        "Op": "AssignProp",
-        "Prop": {
-          "Property": "StatStrengthModifier"
-        },
-        "Eval": {
-          "ParentDataRef": "Eval/Constants/LoadInt.defaults",
-          "Op": "LoadInt",
-          "Value": 9
-        }
-      }
-    ]
   },
   {
     "Enabled": true,
     "Prototype": "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot5/Unique238.prototype",
     "Path": "PropertiesBuiltIn[6].TooltipOverrideText",
-    "Description": "Omega slot 5 Strength proc: reuse Unique238's native proc tooltip line for the new +9 Strength proc text.",
+    "Description": "Monument of Ell: show the dedicated +9 Strength text on its native client-visible proc row.",
     "ValueType": "LocaleStringId",
-    "Value": 11002268455483933959
-  },
-  {
-    "Enabled": true,
-    "Prototype": "Powers/ItemPowers/UniquesPowers/Unique238ElitePictureDrop.prototype",
-    "Path": "ActionsTriggeredOnPowerEvent",
-    "Description": "Omega slot 5 Strength proc: keep Unique238's native proc tooltip row visible, but remove the old elite-picture action from the proc power.",
-    "ValueType": "PrototypeArray",
-    "Value": []
+    "Value": 2565066916325557511
   },
   {
     "Enabled": true,
     "Prototype": "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot5/Unique238.prototype",
     "Path": "PropertiesBuiltIn[6].ValueMin.Value",
-    "Description": "Omega slot 5 Strength proc: keep Unique238's native proc tooltip row visible for the client with a fixed 20% chance.",
+    "Description": "Monument of Ell: keep the native client tooltip carrier visible at 20%.",
     "ValueType": "Float",
     "Value": 0.2
   },
@@ -124,8 +27,70 @@
     "Enabled": true,
     "Prototype": "Entity/Items/Armor/UniquePrototypes/Avatars/AnyHero/Slot5/Unique238.prototype",
     "Path": "PropertiesBuiltIn[6].ValueMax.Value",
-    "Description": "Omega slot 5 Strength proc: keep Unique238's native proc tooltip row visible for the client with a fixed 20% chance.",
+    "Description": "Monument of Ell: keep the native client tooltip carrier visible at 20%.",
     "ValueType": "Float",
     "Value": 0.2
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/ItemPowers/UniquesPowers/Unique399TornadoSummon.prototype",
+    "Path": "SummonEntityContexts",
+    "Description": "Monument of Ell: repurpose the otherwise unreachable Unique399 tornado proc without spawning tornado entities.",
+    "ValueType": "PrototypeArray",
+    "Value": []
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/ItemPowers/UniquesPowers/Unique399TornadoSummon.prototype",
+    "Path": "ActionsTriggeredOnPowerEvent",
+    "Description": "Monument of Ell: remove Unique399 tornado summon follow-up behavior from the isolated runtime proc.",
+    "ValueType": "PrototypeArray",
+    "Value": []
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/ItemPowers/UniquesPowers/Unique399TornadoSummon.prototype",
+    "Path": "AppliesConditions[]",
+    "Description": "Monument of Ell: apply a non-stacking +9 Strength condition for six seconds.",
+    "ValueType": "Prototype",
+    "Value": {
+      "ParentDataRef": "Powers/Blueprints/Condition.defaults",
+      "DurationMS": 6000,
+      "StackingBehavior": {
+        "ParentDataRef": "Powers/Blueprints/Stacking/StackingBehavior.defaults",
+        "ApplicationStyle": "Refresh",
+        "MaxNumStacks": 1
+      },
+      "EvalOnCreate": [
+        {
+          "ParentDataRef": "Eval/Properties/AssignProp.defaults",
+          "Op": "AssignProp",
+          "Prop": {
+            "Property": "StatStrengthModifier"
+          },
+          "Eval": {
+            "ParentDataRef": "Eval/Constants/LoadInt.defaults",
+            "Op": "LoadInt",
+            "Value": 9
+          }
+        }
+      ]
+    }
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/ItemPowers/UniquesPowers/Unique399TornadoSummon.prototype",
+    "Path": "CooldownTimeMS.Value",
+    "Description": "Monument of Ell: set the isolated Strength proc cooldown to one second.",
+    "ValueType": "Integer",
+    "Value": 1000
+  },
+  {
+    "Enabled": true,
+    "Prototype": "Powers/ItemPowers/UniquesPowers/Unique399TornadoSummon.prototype",
+    "Path": "ProcChanceMultiplierBehavior",
+    "Description": "Monument of Ell: use the configured 20% chance without source-power proc chance scaling.",
+    "ValueType": "Enum",
+    "Value": "IgnoreProcChanceMultiplier"
   }
 ]

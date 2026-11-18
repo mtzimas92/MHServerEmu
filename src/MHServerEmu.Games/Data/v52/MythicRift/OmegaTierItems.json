@@ -207,7 +207,7 @@
       "procKeywordProperties": [
         {
           "trigger": "OnCrit",
-          "power": "Powers/ItemPowers/UniquesPowers/Unique400StackingProc.prototype",
+          "power": "Powers/ItemPowers/UniquesPowers/Unique399TornadoSummon.prototype",
           "keyword": "Powers/Blueprints/Keywords/Melee.defaults",
           "chance": 0.2
         }
