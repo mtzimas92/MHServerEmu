@@ -1,5 +1,6 @@
 using MHServerEmu.Core.Collections;
 using MHServerEmu.Core.Extensions;
+using MHServerEmu.Core.Logging;
 using MHServerEmu.Core.Memory;
 using MHServerEmu.Core.System.Random;
 using System.Runtime.CompilerServices;
@@ -21,6 +22,7 @@ namespace MHServerEmu.Games.OmegaTierItems
 {
     public static class OmegaTierItemFactory
     {
+        private static readonly Logger Logger = LogManager.CreateLogger();
 
         private const string CosmicRarityName = "Entity/Items/Rarity/R5Cosmic.prototype";
         private const string OmegaRarityName = "Entity/Items/Rarity/R6Omega.prototype";
@@ -34,6 +36,7 @@ namespace MHServerEmu.Games.OmegaTierItems
         private const string RingDefenseT2CategoryName = "Entity/Items/Affixes/AffixCategories/RingDefenseT2.prototype";
         private const string PropertyPickInRangeEntryName = "Property/PropertyPickInRangeEntry.defaults";
         private const string LoadFloatName = "Eval/Constants/LoadFloat.defaults";
+        private const string MonumentStrengthProcName = "Powers/ItemPowers/UniquesPowers/Unique399TornadoSummon.prototype";
 
         private static readonly ReflectionPropertyInfo ItemPropertiesBuiltInProperty =
             typeof(ItemPrototype).GetProperty(nameof(ItemPrototype.PropertiesBuiltIn));
@@ -1117,7 +1120,17 @@ namespace MHServerEmu.Games.OmegaTierItems
                 Property.ToParam(PropertyEnum.ProcKeyword, 2, keywordRef));
 
             float randomMult = RollConfiguredBuiltInPropertyMult(item, procPowerRef, keywordRef, triggerType);
-            item.Properties[procPropertyId] = procKeywordProperty.GetChance(randomMult, itemOverride.MaximizeBuiltInPropertyRolls);
+            float procChance = procKeywordProperty.GetChance(randomMult, itemOverride.MaximizeBuiltInPropertyRolls);
+            item.Properties[procPropertyId] = procChance;
+
+            if (string.Equals(procKeywordProperty.Power, MonumentStrengthProcName, StringComparison.OrdinalIgnoreCase))
+            {
+                PrototypeId rarityProtoRef = item.Properties[PropertyEnum.ItemRarity];
+                Logger.Info(
+                    $"[MonumentStrengthProcTrace] stage=item-property item={item.PrototypeDataRef.GetNameFormatted()} " +
+                    $"entityId=0x{item.Id:X} rarity={rarityProtoRef.GetNameFormatted()} itemLevel={item.ItemSpec?.ItemLevel ?? 0} " +
+                    $"trigger={triggerType} keyword={keywordRef.GetNameFormatted()} power={procPowerRef.GetNameFormatted()} chance={procChance:F4}");
+            }
 
             if (procKeywordProperty.ItemLevelOverride.HasValue)
                 item.Properties[PropertyEnum.ProcPowerItemLevel, procPowerRef] = procKeywordProperty.ItemLevelOverride.Value;

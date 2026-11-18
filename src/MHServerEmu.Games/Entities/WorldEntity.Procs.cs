@@ -95,6 +95,17 @@ namespace MHServerEmu.Games.Entities
 
     public partial class WorldEntity
     {
+        private const string MonumentStrengthProcName = "Powers/ItemPowers/UniquesPowers/Unique399TornadoSummon.prototype";
+        private static PrototypeId _monumentStrengthProcRef = PrototypeId.Invalid;
+
+        private static bool IsMonumentStrengthProc(PrototypeId powerProtoRef)
+        {
+            if (_monumentStrengthProcRef == PrototypeId.Invalid)
+                _monumentStrengthProcRef = GameDatabase.GetPrototypeRefByName(MonumentStrengthProcName);
+
+            return powerProtoRef != PrototypeId.Invalid && powerProtoRef == _monumentStrengthProcRef;
+        }
+
         #region Handlers
 
         // Handlers are ordered by ProcTriggerType enum
@@ -206,11 +217,34 @@ namespace MHServerEmu.Games.Entities
                 if ((ProcTriggerType)triggerTypeValue != triggerType)
                     continue;
 
-                if (CheckKeywordProc(kvp, out Power procPower, keywordsMask, procChanceMultiplier) == false)
+                Property.FromParam(kvp.Key, 1, out PrototypeId procPowerProtoRef);
+                bool traceMonumentProc = IsMonumentStrengthProc(procPowerProtoRef);
+                bool procCheckPassed = CheckKeywordProc(kvp, out Power procPower, keywordsMask, procChanceMultiplier);
+                if (traceMonumentProc)
+                {
+                    Property.FromParam(kvp.Key, 2, out PrototypeId keywordProtoRef);
+                    KeywordPrototype keywordProto = keywordProtoRef.As<KeywordPrototype>();
+                    Logger.Info(
+                        $"[MonumentStrengthProcTrace] stage=crit-check owner={this} sourcePower={powerProto.DataRef.GetNameFormatted()} " +
+                        $"trigger={triggerType} keyword={keywordProtoRef.GetNameFormatted()} keywordMatched={keywordProto != null && keywordsMask.HasKeyword(keywordProto)} " +
+                        $"configuredChance={(float)Properties[kvp.Key]:F4} chanceMultiplier={procChanceMultiplier:F4} passed={procCheckPassed} " +
+                        $"procAssigned={procPower != null}");
+                }
+
+                if (procCheckPassed == false)
                     continue;
 
                 // Check for recursion (this will also null check procPower)
-                if (CheckOnHitRecursion(procPower, powerResults.PowerPrototype) == false)
+                bool recursionPassed = CheckOnHitRecursion(procPower, powerResults.PowerPrototype);
+                if (traceMonumentProc && recursionPassed == false)
+                {
+                    Logger.Info(
+                        $"[MonumentStrengthProcTrace] stage=recursion-check owner={this} " +
+                        $"procPower={procPower?.PrototypeDataRef.GetNameFormatted() ?? "none"} " +
+                        $"sourcePower={powerResults.PowerPrototype?.DataRef.GetNameFormatted() ?? "none"} passed=False");
+                }
+
+                if (recursionPassed == false)
                     continue;
 
                 WorldEntity procPowerOwner = procPower.Owner;
@@ -224,7 +258,13 @@ namespace MHServerEmu.Games.Entities
                     settings.TargetPosition = target.RegionLocation.Position;
                 }
 
-                procPowerOwner.ActivateProcPower(procPower, ref settings, this);
+                PowerUseResult activationResult = procPowerOwner.ActivateProcPower(procPower, ref settings, this);
+                if (traceMonumentProc)
+                {
+                    Logger.Info(
+                        $"[MonumentStrengthProcTrace] stage=activate owner={this} target={target} " +
+                        $"power={procPower.PrototypeDataRef.GetNameFormatted()} result={activationResult}");
+                }
             }
 
             ConditionCollection?.RemoveCancelOnProcTriggerConditions(triggerType);

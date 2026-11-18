@@ -2121,7 +2121,18 @@ namespace MHServerEmu.Games.Entities
                 if (condition.Duration == TimeSpan.Zero && powerOwner == null)
                     continue;
 
-                conditionCollection.AddCondition(condition);
+                bool traceMonumentProc = IsMonumentStrengthProc(condition.CreatorPowerPrototypeRef);
+                int strengthBefore = traceMonumentProc ? Properties[PropertyEnum.StatStrengthModifier] : 0;
+                bool added = conditionCollection.AddCondition(condition);
+                if (traceMonumentProc)
+                {
+                    int strengthAfter = Properties[PropertyEnum.StatStrengthModifier];
+                    Logger.Info(
+                        $"[MonumentStrengthProcTrace] stage=condition-add target={this} " +
+                        $"power={condition.CreatorPowerPrototypeRef.GetNameFormatted()} added={added} durationMs={condition.Duration.TotalMilliseconds:F0} " +
+                        $"conditionStrength={(int)condition.Properties[PropertyEnum.StatStrengthModifier]} " +
+                        $"strengthBefore={strengthBefore} strengthAfter={strengthAfter}");
+                }
             }
 
             // Remove existing conditions
