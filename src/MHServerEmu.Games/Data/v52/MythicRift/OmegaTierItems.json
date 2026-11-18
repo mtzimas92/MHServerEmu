@@ -133,6 +133,7 @@
         "Entity/Items/Affixes/ArmorAffixes/Loot20/BonusHealth/BonusHealthT3.prototype"
       ],
       "disabledProcPowers": [
+        "Powers/ItemPowers/UniquesPowers/Unique238ElitePictureDrop.prototype"
       ],
       "builtInProperties": [
         {
@@ -204,7 +205,14 @@
           "replaceExistingSamePosition": false
         }
       ],
-      "procKeywordProperties": [],
+      "procKeywordProperties": [
+        {
+          "trigger": "OnCrit",
+          "power": "Powers/ItemPowers/UniquesPowers/Unique238ElitePictureDrop.prototype",
+          "keyword": "Powers/Blueprints/Keywords/Melee.defaults",
+          "chance": 0.2
+        }
+      ],
       "affixReplacements": [
         { "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/CritChance/CritChanceT1.prototype", "allowInvalidAttachment": true, "replaceAffixes": [ "Entity/Items/Affixes/ArmorAffixes/Loot20/CritChance/CritChanceT2.prototype", "Entity/Items/Affixes/ArmorAffixes/Loot20/CritChance/CritChanceT3.prototype" ] },
         { "prototype": "Entity/Items/Affixes/ArmorAffixes/Loot20/CritDamage/CritDamageT1.prototype", "allowInvalidAttachment": true, "replaceAffixes": [ "Entity/Items/Affixes/ArmorAffixes/Loot20/CritDamage/CritDamageT2.prototype", "Entity/Items/Affixes/ArmorAffixes/Loot20/CritDamage/CritDamageT3.prototype" ] }
