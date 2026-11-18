@@ -55,6 +55,7 @@
     "ValueType": "Prototype",
     "Value": {
       "ParentDataRef": "Powers/Blueprints/Condition.defaults",
+      "Scope": "User",
       "DurationMS": 6000,
       "StackingBehavior": {
         "ParentDataRef": "Powers/Blueprints/Stacking/StackingBehavior.defaults",
