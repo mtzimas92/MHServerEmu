@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <InformationalVersion>1.0.3</InformationalVersion>
+    <InformationalVersion>1.1.0</InformationalVersion>
     <SourceRevisionId>build$([System.DateTime]::UtcNow.ToString("yyyyMMddHHmmss"))</SourceRevisionId>
     <AssemblyVersion>$(InformationalVersion).0</AssemblyVersion>
     <FileVersion>$(AssemblyVersion)</FileVersion>
@@ -18,10 +18,6 @@
 
   <PropertyGroup>
     <TieredCompilationQuickJit>false</TieredCompilationQuickJit>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
-    <DefineConstants>$(DefineConstants);OS_WINDOWS</DefineConstants>
   </PropertyGroup>
 	
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
