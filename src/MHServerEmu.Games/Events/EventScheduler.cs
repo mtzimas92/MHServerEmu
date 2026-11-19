@@ -12,6 +12,8 @@ namespace MHServerEmu.Games.Events
     public class EventScheduler
     {
         private const int MaxEventsPerUpdate = 250000;
+        private const int RunawayDiagnosticStartEventCount = 100000;
+        private const int RunawayDiagnosticRecentEventCount = 32;
 
 #if DEBUG
         private static readonly Logger Logger = LogManager.CreateLogger();
@@ -170,6 +172,10 @@ namespace MHServerEmu.Games.Events
                 return;
 
             int numEvents = 0;
+            Dictionary<Type, int> runawayEventCounts = null;
+            Type[] recentRunawayEventTypes = null;
+            int recentRunawayEventIndex = 0;
+            int recentRunawayEventCount = 0;
 
             long startFrame = CurrentTime.CalcNumTimeQuantums(_quantumSize);
             long endFrame = updateEndTime.CalcNumTimeQuantums(_quantumSize);
@@ -204,8 +210,39 @@ namespace MHServerEmu.Games.Events
                         @event.OnTriggered();
 #endif
 
-                        if (++numEvents > MaxEventsPerUpdate)
-                            throw new Exception($"Infinite loop detected in EventScheduler.");
+                        numEvents++;
+                        if (numEvents >= RunawayDiagnosticStartEventCount)
+                        {
+                            Type eventType = @event.GetType();
+                            runawayEventCounts ??= new();
+                            runawayEventCounts[eventType] = runawayEventCounts.GetValueOrDefault(eventType) + 1;
+
+                            recentRunawayEventTypes ??= new Type[RunawayDiagnosticRecentEventCount];
+                            recentRunawayEventTypes[recentRunawayEventIndex] = eventType;
+                            recentRunawayEventIndex = (recentRunawayEventIndex + 1) % recentRunawayEventTypes.Length;
+                            recentRunawayEventCount++;
+                        }
+
+                        if (numEvents > MaxEventsPerUpdate)
+                        {
+                            string topEventTypes = string.Join(
+                                ", ",
+                                runawayEventCounts
+                                    .OrderByDescending(kvp => kvp.Value)
+                                    .Take(8)
+                                    .Select(kvp => $"{kvp.Key.Name}:{kvp.Value}"));
+                            string recentEventTypes = FormatRecentRunawayEventTypes(
+                                recentRunawayEventTypes,
+                                recentRunawayEventIndex,
+                                recentRunawayEventCount);
+
+                            throw new Exception(
+                                $"Infinite loop detected in EventScheduler. processed={numEvents}, " +
+                                $"diagnosticStart={RunawayDiagnosticStartEventCount}, currentEvent={@event.GetType().FullName}, " +
+                                $"fireTimeMs={@event.FireTime.TotalMilliseconds:F0}, currentTimeMs={CurrentTime.TotalMilliseconds:F0}, " +
+                                $"updateEndTimeMs={updateEndTime.TotalMilliseconds:F0}, frame={currentFrame}, bucket={i}, " +
+                                $"topEventTypes=[{topEventTypes}], recentEventTypes=[{recentEventTypes}]");
+                        }
 
                         _eventPool.Return(@event);
                     }
@@ -241,6 +278,20 @@ namespace MHServerEmu.Games.Events
             // Record metrics
             ulong gameId = Game.Current != null ? Game.Current.Id : 0;
             MetricsManager.Instance.RecordGamePerformanceMetric(gameId, GamePerformanceMetricEnum.ScheduledEventsPerUpdate, numEvents);
+        }
+
+        private static string FormatRecentRunawayEventTypes(Type[] recentEventTypes, int nextIndex, int totalRecorded)
+        {
+            if (recentEventTypes == null || totalRecorded <= 0)
+                return string.Empty;
+
+            int count = Math.Min(totalRecorded, recentEventTypes.Length);
+            int startIndex = totalRecorded >= recentEventTypes.Length ? nextIndex : 0;
+            string[] names = new string[count];
+            for (int i = 0; i < count; i++)
+                names[i] = recentEventTypes[(startIndex + i) % recentEventTypes.Length]?.Name ?? "null";
+
+            return string.Join(" -> ", names);
         }
 
         /// <summary>
